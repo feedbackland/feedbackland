@@ -1,6 +1,13 @@
-import { getUserByEmail } from "@/app//queries";
+import { getUserByEmail, getUserByEmail2 } from "@/app//queries";
 
 export default async function Home() {
   const user = await getUserByEmail("Amaya_Berge@example.com");
-  return <div className="">{user?.name}</div>;
+  const user2 = await getUserByEmail2("Amaya_Berge@example.com");
+
+  return (
+    <div className="flex flex-col space-y-3">
+      <div>{user?.name}</div>
+      <div>{user2?.name}</div>
+    </div>
+  );
 }
