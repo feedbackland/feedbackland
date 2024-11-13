@@ -6,7 +6,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col space-y-3">
-      <h1>Test2</h1>
+      <h1>Test3</h1>
       <div>{user?.name}</div>
       <div>{user2?.name}</div>
     </div>
