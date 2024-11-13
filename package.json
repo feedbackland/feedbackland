@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "kysely-codegen": "npx kysely-codegen --out-file dbschema.ts"
+    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file app/db/schema.ts"
   },
   "dependencies": {
     "@types/pg": "^8.11.10",

@@ -2,7 +2,7 @@ import "server-only";
 
 import { Pool } from "pg";
 import { Kysely, PostgresDialect } from "kysely";
-import { DB } from "@/dbschema";
+import { DB } from "@/app/db/schema";
 
 // import { getXataClient, DatabaseSchema } from "@/app/db/xata";
 // import { Kysely } from "kysely";
