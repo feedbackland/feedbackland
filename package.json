@@ -6,9 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "kysely-codegen": "npx kysely-codegen --out-file dbschema.ts"
   },
   "dependencies": {
+    "@types/pg": "^8.11.10",
     "@xata.io/client": "^0.30.1",
     "@xata.io/kysely": "^0.2.1",
     "geist": "^1.3.1",
@@ -16,7 +18,8 @@
     "next": "^15.0.3",
     "pg": "^8.13.1",
     "react": "rc",
-    "react-dom": "rc"
+    "react-dom": "rc",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
