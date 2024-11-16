@@ -1,6 +1,0 @@
-{
-  "databaseURL": "https://feedbackland-s-workspace-fmcs8e.us-east-1.xata.sh/db/feedbackland",
-  "codegen": {
-    "output": "app/db/xata.ts"
-  }
-}
