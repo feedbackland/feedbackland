@@ -1,18 +1,17 @@
 "use client";
-import { authClient } from "@/app/utils/auth-client";
+import { authClient } from "@/app/utils/auth-client"; //import the auth client
 import { useState } from "react";
 
-export function SignUp() {
+export function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  const signUp = async () => {
-    const { data, error } = await authClient.signUp.email(
+  const signIn = async () => {
+    const { data, error } = await authClient.signIn.email(
       {
         email,
         password,
-        name,
       },
       {
         onRequest: () => {
@@ -31,10 +30,10 @@ export function SignUp() {
   return (
     <div>
       <input
-        type="name"
-        placeholder="name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        type="email"
+        placeholder="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
       <input
         type="password"
@@ -42,13 +41,7 @@ export function SignUp() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <input
-        type="email"
-        placeholder="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button onClick={signUp}>Sign Up</button>
+      <button onClick={signIn}>Sign In</button>
     </div>
   );
 }
