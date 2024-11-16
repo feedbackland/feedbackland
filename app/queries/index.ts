@@ -1,4 +1,3 @@
-import "server-only";
 import { db } from "@/app/db/db";
 
 export const getUserByEmail = async (email: string) => {
