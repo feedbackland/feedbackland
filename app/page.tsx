@@ -1,4 +1,4 @@
-import { getUserByEmail, getUserByEmail2 } from "@/app//queries";
+import { getUserByEmail } from "@/app//queries";
 
 export default async function Home() {
   const user = await getUserByEmail("bleh@blah.com");
