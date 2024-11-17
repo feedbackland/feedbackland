@@ -1,5 +1,5 @@
 "use client";
-import { authClient } from "@/app/utils/auth-client"; //import the auth client
+import { authClient } from "@/app/utils/auth-client";
 import { useState } from "react";
 
 export function SignIn() {

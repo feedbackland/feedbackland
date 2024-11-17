@@ -41,6 +41,18 @@ export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Account {
+  accessToken: string | null;
+  accountId: string;
+  expiresAt: Timestamp | null;
+  id: string;
+  idToken: string | null;
+  password: string | null;
+  providerId: string;
+  refreshToken: string | null;
+  userId: string;
+}
+
 export interface AuthAuditLogEntries {
   created_at: Timestamp | null;
   id: string;
@@ -425,6 +437,14 @@ export interface RealtimeSubscription {
   subscription_id: string;
 }
 
+export interface Session {
+  expiresAt: Timestamp;
+  id: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  userId: string;
+}
+
 export interface StorageBuckets {
   allowed_mime_types: string[] | null;
   avif_autodetection: Generated<boolean | null>;
@@ -491,6 +511,16 @@ export interface StorageS3MultipartUploadsParts {
   version: string;
 }
 
+export interface User {
+  createdAt: Timestamp;
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  image: string | null;
+  name: string;
+  updatedAt: Timestamp;
+}
+
 export interface Users {
   created_at: Generated<Timestamp>;
   email: string;
@@ -521,7 +551,16 @@ export interface VaultSecrets {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Verification {
+  createdAt: Timestamp | null;
+  expiresAt: Timestamp;
+  id: string;
+  identifier: string;
+  value: string;
+}
+
 export interface DB {
+  account: Account;
   "auth.audit_log_entries": AuthAuditLogEntries;
   "auth.flow_state": AuthFlowState;
   "auth.identities": AuthIdentities;
@@ -549,12 +588,15 @@ export interface DB {
   "realtime.messages": RealtimeMessages;
   "realtime.schema_migrations": RealtimeSchemaMigrations;
   "realtime.subscription": RealtimeSubscription;
+  session: Session;
   "storage.buckets": StorageBuckets;
   "storage.migrations": StorageMigrations;
   "storage.objects": StorageObjects;
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
+  user: User;
   users: Users;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
+  verification: Verification;
 }

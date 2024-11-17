@@ -1,5 +1,5 @@
 import { getUserByEmail } from "@/app//queries";
-import { auth } from "@/app/utils/auth"; // path to your Better Auth server instance
+import { auth } from "@/app/utils/auth";
 import { headers } from "next/headers";
 import { SignUp } from "@/app/components/sign-up";
 import { SignIn } from "@/app/components/sign-in";
