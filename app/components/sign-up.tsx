@@ -18,8 +18,7 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
-  console.log("SignUp window?.location?.host", window?.location?.host);
-  console.log("SignUp window?.location?.origin", window?.location?.origin);
+  console.log("SignUp window?.location", window?.location);
 
   const signUp = async () => {
     const { data, error } = await authClient.signUp.email(
