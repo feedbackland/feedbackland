@@ -18,13 +18,16 @@ export function SignIn() {
           //show loading
         },
         onSuccess: () => {
-          //redirect to the dashboard
+          console.log("successfully signed in");
         },
         onError: (ctx: any) => {
-          alert(ctx.error.message);
+          console.log(ctx.error.message);
         },
       }
     );
+
+    console.log("data", data);
+    console.log("error", error);
   };
 
   return (

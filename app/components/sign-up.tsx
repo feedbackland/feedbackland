@@ -11,6 +11,8 @@ export function SignUp() {
 
   const org = getOrgFromUrl();
 
+  console.log(window?.location);
+
   const signUp = async () => {
     const { data, error } = await authClient.signUp.email(
       {
@@ -23,13 +25,16 @@ export function SignUp() {
           //show loading
         },
         onSuccess: () => {
-          //redirect to the dashboard
+          console.log("successfully signed up");
         },
         onError: (ctx: any) => {
-          alert(ctx.error.message);
+          console.log(ctx.error.message);
         },
       }
     );
+
+    console.log("data", data);
+    console.log("error", error);
   };
 
   return (

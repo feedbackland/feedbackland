@@ -9,6 +9,8 @@ export default async function Home() {
     headers: await headers(),
   });
 
+  console.log("session", session);
+
   const user = await getUserByEmail("bleh@blah.com");
 
   return (
