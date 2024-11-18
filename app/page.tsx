@@ -18,10 +18,8 @@ export default async function Home() {
       <h1>Test6</h1>
       <div>{user?.name}</div>
       <div>{session && session?.user?.name}</div>
-      <div>
+      <div className="flex space-x-5">
         <SignUp />
-      </div>
-      <div>
         <SignIn />
       </div>
     </div>
