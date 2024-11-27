@@ -1,4 +1,4 @@
-import { getUserByEmail } from "@/app//queries";
+import { getUserByEmail } from "@/app/queries";
 import { auth } from "@/app/utils/auth";
 import { headers } from "next/headers";
 import { SignUp } from "@/app/components/sign-up";
