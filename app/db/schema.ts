@@ -43,13 +43,18 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
   accessToken: string | null;
+  accessTokenExpiresAt: Timestamp | null;
   accountId: string;
+  createdAt: Timestamp;
   expiresAt: Timestamp | null;
   id: string;
   idToken: string | null;
   password: string | null;
   providerId: string;
   refreshToken: string | null;
+  refreshTokenExpiresAt: Timestamp | null;
+  scope: string | null;
+  updatedAt: Timestamp;
   userId: string;
 }
 
@@ -438,9 +443,12 @@ export interface RealtimeSubscription {
 }
 
 export interface Session {
+  createdAt: Timestamp;
   expiresAt: Timestamp;
   id: string;
   ipAddress: string | null;
+  token: string;
+  updatedAt: Timestamp;
   userAgent: string | null;
   userId: string;
 }
@@ -521,13 +529,6 @@ export interface User {
   updatedAt: Timestamp;
 }
 
-export interface Users {
-  created_at: Generated<Timestamp>;
-  email: string;
-  id: Generated<string>;
-  name: string;
-}
-
 export interface VaultDecryptedSecrets {
   created_at: Timestamp | null;
   decrypted_secret: string | null;
@@ -556,6 +557,7 @@ export interface Verification {
   expiresAt: Timestamp;
   id: string;
   identifier: string;
+  updatedAt: Timestamp | null;
   value: string;
 }
 
@@ -595,7 +597,6 @@ export interface DB {
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
   user: User;
-  users: Users;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
   verification: Verification;
