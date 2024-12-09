@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 
 export const auth = betterAuth({
   trustedOrigins: [
-    "http://test.localhost:3000/",
     "http://*.localhost:3000/",
     "*.localhost:3000/",
     "*",
@@ -18,22 +17,22 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  databaseHooks: {
-    session: {
-      create: {
-        before: async (session) => {
-          const headerList = await headers();
-          const pathname = headerList?.get("x-current-path");
-          console.log("pathname", pathname);
+  // databaseHooks: {
+  //   session: {
+  //     create: {
+  //       before: async (session) => {
+  //         const headerList = await headers();
+  //         const pathname = headerList?.get("x-current-path");
+  //         console.log("pathname", pathname);
 
-          return {
-            data: {
-              ...session,
-              org: "zolg",
-            },
-          };
-        },
-      },
-    },
-  },
+  //         return {
+  //           data: {
+  //             ...session,
+  //             org: "zolg",
+  //           },
+  //         };
+  //       },
+  //     },
+  //   },
+  // },
 });
