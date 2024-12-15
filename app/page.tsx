@@ -1,3 +1,4 @@
+import "@iframe-resizer/child";
 import { headers as nextHeaders } from "next/headers";
 import { auth } from "@/app/utils/auth";
 import { SignUp } from "@/app/components/sign-up";
