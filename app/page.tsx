@@ -1,16 +1,13 @@
-import { headers as nextHeaders } from "next/headers";
-import { auth } from "@/app/utils/auth";
+import { getSubdomain, getSession } from "@/app/utils/helpers";
 import { SignUp } from "@/app/components/sign-up";
 import { SignIn } from "@/app/components/sign-in";
 
 export default async function Home() {
-  const headers = await nextHeaders();
-  const subdomain = headers.get("x-subdomain");
-  console.log("subdomain", subdomain);
+  const subdomain = await getSubdomain();
+  const session = await getSession();
 
-  const session = await auth.api.getSession({
-    headers,
-  });
+  console.log("subdomain", subdomain);
+  console.log("session", session);
 
   return (
     <div className="flex flex-col space-y-3">
