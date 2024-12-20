@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { getSubdomain, getSession } from "@/app/utils/helpers";
+=======
+import "@iframe-resizer/child";
+import { headers as nextHeaders } from "next/headers";
+import { auth } from "@/app/utils/auth";
+>>>>>>> 09084e1f14898889076c39801f1594018fbbe121
 import { SignUp } from "@/app/components/sign-up";
 import { SignIn } from "@/app/components/sign-in";
 
