@@ -1,4 +1,3 @@
-import { getSubdomain, getSession } from "@/app/utils/helpers";
 import { SignUp } from "@/app/components/sign-up";
 
 export default async function Home() {

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { auth } from "@/app/utils/auth";
+import { auth } from "@/app/utils/server/auth";
 
 export const getSubdomain = async () => {
   const headersList = await headers();

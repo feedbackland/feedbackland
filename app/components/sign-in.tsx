@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/app/utils/auth-client";
+import { authClient } from "@/app/utils/client/auth-client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +27,7 @@ export function SignIn() {
         onSuccess: () => {
           router.push("/");
         },
-        onError: (ctx: any) => {
+        onError: (ctx) => {
           console.log(ctx.error.message);
         },
       }
