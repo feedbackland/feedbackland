@@ -14,10 +14,10 @@ export default async function Home() {
     <div className="flex flex-col space-y-3">
       <h1>Feedbackland</h1>
       {session && <div>Session username: {session?.user?.name}</div>}
-      <div className="flex space-x-5">
+      {/* <div className="flex space-x-5">
         <SignUp />
         <SignIn />
-      </div>
+      </div> */}
     </div>
   );
 }
