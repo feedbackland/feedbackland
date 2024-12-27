@@ -3,8 +3,14 @@ import { auth } from "@/app/utils/auth";
 
 export const getSubdomain = async () => {
   const headersList = await headers();
-  const subdomain = headersList.get("x-subdomain");
-  return subdomain;
+  const host = headersList.get("host") || "";
+  const subdomain = host?.split(".")?.[0];
+
+  if (subdomain && subdomain !== "www" && !subdomain.includes("localhost")) {
+    return subdomain;
+  }
+
+  return null;
 };
 
 export const getSession = async () => {
