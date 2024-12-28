@@ -1,6 +1,7 @@
 import "@iframe-resizer/child";
 import { getSession } from "@/app/utils/server/helpers";
 import { SignOutButton } from "./components/sign-out-button";
+import { SignInDialog } from "./components/sign-in-dialog";
 
 export default async function Home() {
   const session = await getSession();
@@ -10,6 +11,7 @@ export default async function Home() {
       <h1>Feedbackland</h1>
       {session && <div>Session username: {session?.user?.name}</div>}
       <SignOutButton />
+      <SignInDialog />
     </div>
   );
 }
