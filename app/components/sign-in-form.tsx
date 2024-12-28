@@ -3,12 +3,11 @@
 import { authClient } from "@/app/utils/client/auth-client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 
-export function SignInForm() {
+export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -25,7 +24,8 @@ export function SignInForm() {
           //show loading
         },
         onSuccess: () => {
-          router.push("/");
+          router.refresh();
+          onSuccess?.();
         },
         onError: (ctx) => {
           console.log(ctx.error.message);

@@ -10,6 +10,7 @@ export const auth = betterAuth({
     "https://*",
     "http://*",
   ],
+  // baseURL: "http://localhost:3000",
   database: {
     dialect,
     type: "postgres",

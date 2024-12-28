@@ -1,32 +1,32 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SignInForm } from "./sign-in-form";
-import { getSession } from "@/app/utils/server/helpers";
+import { authClient } from "@/app/utils/client/auth-client";
 
-export async function SignInDialog() {
-  const session = await getSession();
+export function SignInDialog() {
+  const [open, setOpen] = useState(false);
+  const { data: session } = authClient.useSession();
 
   if (!session) {
     return (
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">Sign in</Button>
+          <Button onClick={() => setOpen(true)}>Sign in</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Sign in</DialogTitle>
           </DialogHeader>
-          <SignInForm />
-          {/* <DialogFooter>
-            <Button type="submit">Save changes</Button>
-          </DialogFooter> */}
+          <SignInForm onSuccess={() => setOpen(false)} />
         </DialogContent>
       </Dialog>
     );

@@ -10,8 +10,14 @@ export default async function Home() {
     <div className="flex flex-col space-y-3">
       <h1>Feedbackland</h1>
       {session && <div>Session username: {session?.user?.name}</div>}
-      <SignOutButton />
-      <SignInDialog />
+      <div className="">
+        <div>
+          <SignOutButton />
+        </div>
+        <div>
+          <SignInDialog />
+        </div>
+      </div>
     </div>
   );
 }
