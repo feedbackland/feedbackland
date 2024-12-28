@@ -8,7 +8,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col space-y-3">
-      <h1>Feedbackland</h1>
+      <h1>Feedbackland WIP</h1>
       {session && <div>Session username: {session?.user?.name}</div>}
       <div className="">
         <div>
