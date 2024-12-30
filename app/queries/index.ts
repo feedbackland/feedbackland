@@ -8,3 +8,12 @@
 //     .executeTakeFirst();
 //   return user;
 // };
+
+// export const setAdminRole = async (email: string) => {
+//   const user = await db
+//     .selectFrom("users")
+//     .selectAll()
+//     .where("email", "=", email)
+//     .executeTakeFirst();
+//   return user;
+// };

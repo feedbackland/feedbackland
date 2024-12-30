@@ -6,13 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { getSubdomain } from "../utils/client/helpers";
 
-export function SignUpForm() {
+export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
 
   const router = useRouter();
+
+  const subdomain = getSubdomain();
+  console.log(subdomain);
 
   const signUp = async () => {
     const { data, error } = await authClient.signUp.email(
@@ -26,7 +30,8 @@ export function SignUpForm() {
           //show loading
         },
         onSuccess: () => {
-          router.push("/");
+          router.refresh();
+          onSuccess?.();
         },
         onError: (ctx) => {
           console.log(ctx.error.message);
