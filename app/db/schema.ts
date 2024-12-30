@@ -343,6 +343,11 @@ export interface ExtensionsWrappersFdwStats {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Org {
+  id: Generated<string>;
+  name: string;
+}
+
 export interface PgsodiumDecryptedKey {
   associated_data: string | null;
   comment: string | null;
@@ -529,6 +534,12 @@ export interface User {
   updatedAt: Timestamp;
 }
 
+export interface UserOrg {
+  org_id: string;
+  role: string;
+  user_id: string;
+}
+
 export interface VaultDecryptedSecrets {
   created_at: Timestamp | null;
   decrypted_secret: string | null;
@@ -582,6 +593,7 @@ export interface DB {
   "extensions.pg_stat_statements": ExtensionsPgStatStatements;
   "extensions.pg_stat_statements_info": ExtensionsPgStatStatementsInfo;
   "extensions.wrappers_fdw_stats": ExtensionsWrappersFdwStats;
+  org: Org;
   "pgsodium.decrypted_key": PgsodiumDecryptedKey;
   "pgsodium.key": PgsodiumKey;
   "pgsodium.mask_columns": PgsodiumMaskColumns;
@@ -597,6 +609,7 @@ export interface DB {
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
   user: User;
+  user_org: UserOrg;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
   verification: Verification;
