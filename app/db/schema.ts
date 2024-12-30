@@ -526,7 +526,6 @@ export interface User {
   id: string;
   image: string | null;
   name: string;
-  role: string | null;
   updatedAt: Timestamp;
 }
 

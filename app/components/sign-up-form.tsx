@@ -24,7 +24,6 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
         email,
         password,
         name,
-        role: subdomain === "new" ? "admin" : "user",
       },
       {
         onRequest: () => {
