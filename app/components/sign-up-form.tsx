@@ -30,7 +30,10 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
           //show loading
         },
         onSuccess: async () => {
-          await createOrgAction({ userEmail: email, orgName: subdomain });
+          await createOrgAction({
+            userEmail: email,
+            orgName: subdomain,
+          });
           router.refresh();
           onSuccess?.();
         },

@@ -11,7 +11,7 @@ export const createOrg = async ({
     const user = await trx
       .selectFrom("user")
       .select("id")
-      .where("user.email", "=", userEmail)
+      .where("user.email", "=", userEmail.toLowerCase())
       .executeTakeFirstOrThrow();
 
     const org = await trx
