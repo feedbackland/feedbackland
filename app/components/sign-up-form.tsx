@@ -30,7 +30,7 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
           //show loading
         },
         onSuccess: async () => {
-          await createOrgAction({ name: subdomain });
+          await createOrgAction({ userEmail: email, orgName: subdomain });
           router.refresh();
           onSuccess?.();
         },
@@ -39,9 +39,6 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
         },
       }
     );
-
-    console.log("data", data);
-    console.log("error", error);
   };
 
   return (
