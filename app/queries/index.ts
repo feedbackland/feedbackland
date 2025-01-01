@@ -37,6 +37,20 @@ export const createOrg = async ({
   });
 };
 
+export const getOrgs = async ({ userId }: { userId: string }) => {
+  const orgs = await db
+    .selectFrom("user_org")
+    .innerJoin("org", "user_org.org_id", "org.id") // Join with the org table
+    .where("user_org.user_id", "=", userId) // Filter by the user's ID
+    .select([
+      "org.id", // Select organization ID
+      "org.name", // Select organization name (adjust column names as needed)
+      "org.subdomain", // Select subdomain, if applicable
+    ])
+    .execute();
+  return orgs;
+};
+
 export const getUserWithOrgAndRole = async ({ userId }: { userId: string }) => {
   const result = await db
     .selectFrom("user")
@@ -50,6 +64,6 @@ export const getUserWithOrgAndRole = async ({ userId }: { userId: string }) => {
       "user_org.role as user_org_role",
     ])
     .where("user.id", "=", userId)
-    .execute();
+    .executeTakeFirst();
   return result;
 };

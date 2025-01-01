@@ -1,6 +1,6 @@
 import "@iframe-resizer/child";
-import { getSession, getSubdomain } from "@/app/utils/server/helpers";
-import { getUserWithOrgAndRole } from "@/app/queries";
+import { getSession } from "@/app/utils/server/helpers";
+import { getOrgs } from "@/app/queries";
 import { SignOutButton } from "./components/sign-out-button";
 import { SignInDialog } from "./components/sign-in-dialog";
 import { SignUpDialog } from "./components/sign-up-dialog";
@@ -8,11 +8,9 @@ import { CreateOrgForm } from "./components/create-org-form";
 
 export default async function Home() {
   const session = await getSession();
-  const subdomain = await getSubdomain();
-  const user = session?.user?.id
-    ? await getUserWithOrgAndRole({ userId: session.user.id })
+  const userOrgs = session?.user?.id
+    ? await getOrgs({ userId: session.user.id })
     : null;
-  console.log("user", user);
 
   return (
     <div className="flex flex-col space-y-3">
@@ -20,7 +18,7 @@ export default async function Home() {
       {session ? (
         <>
           <div>Session username: {session?.user?.name}</div>
-          {subdomain === "new" && (
+          {userOrgs?.length === 0 && (
             <div>
               <CreateOrgForm />
             </div>
