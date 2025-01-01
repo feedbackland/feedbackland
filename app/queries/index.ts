@@ -20,6 +20,7 @@ export const createOrg = async ({
       .insertInto("org")
       .values({
         name: orgName,
+        subdomain: orgSubdomain,
       })
       .returning("id")
       .executeTakeFirstOrThrow();
