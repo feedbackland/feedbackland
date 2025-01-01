@@ -14,6 +14,10 @@ import { SignInForm } from "./sign-in-form";
 export function SignInDialog() {
   const [open, setOpen] = useState(false);
 
+  const handleSignIn = () => {
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -23,7 +27,7 @@ export function SignInDialog() {
         <DialogHeader>
           <DialogTitle>Sign in</DialogTitle>
         </DialogHeader>
-        <SignInForm onSuccess={() => setOpen(false)} />
+        <SignInForm onSuccess={handleSignIn} />
       </DialogContent>
     </Dialog>
   );

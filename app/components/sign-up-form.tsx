@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { getSubdomain } from "../utils/client/helpers";
-import { createOrgAction } from "@/app/actions/create-org";
 
 export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
   const [email, setEmail] = useState("");
@@ -16,32 +14,17 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const router = useRouter();
 
-  const subdomain = getSubdomain();
-
   const signUp = async () => {
-    const { data, error } = await authClient.signUp.email(
-      {
-        email,
-        password,
-        name,
-      },
-      {
-        onRequest: () => {
-          //show loading
-        },
-        onSuccess: async () => {
-          await createOrgAction({
-            userEmail: email,
-            orgName: subdomain,
-          });
-          router.refresh();
-          onSuccess?.();
-        },
-        onError: (ctx) => {
-          console.log(ctx.error.message);
-        },
-      }
-    );
+    const { data, error } = await authClient.signUp.email({
+      email,
+      password,
+      name,
+    });
+
+    if (data && !error) {
+      router.refresh();
+      onSuccess?.();
+    }
   };
 
   return (

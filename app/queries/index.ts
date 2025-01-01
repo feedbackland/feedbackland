@@ -1,17 +1,19 @@
 import { db } from "@/app/db/db";
 
 export const createOrg = async ({
-  userEmail,
+  userId,
   orgName,
+  orgSubdomain,
 }: {
-  userEmail: string;
+  userId: string;
   orgName: string;
+  orgSubdomain: string;
 }) => {
   return await db.transaction().execute(async (trx) => {
     const user = await trx
       .selectFrom("user")
       .select("id")
-      .where("user.email", "=", userEmail.toLowerCase())
+      .where("user.id", "=", userId)
       .executeTakeFirstOrThrow();
 
     const org = await trx

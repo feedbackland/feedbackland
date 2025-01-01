@@ -14,6 +14,10 @@ import { SignUpForm } from "./sign-up-form";
 export function SignUpDialog() {
   const [open, setOpen] = useState(false);
 
+  const handleSignUp = () => {
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -23,7 +27,7 @@ export function SignUpDialog() {
         <DialogHeader>
           <DialogTitle>Sign up</DialogTitle>
         </DialogHeader>
-        <SignUpForm onSuccess={() => setOpen(false)} />
+        <SignUpForm onSuccess={handleSignUp} />
       </DialogContent>
     </Dialog>
   );

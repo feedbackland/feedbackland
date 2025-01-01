@@ -14,27 +14,15 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
 
   const signIn = async () => {
-    const { data, error } = await authClient.signIn.email(
-      {
-        email,
-        password,
-      },
-      {
-        onRequest: () => {
-          //show loading
-        },
-        onSuccess: () => {
-          router.refresh();
-          onSuccess?.();
-        },
-        onError: (ctx) => {
-          console.log(ctx.error.message);
-        },
-      }
-    );
+    const { data, error } = await authClient.signIn.email({
+      email,
+      password,
+    });
 
-    console.log("data", data);
-    console.log("error", error);
+    if (data && !error) {
+      router.refresh();
+      onSuccess?.();
+    }
   };
 
   return (
