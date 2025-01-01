@@ -346,6 +346,7 @@ export interface ExtensionsWrappersFdwStats {
 export interface Org {
   id: Generated<string>;
   name: string;
+  subdomain: Generated<string>;
 }
 
 export interface PgsodiumDecryptedKey {
