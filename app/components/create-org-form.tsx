@@ -13,7 +13,17 @@ type OrgFormInputs = {
   subdomain: string;
 };
 
-export function CreateOrgForm() {
+export function CreateOrgForm({
+  onSuccess,
+}: {
+  onSuccess?: ({
+    orgName,
+    orgSubdomain,
+  }: {
+    orgName: string;
+    orgSubdomain: string;
+  }) => void;
+}) {
   const {
     register,
     handleSubmit,
@@ -28,13 +38,15 @@ export function CreateOrgForm() {
   const onSubmit: SubmitHandler<OrgFormInputs> = async (data) => {
     console.log("userId:", userId);
     console.log("Form submitted:", data);
+    const { orgName, subdomain: orgSubdomain } = data;
     if (userId) {
       await createOrgAction({
         userId,
-        orgName: data.orgName,
-        orgSubdomain: data.subdomain,
+        orgName,
+        orgSubdomain,
       });
       router.refresh();
+      onSuccess?.({ orgName, orgSubdomain });
     }
   };
 

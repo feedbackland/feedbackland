@@ -1,41 +1,40 @@
 import "@iframe-resizer/child";
-import { getSession } from "@/app/utils/server/helpers";
-import { getOrgs } from "@/app/queries";
+import { getSession, getSubdomain } from "@/app/utils/server/helpers";
 import { SignOutButton } from "./components/sign-out-button";
 import { SignInDialog } from "./components/sign-in-dialog";
 import { SignUpDialog } from "./components/sign-up-dialog";
-import { CreateOrgForm } from "./components/create-org-form";
+// import { CreateOrgForm } from "./components/create-org-form";
+import { GetStartedWizard } from "./components/get-started-wizard";
 
 export default async function Home() {
+  const subdomain = await getSubdomain();
   const session = await getSession();
-  const userOrgs = session?.user?.id
-    ? await getOrgs({ userId: session.user.id })
-    : null;
+  // const userId = session?.user?.id;
+  // const userName = session?.user?.name;
 
   return (
     <div className="flex flex-col space-y-3">
-      <h1>Feedbackland WIP</h1>
+      {subdomain && subdomain !== "new" && (
+        <h1>{subdomain}&apos;s feedback platform</h1>
+      )}
       {session ? (
-        <>
-          <div>Session username: {session?.user?.name}</div>
-          {userOrgs?.length === 0 && (
-            <div>
-              <CreateOrgForm />
-            </div>
-          )}
-          <div>
-            <SignOutButton />
-          </div>
-        </>
+        <div>
+          <SignOutButton />
+        </div>
       ) : (
-        <>
+        <div className="flex items-center space-x-5">
           <div>
             <SignInDialog />
           </div>
           <div>
             <SignUpDialog />
           </div>
-        </>
+        </div>
+      )}
+      {subdomain == "new" && (
+        <div>
+          <GetStartedWizard />
+        </div>
       )}
     </div>
   );
