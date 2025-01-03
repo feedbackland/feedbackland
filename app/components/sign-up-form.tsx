@@ -61,7 +61,7 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
         />
       </div>
       <Button type="submit" className="w-full" onClick={signUp}>
-        Login
+        Sign up
       </Button>
     </div>
   );
