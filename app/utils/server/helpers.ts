@@ -4,13 +4,9 @@ import { auth } from "@/app/utils/auth";
 export const getSubdomain = async () => {
   const headersList = await headers();
   const host = headersList.get("host") || "";
-  const subdomain = host?.split(".")?.[0];
-
-  if (subdomain && subdomain !== "www" && !subdomain.includes("localhost")) {
-    return subdomain;
-  }
-
-  return null;
+  const hostParts = host.split(".");
+  const subdomain = hostParts.length > 2 ? hostParts[0] : null;
+  return subdomain;
 };
 
 export const getSession = async () => {
@@ -18,5 +14,6 @@ export const getSession = async () => {
   const session = await auth.api.getSession({
     headers: headersList,
   });
+
   return session;
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, SubmitHandler } from "react-hook-form";
-import { authClient } from "@/app/utils/client/auth-client";
+import { useSession } from "@/app/utils/client/auth-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { createOrgAction } from "@/app/actions/create-org";
 
 type OrgFormInputs = {
   orgName: string;
-  subdomain: string;
+  orgSubdomain: string;
 };
 
 export function CreateOrgForm({
@@ -31,15 +31,13 @@ export function CreateOrgForm({
   } = useForm<OrgFormInputs>();
 
   const router = useRouter();
-
-  const { data: session } = authClient.useSession();
-  const userId = session?.user?.id;
+  const { data: session } = useSession();
 
   const onSubmit: SubmitHandler<OrgFormInputs> = async (data) => {
-    console.log("userId:", userId);
-    console.log("Form submitted:", data);
-    const { orgName, subdomain: orgSubdomain } = data;
-    if (userId) {
+    const userId = session?.user?.id;
+    const { orgName, orgSubdomain } = data;
+
+    if (userId && orgName && orgSubdomain) {
       await createOrgAction({
         userId,
         orgName,
@@ -69,11 +67,11 @@ export function CreateOrgForm({
 
       {/* Subdomain Field */}
       <div className="flex flex-col space-y-1">
-        <Label htmlFor="subdomain">Subdomain</Label>
+        <Label htmlFor="orgSubdomain">Subdomain</Label>
         <Input
-          id="subdomain"
+          id="orgSubdomain"
           placeholder="Enter subdomain"
-          {...register("subdomain", {
+          {...register("orgSubdomain", {
             required: "Subdomain is required",
             pattern: {
               value: /^[a-z0-9]+(-[a-z0-9]+)*$/,
@@ -81,8 +79,8 @@ export function CreateOrgForm({
             },
           })}
         />
-        {errors.subdomain && (
-          <p className="text-sm text-red-500">{errors.subdomain.message}</p>
+        {errors.orgSubdomain && (
+          <p className="text-sm text-red-500">{errors.orgSubdomain.message}</p>
         )}
       </div>
 

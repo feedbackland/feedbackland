@@ -10,11 +10,11 @@ export const createOrg = async ({
   orgSubdomain: string;
 }) => {
   return await db.transaction().execute(async (trx) => {
-    const user = await trx
-      .selectFrom("user")
-      .select("id")
-      .where("user.id", "=", userId)
-      .executeTakeFirstOrThrow();
+    // const user = await trx
+    //   .selectFrom("user")
+    //   .select("id")
+    //   .where("user.id", "=", userId)
+    //   .executeTakeFirstOrThrow();
 
     const org = await trx
       .insertInto("org")
@@ -28,7 +28,7 @@ export const createOrg = async ({
     await trx
       .insertInto("user_org")
       .values({
-        user_id: user.id,
+        user_id: userId,
         org_id: org.id,
         role: "admin",
       })

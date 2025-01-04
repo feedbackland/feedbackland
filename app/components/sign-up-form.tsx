@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/app/utils/client/auth-client";
+import { signUp } from "@/app/utils/client/auth-client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,8 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const router = useRouter();
 
-  const signUp = async () => {
-    const { data, error } = await authClient.signUp.email({
+  const handleSignUp = async () => {
+    const { data, error } = await signUp.email({
       email,
       password,
       name,
@@ -60,7 +60,7 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      <Button type="submit" className="w-full" onClick={signUp}>
+      <Button type="submit" className="w-full" onClick={handleSignUp}>
         Sign up
       </Button>
     </div>

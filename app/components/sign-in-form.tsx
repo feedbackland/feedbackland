@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/app/utils/client/auth-client";
+import { signIn } from "@/app/utils/client/auth-client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,8 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const router = useRouter();
 
-  const signIn = async () => {
-    const { data, error } = await authClient.signIn.email({
+  const handleSignIn = async () => {
+    const { data, error } = await signIn.email({
       email,
       password,
     });
@@ -46,7 +46,7 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      <Button type="submit" onClick={signIn}>
+      <Button type="submit" onClick={handleSignIn}>
         Sign in
       </Button>
     </div>
