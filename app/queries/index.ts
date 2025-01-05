@@ -9,6 +9,10 @@ export const createOrg = async ({
   orgName: string;
   orgSubdomain: string;
 }) => {
+  if (orgSubdomain.toLowerCase() === "new") {
+    throw new Error("Organization subdomain 'new' is not allowed.");
+  }
+
   return await db.transaction().execute(async (trx) => {
     // const user = await trx
     //   .selectFrom("user")
