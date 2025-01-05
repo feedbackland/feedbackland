@@ -6,7 +6,7 @@ import { CreateOrgForm } from "./create-org-form";
 import { useSession } from "@/app/utils/client/auth-client";
 import { GetStartedCodeblock } from "./get-started-codeblock";
 import { useRouter } from "next/navigation";
-import { navigateToSubdomain } from "@/app//utils/client/helpers";
+import { getRootDomain } from "@/app/utils/client/helpers";
 
 export function GetStartedWizard() {
   const [step, setStep] = useState(1);
@@ -34,13 +34,9 @@ export function GetStartedWizard() {
       return (
         <GetStartedCodeblock
           onSuccess={() => {
-            router?.refresh();
-            if (orgSubdomain) {
-              navigateToSubdomain({
-                currentSubdomain: null,
-                newSubdomain: orgSubdomain,
-              });
-            }
+            router.refresh();
+            const rootDomain = getRootDomain();
+            window.location.href = `${window.location.protocol}//${orgSubdomain}.${rootDomain}`;
           }}
         />
       );

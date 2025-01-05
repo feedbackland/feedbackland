@@ -4,9 +4,9 @@ import { SignOutButton } from "./components/sign-out-button";
 import { SignInDialog } from "./components/sign-in-dialog";
 import { SignUpDialog } from "./components/sign-up-dialog";
 import { GetStartedWizard } from "./components/get-started-wizard";
+import { getOrg } from "@/app/queries";
 
 export default async function Home() {
-  const session = await getSession();
   const subdomain = await getSubdomain();
 
   if (subdomain === "new") {
@@ -18,22 +18,26 @@ export default async function Home() {
     );
   }
 
-  return (
-    <div className="flex flex-col space-y-3">
-      {session ? (
-        <div>
-          <SignOutButton />
-        </div>
-      ) : (
-        <div className="flex items-center space-x-5">
-          <div>
-            <SignInDialog />
+  if (subdomain && subdomain.length > 0) {
+    const session = await getSession();
+    const org = await getOrg({ subdomain });
+
+    if (org) {
+      return (
+        <div className="flex flex-col space-y-3">
+          <h1>{org.name}&apos;s feedback platform</h1>
+          <div className="flex items-center space-x-5">
+            {session ? (
+              <SignOutButton />
+            ) : (
+              <>
+                <SignInDialog />
+                <SignUpDialog />
+              </>
+            )}
           </div>
-          <div>
-            <SignUpDialog />
-          </div>
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+  }
 }

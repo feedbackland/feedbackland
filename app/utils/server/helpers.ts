@@ -5,7 +5,8 @@ export const getSubdomain = async () => {
   const headersList = await headers();
   const host = headersList.get("host") || "";
   const hostParts = host.split(".");
-  const subdomain = hostParts.length > 2 ? hostParts[0] : null;
+  const segmentCount = host.includes("localhost") ? 2 : 3;
+  const subdomain = hostParts.length >= segmentCount ? hostParts[0] : null;
   return subdomain;
 };
 
