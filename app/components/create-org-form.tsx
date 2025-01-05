@@ -1,7 +1,6 @@
 "use client";
 
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useSession } from "@/app/utils/client/auth-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,8 +13,10 @@ type OrgFormInputs = {
 };
 
 export function CreateOrgForm({
+  userId,
   onSuccess,
 }: {
+  userId: string | null;
   onSuccess?: ({
     orgName,
     orgSubdomain,
@@ -31,20 +32,22 @@ export function CreateOrgForm({
   } = useForm<OrgFormInputs>();
 
   const router = useRouter();
-  const { data: session } = useSession();
 
   const onSubmit: SubmitHandler<OrgFormInputs> = async (data) => {
-    const userId = session?.user?.id;
     const { orgName, orgSubdomain } = data;
 
     if (userId && orgName && orgSubdomain) {
-      await createOrgAction({
-        userId,
-        orgName,
-        orgSubdomain,
-      });
-      router.refresh();
-      onSuccess?.({ orgName, orgSubdomain });
+      try {
+        await createOrgAction({
+          userId,
+          orgName,
+          orgSubdomain,
+        });
+        router.refresh();
+        onSuccess?.({ orgName, orgSubdomain });
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 

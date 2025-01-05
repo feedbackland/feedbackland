@@ -8,18 +8,20 @@ import { getOrg } from "@/app/queries";
 
 export default async function Home() {
   const subdomain = await getSubdomain();
+  const session = await getSession();
+  const userId = session?.user?.id || null;
 
   if (subdomain === "new") {
     return (
       <div>
+        {session && <SignOutButton />}
         <h1>Get started</h1>
-        <GetStartedWizard />
+        <GetStartedWizard userId={userId} />
       </div>
     );
   }
 
   if (subdomain && subdomain.length > 0) {
-    const session = await getSession();
     const org = await getOrg({ subdomain });
 
     if (org) {

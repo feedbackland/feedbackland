@@ -1,14 +1,22 @@
-export const getSubdomain = () => {
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    const hostParts = host.split(".");
-    const segmentCount = host.includes("localhost") ? 2 : 3;
-    const subdomain = hostParts.length >= segmentCount ? hostParts[0] : null;
-    return subdomain;
-  }
+// host: "new.localhost:3000";
+// hostname: "new.localhost";
+// href: "http://new.localhost:3000/";
+// origin: "http://new.localhost:3000";
+// pathname: "/";
+// port: "3000";
+// protocol: "http:";
 
-  return null;
-};
+// export const getSubdomain = () => {
+//   if (typeof window !== "undefined") {
+//     const host = window.location.hostname;
+//     const hostParts = host.split(".");
+//     const segmentCount = host.includes("localhost") ? 2 : 3;
+//     const subdomain = hostParts.length >= segmentCount ? hostParts[0] : null;
+//     return subdomain;
+//   }
+
+//   return null;
+// };
 
 export const getRootDomain = () => {
   if (typeof window !== "undefined") {
@@ -31,11 +39,3 @@ export const getRootDomain = () => {
 
   return null;
 };
-
-// host: "new.localhost:3000";
-// hostname: "new.localhost";
-// href: "http://new.localhost:3000/";
-// origin: "http://new.localhost:3000";
-// pathname: "/";
-// port: "3000";
-// protocol: "http:";

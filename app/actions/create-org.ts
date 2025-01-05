@@ -16,7 +16,9 @@ export const createOrgAction = actionClient
     try {
       await createOrg({ userId, orgName, orgSubdomain });
       return { success: true, message: "User created successfully!" };
-    } catch {
+    } catch (error) {
+      console.log("error", error);
+
       return {
         success: false,
         message: "An error occured trying to create the org",
