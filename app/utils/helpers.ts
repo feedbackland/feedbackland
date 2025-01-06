@@ -9,13 +9,10 @@
 export const getSubdomain = ({ host }: { host: string | null | undefined }) => {
   if (host && host.length > 0) {
     const parts = host.split(".");
-
-    if (
-      (host.includes("localhost") && parts.length === 2) ||
-      (!host.includes("localhost") && parts.length === 3)
-    ) {
-      return parts[0];
-    }
+    const isLocalhost = host.includes("localhost");
+    return isLocalhost
+      ? parts.slice(0, -1).join(".")
+      : parts.slice(0, -2).join(".");
   }
 
   return null;
@@ -42,6 +39,8 @@ export const getRootDomain = ({
 
   return null;
 };
+
+export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 export const slugifySubdomain = (text: string) => {
   return text

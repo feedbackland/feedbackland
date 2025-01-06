@@ -3,9 +3,7 @@
 import { z } from "zod";
 import { actionClient } from "@/app/utils/server/safe-action";
 import { createOrg } from "@/app/queries";
-
-// Regex for valid subdomain characters (letters, numbers, hyphen) excluding periods
-const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+import { subdomainRegex } from "@/app/utils/helpers";
 
 const subdomainSchema = z
   .string()
