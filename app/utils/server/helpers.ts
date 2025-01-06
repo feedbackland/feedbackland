@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { auth } from "@/app/utils/auth";
+import { getSubdomainFromHost } from "@/app/utils/helpers";
 
 // host: "new.localhost:3000";
 // hostname: "new.localhost";
@@ -12,17 +13,7 @@ import { auth } from "@/app/utils/auth";
 export const getSubdomain = async () => {
   const headersList = await headers();
   const host = headersList.get("host") || "";
-  const parts = host.split(".");
-
-  if (host.includes("localhost") && parts.length === 2) {
-    return parts[0];
-  }
-
-  if (!host.includes("localhost") && parts.length === 3 && parts[0] !== "www") {
-    return parts[0];
-  }
-
-  return null;
+  return getSubdomainFromHost({ host });
 };
 
 export const getSession = async () => {

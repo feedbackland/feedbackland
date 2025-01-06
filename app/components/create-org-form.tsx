@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { createOrgAction } from "@/app/actions/create-org";
+import { useEffect } from "react";
+import { slugifySubdomain } from "@/app/utils/helpers";
 
 type OrgFormInputs = {
   orgName: string;
@@ -28,10 +30,22 @@ export function CreateOrgForm({
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<OrgFormInputs>();
 
+  const organizationName = watch("orgName");
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (organizationName) {
+      setValue("orgSubdomain", slugifySubdomain(organizationName));
+    } else {
+      setValue("orgSubdomain", "");
+    }
+  }, [organizationName, setValue]);
 
   const onSubmit: SubmitHandler<OrgFormInputs> = async (data) => {
     const { orgName, orgSubdomain } = data;

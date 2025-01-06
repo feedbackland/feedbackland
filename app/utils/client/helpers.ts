@@ -1,3 +1,5 @@
+import { getSubdomainFromHost } from "@/app/utils/helpers";
+
 // host: "new.localhost:3000";
 // hostname: "new.localhost";
 // href: "http://new.localhost:3000/";
@@ -6,17 +8,14 @@
 // port: "3000";
 // protocol: "http:";
 
-// export const getSubdomain = () => {
-//   if (typeof window !== "undefined") {
-//     const host = window.location.hostname;
-//     const hostParts = host.split(".");
-//     const segmentCount = host.includes("localhost") ? 2 : 3;
-//     const subdomain = hostParts.length >= segmentCount ? hostParts[0] : null;
-//     return subdomain;
-//   }
+export const getSubdomain = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.host;
+    return getSubdomainFromHost({ host });
+  }
 
-//   return null;
-// };
+  return null;
+};
 
 export const getRootDomain = () => {
   if (typeof window !== "undefined") {

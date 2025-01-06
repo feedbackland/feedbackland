@@ -9,36 +9,42 @@ export const createOrg = async ({
   orgName: string;
   orgSubdomain: string;
 }) => {
-  if (orgSubdomain.toLowerCase() === "new") {
-    throw new Error("Organization subdomain 'new' is not allowed.");
+  try {
+    const result = await db.transaction().execute(async (trx) => {
+      const org = await trx
+        .insertInto("org")
+        .values({
+          name: orgName,
+          subdomain: orgSubdomain,
+        })
+        .returning("id")
+        .executeTakeFirstOrThrow();
+
+      await trx
+        .insertInto("user_org")
+        .values({
+          user_id: userId,
+          org_id: org.id,
+          role: "admin",
+        })
+        .returningAll()
+        .executeTakeFirst();
+    });
+    return result;
+  } catch (error) {
+    throw error;
   }
-
-  return await db.transaction().execute(async (trx) => {
-    const org = await trx
-      .insertInto("org")
-      .values({
-        name: orgName,
-        subdomain: orgSubdomain,
-      })
-      .returning("id")
-      .executeTakeFirstOrThrow();
-
-    await trx
-      .insertInto("user_org")
-      .values({
-        user_id: userId,
-        org_id: org.id,
-        role: "admin",
-      })
-      .returningAll()
-      .executeTakeFirst();
-  });
 };
 
 export const getOrg = async ({ subdomain }: { subdomain: string }) => {
-  return await db
-    .selectFrom("org")
-    .where("org.subdomain", "=", subdomain) // Filter by the user's ID
-    .select(["org.id", "org.name", "org.subdomain"])
-    .executeTakeFirst();
+  try {
+    const result = await db
+      .selectFrom("org")
+      .where("org.subdomain", "=", subdomain) // Filter by the user's ID
+      .select(["org.id", "org.name", "org.subdomain"])
+      .executeTakeFirst();
+    return result;
+  } catch (error) {
+    return error;
+  }
 };
