@@ -6,25 +6,44 @@
 // port: "3000";
 // protocol: "http:";
 
-export const getSubdomainFromHost = ({ host }: { host: string }) => {
-  const parts = host.split(".");
+export const getSubdomain = ({ host }: { host: string | null | undefined }) => {
+  if (host && host.length > 0) {
+    const parts = host.split(".");
 
-  if (host.includes("localhost") && parts.length === 2) {
-    return parts[0];
+    if (
+      (host.includes("localhost") && parts.length === 2) ||
+      (!host.includes("localhost") && parts.length === 3)
+    ) {
+      return parts[0];
+    }
   }
 
-  if (!host.includes("localhost") && parts.length === 3 && parts[0] !== "www") {
-    return parts[0];
+  return null;
+};
+
+export const getRootDomain = ({
+  host,
+}: {
+  host: string | null | undefined;
+}) => {
+  if (host && host.length > 0) {
+    const parts = host.split(".");
+
+    if (host.includes("localhost")) {
+      // new.localhost:3000
+      return parts[parts.length - 1]; // localhost:3000
+    } else if (parts.length > 1) {
+      // new.feedbackland.com
+      const tld = parts[parts.length - 1]; // com
+      const root = parts[parts.length - 2]; // feedbackland
+      return `${root}.${tld}`; // feedbackland.com
+    }
   }
 
   return null;
 };
 
 export const slugifySubdomain = (text: string) => {
-  if (!text) {
-    return ""; // Handle empty input
-  }
-
   return text
     .toLowerCase()
     .replace(/\s+/g, "-") // Replace spaces with hyphens

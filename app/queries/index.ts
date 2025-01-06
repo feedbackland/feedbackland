@@ -45,6 +45,6 @@ export const getOrg = async ({ subdomain }: { subdomain: string }) => {
       .executeTakeFirst();
     return result;
   } catch (error) {
-    return error;
+    throw error;
   }
 };

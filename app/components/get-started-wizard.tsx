@@ -5,7 +5,7 @@ import { SignUpForm } from "./sign-up-form";
 import { CreateOrgForm } from "./create-org-form";
 import { GetStartedCodeblock } from "./get-started-codeblock";
 import { useRouter } from "next/navigation";
-import { getRootDomain } from "@/app/utils/client/helpers";
+import { getRootDomain } from "@/app/utils/helpers";
 
 export function GetStartedWizard({ userId }: { userId: string | null }) {
   const [step, setStep] = useState(1);
@@ -33,7 +33,7 @@ export function GetStartedWizard({ userId }: { userId: string | null }) {
       <GetStartedCodeblock
         onSuccess={() => {
           router.refresh();
-          const rootDomain = getRootDomain();
+          const rootDomain = getRootDomain({ host: window.location.host });
           window.location.href = `${window.location.protocol}//${orgSubdomain}.${rootDomain}`;
         }}
       />
