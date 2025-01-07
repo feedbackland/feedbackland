@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SignUpForm } from "./sign-up-form";
-import { CreateOrgForm } from "./create-org-form";
+import { CreateOrgForm } from "./create-org/create-org-form";
 import { GetStartedCodeblock } from "./get-started-codeblock";
 import { useRouter } from "next/navigation";
 import { getRootDomain } from "@/app/utils/helpers";
@@ -16,7 +16,7 @@ export function GetStartedWizard({ userId }: { userId: string | null }) {
     return <SignUpForm onSuccess={() => setStep(2)} />;
   }
 
-  if ((step === 1 && userId) || step === 2) {
+  if (userId && ((step === 1 && userId) || step === 2)) {
     return (
       <CreateOrgForm
         userId={userId}

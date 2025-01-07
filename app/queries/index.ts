@@ -40,7 +40,7 @@ export const getOrg = async ({ subdomain }: { subdomain: string }) => {
   try {
     const result = await db
       .selectFrom("org")
-      .where("org.subdomain", "=", subdomain) // Filter by the user's ID
+      .where("org.subdomain", "=", subdomain)
       .select(["org.id", "org.name", "org.subdomain"])
       .executeTakeFirst();
     return result;
