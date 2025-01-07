@@ -1,11 +1,7 @@
 "use server";
 
 import { actionClient } from "@/app/utils/server/safe-action";
-import {
-  createOrg,
-  isOrgNameAvailable,
-  isOrgSubdomainAvailable,
-} from "@/app/queries";
+import { createOrg, isOrgSubdomainAvailable } from "@/app/queries";
 import { createOrgSchema } from "./create-org-validation";
 
 export const createOrgAction = actionClient
@@ -18,21 +14,6 @@ export const createOrgAction = actionClient
       return {
         success: false,
         message: "An error occured trying to create the org",
-      };
-    }
-  });
-
-export const checkOrgNameAvailability = actionClient
-  .schema(createOrgSchema.pick({ orgName: true }))
-  .action(async ({ parsedInput: { orgName } }) => {
-    try {
-      const isAvailable = await isOrgNameAvailable({ orgName });
-      const message = isAvailable ? "Name is available" : "Name already taken";
-      return { isAvailable, message };
-    } catch {
-      return {
-        isAvailable: false,
-        message: "An error occured trying to check the name availability",
       };
     }
   });

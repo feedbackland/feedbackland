@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import {
   createOrgAction,
-  checkOrgNameAvailability,
   checkOrgSubdomainAvailability,
 } from "@/app/components/create-org/create-org-actions";
 import { useEffect } from "react";
@@ -75,19 +74,18 @@ export function CreateOrgForm({
     }
   };
 
-  const handleBlur = async (
-    field: "orgName" | "orgSubdomain",
-    value: string
-  ) => {
-    const result =
-      field === "orgName"
-        ? await checkOrgNameAvailability({ orgName: value })
-        : await checkOrgSubdomainAvailability({ orgSubdomain: value });
+  const handleSubdomainBlur = async (value: string) => {
+    const result = await checkOrgSubdomainAvailability({ orgSubdomain: value });
+    const isAvailable = result?.data?.isAvailable;
+    const message = result?.data?.message;
 
-    if (result?.data?.isAvailable === false) {
-      setError(field, { type: "manual", message: result.data.message });
+    if (isAvailable === false) {
+      setError("orgSubdomain", {
+        type: "manual",
+        message,
+      });
     } else {
-      clearErrors(field);
+      clearErrors("orgSubdomain");
     }
   };
 
@@ -101,11 +99,7 @@ export function CreateOrgForm({
             <FormItem>
               <FormLabel>Company or product name</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Company or product name"
-                  {...field}
-                  onBlur={(e) => handleBlur("orgName", e.target.value)}
-                />
+                <Input placeholder="Company or product name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,7 +115,7 @@ export function CreateOrgForm({
                 <Input
                   placeholder="Subdomain"
                   {...field}
-                  onBlur={(e) => handleBlur("orgSubdomain", e.target.value)}
+                  onBlur={(e) => handleSubdomainBlur(e.target.value)}
                 />
               </FormControl>
               <FormMessage />
