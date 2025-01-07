@@ -5,10 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {
-  createOrgAction,
-  checkOrgSubdomainAvailability,
-} from "@/app/components/get-started/create-org-actions";
+import { createOrgAction } from "@/app/components/get-started/create-org-actions";
 import { useEffect } from "react";
 import { slugifySubdomain } from "@/app/utils/helpers";
 import { createOrgSchema } from "./create-org-validation";
@@ -46,7 +43,13 @@ export function CreateOrgForm({
     },
   });
 
-  const { watch, setValue, setError, getValues, clearErrors } = form;
+  const {
+    formState: { errors },
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+  } = form;
 
   const organizationName = watch("orgName");
 
@@ -54,53 +57,42 @@ export function CreateOrgForm({
 
   useEffect(() => {
     setValue("orgSubdomain", slugifySubdomain(organizationName));
-  }, [organizationName, setValue]);
+    clearErrors("orgSubdomain");
+  }, [organizationName, setValue, clearErrors]);
 
   const onSubmit: SubmitHandler<FormData> = async ({
     userId,
     orgName,
     orgSubdomain,
   }) => {
-    try {
-      const isAvailable = await checkSubdomainAvailability();
+    clearErrors("root.serverError");
 
-      if (isAvailable) {
-        await createOrgAction({
-          userId,
-          orgName,
-          orgSubdomain,
-        });
-        router.refresh();
-        onSuccess?.({ orgName, orgSubdomain });
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    const response = await createOrgAction({
+      userId,
+      orgName,
+      orgSubdomain,
+    });
 
-  const checkSubdomainAvailability = async () => {
-    const orgSubdomain = getValues("orgSubdomain");
-    const result = await checkOrgSubdomainAvailability({ orgSubdomain });
-    const isAvailable = result?.data?.isAvailable;
-
-    if (isAvailable === false) {
+    if (response?.data?.success) {
+      router.refresh();
+      onSuccess?.({ orgName, orgSubdomain });
+    } else if (response?.data?.message === "duplicate subdomain") {
       setError("orgSubdomain", {
         message: "Sorry, this subdomain is already taken",
       });
     } else {
-      clearErrors("orgSubdomain");
+      setError("root.serverError", {
+        message: "An error occured. Please try again.",
+      });
     }
-
-    return isAvailable;
-  };
-
-  const handleOnBlur = async () => {
-    checkSubdomainAvailability();
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {errors?.root?.serverError && (
+          <p className="text-red-500">{errors?.root?.serverError.message}</p>
+        )}
         <FormField
           control={form.control}
           name="orgName"
@@ -108,11 +100,7 @@ export function CreateOrgForm({
             <FormItem>
               <FormLabel>Company or product name</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Company or product name"
-                  {...field}
-                  onBlur={handleOnBlur}
-                />
+                <Input placeholder="Company or product name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -125,11 +113,7 @@ export function CreateOrgForm({
             <FormItem>
               <FormLabel>Subdomain</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Subdomain"
-                  {...field}
-                  onBlur={handleOnBlur}
-                />
+                <Input placeholder="Subdomain" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

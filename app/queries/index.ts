@@ -17,7 +17,6 @@ export const createOrg = async ({
           name: orgName,
           subdomain: orgSubdomain,
         })
-        .onConflict((oc) => oc.column("subdomain").doNothing())
         .returning("id")
         .executeTakeFirstOrThrow();
 
@@ -31,8 +30,13 @@ export const createOrg = async ({
         .returningAll()
         .executeTakeFirst();
     });
+
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      throw new Error("duplicate subdomain");
+    }
+
     throw error;
   }
 };
@@ -50,19 +54,19 @@ export const getOrg = async ({ subdomain }: { subdomain: string }) => {
   }
 };
 
-export const isOrgSubdomainAvailable = async ({
-  orgSubdomain,
-}: {
-  orgSubdomain: string;
-}) => {
-  try {
-    const isAvailable = !(await db
-      .selectFrom("org")
-      .where("subdomain", "=", orgSubdomain)
-      .select("id")
-      .executeTakeFirst());
-    return isAvailable;
-  } catch (error) {
-    throw error;
-  }
-};
+// export const isOrgSubdomainAvailable = async ({
+//   orgSubdomain,
+// }: {
+//   orgSubdomain: string;
+// }) => {
+//   try {
+//     const isAvailable = !(await db
+//       .selectFrom("org")
+//       .where("subdomain", "=", orgSubdomain)
+//       .select("id")
+//       .executeTakeFirst());
+//     return isAvailable;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
