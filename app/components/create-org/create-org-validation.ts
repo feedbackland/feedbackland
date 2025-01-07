@@ -3,7 +3,10 @@ import { subdomainRegex } from "@/app/utils/helpers";
 
 export const createOrgSchema = z.object({
   userId: z.string().min(1, "userId cannot be empty"),
-  orgName: z.string().min(1, "Please provide a company or product name"),
+  orgName: z
+    .string()
+    .min(1, { message: "Please provide a company or product name" })
+    .max(200, { message: "Company or product must be at most 200 characters" }),
   orgSubdomain: z
     .string()
     .min(1, { message: "Please provide a subdomain" })

@@ -48,3 +48,33 @@ export const getOrg = async ({ subdomain }: { subdomain: string }) => {
     throw error;
   }
 };
+
+export const isOrgNameAvailable = async ({ orgName }: { orgName: string }) => {
+  try {
+    const isAvailable = !(await db
+      .selectFrom("org")
+      .where("name", "=", orgName)
+      .select("id")
+      .executeTakeFirst());
+    return isAvailable;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const isOrgSubdomainAvailable = async ({
+  orgSubdomain,
+}: {
+  orgSubdomain: string;
+}) => {
+  try {
+    const isAvailable = !(await db
+      .selectFrom("org")
+      .where("subdomain", "=", orgSubdomain)
+      .select("id")
+      .executeTakeFirst());
+    return isAvailable;
+  } catch (error) {
+    throw error;
+  }
+};
