@@ -1,10 +1,10 @@
 import "@iframe-resizer/child";
 import { getHost, getSession } from "@/app/utils/server/helpers";
 import { getSubdomain } from "@/app/utils/helpers";
-import { SignOutButton } from "./components/sign-out-button";
-import { SignInDialog } from "./components/sign-in-dialog";
-import { SignUpDialog } from "./components/sign-up-dialog";
-import { GetStartedWizard } from "./components/get-started-wizard";
+import { SignOutButton } from "./components/sign-out/sign-out-button";
+import { SignInDialog } from "./components/sign-in/sign-in-dialog";
+import { SignUpDialog } from "./components/sign-up/sign-up-dialog";
+import { GetStartedWizard } from "./components/get-started/get-started-wizard";
 import { getOrg } from "@/app/queries";
 
 export default async function Home() {

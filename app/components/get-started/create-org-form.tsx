@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   createOrgAction,
   checkOrgSubdomainAvailability,
-} from "@/app/components/create-org/create-org-actions";
+} from "@/app/components/get-started/create-org-actions";
 import { useEffect } from "react";
 import { slugifySubdomain } from "@/app/utils/helpers";
 import { createOrgSchema } from "./create-org-validation";

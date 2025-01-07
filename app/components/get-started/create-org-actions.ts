@@ -2,7 +2,7 @@
 
 import { actionClient } from "@/app/utils/server/safe-action";
 import { createOrg, isOrgSubdomainAvailable } from "@/app/queries";
-import { createOrgSchema } from "./create-org-validation";
+import { createOrgSchema } from "../create-org/create-org-validation";
 
 export const createOrgAction = actionClient
   .schema(createOrgSchema)
