@@ -1,15 +1,14 @@
 import "@iframe-resizer/child";
-import { getSession } from "@/app/utils/server/helpers";
+import { getHost, getSession } from "@/app/utils/server/helpers";
 import { getSubdomain } from "@/app/utils/helpers";
 import { SignOutButton } from "./components/sign-out-button";
 import { SignInDialog } from "./components/sign-in-dialog";
 import { SignUpDialog } from "./components/sign-up-dialog";
 import { GetStartedWizard } from "./components/get-started-wizard";
 import { getOrg } from "@/app/queries";
-import { headers } from "next/headers";
 
 export default async function Home() {
-  const host = (await headers()).get("host");
+  const host = await getHost();
   const subdomain = getSubdomain({ host });
   const session = await getSession();
   const userId = session?.user?.id || null;

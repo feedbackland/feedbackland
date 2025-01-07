@@ -6,6 +6,11 @@ export const getSession = async () => {
   const session = await auth.api.getSession({
     headers: headersList,
   });
-
   return session;
+};
+
+export const getHost = async () => {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  return host;
 };
