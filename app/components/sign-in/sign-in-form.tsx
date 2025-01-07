@@ -40,9 +40,17 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
 
+  const {
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = form;
+
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FormData> = async ({ email, password }) => {
+    clearErrors("root.serverError");
+
     const { data, error } = await signIn.email({
       email,
       password,
@@ -52,11 +60,20 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
       router.refresh();
       onSuccess?.();
     }
+
+    if (error) {
+      setError("root.serverError", {
+        message: error?.message || "An error occured. Please try again.",
+      });
+    }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {errors?.root?.serverError && (
+          <p className="text-red-500">{errors?.root?.serverError.message}</p>
+        )}
         <FormField
           control={form.control}
           name="email"

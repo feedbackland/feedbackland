@@ -46,7 +46,7 @@ export function CreateOrgForm({
     },
   });
 
-  const { watch, setValue, setError, clearErrors } = form;
+  const { watch, setValue, setError, getValues, clearErrors } = form;
 
   const organizationName = watch("orgName");
 
@@ -62,31 +62,40 @@ export function CreateOrgForm({
     orgSubdomain,
   }) => {
     try {
-      await createOrgAction({
-        userId,
-        orgName,
-        orgSubdomain,
-      });
-      router.refresh();
-      onSuccess?.({ orgName, orgSubdomain });
+      const isAvailable = await checkSubdomainAvailability();
+
+      if (isAvailable) {
+        await createOrgAction({
+          userId,
+          orgName,
+          orgSubdomain,
+        });
+        router.refresh();
+        onSuccess?.({ orgName, orgSubdomain });
+      }
     } catch (error) {
       console.log(error);
     }
   };
 
-  const handleSubdomainBlur = async (value: string) => {
-    const result = await checkOrgSubdomainAvailability({ orgSubdomain: value });
+  const checkSubdomainAvailability = async () => {
+    const orgSubdomain = getValues("orgSubdomain");
+    const result = await checkOrgSubdomainAvailability({ orgSubdomain });
     const isAvailable = result?.data?.isAvailable;
-    const message = result?.data?.message;
 
     if (isAvailable === false) {
       setError("orgSubdomain", {
-        type: "manual",
-        message,
+        message: "Sorry, this subdomain is already taken",
       });
     } else {
       clearErrors("orgSubdomain");
     }
+
+    return isAvailable;
+  };
+
+  const handleOnBlur = async () => {
+    checkSubdomainAvailability();
   };
 
   return (
@@ -99,7 +108,11 @@ export function CreateOrgForm({
             <FormItem>
               <FormLabel>Company or product name</FormLabel>
               <FormControl>
-                <Input placeholder="Company or product name" {...field} />
+                <Input
+                  placeholder="Company or product name"
+                  {...field}
+                  onBlur={handleOnBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,7 +128,7 @@ export function CreateOrgForm({
                 <Input
                   placeholder="Subdomain"
                   {...field}
-                  onBlur={(e) => handleSubdomainBlur(e.target.value)}
+                  onBlur={handleOnBlur}
                 />
               </FormControl>
               <FormMessage />

@@ -17,6 +17,7 @@ export const createOrg = async ({
           name: orgName,
           subdomain: orgSubdomain,
         })
+        .onConflict((oc) => oc.column("subdomain").doNothing())
         .returning("id")
         .executeTakeFirstOrThrow();
 

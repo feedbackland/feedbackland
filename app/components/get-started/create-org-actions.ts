@@ -23,14 +23,8 @@ export const checkOrgSubdomainAvailability = actionClient
   .action(async ({ parsedInput: { orgSubdomain } }) => {
     try {
       const isAvailable = await isOrgSubdomainAvailable({ orgSubdomain });
-      const message = isAvailable
-        ? "Subdomain is available"
-        : "Subdomain already taken";
-      return { isAvailable, message };
-    } catch {
-      return {
-        isAvailable: false,
-        message: "An error occured trying to check the subdomain availability",
-      };
+      return { isAvailable };
+    } catch (error) {
+      throw error;
     }
   });
