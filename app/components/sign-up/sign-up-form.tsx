@@ -31,7 +31,7 @@ export const signUpSchema = z.object({
 
 type FormData = z.infer<typeof signUpSchema>;
 
-export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
+export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
   const form = useForm<FormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
