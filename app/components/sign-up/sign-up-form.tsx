@@ -21,12 +21,12 @@ export const signUpSchema = z.object({
   email: z
     .string()
     .email("Invalid email address")
-    .nonempty("Please type your email address"),
+    .min(1, "Please type your email address"),
   password: z
     .string()
-    .nonempty("Please type a password")
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .max(128, { message: "Password must be no more than 128 characters long" }),
+    .trim()
+    .min(8, "Password must be at least 8 characters long")
+    .max(128, "Password must be no more than 128 characters long"),
 });
 
 type FormData = z.infer<typeof signUpSchema>;

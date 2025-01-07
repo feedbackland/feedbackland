@@ -19,13 +19,14 @@ import { Button } from "@/components/ui/button";
 export const signInSchema = z.object({
   email: z
     .string()
-    .email("Invalid email address")
-    .nonempty("Please enter your email"),
+    .trim()
+    .min(1, "Please enter your email")
+    .email("Invalid email address"),
   password: z
     .string()
-    .nonempty("Please enter your password")
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .max(128, { message: "Password must be no more than 128 characters long" }),
+    .trim()
+    .min(8, "Password must be at least 8 characters long")
+    .max(128, "Password must be no more than 128 characters long"),
 });
 
 type FormData = z.infer<typeof signInSchema>;
