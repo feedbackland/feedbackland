@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Loader2 } from "lucide-react";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -34,6 +36,10 @@ export function CreateOrgForm({
     orgSubdomain: string;
   }) => void;
 }) {
+  const { executeAsync, isPending } = useAction(createOrgAction);
+
+  console.log("isPending", isPending);
+
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
     defaultValues: {
@@ -67,7 +73,7 @@ export function CreateOrgForm({
   }) => {
     clearErrors("root.serverError");
 
-    const response = await createOrgAction({
+    const response = await executeAsync({
       userId,
       orgName,
       orgSubdomain,
@@ -119,7 +125,9 @@ export function CreateOrgForm({
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" loading={isPending}>
+          Submit
+        </Button>
       </form>
     </Form>
   );

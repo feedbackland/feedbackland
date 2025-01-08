@@ -1,3 +1,5 @@
+"server-only";
+
 import { db } from "@/app/db/db";
 
 export const createOrg = async ({
