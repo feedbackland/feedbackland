@@ -53,20 +53,3 @@ export const getOrg = async ({ subdomain }: { subdomain: string }) => {
     throw error;
   }
 };
-
-// export const isOrgSubdomainAvailable = async ({
-//   orgSubdomain,
-// }: {
-//   orgSubdomain: string;
-// }) => {
-//   try {
-//     const isAvailable = !(await db
-//       .selectFrom("org")
-//       .where("subdomain", "=", orgSubdomain)
-//       .select("id")
-//       .executeTakeFirst());
-//     return isAvailable;
-//   } catch (error) {
-//     throw error;
-//   }
-// };
