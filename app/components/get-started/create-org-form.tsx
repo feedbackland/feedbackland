@@ -19,7 +19,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -37,8 +36,6 @@ export function CreateOrgForm({
   }) => void;
 }) {
   const { executeAsync, isPending } = useAction(createOrgAction);
-
-  console.log("isPending", isPending);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
