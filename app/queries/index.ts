@@ -43,15 +43,19 @@ export const createOrg = async ({
   }
 };
 
-export const getOrg = async ({ subdomain }: { subdomain: string }) => {
-  try {
-    const result = await db
-      .selectFrom("org")
-      .where("org.subdomain", "=", subdomain)
-      .select(["org.id", "org.name", "org.subdomain"])
-      .executeTakeFirst();
-    return result;
-  } catch (error) {
-    throw error;
+export const getOrg = async ({ subdomain }: { subdomain: string | null }) => {
+  if (subdomain && subdomain.length > 0) {
+    try {
+      const result = await db
+        .selectFrom("org")
+        .where("org.subdomain", "=", subdomain)
+        .select(["org.id", "org.name", "org.subdomain"])
+        .executeTakeFirst();
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
+
+  return null;
 };
