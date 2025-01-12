@@ -14,6 +14,10 @@ export default async function Home() {
   const org = await getOrg({ subdomain });
   const userId = session?.user?.id || null;
 
+  if (subdomain === "signin") {
+    return !session ? <SignInDialog /> : <SignOutButton />;
+  }
+
   return (
     <div className="flex flex-col space-y-3">
       {org && <h1>{org.name}&apos;s feedback platform</h1>}
