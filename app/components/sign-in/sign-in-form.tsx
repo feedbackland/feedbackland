@@ -54,8 +54,8 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
         provider: "google",
       },
       {
-        onSuccess: () => {
-          console.log("signed in with Google");
+        onSuccess: (ctx) => {
+          console.log("signed in with Google", ctx);
           router.refresh();
           onSuccess?.();
         },
