@@ -6,18 +6,6 @@
 // port: "3000";
 // protocol: "http:";
 
-export const getSubdomain = ({ host }: { host: string | null | undefined }) => {
-  if (host && host.length > 0) {
-    const parts = host.split(".");
-    const isLocalhost = host.includes("localhost");
-    return isLocalhost
-      ? parts.slice(0, -1).join(".")
-      : parts.slice(0, -2).join(".");
-  }
-
-  return null;
-};
-
 export const getRootDomain = ({
   host,
 }: {

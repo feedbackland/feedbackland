@@ -14,3 +14,9 @@ export const getHost = async () => {
   const host = headersList.get("host");
   return host;
 };
+
+export const getSubdomain = async () => {
+  const headersList = await headers();
+  const subdomain = headersList.get("x-org-subdomain") || "";
+  return subdomain;
+};
