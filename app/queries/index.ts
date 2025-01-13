@@ -51,7 +51,7 @@ export const getOrg = async ({ subdomain }: { subdomain: string | null }) => {
         .where("org.subdomain", "=", subdomain)
         .select(["org.id", "org.name", "org.subdomain"])
         .executeTakeFirst();
-      return result;
+      return result || null;
     } catch (error) {
       throw error;
     }
