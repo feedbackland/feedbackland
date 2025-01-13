@@ -15,12 +15,12 @@ export const getRootDomain = ({
     const parts = host.split(".");
 
     if (host.includes("localhost")) {
-      // new.localhost:3000
-      return parts[parts.length - 1]; // localhost:3000
+      // e.g. 'localhost:3000' or 'new.localhost:3000'
+      return parts[parts.length - 1]; // e.g. 'localhost:3000'
     } else if (parts.length > 1) {
-      // new.feedbackland.com
-      const tld = parts[parts.length - 1]; // com
-      const root = parts[parts.length - 2]; // feedbackland
+      // e.g. 'feedbackland.com' or 'new.feedbackland.com'
+      const tld = parts[parts.length - 1]; // e.g. 'com'
+      const root = parts[parts.length - 2]; // e.g. 'feedbackland'
       return `${root}.${tld}`; // feedbackland.com
     }
   }

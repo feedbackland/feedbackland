@@ -63,6 +63,7 @@ export function SignUpForm({ onSuccess }: { onSuccess?: () => void }) {
     });
 
     if (data && !error) {
+      console.log("success");
       router.refresh();
       onSuccess?.();
     }
