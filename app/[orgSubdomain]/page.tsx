@@ -1,9 +1,9 @@
 import "@iframe-resizer/child";
 import { getSession, getSubdomain } from "@/app/utils/server/helpers";
-import { SignOutButton } from "@/app/components/sign-out/sign-out-button";
-import { SignInDialog } from "@/app/components/sign-in/sign-in-dialog";
-import { SignUpDialog } from "@/app/components/sign-up/sign-up-dialog";
-import { GetStartedWizard } from "@/app/components/get-started/get-started-wizard";
+import { SignOutButton } from "@/app/_components/sign-out/sign-out-button";
+import { SignInDialog } from "@/app/_components/sign-in/sign-in-dialog";
+import { SignUpDialog } from "@/app/_components/sign-up/sign-up-dialog";
+import { GetStartedWizard } from "@/app/_components/get-started/get-started-wizard";
 import { getOrg } from "@/app/queries";
 
 export default async function OrgPage() {

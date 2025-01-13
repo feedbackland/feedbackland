@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SignUpForm } from "@/app/components/sign-up/sign-up-form";
+import { SignUpForm } from "@/app/_components/sign-up/sign-up-form";
 import { CreateOrgForm } from "./create-org-form";
 import { GetStartedCodeblock } from "./get-started-codeblock";
 import { useRouter } from "next/navigation";

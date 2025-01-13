@@ -51,20 +51,6 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const signInWithGoogle = async () => {
     await signIn.social({
       provider: "google",
-      // callbackURL: "/",
-      fetchOptions: {
-        onRequest: (ctx) => {
-          console.log("onRequest", ctx);
-        },
-        onResponse: (ctx) => {
-          console.log("onResponse", ctx);
-        },
-        onSuccess: (ctx) => {
-          console.log("onSuccess", ctx);
-          // router.refresh();
-          // onSuccess?.();
-        },
-      },
     });
   };
 

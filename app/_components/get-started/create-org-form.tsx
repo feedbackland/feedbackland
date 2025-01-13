@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { createOrgAction } from "@/app/components/get-started/create-org-actions";
+import { createOrgAction } from "@/app/_components/get-started/create-org-actions";
 import { useEffect } from "react";
 import { slugifySubdomain } from "@/app/utils/helpers";
 import { createOrgSchema } from "./create-org-validation";
