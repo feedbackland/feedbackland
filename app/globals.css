@@ -66,3 +66,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .debug {
+    @apply border-[1px] border-red-500;
+  }
+
+  .scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
