@@ -49,13 +49,16 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
 
   const signInWithGoogle = async () => {
+    // const callbackURL = window.location.href + "/api/auth/callback/google";
+    const callbackURL = window.location.href;
+
+    console.log("callbackURL", callbackURL);
+
     await signIn.social({
       provider: "google",
-      callbackURL: `${window.location.href}`,
+      callbackURL,
     });
   };
-
-  // /api/auth/callback/google
 
   const onSubmit: SubmitHandler<FormData> = async ({ email, password }) => {
     clearErrors("root.serverError");

@@ -11,6 +11,8 @@ export default async function OrgPage() {
   const session = await getSession();
   const org = await getOrg({ orgSubdomain: subdomain });
 
+  console.log("subdomain", subdomain);
+
   if (org) {
     const isClaimed = await isOrgClaimed({ orgId: org.id });
 
