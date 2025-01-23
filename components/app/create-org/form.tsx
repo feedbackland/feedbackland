@@ -23,7 +23,11 @@ import { navigateToSubdomain } from "@/lib/client/utils";
 type FormData = z.infer<typeof createOrgSchema>;
 
 export function CreateOrgForm() {
-  const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
+  const {
+    executeAsync: createOrg,
+    isPending,
+    isIdle,
+  } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
