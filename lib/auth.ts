@@ -20,7 +20,7 @@ export const auth = betterAuth({
   },
   advanced: {
     crossSubDomainCookies: {
-      enabled: false,
+      enabled: true,
       domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN as string,
     },
   },
