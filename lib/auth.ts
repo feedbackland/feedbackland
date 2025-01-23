@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { dialect } from "@/db/db";
 import { nextCookies } from "better-auth/next-js";
+import { anonymous } from "better-auth/plugins";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -19,9 +20,9 @@ export const auth = betterAuth({
   },
   advanced: {
     crossSubDomainCookies: {
-      enabled: true,
+      enabled: false,
       domain: process.env.NEXT_PUBLIC_ROOT_DOMAIN as string,
     },
   },
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), anonymous()],
 });

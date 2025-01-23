@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { createOrgAction } from "./actions";
 import { createOrgSchema } from "./validations";
-import { slugifySubdomain } from "@/lib/helpers";
+import { slugifySubdomain } from "@/lib/utils";
 import { z } from "zod";
 import {
   Form,
@@ -23,10 +23,8 @@ import {
 type FormData = z.infer<typeof createOrgSchema>;
 
 export function CreateOrgForm({
-  userId,
   onSuccess,
 }: {
-  userId: string;
   onSuccess?: ({
     orgName,
     orgSubdomain,
@@ -40,7 +38,6 @@ export function CreateOrgForm({
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
     defaultValues: {
-      userId,
       orgName: "",
       orgSubdomain: "",
     },
@@ -64,14 +61,12 @@ export function CreateOrgForm({
   }, [organizationName, setValue, clearErrors]);
 
   const onSubmit: SubmitHandler<FormData> = async ({
-    userId,
     orgName,
     orgSubdomain,
   }) => {
     clearErrors("root.serverError");
 
     const response = await executeAsync({
-      userId,
       orgName,
       orgSubdomain,
     });

@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { subdomainRegex } from "@/lib/helpers";
+import { subdomainRegex } from "@/lib/utils";
 
 export const createOrgSchema = z.object({
-  userId: z.string().min(1),
   orgName: z
     .string()
     .trim()

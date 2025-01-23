@@ -6,9 +6,9 @@ import { createOrgSchema } from "./validations";
 
 export const createOrgAction = actionClient
   .schema(createOrgSchema)
-  .action(async ({ parsedInput: { userId, orgName, orgSubdomain } }) => {
+  .action(async ({ parsedInput: { orgName, orgSubdomain } }) => {
     try {
-      await createOrg({ userId, orgName, orgSubdomain });
+      await createOrg({ orgName, orgSubdomain });
       return { success: true, message: "User created successfully!" };
     } catch (error) {
       return {

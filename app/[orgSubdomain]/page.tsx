@@ -1,5 +1,5 @@
 import "@iframe-resizer/child";
-import { getSession, getSubdomain } from "@/lib/server/helpers";
+import { getSession, getSubdomain } from "@/lib/server/utils";
 import { SignOutButton } from "@/components/app/sign-out/sign-out-button";
 import { SignInDialog } from "@/components/app/sign-in/sign-in-dialog";
 import { SignUpDialog } from "@/components/app/sign-up/sign-up-dialog";

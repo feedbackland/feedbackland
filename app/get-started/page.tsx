@@ -1,13 +1,10 @@
 import "@iframe-resizer/child";
-import { getSession } from "@/lib/server/helpers";
-import { GetStartedWizard } from "../../components/app/get-started/get-started-wizard";
+import { CreateOrgForm } from "@/components/app/create-org/create-org-form";
 
 export default async function RootPage() {
-  const session = await getSession();
-
   return (
     <div className="flex items-center space-x-5">
-      <GetStartedWizard userId={session?.user?.id} />
+      <CreateOrgForm />
     </div>
   );
 }

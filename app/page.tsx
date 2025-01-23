@@ -1,5 +1,5 @@
 import "@iframe-resizer/child";
-import { getSession } from "@/lib/server/helpers";
+import { getSession } from "@/lib/server/utils";
 import { SignOutButton } from "@/components/app/sign-out/sign-out-button";
 import { SignInDialog } from "@/components/app/sign-in/sign-in-dialog";
 import { FancyCodeBlock } from "@/components/ui/fancy-code-block";
