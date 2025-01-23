@@ -51,8 +51,11 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
   const signInWithGoogle = async () => {
     await signIn.social({
       provider: "google",
+      callbackURL: `${window.location.href}`,
     });
   };
+
+  // /api/auth/callback/google
 
   const onSubmit: SubmitHandler<FormData> = async ({ email, password }) => {
     clearErrors("root.serverError");
