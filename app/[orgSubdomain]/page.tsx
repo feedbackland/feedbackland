@@ -1,15 +1,19 @@
 import "@iframe-resizer/child";
-import { getSession, getSubdomain } from "@/app/utils/server/helpers";
-import { SignOutButton } from "@/app/_components/sign-out/sign-out-button";
-import { SignInDialog } from "@/app/_components/sign-in/sign-in-dialog";
-import { SignUpDialog } from "@/app/_components/sign-up/sign-up-dialog";
-import { GetStartedWizard } from "@/app/_components/get-started/get-started-wizard";
-import { getOrg } from "@/app/queries";
+import { getSession, getSubdomain } from "@/lib/server/helpers";
+import { SignOutButton } from "@/components/app/sign-out/sign-out-button";
+import { SignInDialog } from "@/components/app/sign-in/sign-in-dialog";
+import { SignUpDialog } from "@/components/app/sign-up/sign-up-dialog";
+import { GetStartedWizard } from "@/components/app/get-started/get-started-wizard";
+import { db } from "@/db/db";
 
 export default async function OrgPage() {
   const subdomain = await getSubdomain();
   const session = await getSession();
-  const org = await getOrg({ subdomain });
+  const org = await db
+    .selectFrom("org")
+    .where("org.subdomain", "=", subdomain)
+    .select("name")
+    .executeTakeFirst();
   const userId = session?.user?.id || null;
 
   return (

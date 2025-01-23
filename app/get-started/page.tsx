@@ -1,6 +1,6 @@
 import "@iframe-resizer/child";
-import { getSession } from "@/app/utils/server/helpers";
-import { GetStartedWizard } from "../_components/get-started/get-started-wizard";
+import { getSession } from "@/lib/server/helpers";
+import { GetStartedWizard } from "../../components/app/get-started/get-started-wizard";
 
 export default async function RootPage() {
   const session = await getSession();

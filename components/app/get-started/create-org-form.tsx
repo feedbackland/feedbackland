@@ -1,15 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { createOrgAction } from "@/app/_components/get-started/create-org-actions";
-import { useEffect } from "react";
-import { slugifySubdomain } from "@/app/utils/helpers";
-import { createOrgSchema } from "./create-org-validation";
+import { createOrgAction } from "./actions";
+import { createOrgSchema } from "./validations";
+import { slugifySubdomain } from "@/lib/helpers";
 import { z } from "zod";
 import {
   Form,

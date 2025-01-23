@@ -1,6 +1,6 @@
 "server-only";
 
-import { db } from "@/app/db/db";
+import { db } from "@/db/db";
 
 export const createOrg = async ({
   userId,
@@ -41,21 +41,4 @@ export const createOrg = async ({
 
     throw error;
   }
-};
-
-export const getOrg = async ({ subdomain }: { subdomain: string | null }) => {
-  if (subdomain && subdomain.length > 0) {
-    try {
-      const result = await db
-        .selectFrom("org")
-        .where("org.subdomain", "=", subdomain)
-        .select(["org.id", "org.name", "org.subdomain"])
-        .executeTakeFirst();
-      return result || null;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  return null;
 };

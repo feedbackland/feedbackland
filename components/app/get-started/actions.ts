@@ -1,8 +1,8 @@
 "use server";
 
-import { actionClient } from "@/app/utils/server/safe-action";
-import { createOrg } from "@/app/queries";
-import { createOrgSchema } from "./create-org-validation";
+import { actionClient } from "@/lib/server/safe-action";
+import { createOrg } from "./queries";
+import { createOrgSchema } from "./validations";
 
 export const createOrgAction = actionClient
   .schema(createOrgSchema)

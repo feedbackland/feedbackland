@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { dialect } from "@/app/db/db";
+import { dialect } from "@/db/db";
 import { nextCookies } from "better-auth/next-js";
 
 export const auth = betterAuth({

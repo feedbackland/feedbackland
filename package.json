@@ -10,7 +10,7 @@
     "migrate-make": "npx kysely migrate:make -x ts",
     "migrate-up": "npx kysely migrate:up",
     "migrate-down": "npx kysely migrate:down",
-    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file app/db/schema.ts",
+    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts",
     "auth-migrate": "npx @better-auth/cli@latest migrate"
   },
   "dependencies": {

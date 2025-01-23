@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { subdomainRegex } from "@/app/utils/helpers";
+import { subdomainRegex } from "@/lib/helpers";
 
 export const createOrgSchema = z.object({
   userId: z.string().min(1),

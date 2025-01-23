@@ -1,6 +1,6 @@
 "use client";
 
-import { signUp } from "@/app/utils/client/auth-client";
+import { signUp } from "@/lib/client/auth-client";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import {
