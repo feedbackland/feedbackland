@@ -6,7 +6,6 @@ import { useAction } from "next-safe-action/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { createOrgAction } from "./actions";
 import { createOrgSchema } from "./validations";
 import { slugifySubdomain } from "@/lib/utils";
@@ -19,21 +18,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { navigateToSubdomain } from "@/lib/client/utils";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
-export function CreateOrgForm({
-  onSuccess,
-}: {
-  onSuccess?: ({
-    orgName,
-    orgSubdomain,
-  }: {
-    orgName: string;
-    orgSubdomain: string;
-  }) => void;
-}) {
-  const { executeAsync, isPending } = useAction(createOrgAction);
+export function CreateOrgForm() {
+  const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
@@ -53,8 +43,6 @@ export function CreateOrgForm({
 
   const organizationName = watch("orgName");
 
-  const router = useRouter();
-
   useEffect(() => {
     setValue("orgSubdomain", slugifySubdomain(organizationName));
     clearErrors("orgSubdomain");
@@ -66,14 +54,13 @@ export function CreateOrgForm({
   }) => {
     clearErrors("root.serverError");
 
-    const response = await executeAsync({
+    const response = await createOrg({
       orgName,
       orgSubdomain,
     });
 
     if (response?.data?.success) {
-      router.refresh();
-      onSuccess?.({ orgName, orgSubdomain });
+      navigateToSubdomain({ subdomain: orgSubdomain });
     } else if (response?.data?.message === "duplicate subdomain") {
       setError("orgSubdomain", {
         message: "Sorry, this subdomain is already taken",

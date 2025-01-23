@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignUpForm } from "./sign-up-form";
+import { SignUpForm } from "./form";
 
 export function SignUpDialog() {
   const [open, setOpen] = useState(false);

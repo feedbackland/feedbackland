@@ -1,15 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/ui/copy-button";
 
-export function CodeBlock({
-  code,
-  className,
-}: {
-  code: string;
-  className?: string;
-}) {
+export function BasicCodeBlock({ code }: { code: string }) {
   return (
     <div className="relative">
       <CopyButton text={code} className="absolute top-2 right-2" />
