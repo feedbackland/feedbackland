@@ -18,7 +18,7 @@ export default async function OrgPage() {
       <>
         {!isClaimed && <ClaimOrgBanner orgId={org.id} />}
         <div className="mt-10 max-w-[600px] w-full m-auto flex flex-col space-y-3">
-          {org && <h1>{org.name}&apos;s Feedback Platform</h1>}
+          {org && <h1>{org.name}&apos;s Feedback Platform!</h1>}
           <div className="flex items-center space-x-5">
             {session ? (
               <SignOutButton />
