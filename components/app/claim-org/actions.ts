@@ -22,7 +22,7 @@ export const claimOrgAction = actionClient
         })
         .returningAll()
         .executeTakeFirstOrThrow();
-      return { success: true, message: "Org claimedsuccessfully!" };
+      return { success: true, message: "Org claimed successfully!" };
     } catch (error) {
       return {
         success: false,
