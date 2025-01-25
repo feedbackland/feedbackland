@@ -13,15 +13,24 @@ export const claimOrgAction = actionClient
   )
   .action(async ({ parsedInput: { userId, orgId } }) => {
     try {
-      await db
-        .insertInto("user_org")
-        .values({
-          user_id: userId,
-          org_id: orgId,
-          role: "admin",
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
+      await db.transaction().execute(async (trx) => {
+        await trx
+          .insertInto("user_org")
+          .values({
+            user_id: userId,
+            org_id: orgId,
+            role: "admin",
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
+
+        await trx
+          .updateTable("org")
+          .set({ is_claimed: true })
+          .where("id", "=", orgId)
+          .executeTakeFirstOrThrow();
+      });
+
       return { success: true, message: "Org claimed successfully!" };
     } catch (error) {
       return {

@@ -41,6 +41,8 @@ export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export type UserOrgRole = "admin" | "user";
+
 export interface Account {
   accessToken: string | null;
   accessTokenExpiresAt: Timestamp | null;
@@ -345,6 +347,7 @@ export interface ExtensionsWrappersFdwStats {
 
 export interface Org {
   id: Generated<string>;
+  is_claimed: Generated<boolean>;
   name: string;
   subdomain: Generated<string>;
 }
@@ -531,13 +534,14 @@ export interface User {
   emailVerified: boolean;
   id: string;
   image: string | null;
+  isAnonymous: boolean | null;
   name: string;
   updatedAt: Timestamp;
 }
 
 export interface UserOrg {
   org_id: string;
-  role: string;
+  role: Generated<UserOrgRole>;
   user_id: string;
 }
 
