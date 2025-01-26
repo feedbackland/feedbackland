@@ -17,8 +17,8 @@ export const claimOrgAction = actionClient
         await trx
           .insertInto("user_org")
           .values({
-            user_id: userId,
-            org_id: orgId,
+            userId,
+            orgId,
             role: "admin",
           })
           .returningAll()
@@ -26,7 +26,7 @@ export const claimOrgAction = actionClient
 
         await trx
           .updateTable("org")
-          .set({ is_claimed: true })
+          .set({ isClaimed: true })
           .where("id", "=", orgId)
           .executeTakeFirstOrThrow();
       });

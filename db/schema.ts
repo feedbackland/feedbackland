@@ -347,7 +347,7 @@ export interface ExtensionsWrappersFdwStats {
 
 export interface Org {
   id: Generated<string>;
-  is_claimed: Generated<boolean>;
+  isClaimed: Generated<boolean>;
   name: string;
   subdomain: Generated<string>;
 }
@@ -540,9 +540,9 @@ export interface User {
 }
 
 export interface UserOrg {
-  org_id: string;
+  orgId: string;
   role: Generated<UserOrgRole>;
-  user_id: string;
+  userId: string;
 }
 
 export interface VaultDecryptedSecrets {

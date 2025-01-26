@@ -108,7 +108,7 @@ export function CreateOrgForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" loading={isPending}>
+        <Button type="submit" loading={!isIdle}>
           Submit
         </Button>
       </form>

@@ -4,7 +4,7 @@ export const getOrg = async ({ orgSubdomain }: { orgSubdomain: string }) => {
   return await db
     .selectFrom("org")
     .where("org.subdomain", "=", orgSubdomain)
-    .select(["id", "name", "is_claimed"])
+    .select(["id", "name", "isClaimed"])
     .executeTakeFirst();
 };
 
@@ -16,7 +16,7 @@ export const getOrg = async ({ orgSubdomain }: { orgSubdomain: string }) => {
 //   const result = await db
 //     .selectFrom("org")
 //     .leftJoin("user_org", "user_org.org_id", "org.id")
-//     .leftJoin("user", "user.id", "user_org.user_id")
+//     .leftJoin("user", "user.id", "user_org.userId")
 //     .select([
 //       "org.id as orgId",
 //       "org.name as orgName",
@@ -27,14 +27,4 @@ export const getOrg = async ({ orgSubdomain }: { orgSubdomain: string }) => {
 //     .execute();
 
 //   return result;
-// };
-
-// export const isOrgClaimed = async ({ orgId }: { orgId: string }) => {
-//   const result = await db
-//     .selectFrom("user_org")
-//     .selectAll()
-//     .where("user_org.org_id", "=", orgId)
-//     .executeTakeFirst();
-
-//   return result !== undefined;
 // };

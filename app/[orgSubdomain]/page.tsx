@@ -10,7 +10,7 @@ export default async function OrgPage() {
   const subdomain = await getSubdomain();
   const session = await getSession();
   const org = await getOrg({ orgSubdomain: subdomain });
-  const isOrgClaimed = !!org?.is_claimed;
+  const isOrgClaimed = !!org?.isClaimed;
 
   if (org) {
     return (
