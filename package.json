@@ -21,6 +21,7 @@
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-tabs": "^1.1.2",
     "@types/pg": "^8.11.11",
     "better-auth": "^1.1.15",
     "class-variance-authority": "^0.7.1",
@@ -49,9 +50,12 @@
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.19.0",
     "eslint-config-next": "^15.1.6",
+    "eslint-plugin-tailwindcss": "^3.18.0",
     "kysely-codegen": "^0.17.0",
     "kysely-ctl": "^0.10.1",
     "postcss": "^8.5.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^3.x",
     "typescript": "^5.7.3"
   }
