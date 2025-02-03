@@ -1,6 +1,4 @@
-"use client";
-
-import { BasicCodeBlock } from "@/components/ui/basic-code-block";
+import { Code } from "@/components/ui/code";
 import {
   Tabs,
   TabsContent,
@@ -8,21 +6,29 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs-alt";
 
-const code = `
-  import { OverlayWidget } from "feedbackland/react";
+const overlayWidgetCode = `import React, { useState } from 'react';
+
+export function TodoList() {
+  return (
+    <div className="max-w-md mx-auto">
+      <h2 className="text-xl font-bold mb-4">Todo List</h2>
+      {todos.map(todo => (
+        <TodoItem
+          key={todo.id}
+          text={todo.text}
+          completed={todo.completed}
+          onToggle={() => toggleTodo(todo.id)}
+        />
+      ))}
+    </div>
+  );
+}`;
+
+const inlineWidgetCode = `
+  import { InlineWidget } from "feedbackland/react";
 
   function App() {
-    return (
-      <div>
-         <Button onClick={() => setIsOpen(true)}>Feedback</Button>
-         <SlideInWidget 
-          id=”12323-2323-2323”
-          open={isOpen}
-          onClose={() => setIsOpen(false)}
-          mode=”light” // can be either “light”, “dark” or “system”
-          />
-      </div>
-    );
+    return <InlineWidget id=”12323-2323-2323” />;
   }
 `;
 
@@ -34,9 +40,21 @@ export function WidgetDocs() {
         <TabsTrigger value="inline-react">Inline Widget (React)</TabsTrigger>
       </TabsList>
       <TabsContent value="overlay-react">
-        <BasicCodeBlock code={code} />
+        <Code
+          title="App.tsx"
+          code={overlayWidgetCode}
+          showLineNumbers={true}
+          language="tsx"
+        />
       </TabsContent>
-      <TabsContent value="inline-react"></TabsContent>
+      <TabsContent value="inline-react">
+        <Code
+          title="App.tsx"
+          code={inlineWidgetCode}
+          showLineNumbers={true}
+          language="tsx"
+        />
+      </TabsContent>
     </Tabs>
   );
 }

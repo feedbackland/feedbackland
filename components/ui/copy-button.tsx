@@ -27,11 +27,11 @@ export const CopyButton = ({
   return (
     <Button
       size="icon"
-      variant="link"
+      variant="default"
       onClick={handleCopy}
       className={cn(
-        "text-primary-foreground hover:bg-muted/20 size-7",
-        className
+        "size-7 text-primary-foreground hover:bg-muted/20",
+        className,
       )}
     >
       {isCopied ? (
