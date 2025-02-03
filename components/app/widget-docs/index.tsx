@@ -4,7 +4,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs-alt";
+} from "@/components/ui/tabs-underlined";
 
 const overlayWidgetCode = `import React, { useState } from 'react';
 
