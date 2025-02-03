@@ -24,12 +24,11 @@ export function TodoList() {
   );
 }`;
 
-const inlineWidgetCode = `
-  import { InlineWidget } from "feedbackland/react";
+const inlineWidgetCode = `import { InlineWidget } from "feedbackland/react";
 
-  function App() {
-    return <InlineWidget id=”12323-2323-2323” />;
-  }
+function App() {
+  return <InlineWidget id=”12323-2323-2323” />;
+}
 `;
 
 export function WidgetDocs() {
