@@ -1,10 +1,9 @@
-import "@iframe-resizer/child";
 import { getSession, getSubdomain } from "@/lib/server/utils";
-import { SignOutButton } from "@/components/app/sign-out/button";
-import { SignInDialog } from "@/components/app/sign-in/dialog";
-import { SignUpDialog } from "@/components/app/sign-up/dialog";
+import { SignOutButton } from "@/components/app/sign-out-button";
+import { SignInDialog } from "@/components/app/sign-in-form/dialog";
+import { SignUpDialog } from "@/components/app/sign-up-form/dialog";
 import { getOrg } from "./queries";
-import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
+import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 
 export default async function OrgPage() {
   const subdomain = await getSubdomain();

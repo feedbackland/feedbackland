@@ -1,5 +1,4 @@
-import "@iframe-resizer/child";
-import { CreateOrgForm } from "@/components/app/create-org/form";
+import { CreateOrgForm } from "@/components/app/create-org-form";
 
 export default async function RootPage() {
   return (

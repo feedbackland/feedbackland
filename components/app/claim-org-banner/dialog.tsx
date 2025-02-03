@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignUpForm } from "@/components/app/sign-up/form";
+import { SignUpForm } from "@/components/app/sign-up-form";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "./actions";
 import { useRouter } from "next/navigation";
