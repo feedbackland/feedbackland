@@ -18,11 +18,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { navigateToSubdomain } from "@/lib/client/utils";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
-export function CreateOrgForm() {
+export function CreateOrgForm({
+  onSuccess,
+}: {
+  onSuccess: ({
+    orgId,
+    orgSubdomain,
+  }: {
+    orgId: string;
+    orgSubdomain: string;
+  }) => void;
+}) {
   const {
     executeAsync: createOrg,
     isPending,
@@ -63,8 +72,9 @@ export function CreateOrgForm() {
       orgSubdomain,
     });
 
-    if (response?.data?.success) {
-      navigateToSubdomain({ subdomain: orgSubdomain });
+    if (response?.data?.success && response?.data?.org) {
+      const { org } = response.data;
+      onSuccess({ orgId: org.id, orgSubdomain: org.subdomain });
     } else if (response?.data?.message === "duplicate subdomain") {
       setError("orgSubdomain", {
         message: "Sorry, this subdomain is already taken",
@@ -80,7 +90,9 @@ export function CreateOrgForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {errors?.root?.serverError && (
-          <p className="text-red-500">{errors?.root?.serverError.message}</p>
+          <p className="text-destructive">
+            {errors?.root?.serverError.message}
+          </p>
         )}
         <FormField
           control={form.control}
@@ -101,8 +113,11 @@ export function CreateOrgForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Subdomain</FormLabel>
-              <FormControl>
-                <Input placeholder="Subdomain" {...field} />
+              <FormControl className="">
+                <div className="flex items-center">
+                  <Input placeholder="Subdomain" {...field} />
+                  <span className="ml-2 text-sm">.feedbackland.com</span>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

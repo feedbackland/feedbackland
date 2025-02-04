@@ -1,3 +1,6 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
 import { Code } from "@/components/ui/code";
 import {
   Tabs,
@@ -5,55 +8,63 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs-underlined";
+import { ArrowRight } from "lucide-react";
+import { navigateToSubdomain } from "@/lib/client/utils";
 
-const overlayWidgetCode = `import React, { useState } from 'react';
+export function WidgetDocs({
+  org: { orgId, orgSubdomain },
+}: {
+  org: {
+    orgId: string;
+    orgSubdomain: string;
+  };
+}) {
+  const overlayWidgetCode = `import { OverlayWidget } from "feedbackland/react";
+  
+  function App() {
+    return <OverlayWidget id="${orgId}" />;
+  }
+  `;
 
-export function TodoList() {
+  const inlineWidgetCode = `import { InlineWidget } from "feedbackland/react";
+  
+  function App() {
+    return <InlineWidget id="${orgId}" />;
+  }
+  `;
+
   return (
-    <div className="max-w-md mx-auto">
-      <h2 className="text-xl font-bold mb-4">Todo List</h2>
-      {todos.map(todo => (
-        <TodoItem
-          key={todo.id}
-          text={todo.text}
-          completed={todo.completed}
-          onToggle={() => toggleTodo(todo.id)}
-        />
-      ))}
+    <div className="flex flex-col space-y-5">
+      <Tabs defaultValue="overlay-react">
+        <TabsList className="space-x-5">
+          <TabsTrigger value="overlay-react" className="p-0 text-sm">
+            Overlay widget (React)
+          </TabsTrigger>
+          <TabsTrigger value="inline-react" className="p-0 text-sm">
+            Inline Widget (React)
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="overlay-react">
+          <Code
+            title="App.tsx"
+            code={overlayWidgetCode}
+            showLineNumbers={true}
+            language="tsx"
+          />
+        </TabsContent>
+        <TabsContent value="inline-react">
+          <Code
+            title="App.tsx"
+            code={inlineWidgetCode}
+            showLineNumbers={true}
+            language="tsx"
+          />
+        </TabsContent>
+      </Tabs>
+      <Button onClick={() => navigateToSubdomain({ subdomain: orgSubdomain })}>
+        <span>Proceed to your platfrom</span>
+        <ArrowRight className="size-4" />
+      </Button>
     </div>
-  );
-}`;
-
-const inlineWidgetCode = `import { InlineWidget } from "feedbackland/react";
-
-function App() {
-  return <InlineWidget id=”12323-2323-2323” />;
-}
-`;
-
-export function WidgetDocs() {
-  return (
-    <Tabs defaultValue="overlay-react">
-      <TabsList className="">
-        <TabsTrigger value="overlay-react">Overlay widget (React)</TabsTrigger>
-        <TabsTrigger value="inline-react">Inline Widget (React)</TabsTrigger>
-      </TabsList>
-      <TabsContent value="overlay-react">
-        <Code
-          title="App.tsx"
-          code={overlayWidgetCode}
-          showLineNumbers={true}
-          language="tsx"
-        />
-      </TabsContent>
-      <TabsContent value="inline-react">
-        <Code
-          title="App.tsx"
-          code={inlineWidgetCode}
-          showLineNumbers={true}
-          language="tsx"
-        />
-      </TabsContent>
-    </Tabs>
   );
 }

@@ -8,8 +8,8 @@ export const createOrgAction = actionClient
   .schema(createOrgSchema)
   .action(async ({ parsedInput: { orgName, orgSubdomain } }) => {
     try {
-      await createOrg({ orgName, orgSubdomain });
-      return { success: true, message: "User created successfully!" };
+      const org = await createOrg({ orgName, orgSubdomain });
+      return { success: true, org };
     } catch (error) {
       return {
         success: false,

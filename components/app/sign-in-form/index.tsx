@@ -101,7 +101,9 @@ export function SignInForm({ onSuccess }: { onSuccess?: () => void }) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {errors?.root?.serverError && (
-            <p className="text-red-500">{errors?.root?.serverError.message}</p>
+            <p className="text-destructive">
+              {errors?.root?.serverError.message}
+            </p>
           )}
           <FormField
             control={form.control}
