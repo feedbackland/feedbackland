@@ -2,14 +2,7 @@
 
 import { CreateOrgForm } from "@/components/app/create-org-form";
 import { WidgetDocs } from "@/components/app/widget-docs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Logo } from "@/components/ui/logo";
 import { useState } from "react";
 
 export default function RootPage() {
@@ -19,32 +12,24 @@ export default function RootPage() {
   } | null>(null);
 
   return (
-    <div className="m-auto mt-10 flex w-full max-w-[600px] flex-col space-y-5">
-      <Card>
-        {!org ? (
-          <>
-            <CardHeader>
-              <CardTitle>Create your platform</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CreateOrgForm
-                onSuccess={({ orgId, orgSubdomain }) =>
-                  setOrg({ orgId, orgSubdomain })
-                }
-              />
-            </CardContent>
-          </>
-        ) : (
-          <>
-            <CardHeader>
-              <CardTitle>Add the widget to your app</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <WidgetDocs org={org} />
-            </CardContent>
-          </>
-        )}
-      </Card>
+    <div className="debug m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
+      {/* <div className="mb-10 w-[35px]">
+        <Logo variant="small" />
+      </div> */}
+
+      <div className="mb-10 w-[160px]">
+        <Logo variant="full" />
+      </div>
+
+      {!org ? (
+        <CreateOrgForm
+          onSuccess={({ orgId, orgSubdomain }) =>
+            setOrg({ orgId, orgSubdomain })
+          }
+        />
+      ) : (
+        <WidgetDocs org={org} />
+      )}
     </div>
   );
 }

@@ -18,6 +18,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -87,46 +95,58 @@ export function CreateOrgForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {errors?.root?.serverError && (
-          <p className="text-destructive">
-            {errors?.root?.serverError.message}
-          </p>
-        )}
-        <FormField
-          control={form.control}
-          name="orgName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Company or product name</FormLabel>
-              <FormControl>
-                <Input placeholder="Company or product name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="orgSubdomain"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Subdomain</FormLabel>
-              <FormControl className="">
-                <div className="flex items-center">
-                  <Input placeholder="Subdomain" {...field} />
-                  <span className="ml-2 text-sm">.feedbackland.com</span>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" loading={!isIdle}>
-          Submit
-        </Button>
-      </form>
-    </Form>
+    <Card className="w-full max-w-[400px]">
+      <CardHeader>
+        <CardTitle className="h3 mb-3 mt-1 text-center font-bold">
+          Create your platform
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {errors?.root?.serverError && (
+              <p className="text-destructive">
+                {errors?.root?.serverError.message}
+              </p>
+            )}
+            <FormField
+              control={form.control}
+              name="orgName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company or product name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Your company or product name..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="orgSubdomain"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Platform url</FormLabel>
+                  <FormControl className="">
+                    <div className="flex items-center">
+                      <Input {...field} />
+                      <span className="ml-2 text-sm">.feedbackland.com</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" loading={!isIdle}>
+              Create platform
+            </Button>
+          </form>
+        </Form>{" "}
+      </CardContent>
+    </Card>
   );
 }
