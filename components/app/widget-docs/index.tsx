@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Code } from "@/components/ui/code";
+import { CodeInstall } from "@/components/ui/code-install";
 import {
   Tabs,
   TabsContent,
@@ -10,6 +11,14 @@ import {
 } from "@/components/ui/tabs-underlined";
 import { ArrowRight } from "lucide-react";
 import { navigateToSubdomain } from "@/lib/client/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function WidgetDocs({
   org: { orgId, orgSubdomain },
@@ -20,51 +29,69 @@ export function WidgetDocs({
   };
 }) {
   const overlayWidgetCode = `import { OverlayWidget } from "feedbackland/react";
-  
-  function App() {
-    return <OverlayWidget id="${orgId}" />;
-  }
-  `;
+
+function App() {
+  return <OverlayWidget id="${orgId}" />;
+}`;
 
   const inlineWidgetCode = `import { InlineWidget } from "feedbackland/react";
-  
-  function App() {
-    return <InlineWidget id="${orgId}" />;
-  }
-  `;
+
+function App() {
+  return <InlineWidget id="${orgId}" />;
+}`;
 
   return (
-    <div className="flex flex-col space-y-5">
-      <Tabs defaultValue="overlay-react">
-        <TabsList className="space-x-5">
-          <TabsTrigger value="overlay-react" className="p-0 text-sm">
-            Overlay widget (React)
-          </TabsTrigger>
-          <TabsTrigger value="inline-react" className="p-0 text-sm">
-            Inline Widget (React)
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="overlay-react">
-          <Code
-            title="App.tsx"
-            code={overlayWidgetCode}
-            showLineNumbers={true}
-            language="tsx"
-          />
-        </TabsContent>
-        <TabsContent value="inline-react">
-          <Code
-            title="App.tsx"
-            code={inlineWidgetCode}
-            showLineNumbers={true}
-            language="tsx"
-          />
-        </TabsContent>
-      </Tabs>
-      <Button onClick={() => navigateToSubdomain({ subdomain: orgSubdomain })}>
-        <span>Proceed to your platfrom</span>
-        <ArrowRight className="size-4" />
-      </Button>
-    </div>
+    <Card className="w-full max-w-[700px]">
+      <CardHeader>
+        <CardTitle className="h3 mb-3 mt-1 text-center font-bold">
+          Add the widget to your app
+        </CardTitle>
+        <CardDescription className="text-center">
+          Make your feedback platform directly accessible from within your app
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col space-y-4">
+          <Tabs defaultValue="overlay-react" className="mb-5">
+            <TabsList className="space-x-5">
+              <TabsTrigger value="overlay-react" className="text-sm">
+                Overlay widget - React
+              </TabsTrigger>
+              <TabsTrigger value="inline-react" className="text-sm">
+                Inline Widget - React
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="overlay-react">
+              <div className="mt-5 flex flex-col space-y-5">
+                <CodeInstall code="npm install feedbackland/react" />
+                <Code
+                  title="App.tsx"
+                  code={overlayWidgetCode}
+                  showLineNumbers={true}
+                  language="tsx"
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="inline-react">
+              <div className="mt-5 flex flex-col space-y-5">
+                <CodeInstall code="npm install feedbackland/react" />
+                <Code
+                  title="App.tsx"
+                  code={inlineWidgetCode}
+                  showLineNumbers={true}
+                  language="tsx"
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+          <Button
+            onClick={() => navigateToSubdomain({ subdomain: orgSubdomain })}
+          >
+            <span>Proceed to your platform</span>
+            <ArrowRight className="size-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

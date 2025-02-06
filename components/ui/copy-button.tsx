@@ -10,7 +10,7 @@ export const CopyButton = ({
   className,
 }: {
   text: string;
-  className?: string;
+  className?: React.ComponentProps<"div">["className"];
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -30,15 +30,11 @@ export const CopyButton = ({
       variant="default"
       onClick={handleCopy}
       className={cn(
-        "size-7 text-primary-foreground hover:bg-muted/20",
+        "size-6 text-primary-foreground hover:bg-muted/20",
         className,
       )}
     >
-      {isCopied ? (
-        <Check className="!size-3.5" />
-      ) : (
-        <Copy className="!size-3.5" />
-      )}
+      {isCopied ? <Check className="!size-3" /> : <Copy className="!size-3" />}
     </Button>
   );
 };

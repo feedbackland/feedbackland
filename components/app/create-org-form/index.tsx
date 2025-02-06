@@ -18,14 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -141,7 +134,7 @@ export function CreateOrgForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" loading={!isIdle}>
+            <Button type="submit" loading={!isIdle} className="w-full">
               Create platform
             </Button>
           </form>

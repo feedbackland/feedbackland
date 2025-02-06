@@ -21,7 +21,9 @@ export default function RootPage() {
         <Logo variant="full" />
       </div>
 
-      {!org ? (
+      <WidgetDocs org={{ orgId: "12444", orgSubdomain: "zolg" }} />
+
+      {/* {!org ? (
         <CreateOrgForm
           onSuccess={({ orgId, orgSubdomain }) =>
             setOrg({ orgId, orgSubdomain })
@@ -29,7 +31,7 @@ export default function RootPage() {
         />
       ) : (
         <WidgetDocs org={org} />
-      )}
+      )} */}
     </div>
   );
 }
