@@ -63,7 +63,7 @@ function App() {
             </TabsList>
             <TabsContent value="overlay-react">
               <div className="mt-5 flex flex-col space-y-5">
-                <CodeInstall code="npm install feedbackland/react" />
+                <CodeInstall packageName="feedbackland/react" />
                 <Code
                   title="App.tsx"
                   code={overlayWidgetCode}
@@ -74,7 +74,7 @@ function App() {
             </TabsContent>
             <TabsContent value="inline-react">
               <div className="mt-5 flex flex-col space-y-5">
-                <CodeInstall code="npm install feedbackland/react" />
+                <CodeInstall packageName="feedbackland/react" />
                 <Code
                   title="App.tsx"
                   code={inlineWidgetCode}
