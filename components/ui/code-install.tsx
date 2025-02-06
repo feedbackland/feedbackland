@@ -39,6 +39,7 @@ export function CodeInstall({ packageName, className }: CodeProps) {
           {packageManagers.map((packageManager) => {
             return (
               <TabsTrigger
+                key={packageManager}
                 value={packageManager}
                 className={tabsTriggerClassnames}
               >
@@ -51,6 +52,7 @@ export function CodeInstall({ packageName, className }: CodeProps) {
         {packageManagers.map((packageManager) => {
           return (
             <TabsContent
+              key={packageManager}
               value={packageManager}
               className={tabsContentClassnames}
             >

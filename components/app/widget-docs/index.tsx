@@ -51,8 +51,8 @@ function App() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col space-y-4">
-          <Tabs defaultValue="overlay-react" className="mb-5">
+        <div className="flex flex-col">
+          <Tabs defaultValue="overlay-react" className="mb-7">
             <TabsList className="space-x-5">
               <TabsTrigger value="overlay-react" className="text-sm">
                 Overlay widget - React
@@ -62,7 +62,7 @@ function App() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="overlay-react">
-              <div className="mt-5 flex flex-col space-y-5">
+              <div className="mt-5 flex flex-col space-y-3">
                 <CodeInstall packageName="feedbackland/react" />
                 <Code
                   title="App.tsx"
@@ -73,7 +73,7 @@ function App() {
               </div>
             </TabsContent>
             <TabsContent value="inline-react">
-              <div className="mt-5 flex flex-col space-y-5">
+              <div className="mt-5 flex flex-col space-y-3">
                 <CodeInstall packageName="feedbackland/react" />
                 <Code
                   title="App.tsx"
@@ -85,6 +85,7 @@ function App() {
             </TabsContent>
           </Tabs>
           <Button
+            size="lg"
             onClick={() => navigateToSubdomain({ subdomain: orgSubdomain })}
           >
             <span>Proceed to your platform</span>
