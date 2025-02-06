@@ -17,7 +17,7 @@ export default function RootPage() {
         <Logo variant="small" />
       </div> */}
 
-      <div className="mb-10 w-[160px]">
+      <div className="mb-10 w-[170px]">
         <Logo variant="full" />
       </div>
 

@@ -41,13 +41,14 @@ function App() {
 }`;
 
   return (
-    <Card className="w-full max-w-[700px]">
-      <CardHeader>
+    <Card className="w-full max-w-[650px]">
+      <CardHeader className="mb-2">
         <CardTitle className="h3 mb-3 mt-1 text-center font-bold">
           Add the widget to your app
         </CardTitle>
         <CardDescription className="text-center">
-          Make your feedback platform directly accessible from within your app
+          Integrate your feedback platform directly into your app by installing
+          a widget.
         </CardDescription>
       </CardHeader>
       <CardContent>
