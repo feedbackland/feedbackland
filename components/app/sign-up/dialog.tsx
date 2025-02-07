@@ -9,25 +9,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignInForm } from ".";
+import { SignUp } from ".";
 
-export function SignInDialog() {
+export function SignUpDialog() {
   const [open, setOpen] = useState(false);
 
-  const handleSignIn = () => {
+  const handleSignUp = () => {
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)}>Sign in</Button>
+        <Button onClick={() => setOpen(true)}>Sign up</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Sign in</DialogTitle>
+          <DialogTitle>Sign up</DialogTitle>
         </DialogHeader>
-        <SignInForm onSuccess={handleSignIn} />
+        <SignUp onSuccess={handleSignUp} />
       </DialogContent>
     </Dialog>
   );

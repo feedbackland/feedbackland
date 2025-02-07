@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignUpForm } from "@/components/app/sign-up-form";
+import { SignUp } from "@/components/app/sign-up";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "./actions";
 import { useRouter } from "next/navigation";
@@ -30,15 +30,23 @@ export function ClaimOrgDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpen(true)} loading={isPending}>
+        <Button
+          onClick={() => setOpen(true)}
+          loading={isPending}
+          size="default"
+          variant="default"
+          className="border !border-border bg-primary text-primary-foreground"
+        >
           Claim this platform
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Claim this platform</DialogTitle>
+          <DialogTitle className="h3 mb-4 mt-2 text-center">
+            Claim this platform
+          </DialogTitle>
         </DialogHeader>
-        <SignUpForm
+        <SignUp
           onSuccess={async ({ userId }) => {
             const response = await claimOrg({
               userId,

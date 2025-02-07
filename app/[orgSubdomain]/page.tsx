@@ -1,7 +1,7 @@
 import { getSession, getSubdomain } from "@/lib/server/utils";
-import { SignOutButton } from "@/components/app/sign-out-button";
-import { SignInDialog } from "@/components/app/sign-in-form/dialog";
-import { SignUpDialog } from "@/components/app/sign-up-form/dialog";
+import { SignOutButton } from "@/components/app/sign-out";
+import { SignInDialog } from "@/components/app/sign-in/dialog";
+import { SignUpDialog } from "@/components/app/sign-up/dialog";
 import { getOrg } from "@/app/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 
@@ -15,7 +15,7 @@ export default async function OrgPage() {
     return (
       <>
         {!isOrgClaimed && <ClaimOrgBanner orgId={org.id} />}
-        <div className="m-auto mt-10 flex w-full max-w-[600px] flex-col space-y-3">
+        <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
           {org && <h1>{org.name}&apos;s Feedback Platform!</h1>}
           <div className="flex items-center space-x-5">
             {session ? (

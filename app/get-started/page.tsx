@@ -2,7 +2,7 @@
 
 import { CreateOrgForm } from "@/components/app/create-org-form";
 import { WidgetDocs } from "@/components/app/widget-docs";
-import { Logo } from "@/components/ui/logo";
+import { FeedbackLandLogoFull } from "@/components/ui/logos";
 import { useState } from "react";
 
 export default function RootPage() {
@@ -12,18 +12,10 @@ export default function RootPage() {
   } | null>(null);
 
   return (
-    <div className="debug m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
-      {/* <div className="mb-10 w-[35px]">
-        <Logo variant="small" />
-      </div> */}
+    <div className="m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
+      <FeedbackLandLogoFull className="mb-14 w-[165px]" />
 
-      <div className="mb-10 w-[170px]">
-        <Logo variant="full" />
-      </div>
-
-      <WidgetDocs org={{ orgId: "12444", orgSubdomain: "zolg" }} />
-
-      {/* {!org ? (
+      {!org ? (
         <CreateOrgForm
           onSuccess={({ orgId, orgSubdomain }) =>
             setOrg({ orgId, orgSubdomain })
@@ -31,7 +23,7 @@ export default function RootPage() {
         />
       ) : (
         <WidgetDocs org={org} />
-      )} */}
+      )}
     </div>
   );
 }

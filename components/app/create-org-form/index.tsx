@@ -37,7 +37,11 @@ export function CreateOrgForm({
     executeAsync: createOrg,
     isPending,
     isIdle,
+    isTransitioning,
+    isExecuting,
   } = useAction(createOrgAction);
+
+  const isLoading = !!isPending;
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
@@ -126,7 +130,7 @@ export function CreateOrgForm({
                   <FormLabel>Platform url</FormLabel>
                   <FormControl className="">
                     <div className="flex items-center">
-                      <Input {...field} />
+                      <Input {...field} placeholder="subdomain" />
                       <span className="ml-2 text-sm">.feedbackland.com</span>
                     </div>
                   </FormControl>
@@ -134,7 +138,7 @@ export function CreateOrgForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" loading={!isIdle} className="w-full">
+            <Button type="submit" loading={isLoading} className="w-full">
               Create platform
             </Button>
           </form>
