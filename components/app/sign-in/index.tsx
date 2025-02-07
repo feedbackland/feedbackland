@@ -1,19 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ContinueWithGoogleButton } from "@/components/app/sso/continue-with-google-button";
+import { SSOButtonGoogle } from "@/components/app/sso/sso-button-google";
 import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
 
-export function SignIn({ onSuccess }: { onSuccess?: () => void }) {
+export function SignIn({
+  onSuccess,
+  onSwitch,
+}: {
+  onSuccess?: ({ userId }: { userId: string }) => void;
+  onSwitch?: () => void;
+}) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
   return (
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
-          <ContinueWithGoogleButton />
+          <SSOButtonGoogle method="sign-in" />
           <Button
             variant="default"
             size="lg"
@@ -22,9 +28,15 @@ export function SignIn({ onSuccess }: { onSuccess?: () => void }) {
             <Mail className="size-5" />
             Sign in with Email
           </Button>
+          <Button variant="link" onClick={() => onSwitch?.()}>
+            No account yet? Sign up instead.
+          </Button>
         </div>
       ) : (
-        <SignInEmailForm onClose={() => setIsEmailSelected(false)} />
+        <SignInEmailForm
+          onSuccess={({ userId }) => onSuccess?.({ userId })}
+          onClose={() => setIsEmailSelected(false)}
+        />
       )}
     </>
   );

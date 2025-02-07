@@ -35,7 +35,7 @@ export function SignInEmailForm({
   onSuccess,
   onClose,
 }: {
-  onSuccess?: () => void;
+  onSuccess?: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
 }) {
   const form = useForm<FormData>({
@@ -64,7 +64,7 @@ export function SignInEmailForm({
 
     if (data && !error) {
       router.refresh();
-      onSuccess?.();
+      onSuccess?.({ userId: data.user.id });
     }
 
     if (error) {
@@ -75,41 +75,46 @@ export function SignInEmailForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {errors?.root?.serverError && (
-          <p className="text-destructive">
-            {errors?.root?.serverError.message}
-          </p>
-        )}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Email" {...field} type="email" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <div>
+      <Button onClick={() => onClose?.()} className="mb-4">
+        Go back
+      </Button>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {errors?.root?.serverError && (
+            <p className="text-destructive">
+              {errors?.root?.serverError.message}
+            </p>
           )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input placeholder="Password" {...field} type="password" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Sign in</Button>
-      </form>
-    </Form>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="Email" {...field} type="email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input placeholder="Password" {...field} type="password" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit">Sign in</Button>
+        </form>
+      </Form>
+    </div>
   );
 }

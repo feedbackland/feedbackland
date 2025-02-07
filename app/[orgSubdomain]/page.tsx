@@ -1,7 +1,6 @@
 import { getSession, getSubdomain } from "@/lib/server/utils";
 import { SignOutButton } from "@/components/app/sign-out";
-import { SignInDialog } from "@/components/app/sign-in/dialog";
-import { SignUpDialog } from "@/components/app/sign-up/dialog";
+import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { getOrg } from "@/app/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 
@@ -22,8 +21,8 @@ export default async function OrgPage() {
               <SignOutButton />
             ) : (
               <>
-                <SignInDialog />
-                <SignUpDialog />
+                <SignUpInDialog selectedMethod="sign-up" />
+                <SignUpInDialog selectedMethod="sign-in" />
               </>
             )}
           </div>

@@ -4,9 +4,11 @@ import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
 import { GoogleLogo } from "@/components/ui/logos";
 
-export function ContinueWithGoogleButton({
+export function SSOButtonGoogle({
+  method,
   onSuccess,
 }: {
+  method: "sign-up" | "sign-in";
   onSuccess?: ({ userId }: { userId: string }) => void;
 }) {
   const continueWithGoogle = async () => {
@@ -26,7 +28,9 @@ export function ContinueWithGoogleButton({
   return (
     <Button variant="outline" className="w-full" onClick={continueWithGoogle}>
       <GoogleLogo className="size-5" />
-      <span>Continue with Google</span>
+      <span>
+        {method === "sign-in" ? "Sign in with Google" : "Sign up with Google"}
+      </span>
     </Button>
   );
 }

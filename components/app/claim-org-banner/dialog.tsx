@@ -7,9 +7,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SignUp } from "@/components/app/sign-up";
+import { SignUpIn } from "@/components/app/sign-up-in";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "./actions";
 import { useRouter } from "next/navigation";
@@ -42,11 +43,15 @@ export function ClaimOrgDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="h3 mb-4 mt-2 text-center">
+          <DialogTitle className="h3 mt-2 text-center">
             Claim this platform
           </DialogTitle>
+          <DialogDescription className="mb-8 text-center">
+            Create an account or sign in to claim this platform
+          </DialogDescription>
         </DialogHeader>
-        <SignUp
+        <SignUpIn
+          defaultSelectedMethod="sign-up"
           onSuccess={async ({ userId }) => {
             const response = await claimOrg({
               userId,
