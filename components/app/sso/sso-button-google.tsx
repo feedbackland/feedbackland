@@ -12,8 +12,11 @@ export function SSOButtonGoogle({
   onSuccess?: ({ userId }: { userId: string }) => void;
 }) {
   const continueWithGoogle = async () => {
+    const callbackURL = window.location.href;
+
     const { data, error } = await signIn.social({
       provider: "google",
+      callbackURL,
     });
 
     if (data && "user" in data && !error) {
