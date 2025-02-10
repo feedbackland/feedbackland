@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { SSOButtonGoogle } from "@/components/app/sso/sso-button-google";
 import { SSOButtonMicrosoft } from "@/components/app/sso/sso-button-microsoft";
+import { SSOButtonAnonymous } from "@/components/app/sso/sso-button-anonymous";
 import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
@@ -10,9 +11,11 @@ import { Mail } from "lucide-react";
 export function SignIn({
   onSuccess,
   onSwitch,
+  includeAnonymous,
 }: {
-  onSuccess?: ({ userId }: { userId: string }) => void;
+  onSuccess: ({ userId }: { userId: string }) => void;
   onSwitch?: () => void;
+  includeAnonymous?: boolean;
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
@@ -20,8 +23,8 @@ export function SignIn({
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
-          <SSOButtonGoogle method="sign-in" />
-          <SSOButtonMicrosoft method="sign-in" />
+          <SSOButtonGoogle />
+          <SSOButtonMicrosoft />
           <Button
             variant="outline"
             size="lg"
@@ -30,6 +33,11 @@ export function SignIn({
             <Mail className="size-5" />
             Sign in with Email
           </Button>
+          {includeAnonymous && (
+            <SSOButtonAnonymous
+              onSuccess={({ userId }) => onSuccess({ userId })}
+            />
+          )}
           <div className="m-auto mt-4 flex items-center">
             <span className="mr-1 text-sm text-muted-foreground">
               No account yet?
@@ -45,7 +53,7 @@ export function SignIn({
         </div>
       ) : (
         <SignInEmailForm
-          onSuccess={({ userId }) => onSuccess?.({ userId })}
+          onSuccess={({ userId }) => onSuccess({ userId })}
           onClose={() => setIsEmailSelected(false)}
         />
       )}

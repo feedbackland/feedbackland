@@ -36,7 +36,7 @@ export function SignInEmailForm({
   onSuccess,
   onClose,
 }: {
-  onSuccess?: ({ userId }: { userId: string }) => void;
+  onSuccess: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
 }) {
   const form = useForm<FormData>({
@@ -65,7 +65,7 @@ export function SignInEmailForm({
 
     if (data && !error) {
       router.refresh();
-      onSuccess?.({ userId: data.user.id });
+      onSuccess({ userId: data.user.id });
     }
 
     if (error) {

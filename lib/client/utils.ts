@@ -11,3 +11,9 @@ export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
       : `${protocol}//${rootDomain}/${subdomain}`;
   }
 };
+
+export const getCallbackUrl = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("sso_success", "true");
+  return url.toString();
+};

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { SSOButtonGoogle } from "@/components/app/sso/sso-button-google";
 import { SSOButtonMicrosoft } from "@/components/app/sso/sso-button-microsoft";
+import { SSOButtonAnonymous } from "@/components/app/sso/sso-button-anonymous";
 import { SignUpEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
@@ -10,9 +11,11 @@ import { Mail } from "lucide-react";
 export function SignUp({
   onSuccess,
   onSwitch,
+  includeAnonymous,
 }: {
-  onSuccess?: ({ userId }: { userId: string }) => void;
+  onSuccess: ({ userId }: { userId: string }) => void;
   onSwitch?: () => void;
+  includeAnonymous?: boolean;
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
@@ -20,16 +23,21 @@ export function SignUp({
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
-          <SSOButtonGoogle method="sign-up" />
-          <SSOButtonMicrosoft method="sign-up" />
+          <SSOButtonGoogle />
+          <SSOButtonMicrosoft />
           <Button
             variant="outline"
             size="lg"
             onClick={() => setIsEmailSelected(true)}
           >
             <Mail className="size-5" />
-            Sign up with email
+            Sign up with Email
           </Button>
+          {includeAnonymous && (
+            <SSOButtonAnonymous
+              onSuccess={({ userId }) => onSuccess({ userId })}
+            />
+          )}
           <div className="m-auto mt-4 flex items-center">
             <span className="mr-1 text-sm text-muted-foreground">
               Already have an account?
@@ -45,7 +53,7 @@ export function SignUp({
         </div>
       ) : (
         <SignUpEmailForm
-          onSuccess={({ userId }) => onSuccess?.({ userId })}
+          onSuccess={({ userId }) => onSuccess({ userId })}
           onClose={() => setIsEmailSelected(false)}
         />
       )}

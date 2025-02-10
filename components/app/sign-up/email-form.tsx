@@ -36,7 +36,7 @@ export function SignUpEmailForm({
   onSuccess,
   onClose,
 }: {
-  onSuccess?: ({ userId }: { userId: string }) => void;
+  onSuccess: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
 }) {
   const form = useForm<FormData>({
@@ -70,9 +70,9 @@ export function SignUpEmailForm({
     });
 
     if (data && !error) {
-      console.log("success");
+      console.log("successfully signed up with email");
       router.refresh();
-      onSuccess?.({ userId: data.user.id });
+      onSuccess({ userId: data.user.id });
     }
 
     if (error) {

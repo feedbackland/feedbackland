@@ -46,13 +46,15 @@ export function ClaimOrgDialog({
           <DialogTitle className="h3 text-center">
             Claim this platform
           </DialogTitle>
-          <DialogDescription className="text-center">
+          {/* <DialogDescription className="text-center">
             Sign up or in to claim ownership of this platform
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
         <SignUpIn
           defaultSelectedMethod="sign-up"
           onSuccess={async ({ userId }) => {
+            console.log("userId", userId);
+
             const response = await claimOrg({
               userId,
               orgId,

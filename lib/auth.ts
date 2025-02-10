@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
-import { dialect } from "@/db/db";
 import { nextCookies } from "better-auth/next-js";
 import { anonymous } from "better-auth/plugins";
+import { dialect } from "@/db/db";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],

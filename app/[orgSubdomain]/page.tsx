@@ -3,6 +3,7 @@ import { SignOutButton } from "@/components/app/sign-out";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { getOrg } from "@/app/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
+import { SSOListener } from "./sso-listener";
 
 export default async function OrgPage() {
   const subdomain = await getSubdomain();
@@ -13,6 +14,7 @@ export default async function OrgPage() {
   if (org) {
     return (
       <>
+        <SSOListener />
         {!isOrgClaimed && <ClaimOrgBanner orgId={org.id} />}
         <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
           {org && <h1>{org.name}&apos;s Feedback Platform!</h1>}
