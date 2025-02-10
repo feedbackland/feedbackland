@@ -42,12 +42,12 @@ export function ClaimOrgDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="h3 mt-2 text-center">
+        <DialogHeader className="mb-3 mt-2">
+          <DialogTitle className="h3 text-center">
             Claim this platform
           </DialogTitle>
-          <DialogDescription className="mb-8 text-center">
-            Create an account or sign in to claim this platform
+          <DialogDescription className="text-center">
+            Sign up or in to claim ownership of this platform
           </DialogDescription>
         </DialogHeader>
         <SignUpIn

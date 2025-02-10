@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SSOButtonGoogle } from "@/components/app/sso/sso-button-google";
+import { SSOButtonMicrosoft } from "@/components/app/sso/sso-button-microsoft";
 import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
@@ -20,17 +21,27 @@ export function SignIn({
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
           <SSOButtonGoogle method="sign-in" />
+          <SSOButtonMicrosoft method="sign-in" />
           <Button
-            variant="default"
+            variant="outline"
             size="lg"
             onClick={() => setIsEmailSelected(true)}
           >
             <Mail className="size-5" />
             Sign in with Email
           </Button>
-          <Button variant="link" onClick={() => onSwitch?.()}>
-            No account yet? Sign up instead.
-          </Button>
+          <div className="m-auto mt-4 flex items-center">
+            <span className="mr-1 text-sm text-muted-foreground">
+              No account yet?
+            </span>
+            <Button
+              variant="link"
+              onClick={() => onSwitch?.()}
+              className="p-0 text-sm text-muted-foreground underline hover:text-foreground"
+            >
+              Sign up
+            </Button>
+          </div>
         </div>
       ) : (
         <SignInEmailForm

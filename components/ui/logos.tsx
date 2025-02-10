@@ -62,3 +62,23 @@ export function GoogleLogo({
     </svg>
   );
 }
+
+export function MicrosoftLogo({
+  className,
+}: {
+  className?: React.ComponentProps<"div">["className"];
+}) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="100%"
+      className={cn("", className)}
+    >
+      <path d="M0 0h10v10H0V0Z" fill="#F35325" />
+      <path d="M11 0h10v10H11V0Z" fill="#81BC06" />
+      <path d="M0 11h10v10H0V11Z" fill="#05A6F0" />
+      <path d="M11 11h10v10H11V11Z" fill="#FFBA08" />
+    </svg>
+  );
+}

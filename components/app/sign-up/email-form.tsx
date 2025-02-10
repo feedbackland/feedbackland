@@ -15,6 +15,7 @@ import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export const signUpSchema = z.object({
   name: z.string().nonempty("Name is required"),
@@ -83,7 +84,13 @@ export function SignUpEmailForm({
 
   return (
     <div>
-      <Button onClick={() => onClose?.()} className="mb-4">
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onClose?.()}
+        className="mb-4"
+      >
+        <ArrowLeft className="size-4" />
         Go back
       </Button>
       <Form {...form}>
@@ -132,7 +139,9 @@ export function SignUpEmailForm({
               </FormItem>
             )}
           />
-          <Button type="submit">Sign up</Button>
+          <Button type="submit" className="w-full">
+            Sign up
+          </Button>
         </form>
       </Form>
     </div>

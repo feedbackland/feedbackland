@@ -2,18 +2,18 @@
 
 import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
-import { GoogleLogo } from "@/components/ui/logos";
+import { MicrosoftLogo } from "@/components/ui/logos";
 
-export function SSOButtonGoogle({
+export function SSOButtonMicrosoft({
   method,
   onSuccess,
 }: {
   method: "sign-up" | "sign-in";
   onSuccess?: ({ userId }: { userId: string }) => void;
 }) {
-  const continueWithGoogle = async () => {
+  const continueWithMicrosoft = async () => {
     const { data, error } = await signIn.social({
-      provider: "google",
+      provider: "microsoft",
     });
 
     if (data && "user" in data && !error) {
@@ -26,10 +26,16 @@ export function SSOButtonGoogle({
   };
 
   return (
-    <Button variant="default" className="w-full" onClick={continueWithGoogle}>
-      <GoogleLogo className="size-5" />
+    <Button
+      variant="default"
+      className="w-full"
+      onClick={continueWithMicrosoft}
+    >
+      <MicrosoftLogo className="size-5" />
       <span>
-        {method === "sign-in" ? "Sign in with Google" : "Sign up with Google"}
+        {method === "sign-in"
+          ? "Sign in with Microsoft"
+          : "Sign up with Microsoft"}
       </span>
     </Button>
   );
