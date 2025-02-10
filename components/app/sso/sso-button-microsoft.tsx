@@ -12,8 +12,11 @@ export function SSOButtonMicrosoft({
   onSuccess?: ({ userId }: { userId: string }) => void;
 }) {
   const continueWithMicrosoft = async () => {
+    const callbackURL = window.location.href;
+
     const { data, error } = await signIn.social({
       provider: "microsoft",
+      callbackURL,
     });
 
     if (data && "user" in data && !error) {
