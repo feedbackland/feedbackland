@@ -9,10 +9,12 @@ type Methods = "sign-up" | "sign-in";
 export function SignUpIn({
   defaultSelectedMethod,
   includeAnonymous,
+  context,
   onSuccess,
 }: {
   defaultSelectedMethod: Methods;
   includeAnonymous?: boolean;
+  context?: string;
   onSuccess: ({ userId }: { userId: string }) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState<Methods>(
@@ -24,12 +26,14 @@ export function SignUpIn({
       onSuccess={({ userId }) => onSuccess({ userId })}
       onSwitch={() => setSelectedMethod("sign-in")}
       includeAnonymous={includeAnonymous}
+      context={context}
     />
   ) : (
     <SignIn
       onSuccess={({ userId }) => onSuccess({ userId })}
       onSwitch={() => setSelectedMethod("sign-up")}
       includeAnonymous={includeAnonymous}
+      context={context}
     />
   );
 }

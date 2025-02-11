@@ -1,7 +1,7 @@
 "use client";
 
 import { CreateOrgForm } from "@/components/app/create-org-form";
-import { WidgetDocs } from "@/components/app/widget-docs";
+import { WidgetDocsCard } from "@/components/app/widget-docs/card";
 import { FeedbackLandLogoFull } from "@/components/ui/logos";
 import { useState } from "react";
 
@@ -22,7 +22,7 @@ export default function RootPage() {
           }
         />
       ) : (
-        <WidgetDocs org={org} />
+        <WidgetDocsCard orgId={org?.orgId} orgSubdomain={org?.orgSubdomain} />
       )}
     </div>
   );

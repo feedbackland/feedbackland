@@ -3,13 +3,14 @@
 import { actionClient } from "@/lib/server/safe-action";
 import { z } from "zod";
 import { db } from "@/db/db";
+import { revalidatePath } from "next/cache";
 
 export const claimOrgAction = actionClient
   .schema(
     z.object({
       userId: z.string().min(1),
       orgId: z.string().min(1),
-    })
+    }),
   )
   .action(async ({ parsedInput: { userId, orgId } }) => {
     try {
@@ -31,14 +32,14 @@ export const claimOrgAction = actionClient
           .executeTakeFirstOrThrow();
       });
 
+      revalidatePath("/[orgSubdomain]");
+
       return { success: true, message: "Org claimed successfully!" };
     } catch (error) {
-      return {
-        success: false,
-        message:
-          error instanceof Error
-            ? error?.message
-            : "An unknown error occured trying to claim the org",
-      };
+      throw new Error(
+        error instanceof Error
+          ? error?.message
+          : "An unknown error occured trying to claim the org",
+      );
     }
   });

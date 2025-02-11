@@ -7,26 +7,24 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SignUpIn } from "@/components/app/sign-up-in";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "./actions";
-import { useRouter } from "next/navigation";
+import { ClaimOrgSuccess } from "./success";
 
-export function ClaimOrgDialog({
-  orgId,
-  onSuccess,
-}: {
-  orgId: string;
-  onSuccess: () => void;
-}) {
+export function ClaimOrgDialog({ orgId }: { orgId: string }) {
   const [open, setOpen] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const router = useRouter();
-
-  const { executeAsync: claimOrg, isPending } = useAction(claimOrgAction);
+  const { execute: claimOrg, isPending } = useAction(claimOrgAction, {
+    onSuccess({ data }) {
+      if (data?.success) {
+        setSuccess(true);
+      }
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -41,33 +39,30 @@ export function ClaimOrgDialog({
           Claim this platform
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="mb-3 mt-2">
-          <DialogTitle className="h3 text-center">
-            Claim this platform
-          </DialogTitle>
-          {/* <DialogDescription className="text-center">
+      {!success ? (
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader className="mb-3 mt-2">
+            <DialogTitle className="h3 text-center">
+              Claim this platform
+            </DialogTitle>
+            {/* <DialogDescription className="text-center">
             Sign up or in to claim ownership of this platform
           </DialogDescription> */}
-        </DialogHeader>
-        <SignUpIn
-          defaultSelectedMethod="sign-up"
-          onSuccess={async ({ userId }) => {
-            console.log("userId", userId);
-
-            const response = await claimOrg({
-              userId,
-              orgId,
-            });
-
-            if (response?.data?.success) {
-              router.refresh();
-              setOpen(false);
-              onSuccess();
-            }
-          }}
-        />
-      </DialogContent>
+          </DialogHeader>
+          <SignUpIn
+            context="claim-org"
+            defaultSelectedMethod="sign-up"
+            onSuccess={({ userId }) => {
+              claimOrg({
+                userId,
+                orgId,
+              });
+            }}
+          />
+        </DialogContent>
+      ) : (
+        <ClaimOrgSuccess orgId={orgId} />
+      )}
     </Dialog>
   );
 }

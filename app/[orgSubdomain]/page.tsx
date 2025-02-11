@@ -14,7 +14,7 @@ export default async function OrgPage() {
   if (org) {
     return (
       <>
-        <SSOListener />
+        <SSOListener orgId={org.id} userId={session?.user?.id} />
         {!isOrgClaimed && <ClaimOrgBanner orgId={org.id} />}
         <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
           {org && <h1>{org.name}&apos;s Feedback Platform!</h1>}

@@ -12,8 +12,12 @@ export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
   }
 };
 
-export const getCallbackUrl = () => {
+export const getSSOCallbackUrl = ({ context }: { context?: string }) => {
   const url = new URL(window.location.href);
-  url.searchParams.set("sso_success", "true");
+
+  if (context === "claim-org") {
+    url.searchParams.set("org-claimed", "true");
+  }
+
   return url.toString();
 };

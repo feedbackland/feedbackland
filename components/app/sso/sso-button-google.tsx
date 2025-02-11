@@ -3,14 +3,24 @@
 import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
 import { GoogleLogo } from "@/components/ui/logos";
-import { getCallbackUrl } from "@/lib/client/utils";
+import { getSSOCallbackUrl } from "@/lib/client/utils";
 
-export function SSOButtonGoogle() {
+export function SSOButtonGoogle({ context }: { context?: string }) {
   const continueWithGoogle = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: getCallbackUrl(),
-    });
+    await signIn.social(
+      {
+        provider: "google",
+        callbackURL: getSSOCallbackUrl({ context }),
+      },
+      {
+        onSuccess: () => {
+          console.log("successfully signed in with Google");
+        },
+        onResponse: () => {
+          console.log("SSO Google response");
+        },
+      },
+    );
   };
 
   return (

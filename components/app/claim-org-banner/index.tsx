@@ -9,12 +9,7 @@ export function ClaimOrgBanner({ orgId }: { orgId: string }) {
         <span className="text-sm text-primary-foreground">
           This is a temporary unclaimed platform. Claim it to make it yours!
         </span>
-        <ClaimOrgDialog
-          orgId={orgId}
-          onSuccess={() => {
-            console.log("sucecssfully claimed!");
-          }}
-        />
+        <ClaimOrgDialog orgId={orgId} />
       </div>
     </div>
   );
