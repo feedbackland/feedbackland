@@ -16,7 +16,7 @@ export const getSSOCallbackUrl = ({ context }: { context?: string }) => {
   const url = new URL(window.location.href);
 
   if (context === "claim-org") {
-    url.searchParams.set("org-claimed", "true");
+    url.searchParams.set("claim-org", "true");
   }
 
   return url.toString();

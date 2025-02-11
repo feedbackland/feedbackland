@@ -7,20 +7,10 @@ import { getSSOCallbackUrl } from "@/lib/client/utils";
 
 export function SSOButtonMicrosoft({ context }: { context?: string }) {
   const continueWithMicrosoft = async () => {
-    await signIn.social(
-      {
-        provider: "microsoft",
-        callbackURL: getSSOCallbackUrl({ context }),
-      },
-      {
-        onSuccess: () => {
-          console.log("successfully signed in with Microsoft");
-        },
-        onResponse: () => {
-          console.log("SSO Microsoft response");
-        },
-      },
-    );
+    await signIn.social({
+      provider: "microsoft",
+      callbackURL: getSSOCallbackUrl({ context }),
+    });
   };
 
   return (

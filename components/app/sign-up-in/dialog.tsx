@@ -10,17 +10,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SignUpIn } from ".";
+import { useRouter } from "next/navigation";
 
 export function SignUpInDialog({
   selectedMethod,
 }: {
   selectedMethod: "sign-up" | "sign-in";
 }) {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
-  const handleSignUpIn = ({ userId }: { userId: string }) => {
-    setOpen(false);
-  };
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -35,7 +34,10 @@ export function SignUpInDialog({
         </DialogHeader>
         <SignUpIn
           defaultSelectedMethod={selectedMethod}
-          onSuccess={handleSignUpIn}
+          onSuccess={() => {
+            router.refresh();
+            setOpen(false);
+          }}
         />
       </DialogContent>
     </Dialog>

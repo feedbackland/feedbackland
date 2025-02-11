@@ -1,7 +1,6 @@
 "use client";
 
 import { signIn } from "@/lib/client/auth-client";
-import { useRouter } from "next/navigation";
 import { z } from "zod";
 import {
   Form,
@@ -53,8 +52,6 @@ export function SignInEmailForm({
     clearErrors,
   } = form;
 
-  const router = useRouter();
-
   const onSubmit: SubmitHandler<FormData> = async ({ email, password }) => {
     clearErrors("root.serverError");
 
@@ -64,7 +61,6 @@ export function SignInEmailForm({
     });
 
     if (data && !error) {
-      router.refresh();
       onSuccess({ userId: data.user.id });
     }
 

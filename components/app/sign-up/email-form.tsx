@@ -1,7 +1,6 @@
 "use client";
 
 import { signUp } from "@/lib/client/auth-client";
-import { useRouter } from "next/navigation";
 import { z } from "zod";
 import {
   Form,
@@ -11,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -54,14 +53,14 @@ export function SignUpEmailForm({
     clearErrors,
   } = form;
 
-  const router = useRouter();
-
   const onSubmit: SubmitHandler<FormData> = async ({
     name,
     email,
     password,
   }) => {
     clearErrors("root.serverError");
+
+    console.log("zolg");
 
     const { data, error } = await signUp.email({
       name,
@@ -70,12 +69,12 @@ export function SignUpEmailForm({
     });
 
     if (data && !error) {
-      console.log("successfully signed up with email");
-      router.refresh();
+      console.log("success");
       onSuccess({ userId: data.user.id });
     }
 
     if (error) {
+      console.log("error", error);
       setError("root.serverError", {
         message: error?.message || "An error occured. Please try again.",
       });

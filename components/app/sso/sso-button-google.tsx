@@ -7,20 +7,10 @@ import { getSSOCallbackUrl } from "@/lib/client/utils";
 
 export function SSOButtonGoogle({ context }: { context?: string }) {
   const continueWithGoogle = async () => {
-    await signIn.social(
-      {
-        provider: "google",
-        callbackURL: getSSOCallbackUrl({ context }),
-      },
-      {
-        onSuccess: () => {
-          console.log("successfully signed in with Google");
-        },
-        onResponse: () => {
-          console.log("SSO Google response");
-        },
-      },
-    );
+    await signIn.social({
+      provider: "google",
+      callbackURL: getSSOCallbackUrl({ context }),
+    });
   };
 
   return (

@@ -32,7 +32,7 @@ export const claimOrgAction = actionClient
           .executeTakeFirstOrThrow();
       });
 
-      revalidatePath("/[orgSubdomain]");
+      // revalidatePath("/[orgSubdomain]");
 
       return { success: true, message: "Org claimed successfully!" };
     } catch (error) {

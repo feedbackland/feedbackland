@@ -2,7 +2,6 @@
 
 import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
-import { VenetianMask } from "lucide-react";
 
 export function SSOButtonAnonymous({
   onSuccess,
@@ -10,16 +9,10 @@ export function SSOButtonAnonymous({
   onSuccess: ({ userId }: { userId: string }) => void;
 }) {
   const continueAsAnonymous = async () => {
-    const callbackURL = window.location.href;
-
     const { data, error } = await signIn.anonymous();
 
     if (data && "user" in data && !error) {
       onSuccess({ userId: data?.user?.id });
-    }
-
-    if (error) {
-      console.log("error", error);
     }
   };
 
@@ -35,11 +28,4 @@ export function SSOButtonAnonymous({
       </Button>
     </div>
   );
-
-  // return (
-  //   <Button variant="outline" className="w-full" onClick={continueAsAnonymous}>
-  //     <VenetianMask className="size-5" />
-  //     <span>Continue anonymously</span>
-  //   </Button>
-  // );
 }
