@@ -18,6 +18,7 @@ const packageManagers = ["npm", "pnpm", "yarn", "bun"];
 
 export function CodeInstall({ packageName, className }: CodeProps) {
   const [selectedPackageManager, setSelectedPackageManager] = useState("npm");
+  const text = `${selectedPackageManager} ${selectedPackageManager === "npm" ? "install" : "add"} ${packageName}`;
 
   return (
     <div
@@ -26,10 +27,7 @@ export function CodeInstall({ packageName, className }: CodeProps) {
         className,
       )}
     >
-      <CopyButton
-        className="absolute right-1.5 top-1"
-        text={`${selectedPackageManager} add ${packageName}`}
-      />
+      <CopyButton className="absolute right-1.5 top-1" text={text} />
 
       <Tabs
         value={selectedPackageManager}
@@ -57,9 +55,7 @@ export function CodeInstall({ packageName, className }: CodeProps) {
               className={tabsContentClassnames}
             >
               <pre>
-                <code>
-                  {packageManager} add {packageName}
-                </code>
+                <code>{text}</code>
               </pre>
             </TabsContent>
           );

@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
-export function CreateOrgForm({
+export function CreateOrgCard({
   onSuccess,
 }: {
   onSuccess: ({
@@ -33,15 +33,7 @@ export function CreateOrgForm({
     orgSubdomain: string;
   }) => void;
 }) {
-  const {
-    executeAsync: createOrg,
-    isPending,
-    isIdle,
-    isTransitioning,
-    isExecuting,
-  } = useAction(createOrgAction);
-
-  const isLoading = !!isPending;
+  const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
@@ -138,7 +130,7 @@ export function CreateOrgForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" loading={isLoading} className="w-full">
+            <Button type="submit" loading={isPending} className="w-full">
               Create platform
             </Button>
           </form>

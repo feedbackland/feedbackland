@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 export const signInSchema = z.object({
   email: z
@@ -38,6 +39,8 @@ export function SignInEmailForm({
   onSuccess: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
 }) {
+  const [isPending, setIsPending] = useState(false);
+
   const form = useForm<FormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -55,10 +58,14 @@ export function SignInEmailForm({
   const onSubmit: SubmitHandler<FormData> = async ({ email, password }) => {
     clearErrors("root.serverError");
 
+    setIsPending(true);
+
     const { data, error } = await signIn.email({
       email,
       password,
     });
+
+    setIsPending(false);
 
     if (data && !error) {
       onSuccess({ userId: data.user.id });
@@ -115,7 +122,7 @@ export function SignInEmailForm({
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" loading={isPending}>
             Sign in
           </Button>
         </form>

@@ -4,38 +4,41 @@ import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
-import { ClaimOrgSuccessDialog } from "@/components/app/claim-org/success-dialog";
+import { ClaimOrgDialog } from "@/components/app/claim-org/dialog";
 
 export function ClaimOrgListener({
   orgId,
   userId,
+  isOrgClaimed,
 }: {
-  orgId: string;
+  orgId: string | undefined;
   userId: string | undefined;
+  isOrgClaimed: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [trigger, setTrigger] = useQueryState("claim-org");
 
   const { execute: claimOrg } = useAction(claimOrgAction, {
     onSuccess({ data }) {
       if (data?.success) {
         setTrigger(null);
-        setOpen(true);
+        setIsDialogOpen(true);
       }
     },
   });
 
   useEffect(() => {
-    if (orgId && userId && trigger) {
+    if (orgId && userId && trigger && !isOrgClaimed) {
       claimOrg({ orgId, userId });
     }
-  }, [orgId, userId, trigger, claimOrg]);
+  }, [orgId, userId, trigger, isOrgClaimed, claimOrg]);
 
   return (
-    <ClaimOrgSuccessDialog
-      open={open}
+    <ClaimOrgDialog
+      open={isDialogOpen}
       orgId={orgId}
-      onClose={() => setOpen(false)}
+      initialSelectedStep="success"
+      onClose={() => setIsDialogOpen(false)}
     />
   );
 }

@@ -15,7 +15,10 @@ export const createOrgSchema = z.object({
     .max(63, "Subdomain must be at most 63 characters")
     .regex(
       subdomainRegex,
-      "Subdomain is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods."
+      "Subdomain is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
     )
-    .refine((value) => value !== "new", "Subdmain cannot be called 'new'"),
+    .refine(
+      (value) => value !== "get-started",
+      "Subdmain cannot be named 'get-started'",
+    ),
 });

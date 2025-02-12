@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 export const signUpSchema = z.object({
   name: z.string().nonempty("Name is required"),
@@ -38,6 +39,8 @@ export function SignUpEmailForm({
   onSuccess: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
 }) {
+  const [isPending, setIsPending] = useState(false);
+
   const form = useForm<FormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -60,7 +63,7 @@ export function SignUpEmailForm({
   }) => {
     clearErrors("root.serverError");
 
-    console.log("zolg");
+    setIsPending(true);
 
     const { data, error } = await signUp.email({
       name,
@@ -68,13 +71,13 @@ export function SignUpEmailForm({
       password,
     });
 
+    setIsPending(false);
+
     if (data && !error) {
-      console.log("success");
       onSuccess({ userId: data.user.id });
     }
 
     if (error) {
-      console.log("error", error);
       setError("root.serverError", {
         message: error?.message || "An error occured. Please try again.",
       });
@@ -138,7 +141,7 @@ export function SignUpEmailForm({
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" loading={isPending}>
             Sign up
           </Button>
         </form>

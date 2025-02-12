@@ -10,12 +10,12 @@ import { Mail } from "lucide-react";
 
 export function SignUp({
   onSuccess,
-  onSwitch,
+  onSelectedMethodChange,
   includeAnonymous,
   context,
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
-  onSwitch?: () => void;
+  onSelectedMethodChange?: () => void;
   includeAnonymous?: boolean;
   context?: string;
 }) {
@@ -46,7 +46,7 @@ export function SignUp({
             </span>
             <Button
               variant="link"
-              onClick={() => onSwitch?.()}
+              onClick={() => onSelectedMethodChange?.()}
               className="p-0 text-sm text-muted-foreground underline hover:text-foreground"
             >
               Sign in

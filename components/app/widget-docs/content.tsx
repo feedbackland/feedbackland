@@ -24,16 +24,16 @@ function App() {
 
   return (
     <div className="flex flex-col">
-      <Tabs defaultValue="overlay-react" className="mb-7">
+      <Tabs defaultValue="overlay" className="">
         <TabsList className="space-x-5">
-          <TabsTrigger value="overlay-react" className="text-sm">
-            Overlay widget - React
+          <TabsTrigger value="overlay" className="text-sm">
+            Overlay widget
           </TabsTrigger>
-          <TabsTrigger value="inline-react" className="text-sm">
-            Inline Widget - React
+          <TabsTrigger value="inline" className="text-sm">
+            Inline Widget
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="overlay-react">
+        <TabsContent value="overlay">
           <div className="mt-5 flex flex-col space-y-3">
             <CodeInstall packageName="feedbackland/react" />
             <Code
@@ -44,7 +44,7 @@ function App() {
             />
           </div>
         </TabsContent>
-        <TabsContent value="inline-react">
+        <TabsContent value="inline">
           <div className="mt-5 flex flex-col space-y-3">
             <CodeInstall packageName="feedbackland/react" />
             <Code
