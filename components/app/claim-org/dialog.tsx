@@ -29,13 +29,14 @@ export function ClaimOrgDialog({
     initialSelectedStep,
   );
 
-  const { executeAsync: claimOrg } = useAction(claimOrgAction);
+  const { execute: claimOrg } = useAction(claimOrgAction, {
+    onSuccess: () => {
+      setSelectedStep("success");
+    },
+  });
 
   const handleSignUpInSuccess = async ({ userId }: { userId: string }) => {
-    if (orgId) {
-      await claimOrg({ orgId, userId });
-      setSelectedStep("success");
-    }
+    if (orgId) claimOrg({ orgId, userId });
   };
 
   const handleOnClose = () => {
@@ -77,14 +78,15 @@ export function ClaimOrgDialog({
           {selectedStep === "success" && (
             <>
               <DialogHeader className="mb-3 mt-2">
-                <DialogTitle className="h3 text-center">
+                <DialogTitle className="h3 mb-1 text-center">
                   Congratulations!
                 </DialogTitle>
-                <DialogDescription className="text-center">
-                  You&apos;ve successfully claimed ownership of this platform!
-                  <br />
-                  Tip: install the widget to start collecting feedback directly
-                  in your app.
+                <DialogDescription className="flex flex-col space-y-1 text-center text-sm text-primary">
+                  <span>You&apos;re now the owner of this platform.</span>
+                  <span>
+                    Next step: install the widget to start collecting feedback
+                    in your app.
+                  </span>
                 </DialogDescription>
               </DialogHeader>
               <WidgetDocsContent orgId={orgId} />

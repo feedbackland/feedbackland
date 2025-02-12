@@ -1,6 +1,5 @@
 import { getSession, getSubdomain } from "@/lib/server/utils";
 import { getOrg } from "@/lib/queries";
-import { SignOutButton } from "@/components/app/sign-out";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { ClaimOrgListener } from "@/components/app/claim-org/listener";
 import { PlatformHeader } from "@/components/app/platform-header";

@@ -16,6 +16,7 @@ export function ClaimOrgListener({
   isOrgClaimed: boolean;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const [trigger, setTrigger] = useQueryState("claim-org");
 
   const { execute: claimOrg } = useAction(claimOrgAction, {
@@ -28,10 +29,18 @@ export function ClaimOrgListener({
   });
 
   useEffect(() => {
-    if (orgId && userId && trigger && !isOrgClaimed) {
-      claimOrg({ orgId, userId });
+    if (orgId && userId && trigger) {
+      console.log("zolg");
+
+      if (!isOrgClaimed) {
+        console.log("zolg2");
+        claimOrg({ orgId, userId });
+      } else {
+        console.log("zolg3");
+        setTrigger(null);
+      }
     }
-  }, [orgId, userId, trigger, isOrgClaimed, claimOrg]);
+  }, [orgId, userId, trigger, isOrgClaimed, claimOrg, setTrigger]);
 
   return (
     <ClaimOrgDialog

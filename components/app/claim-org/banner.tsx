@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { CreateTypes } from "canvas-confetti";
+import { useState, useRef } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
+import { Confetti } from "@/components/ui/confetti";
 
 export function ClaimOrgBanner({
   orgId,
@@ -13,6 +15,15 @@ export function ClaimOrgBanner({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const instance = useRef<CreateTypes>(null);
+
+  const onInitHandler = ({ confetti }: { confetti: CreateTypes }) =>
+    (instance.current = confetti);
+
+  const onShootHandler = () => {
+    instance.current?.();
+  };
+
   return (
     <>
       <ClaimOrgDialog
@@ -22,7 +33,11 @@ export function ClaimOrgBanner({
         onClose={() => setIsDialogOpen(false)}
       />
 
-      {isOrgClaimed && (
+      <Confetti onInit={onInitHandler} />
+
+      <Button onClick={onShootHandler}>Shoot</Button>
+
+      {!isOrgClaimed && (
         <>
           <div className="flex items-center justify-center border-b border-border bg-primary px-4 py-2">
             <div className="flex w-full max-w-[700px] items-center justify-between">
@@ -32,8 +47,8 @@ export function ClaimOrgBanner({
               </span>
               <Button
                 onClick={() => setIsDialogOpen(true)}
-                size="sm"
-                variant="default"
+                size="default"
+                variant="outline"
               >
                 Claim this platform
               </Button>

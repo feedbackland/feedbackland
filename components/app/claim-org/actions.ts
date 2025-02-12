@@ -3,6 +3,7 @@
 import { actionClient } from "@/lib/server/safe-action";
 import { z } from "zod";
 import { db } from "@/db/db";
+import { revalidatePath } from "next/cache";
 
 export const claimOrgAction = actionClient
   .schema(
@@ -30,6 +31,8 @@ export const claimOrgAction = actionClient
           .where("id", "=", orgId)
           .executeTakeFirstOrThrow();
       });
+
+      revalidatePath("/[orgSubdomain]");
 
       return { success: true, message: "Org claimed successfully!" };
     } catch (error) {
