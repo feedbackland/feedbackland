@@ -6,17 +6,11 @@ export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    const listener = subscribe(({ data }) => {
-      if (data && data.session) {
-        setSession(data.session);
-      } else {
-        setSession(null);
-      }
+    const unsubscribe = subscribe((event) => {
+      setSession(event.data?.session ?? null);
     });
 
-    return () => {
-      listener();
-    };
+    return unsubscribe;
   }, []);
 
   return session;
