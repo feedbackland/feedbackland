@@ -6,26 +6,29 @@ import { Button } from "@/components/ui/button";
 import { ClaimOrgListener } from "@/components/app/claim-org/listener";
 import { CreateTypes } from "canvas-confetti";
 import { Confetti } from "@/components/ui/confetti";
-import { useSession } from "@/lib/hooks/useSession";
+import { signOut } from "@/lib/client/auth-client";
 
 export function ClaimOrgBanner({
   orgId,
   userId,
   isOrgClaimed,
+  isSignedIn,
 }: {
   orgId: string | undefined;
   userId: string | undefined;
   isOrgClaimed: boolean;
+  isSignedIn: boolean;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const confettiRef = useRef<CreateTypes>(null);
 
-  const session = useSession();
-  console.log("session", session);
-
-  const handleOpenDialog = () => {
+  const handleOpenDialog = async () => {
     setIsDialogOpen(true);
+
+    if (isSignedIn) {
+      await signOut();
+    }
   };
 
   const handleCloseDialog = () => {

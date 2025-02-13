@@ -20,6 +20,7 @@ export default async function OrgPage() {
           orgId={orgId}
           userId={userId}
           isOrgClaimed={isOrgClaimed}
+          isSignedIn={isSignedIn}
         />
         <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
           <PlatformHeader orgName={orgName} isSignedIn={isSignedIn} />

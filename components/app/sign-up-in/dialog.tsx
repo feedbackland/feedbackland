@@ -30,7 +30,9 @@ export function SignUpInDialog({
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) onClose?.();
+        if (!isOpen) {
+          onClose?.();
+        }
       }}
     >
       <DialogContent className="max-w-[400px]">
@@ -40,7 +42,7 @@ export function SignUpInDialog({
           </DialogTitle>
         </DialogHeader>
         <SignUpIn
-          initialSelectedMethod={selectedMethod}
+          initialSelectedMethod={initialSelectedMethod}
           refreshOnSuccess={refreshOnSuccess}
           onSuccess={() => onSuccess?.()}
           onSelectedMethodChange={(newSelectedMethod) =>
