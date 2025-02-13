@@ -10,7 +10,7 @@ export function useSession() {
       setSession(event.data?.session ?? null);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   return session;
