@@ -33,7 +33,7 @@ export function SignUpInDialog({
         if (!isOpen) onClose?.();
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
             {selectedMethod === "sign-in" ? "Sign in" : "Sign up"}

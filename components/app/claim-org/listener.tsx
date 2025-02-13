@@ -10,10 +10,12 @@ export function ClaimOrgListener({
   orgId,
   userId,
   isOrgClaimed,
+  onClaimed,
 }: {
   orgId: string | undefined;
   userId: string | undefined;
   isOrgClaimed: boolean;
+  onClaimed?: () => void;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -24,19 +26,16 @@ export function ClaimOrgListener({
       if (data?.success) {
         setTrigger(null);
         setIsDialogOpen(true);
+        onClaimed?.();
       }
     },
   });
 
   useEffect(() => {
     if (orgId && userId && trigger) {
-      console.log("zolg");
-
       if (!isOrgClaimed) {
-        console.log("zolg2");
         claimOrg({ orgId, userId });
       } else {
-        console.log("zolg3");
         setTrigger(null);
       }
     }

@@ -48,7 +48,7 @@ export function Code({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-lg bg-primary text-gray-100",
+        "relative flex flex-col overflow-hidden rounded-lg bg-primary text-gray-100",
         className,
       )}
     >
@@ -64,7 +64,7 @@ export function Code({
         </div>
       )}
       <div
-        className="overflow-x-auto p-4 text-xs"
+        className="scrollbar grow overflow-x-auto p-4 text-xs"
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
       />
     </div>

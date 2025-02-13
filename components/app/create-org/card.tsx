@@ -33,7 +33,11 @@ export function CreateOrgCard({
     orgSubdomain: string;
   }) => void;
 }) {
-  const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
+  const {
+    executeAsync: createOrg,
+    isPending,
+    isIdle,
+  } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
@@ -106,6 +110,7 @@ export function CreateOrgCard({
                   <FormLabel>Company or product name</FormLabel>
                   <FormControl>
                     <Input
+                      autoFocus
                       placeholder="Your company or product name..."
                       {...field}
                     />
@@ -130,7 +135,7 @@ export function CreateOrgCard({
                 </FormItem>
               )}
             />
-            <Button type="submit" loading={isPending} className="w-full">
+            <Button type="submit" loading={!isIdle} className="w-full">
               Create platform
             </Button>
           </form>

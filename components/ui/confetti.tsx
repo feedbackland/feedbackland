@@ -32,14 +32,12 @@ export function Confetti({
       style={{
         position: "fixed",
         pointerEvents: "none",
-        width: "100%",
-        height: "100%",
+        width: "100vw",
+        height: "100vh",
         top: 0,
         left: 0,
+        zIndex: 1000,
       }}
-      // className={className}
-      // width={width}
-      // height={height}
     />
   );
 }

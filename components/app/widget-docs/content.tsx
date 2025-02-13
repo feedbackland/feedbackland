@@ -33,16 +33,33 @@ function App() {
             Inline Widget
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="overlay">
-          <div className="mt-5 flex flex-col space-y-3">
-            <CodeInstall packageName="feedbackland/react" />
-            <Code
-              title="App.tsx"
-              code={overlayWidgetCode}
-              showLineNumbers={true}
-              language="tsx"
-            />
-          </div>
+        <TabsContent value="overlay" className="pt-2">
+          <>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Adds a button to your app that slides in the platform as an
+              overlay when clicked
+            </h3>
+            <div className="mt-6 flex flex-col space-y-6">
+              <div>
+                <h3 className="mb-2 text-sm font-medium text-primary">
+                  Step 1 - Install the feedbackland package
+                </h3>
+                <CodeInstall packageName="feedbackland/react" />
+              </div>
+              <div>
+                <h3 className="mb-2 text-sm font-medium text-primary">
+                  Step 2 - Add the widget component to your app
+                </h3>
+                <Code
+                  title="App.tsx"
+                  code={overlayWidgetCode}
+                  showLineNumbers={true}
+                  language="tsx"
+                  className="min-h-[148px]"
+                />
+              </div>
+            </div>
+          </>
         </TabsContent>
         <TabsContent value="inline">
           <div className="mt-5 flex flex-col space-y-3">

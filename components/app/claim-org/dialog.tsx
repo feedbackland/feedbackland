@@ -13,18 +13,24 @@ import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { WidgetDocsContent } from "../widget-docs/content";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export function ClaimOrgDialog({
   orgId,
   open,
   initialSelectedStep,
+  onClaimed,
   onClose,
 }: {
   orgId: string | undefined;
   open: boolean;
   initialSelectedStep: "sign-up-in" | "success";
+  onClaimed?: () => void;
   onClose?: () => void;
 }) {
+  const router = useRouter();
+
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
   );
@@ -32,6 +38,7 @@ export function ClaimOrgDialog({
   const { execute: claimOrg } = useAction(claimOrgAction, {
     onSuccess: () => {
       setSelectedStep("success");
+      onClaimed?.();
     },
   });
 
@@ -40,6 +47,7 @@ export function ClaimOrgDialog({
   };
 
   const handleOnClose = () => {
+    router.refresh();
     onClose?.();
   };
 
@@ -53,9 +61,10 @@ export function ClaimOrgDialog({
       >
         <DialogContent
           className={cn(
-            "w-full max-w-[425px]",
-            selectedStep === "success" && "max-w-[600px]",
+            "flex max-w-[400px] flex-col",
+            selectedStep === "success" && "max-w-[650px]",
           )}
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {selectedStep === "sign-up-in" && (
             <>
@@ -78,18 +87,29 @@ export function ClaimOrgDialog({
           {selectedStep === "success" && (
             <>
               <DialogHeader className="mb-3 mt-2">
-                <DialogTitle className="h3 mb-1 text-center">
+                <DialogTitle className="h3 mb-2 text-center">
                   Congratulations!
                 </DialogTitle>
-                <DialogDescription className="flex flex-col space-y-1 text-center text-sm text-primary">
-                  <span>You&apos;re now the owner of this platform.</span>
-                  <span>
-                    Next step: install the widget to start collecting feedback
+                <DialogDescription className="flex flex-col space-y-1 text-center text-sm">
+                  <span className="text-primary">
+                    You&apos;ve successfully claimed ownership of this platform
+                  </span>
+                  <span className="text-primary">
+                    Next step: Install the widget to start collecting feedback
                     in your app.
                   </span>
                 </DialogDescription>
               </DialogHeader>
               <WidgetDocsContent orgId={orgId} />
+              <div>
+                <Button
+                  onClick={handleOnClose}
+                  variant="secondary"
+                  className="mt-2"
+                >
+                  Close
+                </Button>
+              </div>
             </>
           )}
         </DialogContent>

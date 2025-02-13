@@ -103,7 +103,12 @@ export function SignInEmailForm({
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="Email" {...field} type="email" />
+                  <Input
+                    autoFocus
+                    placeholder="Email"
+                    {...field}
+                    type="email"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

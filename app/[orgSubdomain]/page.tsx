@@ -1,7 +1,6 @@
 import { getSession, getSubdomain } from "@/lib/server/utils";
 import { getOrg } from "@/lib/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
-import { ClaimOrgListener } from "@/components/app/claim-org/listener";
 import { PlatformHeader } from "@/components/app/platform-header";
 
 export default async function OrgPage() {
@@ -14,15 +13,14 @@ export default async function OrgPage() {
   const isOrgClaimed = !!org?.isClaimed;
   const isSignedIn = !!session;
 
-  if (org) {
+  if (org && orgId) {
     return (
       <>
-        <ClaimOrgListener
+        <ClaimOrgBanner
           orgId={orgId}
           userId={userId}
           isOrgClaimed={isOrgClaimed}
         />
-        <ClaimOrgBanner orgId={orgId} isOrgClaimed={isOrgClaimed} />
         <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
           <PlatformHeader orgName={orgName} isSignedIn={isSignedIn} />
         </div>

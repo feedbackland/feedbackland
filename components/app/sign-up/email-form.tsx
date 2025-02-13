@@ -109,7 +109,12 @@ export function SignUpEmailForm({
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="Username" {...field} type="text" />
+                  <Input
+                    autoFocus
+                    placeholder="Username"
+                    {...field}
+                    type="text"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
