@@ -1,8 +1,14 @@
 import { createAuthClient } from "better-auth/client";
 import { anonymousClient } from "better-auth/client/plugins";
 
-const authClient = createAuthClient({
+export const authClient = createAuthClient({
   plugins: [anonymousClient()],
 });
 
-export const { signIn, signOut, signUp, useSession } = authClient;
+export const {
+  signIn,
+  signOut,
+  signUp,
+  useSession: { subscribe },
+  getSession,
+} = authClient;
