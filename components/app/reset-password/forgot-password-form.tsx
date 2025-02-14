@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +21,9 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function ResetPasswordForm() {
-  const [isEmailSent, setIsEmailSent] = useState(false);
-  const [error, setError] = useState("");
+export function ForgotPasswordForm() {
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -37,6 +39,9 @@ export default function ResetPasswordForm() {
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ email }) => {
+    setSuccessMessage("");
+    setErrorMessage("");
+
     await forgetPassword(
       {
         email: email,
@@ -45,11 +50,11 @@ export default function ResetPasswordForm() {
       {
         onSuccess: (ctx) => {
           console.log("Password reset email sent", ctx);
-          setIsEmailSent(true);
+          setSuccessMessage(`A password reset email has been sent to ${email}`);
         },
         onError: (error) => {
           console.log("error", error);
-          setError("Could not send password reset email");
+          setErrorMessage("Could not send password reset email");
         },
       },
     );
@@ -75,13 +80,13 @@ export default function ResetPasswordForm() {
           Reset Password
         </Button>
 
-        {isEmailSent && (
-          <p className="mt-2 text-sm text-green-500">
-            A password reset email has been sent.
-          </p>
+        {successMessage && (
+          <p className="mt-2 text-sm text-green-600">{successMessage}</p>
         )}
 
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        {errorMessage && (
+          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
+        )}
       </form>
     </Form>
   );

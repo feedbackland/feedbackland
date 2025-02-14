@@ -1,13 +1,12 @@
-// app/auth/reset-password/page.tsx
 "use client";
 
-import { useQueryState } from "nuqs";
-import { ResetPasswordForm } from "./reset-password-form";
 import { useState } from "react";
+import { useQueryState } from "nuqs";
+import { ResetPasswordForm } from "@/components/app/reset-password/reset-password-form";
 
-export const ResetPasswordListener = () => {
+export default function PasswordResetPage() {
   const [token, setToken] = useQueryState("token");
-  const [error, setError] = useQueryState("org");
+  const [error, setError] = useQueryState("error");
   const [isSuccess, setIsSuccess] = useState(false);
 
   if (token && !error && !isSuccess) {
@@ -24,8 +23,8 @@ export const ResetPasswordListener = () => {
   }
 
   if (isSuccess) {
-    return <p>Successfully changed password</p>;
+    return <p className="text-green-700">Successfully changed password</p>;
   }
 
   return null;
-};
+}

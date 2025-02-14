@@ -33,11 +33,7 @@ export function CreateOrgCard({
     orgSubdomain: string;
   }) => void;
 }) {
-  const {
-    executeAsync: createOrg,
-    isPending,
-    isIdle,
-  } = useAction(createOrgAction);
+  const { executeAsync: createOrg, isIdle } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
