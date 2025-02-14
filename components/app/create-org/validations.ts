@@ -18,7 +18,11 @@ export const createOrgSchema = z.object({
       "Subdomain is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
     )
     .refine(
-      (value) => value !== "get-started",
+      (value) => value !== "get-started" && value !== "password-reset",
       "Subdmain cannot be named 'get-started'",
+    )
+    .refine(
+      (value) => value !== "password-reset",
+      "Subdmain cannot be named 'password-reset'",
     ),
 });

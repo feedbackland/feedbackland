@@ -11,4 +11,6 @@ export const {
   signUp,
   useSession: { subscribe },
   getSession,
+  resetPassword,
+  forgetPassword,
 } = authClient;

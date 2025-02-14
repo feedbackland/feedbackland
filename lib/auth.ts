@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { anonymous } from "better-auth/plugins";
 import { dialect } from "@/db/db";
+import { resend } from "@/lib/resend";
+import { PasswordResetEmail } from "@/components/emails/password-reset";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -11,6 +13,20 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      // await sendEmail({
+      //   to: user.email,
+      //   subject: "Reset your password",
+      //   text: `Click the link to reset your password: ${url}`,
+      // });
+
+      await resend.emails.send({
+        from: "Feedbackland <feedbackland@outlook.com>",
+        to: [user.email],
+        subject: "Reset your password",
+        react: PasswordResetEmail({ url }),
+      });
+    },
   },
   socialProviders: {
     google: {
