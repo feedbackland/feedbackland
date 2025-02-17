@@ -42,15 +42,18 @@ export const ResetPasswordEmail = ({ url }: { url: string }) => {
               Hello,
             </Text>
             <Text className="text-[14px] leading-[24px] text-black">
-              Someone recently requested a password change for your account. If
-              this was you, you can set a new password here:
+              Lost your password? We&apos;ve received a request to reset the
+              password for your account.
+            </Text>
+            <Text className="text-[14px] leading-[24px] text-black">
+              To reset your password, click on the button below:
             </Text>
             <Section className="my-[32px] text-center">
               <Button
                 className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={url}
               >
-                Reset your password
+                Reset password
               </Button>
             </Section>
             <Text className="text-[14px] leading-[24px] text-black">

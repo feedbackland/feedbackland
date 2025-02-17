@@ -2,7 +2,6 @@ import { getSession, getSubdomain } from "@/lib/server/utils";
 import { getOrg } from "@/lib/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { PlatformHeader } from "@/components/app/platform-header";
-import { ResetPasswordEmail } from "@/components/emails/password-reset";
 
 export default async function OrgPage() {
   const subdomain = await getSubdomain();
@@ -13,8 +12,6 @@ export default async function OrgPage() {
   const userId = session?.user?.id;
   const isOrgClaimed = !!org?.isClaimed;
   const isSignedIn = !!session;
-
-  return <ResetPasswordEmail url="test.com" />;
 
   if (org && orgId) {
     return (
