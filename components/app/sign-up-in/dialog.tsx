@@ -19,19 +19,24 @@ export function SignUpInDialog({
   open: boolean;
   initialSelectedMethod: "sign-up" | "sign-in";
   refreshOnSuccess?: boolean;
-  onClose?: () => void;
+  onClose: () => void;
   onSuccess?: () => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState<"sign-up" | "sign-in">(
     initialSelectedMethod,
   );
 
+  const handleOnSuccess = () => {
+    onSuccess?.();
+    onClose();
+  };
+
   return (
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          onClose?.();
+          onClose();
         }
       }}
     >
@@ -44,7 +49,7 @@ export function SignUpInDialog({
         <SignUpIn
           initialSelectedMethod={initialSelectedMethod}
           refreshOnSuccess={refreshOnSuccess}
-          onSuccess={() => onSuccess?.()}
+          onSuccess={handleOnSuccess}
           onSelectedMethodChange={(newSelectedMethod) =>
             setSelectedMethod(newSelectedMethod)
           }

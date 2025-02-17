@@ -22,6 +22,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function ForgotPasswordForm() {
+  const [isPending, setIsPending] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -48,13 +49,19 @@ export function ForgotPasswordForm() {
         redirectTo: "/reset-password",
       },
       {
+        onRequest: () => {
+          setIsPending(true);
+        },
+        onResponse: () => {
+          setIsPending(false);
+        },
         onSuccess: (ctx) => {
           console.log("Password reset email sent", ctx);
-          setSuccessMessage(`A password reset email has been sent to ${email}`);
+          setSuccessMessage(`A password reset email was sent to ${email}`);
         },
         onError: (error) => {
           console.log("error", error);
-          setErrorMessage("Could not send password reset email");
+          setErrorMessage("Could not sent password reset email");
         },
       },
     );
@@ -76,7 +83,7 @@ export function ForgotPasswordForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" loading={isPending}>
           Reset Password
         </Button>
 

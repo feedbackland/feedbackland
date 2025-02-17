@@ -18,11 +18,11 @@ export function SSOButtonAnonymous({
 
   return (
     <div className="m-auto flex items-center">
-      <span className="mr-1 text-sm text-muted-foreground">Or</span>
+      <span className="mr-1 text-sm text-foreground">Or</span>
       <Button
         variant="link"
         onClick={continueAsAnonymous}
-        className="p-0 text-sm text-muted-foreground underline hover:text-foreground"
+        className="p-0 underline"
       >
         submit anonymously
       </Button>

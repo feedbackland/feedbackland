@@ -60,22 +60,24 @@ export function SignInEmailForm({
 
     setIsPending(true);
 
-    const { data, error } = await signIn.email({
-      email,
-      password,
-    });
-
-    setIsPending(false);
-
-    if (data && !error) {
-      onSuccess({ userId: data.user.id });
-    }
-
-    if (error) {
-      setError("root.serverError", {
-        message: error?.message || "An error occured. Please try again.",
-      });
-    }
+    await signIn.email(
+      {
+        email,
+        password,
+      },
+      {
+        onSuccess: (ctx) => {
+          setIsPending(false);
+          onSuccess({ userId: ctx?.data?.user?.id });
+        },
+        onError: ({ error }) => {
+          setIsPending(false);
+          setError("root.serverError", {
+            message: error?.message || "An error occured. Please try again.",
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -119,7 +121,19 @@ export function SignInEmailForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
                 <FormControl>
                   <Input placeholder="Password" {...field} type="password" />
                 </FormControl>

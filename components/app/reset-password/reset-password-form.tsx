@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { resetPassword } from "@/lib/client/auth-client";
+import { useState } from "react";
 
 const formSchema = z
   .object({
@@ -42,6 +43,8 @@ export function ResetPasswordForm({
   token: string;
   onSuccess: () => void;
 }) {
+  const [isPending, setIsPending] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,6 +67,12 @@ export function ResetPasswordForm({
           token,
         },
         {
+          onRequest: () => {
+            setIsPending(true);
+          },
+          onResponse: () => {
+            setIsPending(false);
+          },
           onSuccess: (ctx) => {
             console.log("success", ctx);
             onSuccess();
@@ -113,7 +122,7 @@ export function ResetPasswordForm({
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" loading={isPending}>
           Change password
         </Button>
       </form>

@@ -65,23 +65,25 @@ export function SignUpEmailForm({
 
     setIsPending(true);
 
-    const { data, error } = await signUp.email({
-      name,
-      email,
-      password,
-    });
-
-    setIsPending(false);
-
-    if (data && !error) {
-      onSuccess({ userId: data.user.id });
-    }
-
-    if (error) {
-      setError("root.serverError", {
-        message: error?.message || "An error occured. Please try again.",
-      });
-    }
+    await signUp.email(
+      {
+        name,
+        email,
+        password,
+      },
+      {
+        onSuccess: (ctx) => {
+          setIsPending(false);
+          onSuccess({ userId: ctx?.data?.user?.id });
+        },
+        onError: ({ error }) => {
+          setIsPending(false);
+          setError("root.serverError", {
+            message: error?.message || "An error occured. Please try again.",
+          });
+        },
+      },
+    );
   };
 
   return (

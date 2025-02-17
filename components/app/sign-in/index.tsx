@@ -21,6 +21,10 @@ export function SignIn({
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
+  const handleOnSuccess = ({ userId }: { userId: string }) => {
+    onSuccess({ userId });
+  };
+
   return (
     <>
       {!isEmailSelected ? (
@@ -36,18 +40,16 @@ export function SignIn({
             Sign in with Email
           </Button>
           {includeAnonymous && (
-            <SSOButtonAnonymous
-              onSuccess={({ userId }) => onSuccess({ userId })}
-            />
+            <SSOButtonAnonymous onSuccess={handleOnSuccess} />
           )}
           <div className="m-auto mt-4 flex items-center">
-            <span className="mr-1 text-sm text-muted-foreground">
+            <span className="mr-1 text-sm text-foreground">
               No account yet?
             </span>
             <Button
               variant="link"
               onClick={() => onSelectedMethodChange?.()}
-              className="p-0 text-sm text-muted-foreground underline hover:text-foreground"
+              className="p-0 underline"
             >
               Sign up
             </Button>
@@ -55,7 +57,7 @@ export function SignIn({
         </div>
       ) : (
         <SignInEmailForm
-          onSuccess={({ userId }) => onSuccess({ userId })}
+          onSuccess={handleOnSuccess}
           onClose={() => setIsEmailSelected(false)}
         />
       )}
