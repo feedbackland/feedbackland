@@ -29,17 +29,8 @@ export function middleware(req: NextRequest) {
   // Rewrite request if valid subdomain exists
   if (!isLocalhost && subdomain && subdomain !== "auth") {
     const newUrl = `/${subdomain}${pathname}${search}`;
-    // console.log("newUrl", newUrl);
     return NextResponse.rewrite(new URL(newUrl, req.url));
   }
-
-  // console.log("url", url);
-  // console.log("pathname", pathname);
-  // console.log("search", search);
-  // console.log("rootDomain", rootDomain);
-  // console.log("host", host);
-  // console.log("isLocalhost", isLocalhost);
-  // console.log("subdomain", subdomain);
 
   response.headers.set("x-subdomain", subdomain || "");
 

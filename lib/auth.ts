@@ -3,7 +3,7 @@ import { nextCookies } from "better-auth/next-js";
 import { anonymous } from "better-auth/plugins";
 import { dialect } from "@/db/db";
 import { resend } from "@/lib/resend";
-import { PasswordResetEmail } from "@/components/emails/password-reset";
+import { ResetPasswordEmail } from "@/components/emails/password-reset";
 import { getHost } from "@/lib/server/utils";
 
 export const auth = betterAuth({
@@ -16,12 +16,12 @@ export const auth = betterAuth({
     enabled: true,
     sendResetPassword: async ({ user, token }) => {
       const host = await getHost();
-      const resetUrl = `reset-password.${host}?token=${token}`;
+      const url = `https://reset-password.${host}?token=${token}`;
       await resend.emails.send({
         from: "Feedbackland <hello@feedbackland.com>",
         to: [user.email],
         subject: "Reset your password",
-        react: PasswordResetEmail({ resetUrl }),
+        react: ResetPasswordEmail({ url }),
       });
     },
   },
