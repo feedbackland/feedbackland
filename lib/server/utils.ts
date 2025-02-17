@@ -12,7 +12,7 @@ export const getSession = async () => {
 export const getHost = async () => {
   const headersList = await headers();
   const host = headersList.get("host");
-  return host;
+  return host as string;
 };
 
 export const getSubdomain = async () => {

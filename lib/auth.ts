@@ -4,6 +4,7 @@ import { anonymous } from "better-auth/plugins";
 import { dialect } from "@/db/db";
 import { resend } from "@/lib/resend";
 import { PasswordResetEmail } from "@/components/emails/password-reset";
+import { getHost } from "@/lib/server/utils";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -13,12 +14,14 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, token }) => {
+      const host = await getHost();
+      const resetUrl = `reset-password.${host}?token=${token}`;
       await resend.emails.send({
-        from: "Feedbackland <feedbackland@outlook.com>",
+        from: "Feedbackland <hello@feedbackland.com>",
         to: [user.email],
         subject: "Reset your password",
-        react: PasswordResetEmail({ url }),
+        react: PasswordResetEmail({ resetUrl }),
       });
     },
   },

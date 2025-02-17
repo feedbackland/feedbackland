@@ -14,6 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { forgetPassword } from "@/lib/client/auth-client";
+import { Success } from "@/components/ui/success";
+import { Error } from "@/components/ui/error";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -23,8 +25,8 @@ type FormData = z.infer<typeof formSchema>;
 
 export function ForgotPasswordForm() {
   const [isPending, setIsPending] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -36,13 +38,11 @@ export function ForgotPasswordForm() {
   const {
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ email }) => {
-    setSuccessMessage("");
-    setErrorMessage("");
-
     await forgetPassword(
       {
         email: email,
@@ -50,18 +50,19 @@ export function ForgotPasswordForm() {
       },
       {
         onRequest: () => {
+          setIsSuccess(false);
+          setIsError(false);
           setIsPending(true);
         },
         onResponse: () => {
           setIsPending(false);
         },
-        onSuccess: (ctx) => {
-          console.log("Password reset email sent", ctx);
-          setSuccessMessage(`A password reset email was sent to ${email}`);
+        onSuccess: () => {
+          reset();
+          setIsSuccess(true);
         },
-        onError: (error) => {
-          console.log("error", error);
-          setErrorMessage("Could not sent password reset email");
+        onError: () => {
+          setIsError(true);
         },
       },
     );
@@ -87,12 +88,18 @@ export function ForgotPasswordForm() {
           Reset Password
         </Button>
 
-        {successMessage && (
-          <p className="mt-2 text-sm text-green-600">{successMessage}</p>
+        {isSuccess && (
+          <Success
+            title="Password reset email sent"
+            description="Please check your email for the password reset link."
+          />
         )}
 
-        {errorMessage && (
-          <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
+        {isError && (
+          <Error
+            title="Could not sent password reset email"
+            description="An error occured while sending the password reset email. Please try again."
+          />
         )}
       </form>
     </Form>

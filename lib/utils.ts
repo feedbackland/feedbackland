@@ -14,7 +14,6 @@ export const getRootDomain = ({
     const parts = host.split(".");
 
     if (host.includes("localhost")) {
-      // e.g. 'localhost:3000' or 'new.localhost:3000'
       return parts[parts.length - 1]; // e.g. 'localhost:3000'
     } else if (parts.length > 1) {
       // e.g. 'feedbackland.com' or 'new.feedbackland.com'

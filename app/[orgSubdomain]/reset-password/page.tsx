@@ -26,5 +26,5 @@ export default function PasswordResetPage() {
     return <p className="text-green-700">Successfully changed password</p>;
   }
 
-  return null;
+  return <p>Reset Password</p>;
 }

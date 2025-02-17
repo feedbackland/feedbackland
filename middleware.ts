@@ -14,35 +14,34 @@ export const config = {
 };
 
 export function middleware(req: NextRequest) {
-  let response = NextResponse.next();
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN as string; // e.g. localhost or feedbackland.com
-  const host = req.headers.get("host") || ""; // e.g. tenant1.localhost:3000 or tenant1.feedbackland.com
-  const nextUrl = req.nextUrl.clone();
-  const pathname = nextUrl.pathname;
-  const searchParams = nextUrl.searchParams.toString();
-  const hasSearchParams = searchParams.length > 0;
+  const url = req.nextUrl;
+  const { pathname, search } = url;
+  const response = NextResponse.next();
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN as string; //localhost or feedbackland.com
+  const host = req.headers.get("host") || ""; //localhost:3000 or tenant1.feedbackland.com
   const isLocalhost = host.includes("localhost");
-  const subdomain = isLocalhost
-    ? pathname.split("/")?.filter((i) => i !== "")?.[0]
-    : host
-        .replace(rootDomain, "")
-        ?.split(".")
-        ?.filter((i) => i !== "")?.[0];
-  const ignoreList = ["auth"];
 
-  if (
-    !isLocalhost &&
-    subdomain &&
-    subdomain.length > 0 &&
-    !ignoreList.includes(subdomain)
-  ) {
-    const path = `${pathname}${hasSearchParams ? `?${searchParams}` : ""}`;
-    response = NextResponse.rewrite(new URL(`/${subdomain}${path}`, req.url));
+  // Extract subdomain from either localhost path or host header
+  const subdomain = isLocalhost
+    ? pathname.split("/")[1] // First path segment after /
+    : host.replace(rootDomain, "").split(".")[0];
+
+  // Rewrite request if valid subdomain exists
+  if (!isLocalhost && subdomain && subdomain !== "auth") {
+    const newUrl = `/${subdomain}${pathname}${search}`;
+    // console.log("newUrl", newUrl);
+    return NextResponse.rewrite(new URL(newUrl, req.url));
   }
 
-  response.headers.set("x-url", req.url);
-  response.headers.set("x-pathname", pathname);
-  response.headers.set("x-subdomain", subdomain);
+  // console.log("url", url);
+  // console.log("pathname", pathname);
+  // console.log("search", search);
+  // console.log("rootDomain", rootDomain);
+  // console.log("host", host);
+  // console.log("isLocalhost", isLocalhost);
+  // console.log("subdomain", subdomain);
+
+  response.headers.set("x-subdomain", subdomain || "");
 
   return response;
 }

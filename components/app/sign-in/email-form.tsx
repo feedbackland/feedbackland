@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 export const signInSchema = z.object({
   email: z
@@ -126,12 +127,10 @@ export function SignInEmailForm({
                   <Button
                     variant="link"
                     size="sm"
-                    className="p-0"
-                    onClick={(e) => {
-                      e.preventDefault();
-                    }}
+                    className="p-0 text-muted-foreground underline hover:text-foreground"
+                    asChild
                   >
-                    Forgot password?
+                    <Link href="/forgot-password">Forgot password?</Link>
                   </Button>
                 </div>
                 <FormControl>
