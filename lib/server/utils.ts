@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { getSubdomainFromUrl } from "@/lib/utils";
 
 export const getSession = async () => {
   const headersList = await headers();
@@ -12,13 +11,12 @@ export const getSession = async () => {
 
 export const getHost = async () => {
   const headersList = await headers();
-  const host = headersList.get("host");
-  return host as string;
+  const host = headersList.get("host") as string;
+  return host;
 };
 
 export const getSubdomain = async () => {
   const headersList = await headers();
-  const url = headersList.get("referer") as string;
-  const subdomain = getSubdomainFromUrl(url);
+  const subdomain = headersList.get("x-subdomain") as string;
   return subdomain;
 };

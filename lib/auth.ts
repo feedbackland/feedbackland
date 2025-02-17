@@ -4,7 +4,7 @@ import { anonymous } from "better-auth/plugins";
 import { dialect } from "@/db/db";
 import { resend } from "@/lib/resend";
 import { ResetPasswordEmail } from "@/components/emails/password-reset";
-import { getHost, getSubdomain } from "@/lib/server/utils";
+import { getHost } from "@/lib/server/utils";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -15,10 +15,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, token }) => {
-      const host = getHost();
-      const subdomain = getSubdomain();
-      const url = `https://${subdomain}.${host}/reset-password?token=${token}`;
-
+      const host = await getHost();
+      const url = `https://${host}/reset-password?token=${token}`;
       await resend.emails.send({
         from: "Feedbackland <hello@feedbackland.com>",
         to: [user.email],

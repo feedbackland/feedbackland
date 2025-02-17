@@ -29,3 +29,20 @@ export const getSubdomainFromUrl = (urlString: string) => {
 
   return hostname.split(".")[0];
 };
+
+export const getBaseDomainFromUrl = (urlStr: string) => {
+  const { hostname } = new URL(urlStr);
+
+  // If it's localhost (or something like tenant.localhost), just return 'localhost'
+  if (hostname === "localhost" || hostname.endsWith("localhost")) {
+    return "localhost";
+  }
+
+  const parts = hostname.split(".");
+  // For hostnames like "feedbackland.com" or similar
+  if (parts.length <= 2) {
+    return hostname;
+  }
+  // For hostnames with a subdomain (e.g. "get-started.feedbackland.com"), join the last two segments.
+  return parts.slice(-2).join(".");
+};
