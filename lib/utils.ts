@@ -5,27 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const getRootDomain = ({
-  host,
-}: {
-  host: string | null | undefined;
-}) => {
-  if (host && host.length > 0) {
-    const parts = host.split(".");
-
-    if (host.includes("localhost")) {
-      return parts[parts.length - 1]; // e.g. 'localhost:3000'
-    } else if (parts.length > 1) {
-      // e.g. 'feedbackland.com' or 'new.feedbackland.com'
-      const tld = parts[parts.length - 1]; // e.g. 'com'
-      const root = parts[parts.length - 2]; // e.g. 'feedbackland'
-      return `${root}.${tld}`; // feedbackland.com
-    }
-  }
-
-  return null;
-};
-
 export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 export const slugifySubdomain = (text: string) => {
@@ -37,4 +16,16 @@ export const slugifySubdomain = (text: string) => {
     .replace(/--+/g, "-") // Replace multiple hyphens with single hyphen
     .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
+};
+
+export const getSubdomainFromUrl = (urlString: string) => {
+  const url = new URL(urlString);
+  const { hostname, pathname } = url;
+
+  if (hostname === "localhost") {
+    const segments = pathname.split("/").filter(Boolean);
+    return segments[0];
+  }
+
+  return hostname.split(".")[0];
 };

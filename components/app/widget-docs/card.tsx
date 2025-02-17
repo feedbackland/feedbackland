@@ -32,10 +32,7 @@ export function WidgetDocsCard({
       </CardHeader>
       <CardContent>
         <WidgetDocsContent orgId={orgId} />
-        <Button
-          size="lg"
-          onClick={() => navigateToSubdomain({ subdomain: orgSubdomain })}
-        >
+        <Button size="lg" onClick={() => navigateToSubdomain(orgSubdomain)}>
           <span>Proceed to your platform</span>
           <ArrowRight className="size-4" />
         </Button>

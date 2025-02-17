@@ -9,9 +9,7 @@ export default function GetStartedPage() {
     <div className="m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
       <FeedbacklandLogoFull className="mb-14 w-[165px]" />
       <CreateOrgCard
-        onSuccess={({ orgSubdomain }) =>
-          navigateToSubdomain({ subdomain: orgSubdomain })
-        }
+        onSuccess={({ orgSubdomain }) => navigateToSubdomain(orgSubdomain)}
       />
     </div>
   );

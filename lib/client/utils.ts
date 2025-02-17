@@ -1,15 +1,12 @@
-import { getRootDomain } from "@/lib/utils";
+import { getSubdomainFromUrl } from "@/lib/utils";
 
-export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
+export const navigateToSubdomain = (subdomain: string) => {
   const { host, protocol } = window.location;
-  const rootDomain = getRootDomain({ host });
   const isLocalhost = host.includes("localhost");
-
-  if (rootDomain) {
-    window.location.href = !isLocalhost
-      ? `${protocol}//${subdomain}.${rootDomain}`
-      : `${protocol}//${rootDomain}/${subdomain}`;
-  }
+  const url = isLocalhost
+    ? `${protocol}//${host}/${subdomain}`
+    : `${protocol}//${subdomain}.${host.replace(`${subdomain}.`, "")}`;
+  window.location.href = url;
 };
 
 export const getSSOCallbackUrl = ({ context }: { context?: string }) => {
@@ -20,4 +17,9 @@ export const getSSOCallbackUrl = ({ context }: { context?: string }) => {
   }
 
   return url.toString();
+};
+
+export const getSubdomain = () => {
+  const subdomain = getSubdomainFromUrl(window.location.href);
+  return subdomain;
 };

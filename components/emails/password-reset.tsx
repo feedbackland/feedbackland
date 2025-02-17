@@ -5,7 +5,7 @@ import {
   Head,
   Heading,
   Html,
-  // Img,
+  Img,
   Link,
   Preview,
   Section,
@@ -13,10 +13,6 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
-
-// const baseUrl = process.env.VERCEL_URL
-//   ? `https://${process.env.VERCEL_URL}`
-//   : "";
 
 export const ResetPasswordEmail = ({ url }: { url: string }) => {
   return (
@@ -26,15 +22,15 @@ export const ResetPasswordEmail = ({ url }: { url: string }) => {
         <Body className="m-auto bg-slate-100 px-2 py-10 font-sans">
           <Preview>Reset password</Preview>
           <Container className="mx-auto my-[40px] max-w-[465px] rounded-[6px] border border-solid border-[#eaeaea] bg-white p-[20px]">
-            {/* <Section className="mt-[32px]">
+            <Section className="mt-[32px]">
               <Img
-                src={`${baseUrl}/static/vercel-logo.png`}
-                width="40"
-                height="37"
-                alt="Vercel"
+                src={`https://public.${process.env.VERCEL_PROJECT_PRODUCTION_URL}/feedbackland_logo_email.png`}
+                width="170"
+                height="20"
+                alt="Feedbackland"
                 className="mx-auto my-0"
               />
-            </Section> */}
+            </Section>
             <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black">
               Reset your password
             </Heading>
