@@ -5,6 +5,7 @@ import { dialect } from "@/db/db";
 import { resend } from "@/lib/resend";
 import { ResetPasswordEmail } from "@/components/emails/password-reset";
 import { getHost } from "@/lib/server/utils";
+import { triggers } from "@/lib/utils";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -15,14 +16,18 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, token }) => {
-      const host = await getHost();
-      const url = `https://${host}/reset-password?token=${token}`;
-      await resend.emails.send({
-        from: "Feedbackland <hello@feedbackland.com>",
-        to: [user.email],
-        subject: "Reset your password",
-        react: ResetPasswordEmail({ url }),
-      });
+      try {
+        const host = await getHost();
+        const url = `https://${host}?${triggers.resetPasswordToken}=${token}`;
+        await resend.emails.send({
+          from: "Feedbackland <hello@feedbackland.com>",
+          to: [user.email],
+          subject: "Reset your password",
+          react: ResetPasswordEmail({ url }),
+        });
+      } catch {
+        throw new Error("Failed to send reset password email");
+      }
     },
   },
   socialProviders: {

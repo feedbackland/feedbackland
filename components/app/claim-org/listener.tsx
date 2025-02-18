@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { ClaimOrgDialog } from "@/components/app/claim-org/dialog";
+import { triggers } from "@/lib/utils";
 
 export function ClaimOrgListener({
   orgId,
@@ -19,7 +20,7 @@ export function ClaimOrgListener({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const [trigger, setTrigger] = useQueryState("claim-org");
+  const [trigger, setTrigger] = useQueryState(triggers.claimOrg);
 
   const { execute: claimOrg } = useAction(claimOrgAction, {
     onSuccess({ data }) {

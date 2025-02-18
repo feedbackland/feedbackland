@@ -1,4 +1,4 @@
-import { getBaseDomainFromUrl } from "@/lib/utils";
+import { getBaseDomainFromUrl, triggers } from "@/lib/utils";
 
 export const navigateToSubdomain = (subdomain: string) => {
   const { host, protocol, href } = window.location;
@@ -13,8 +13,8 @@ export const navigateToSubdomain = (subdomain: string) => {
 export const getSSOCallbackUrl = ({ context }: { context?: string }) => {
   const url = new URL(window.location.href);
 
-  if (context === "claim-org") {
-    url.searchParams.set("claim-org", "true");
+  if (context === triggers.claimOrg) {
+    url.searchParams.set(triggers.claimOrg, "true");
   }
 
   return url.toString();

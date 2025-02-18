@@ -7,6 +7,7 @@ import { ClaimOrgListener } from "@/components/app/claim-org/listener";
 import { CreateTypes } from "canvas-confetti";
 import { Confetti } from "@/components/ui/confetti";
 import { signOut } from "@/lib/client/auth-client";
+import { cn } from "@/lib/utils";
 
 export function ClaimOrgBanner({
   orgId,
@@ -20,6 +21,7 @@ export function ClaimOrgBanner({
   isSignedIn: boolean;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isClaimedClientSide, setIsClaimedClientSide] = useState(false);
 
   const confettiRef = useRef<CreateTypes>(null);
 
@@ -35,7 +37,8 @@ export function ClaimOrgBanner({
     setIsDialogOpen(false);
   };
 
-  const triggerConfetti = () => {
+  const onClaimed = () => {
+    setIsClaimedClientSide(true);
     setTimeout(() => {
       confettiRef.current?.({
         particleCount: 100,
@@ -51,7 +54,7 @@ export function ClaimOrgBanner({
         orgId={orgId}
         userId={userId}
         isOrgClaimed={isOrgClaimed}
-        onClaimed={triggerConfetti}
+        onClaimed={onClaimed}
       />
 
       <ClaimOrgDialog
@@ -59,11 +62,16 @@ export function ClaimOrgBanner({
         initialSelectedStep="sign-up-in"
         orgId={orgId}
         onClose={handleCloseDialog}
-        onClaimed={triggerConfetti}
+        onClaimed={onClaimed}
       />
 
       {!isOrgClaimed && (
-        <div className="flex items-center justify-center border-b border-border bg-primary px-4 py-2">
+        <div
+          className={cn(
+            "flex items-center justify-center border-b border-border bg-primary px-4 py-2",
+            isClaimedClientSide && "hidden",
+          )}
+        >
           <div className="flex w-full max-w-[700px] items-center justify-between">
             <span className="text-sm text-primary-foreground">
               This is a unclaimed platform. Claim it to make it yours!
