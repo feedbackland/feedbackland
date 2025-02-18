@@ -78,7 +78,7 @@ export function ClaimOrgDialog({
               </DialogHeader>
               <SignUpIn
                 context="claim-org"
-                initialSelectedMethod="sign-up"
+                selectedMethod="sign-up"
                 onSuccess={handleSignUpInSuccess}
               />
             </>

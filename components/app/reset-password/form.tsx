@@ -60,36 +60,32 @@ export function ResetPasswordForm({
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ password }) => {
-    try {
-      await resetPassword(
-        {
-          newPassword: password,
-          token,
+    await resetPassword(
+      {
+        newPassword: password,
+        token,
+      },
+      {
+        onRequest: () => {
+          setIsPending(true);
         },
-        {
-          onRequest: () => {
-            setIsPending(true);
-          },
-          onResponse: () => {
-            setIsPending(false);
-          },
-          onSuccess: (ctx) => {
-            console.log("success", ctx);
-            onSuccess();
-          },
-          onError: (error) => {
-            console.log("error", error);
-          },
+        onResponse: () => {
+          setIsPending(false);
         },
-      );
-    } catch (error) {
-      console.log("catch", error);
-    }
+        onSuccess: (ctx) => {
+          console.log("success", ctx);
+          onSuccess();
+        },
+        onError: (error) => {
+          console.log("error", error);
+        },
+      },
+    );
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={control}
           name="password"
@@ -97,7 +93,12 @@ export function ResetPasswordForm({
             <FormItem>
               <FormLabel>New password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="New password" {...field} />
+                <Input
+                  autoFocus
+                  type="password"
+                  placeholder="New password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage>{errors.password?.message}</FormMessage>
             </FormItem>

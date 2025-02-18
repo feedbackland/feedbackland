@@ -7,6 +7,7 @@ import { SSOButtonAnonymous } from "@/components/app/sso/sso-button-anonymous";
 import { SignUpEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
+import { Method } from "../sign-up-in";
 
 export function SignUp({
   onSuccess,
@@ -15,7 +16,7 @@ export function SignUp({
   context,
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
-  onSelectedMethodChange?: () => void;
+  onSelectedMethodChange?: (newSelectedMethod: Method) => void;
   includeAnonymous?: boolean;
   context?: string;
 }) {
@@ -42,13 +43,13 @@ export function SignUp({
           {includeAnonymous && (
             <SSOButtonAnonymous onSuccess={handleOnSuccess} />
           )}
-          <div className="m-auto mt-4 flex items-center">
+          <div className="m-auto mt-8 flex items-center">
             <span className="mr-1 text-sm text-foreground">
               Already have an account?
             </span>
             <Button
               variant="link"
-              onClick={() => onSelectedMethodChange?.()}
+              onClick={() => onSelectedMethodChange?.("sign-in")}
               className="p-0 underline"
             >
               Sign in

@@ -7,6 +7,7 @@ import { SSOButtonAnonymous } from "@/components/app/sso/sso-button-anonymous";
 import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
+import { Method } from "../sign-up-in";
 
 export function SignIn({
   onSuccess,
@@ -15,7 +16,7 @@ export function SignIn({
   context,
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
-  onSelectedMethodChange?: () => void;
+  onSelectedMethodChange?: (newSelectedMethod: Method) => void;
   includeAnonymous?: boolean;
   context?: string;
 }) {
@@ -23,6 +24,10 @@ export function SignIn({
 
   const handleOnSuccess = ({ userId }: { userId: string }) => {
     onSuccess({ userId });
+  };
+
+  const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {
+    onSelectedMethodChange?.(newSelectedMethod);
   };
 
   return (
@@ -42,13 +47,13 @@ export function SignIn({
           {includeAnonymous && (
             <SSOButtonAnonymous onSuccess={handleOnSuccess} />
           )}
-          <div className="m-auto mt-4 flex items-center">
+          <div className="m-auto mt-8 flex items-center">
             <span className="mr-1 text-sm text-foreground">
               No account yet?
             </span>
             <Button
               variant="link"
-              onClick={() => onSelectedMethodChange?.()}
+              onClick={() => handleOnSelectedMethodChange("sign-up")}
               className="p-0 underline"
             >
               Sign up
@@ -59,6 +64,7 @@ export function SignIn({
         <SignInEmailForm
           onSuccess={handleOnSuccess}
           onClose={() => setIsEmailSelected(false)}
+          onSelectedMethodChange={handleOnSelectedMethodChange}
         />
       )}
     </>

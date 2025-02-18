@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
+import { Method } from "../sign-up-in";
 
 export const signInSchema = z.object({
   email: z
@@ -36,9 +36,11 @@ type FormData = z.infer<typeof signInSchema>;
 export function SignInEmailForm({
   onSuccess,
   onClose,
+  onSelectedMethodChange,
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
   onClose?: () => void;
+  onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const [isPending, setIsPending] = useState(false);
 
@@ -79,6 +81,10 @@ export function SignInEmailForm({
         },
       },
     );
+  };
+
+  const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {
+    onSelectedMethodChange?.(newSelectedMethod);
   };
 
   return (
@@ -128,9 +134,11 @@ export function SignInEmailForm({
                     variant="link"
                     size="sm"
                     className="p-0 text-muted-foreground underline hover:text-foreground"
-                    asChild
+                    onClick={() =>
+                      handleOnSelectedMethodChange("forgot-password")
+                    }
                   >
-                    <Link href="/forgot-password">Forgot password?</Link>
+                    Forgot password?
                   </Button>
                 </div>
                 <FormControl>

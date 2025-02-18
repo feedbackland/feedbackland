@@ -1,55 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
+import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
 
-type Methods = "sign-up" | "sign-in";
+export type Method = "sign-up" | "sign-in" | "forgot-password";
 
 export function SignUpIn({
-  initialSelectedMethod,
+  selectedMethod,
   includeAnonymous,
   refreshOnSuccess = true,
   context,
   onSelectedMethodChange,
   onSuccess,
 }: {
-  initialSelectedMethod: Methods;
+  selectedMethod: Method;
   includeAnonymous?: boolean;
   refreshOnSuccess?: boolean;
   context?: string;
   onSuccess: ({ userId }: { userId: string }) => void;
-  onSelectedMethodChange?: (newSelectedMethod: Methods) => void;
+  onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const router = useRouter();
-
-  const [selectedMethod, setSelectedMethod] = useState<Methods>(
-    initialSelectedMethod,
-  );
-
-  useEffect(() => {
-    onSelectedMethodChange?.(selectedMethod);
-  }, [selectedMethod, onSelectedMethodChange]);
 
   const handleOnSuccess = ({ userId }: { userId: string }) => {
     if (refreshOnSuccess) router.refresh();
     onSuccess({ userId });
   };
 
-  return selectedMethod === "sign-up" ? (
-    <SignUp
-      onSuccess={handleOnSuccess}
-      onSelectedMethodChange={() => setSelectedMethod("sign-in")}
-      includeAnonymous={includeAnonymous}
-      context={context}
-    />
-  ) : (
-    <SignIn
-      onSuccess={handleOnSuccess}
-      onSelectedMethodChange={() => setSelectedMethod("sign-up")}
-      includeAnonymous={includeAnonymous}
-      context={context}
-    />
-  );
+  const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {
+    onSelectedMethodChange?.(newSelectedMethod);
+  };
+
+  if (selectedMethod === "sign-in") {
+    return (
+      <SignIn
+        onSuccess={handleOnSuccess}
+        onSelectedMethodChange={handleOnSelectedMethodChange}
+        includeAnonymous={includeAnonymous}
+        context={context}
+      />
+    );
+  }
+
+  if (selectedMethod === "sign-up") {
+    return (
+      <SignUp
+        onSuccess={handleOnSuccess}
+        onSelectedMethodChange={handleOnSelectedMethodChange}
+        includeAnonymous={includeAnonymous}
+        context={context}
+      />
+    );
+  }
+
+  if (selectedMethod === "forgot-password") {
+    return (
+      <ForgotPasswordForm
+        onGoBack={() => handleOnSelectedMethodChange("sign-in")}
+      />
+    );
+  }
 }

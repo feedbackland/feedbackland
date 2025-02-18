@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { SignUpIn } from ".";
 import { useState } from "react";
+import { Method } from ".";
 
 export function SignUpInDialog({
   open,
@@ -22,7 +23,7 @@ export function SignUpInDialog({
   onClose: () => void;
   onSuccess?: () => void;
 }) {
-  const [selectedMethod, setSelectedMethod] = useState<"sign-up" | "sign-in">(
+  const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
 
@@ -40,14 +41,16 @@ export function SignUpInDialog({
         }
       }}
     >
-      <DialogContent className="max-w-[400px]">
+      <DialogContent className="max-w-[400px] pb-8">
         <DialogHeader>
-          <DialogTitle>
-            {selectedMethod === "sign-in" ? "Sign in" : "Sign up"}
+          <DialogTitle className="h3 mb-5 text-center">
+            {selectedMethod === "sign-in" && "Sign in"}
+            {selectedMethod === "sign-up" && "Sign up"}
+            {selectedMethod === "forgot-password" && "Forgot password"}
           </DialogTitle>
         </DialogHeader>
         <SignUpIn
-          initialSelectedMethod={initialSelectedMethod}
+          selectedMethod={selectedMethod}
           refreshOnSuccess={refreshOnSuccess}
           onSuccess={handleOnSuccess}
           onSelectedMethodChange={(newSelectedMethod) =>
