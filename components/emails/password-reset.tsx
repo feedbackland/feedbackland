@@ -19,7 +19,7 @@ export const ResetPasswordEmail = ({ url }: { url: string }) => {
     <Html>
       <Head />
       <Tailwind>
-        <Body className="m-auto bg-slate-100 px-2 py-10 font-sans">
+        <Body className="m-auto bg-slate-100 px-2 py-8 font-sans">
           <Preview>Reset password</Preview>
           <Container className="mx-auto my-[40px] max-w-[465px] rounded-[6px] border border-solid border-[#eaeaea] bg-white p-[20px]">
             <Section className="mt-[32px]">

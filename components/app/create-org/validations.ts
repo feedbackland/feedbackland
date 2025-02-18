@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { subdomainRegex } from "@/lib/utils";
+import { subdomainRegex, reservedSubdomains } from "@/lib/utils";
 
 export const createOrgSchema = z.object({
   orgName: z
@@ -18,11 +18,7 @@ export const createOrgSchema = z.object({
       "Subdomain is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
     )
     .refine(
-      (value) => value !== "get-started",
-      "Subdmain cannot be named 'get-started'",
-    )
-    .refine(
-      (value) => value !== "reset-password",
-      "Subdmain cannot be named 'reset-password'",
+      (value) => !reservedSubdomains.includes(value),
+      "Subdomain is reserved for internal use",
     ),
 });

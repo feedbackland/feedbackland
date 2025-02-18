@@ -7,6 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 
 export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
+export const reservedSubdomains = ["get-started", "auth", "public"];
+
 export const slugifySubdomain = (text: string) => {
   return text
     .toLowerCase()
@@ -19,30 +21,24 @@ export const slugifySubdomain = (text: string) => {
 };
 
 export const getSubdomainFromUrl = (urlString: string) => {
-  const url = new URL(urlString);
-  const { hostname, pathname } = url;
+  const { hostname, pathname } = new URL(urlString);
 
-  if (hostname === "localhost") {
+  if (hostname.includes("localhost")) {
     const segments = pathname.split("/").filter(Boolean);
-    return segments[0];
+    return segments.length > 0 ? segments[0] : "";
   }
 
-  return hostname.split(".")[0];
+  const parts = hostname.split(".");
+  return parts.length > 2 ? parts[0] : "";
 };
 
-export const getBaseDomainFromUrl = (urlStr: string) => {
-  const { hostname } = new URL(urlStr);
+export const getBaseDomainFromUrl = (urlString: string) => {
+  const { hostname } = new URL(urlString);
 
-  // If it's localhost (or something like tenant.localhost), just return 'localhost'
-  if (hostname === "localhost" || hostname.endsWith("localhost")) {
+  if (hostname.includes("localhost")) {
     return "localhost";
   }
 
   const parts = hostname.split(".");
-  // For hostnames like "feedbackland.com" or similar
-  if (parts.length <= 2) {
-    return hostname;
-  }
-  // For hostnames with a subdomain (e.g. "get-started.feedbackland.com"), join the last two segments.
-  return parts.slice(-2).join(".");
+  return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };

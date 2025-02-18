@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSubdomainFromUrl } from "./lib/utils";
+import { getSubdomainFromUrl, reservedSubdomains } from "./lib/utils";
 
 export const config = {
   matcher: [
@@ -22,7 +22,7 @@ export function middleware(req: NextRequest) {
   const subdomain = getSubdomainFromUrl(url.toString());
 
   // Rewrite request if valid subdomain exists
-  if (!isLocalhost && subdomain && subdomain !== "auth") {
+  if (!isLocalhost && subdomain && !reservedSubdomains.includes(subdomain)) {
     const newUrl = `/${subdomain}${pathname}${search}`;
     response = NextResponse.rewrite(new URL(newUrl, req.url));
   }
