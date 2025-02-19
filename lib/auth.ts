@@ -15,7 +15,9 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, token }) => {
+    sendResetPassword: async ({ user, token, url }) => {
+      console.log("sendResetPassword", { user, token, url });
+
       try {
         const platformUrl = await getPlatformUrl();
         const url = `${platformUrl}?${triggers.resetPasswordToken}=${token}`;
