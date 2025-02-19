@@ -9,13 +9,11 @@ import {
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 import { ResetPasswordForm } from "./form";
-import { Success } from "@/components/ui/success";
 import { triggers } from "@/lib/utils";
 
 export function ResetPasswordDialog() {
   const [token, setToken] = useQueryState(triggers.resetPasswordToken);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -39,24 +37,8 @@ export function ResetPasswordDialog() {
             Reset password
           </DialogTitle>
         </DialogHeader>
-        {token && (
-          <ResetPasswordForm
-            token={token}
-            onSuccess={() => {
-              setToken(null);
-              setIsSuccess(true);
-            }}
-          />
-        )}
 
-        {isSuccess && (
-          <div className="mt-4">
-            <Success
-              title="Password reset successfully"
-              description="Please check your email for the password reset link."
-            />
-          </div>
-        )}
+        {token && <ResetPasswordForm token={token} />}
       </DialogContent>
     </Dialog>
   );

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/form";
 import { resetPassword } from "@/lib/client/auth-client";
 import { useState } from "react";
+import { Success } from "@/components/ui/success";
+import { Error } from "@/components/ui/error";
 
 const formSchema = z
   .object({
@@ -41,9 +43,11 @@ export function ResetPasswordForm({
   onSuccess,
 }: {
   token: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }) {
-  const [isPending, setIsPending] = useState(false);
+  const [formState, setFormState] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -57,9 +61,13 @@ export function ResetPasswordForm({
     handleSubmit,
     control,
     formState: { errors },
+    reset,
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ password }) => {
+    console.log("token", token);
+    console.log("password", password);
+
     await resetPassword(
       {
         newPassword: password,
@@ -67,16 +75,15 @@ export function ResetPasswordForm({
       },
       {
         onRequest: () => {
-          setIsPending(true);
+          setFormState("pending");
         },
-        onResponse: () => {
-          setIsPending(false);
-        },
-        onSuccess: (ctx) => {
-          console.log("success", ctx);
-          onSuccess();
+        onSuccess: () => {
+          reset();
+          setFormState("success");
+          onSuccess?.();
         },
         onError: (error) => {
+          setFormState("error");
           console.log("error", error);
         },
       },
@@ -123,9 +130,27 @@ export function ResetPasswordForm({
           )}
         />
 
-        <Button type="submit" className="w-full" loading={isPending}>
+        <Button
+          type="submit"
+          className="w-full"
+          loading={formState === "pending"}
+        >
           Change password
         </Button>
+
+        {formState === "success" && (
+          <Success
+            title="Password successfully changed"
+            description="Sign in to your account to continue."
+          />
+        )}
+
+        {formState === "error" && (
+          <Error
+            title="Could not change password"
+            description="An error occured while trying to change your password. Please try again."
+          />
+        )}
       </form>
     </Form>
   );

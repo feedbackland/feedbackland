@@ -48,7 +48,6 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
     await forgetPassword(
       {
         email: email,
-        // redirectTo: "/reset-password",
       },
       {
         onRequest: () => {
