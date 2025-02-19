@@ -24,7 +24,7 @@ export const ResetPasswordEmail = ({ url }: { url: string }) => {
           <Container className="mx-auto my-[40px] max-w-[465px] rounded-[6px] border border-solid border-[#eaeaea] bg-white p-[20px]">
             <Section className="mt-[32px]">
               <Img
-                src={`https://public.${process.env.VERCEL_PROJECT_PRODUCTION_URL}/feedbackland_logo_email.png`}
+                src={`https://public.${process.env.ROOT_DOMAIN}/feedbackland_logo_email.png`}
                 width="170"
                 height="20"
                 alt="Feedbackland"
