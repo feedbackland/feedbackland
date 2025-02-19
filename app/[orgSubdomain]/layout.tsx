@@ -19,7 +19,7 @@ export default async function OrgLayout({
   const isSignedIn = !!session;
   const isAdmin = !!(userId && orgId && (await getIsAdmin({ userId, orgId })));
 
-  if (org && orgId) {
+  if (org && orgId && orgName) {
     return (
       <>
         <ClaimOrgBanner
@@ -30,8 +30,11 @@ export default async function OrgLayout({
         />
         <ResetPasswordDialog />
         <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
-          <PlatformHeader orgName={orgName} isSignedIn={isSignedIn} />
-          <div>Admin: {isAdmin ? "true" : "false"}</div>
+          <PlatformHeader
+            orgName={orgName}
+            isSignedIn={isSignedIn}
+            isAdmin={isAdmin}
+          />
           {children}
         </div>
       </>

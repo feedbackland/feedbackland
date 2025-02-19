@@ -4,7 +4,7 @@ import { anonymous } from "better-auth/plugins";
 import { dialect } from "@/db/db";
 import { resend } from "@/lib/resend";
 import { ResetPasswordEmail } from "@/components/emails/password-reset";
-import { getHost } from "@/lib/server/utils";
+import { getPlatformUrl } from "@/lib/server/utils";
 import { triggers } from "@/lib/utils";
 
 export const auth = betterAuth({
@@ -17,8 +17,8 @@ export const auth = betterAuth({
     enabled: true,
     sendResetPassword: async ({ user, token }) => {
       try {
-        const host = await getHost();
-        const url = `https://${host}?${triggers.resetPasswordToken}=${token}`;
+        const platformUrl = await getPlatformUrl();
+        const url = `${platformUrl}?${triggers.resetPasswordToken}=${token}`;
         await resend.emails.send({
           from: "Feedbackland <hello@feedbackland.com>",
           to: [user.email],

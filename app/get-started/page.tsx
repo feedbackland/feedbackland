@@ -2,14 +2,35 @@
 
 import { CreateOrgCard } from "@/components/app/create-org/card";
 import { FeedbacklandLogoFull } from "@/components/ui/logos";
-import { navigateToSubdomain } from "@/lib/client/utils";
+import { useMaindomain } from "@/hooks/useMaindomain";
+
+const navigateToSubdomain = ({
+  subdomain,
+  maindomain,
+}: {
+  subdomain: string | null | undefined;
+  maindomain: string | null | undefined;
+}) => {
+  if (maindomain && subdomain) {
+    const { protocol, port } = window.location;
+    const isLocalhost = maindomain.includes("localhost");
+    const url = isLocalhost
+      ? `${protocol}//${maindomain}:${port}/${subdomain}`
+      : `${protocol}//${subdomain}.${maindomain}`;
+    window.location.href = url;
+  }
+};
 
 export default function GetStartedPage() {
+  const maindomain = useMaindomain();
+
   return (
     <div className="m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
       <FeedbacklandLogoFull className="mb-14 w-[165px]" />
       <CreateOrgCard
-        onSuccess={({ orgSubdomain }) => navigateToSubdomain(orgSubdomain)}
+        onSuccess={({ orgSubdomain: subdomain }) => {
+          navigateToSubdomain({ maindomain, subdomain });
+        }}
       />
     </div>
   );
