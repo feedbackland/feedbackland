@@ -48,7 +48,7 @@ export function middleware(req: NextRequest) {
   const platformUrl = isLocalhost ? `${origin}/${subdomain}` : origin;
 
   // Rewrite request if valid subdomain exists
-  if (!isLocalhost && subdomain && !reservedSubdomains.includes(subdomain)) {
+  if (!isLocalhost && subdomain && !["auth", "public"].includes(subdomain)) {
     const newUrl = `/${subdomain}${pathname}${search}`;
     response = NextResponse.rewrite(new URL(newUrl, req.url));
   }
