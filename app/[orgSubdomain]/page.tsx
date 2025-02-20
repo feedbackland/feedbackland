@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tiptap } from "@/components/ui/tiptap";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -61,6 +62,7 @@ export default function OrgPage() {
                     placeholder="Share your idea"
                     className="w-full bg-background"
                   />
+                  <Tiptap />
                   <div className="flex justify-end">
                     <Button>Submit your idea</Button>
                   </div>
