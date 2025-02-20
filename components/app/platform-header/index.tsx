@@ -35,7 +35,7 @@ export function PlatformHeader({
       />
       <div className="flex justify-between">
         <div className="flex flex-col">
-          <h1 className="h3">{orgName}&apos;s Feedback Platform!</h1>
+          <h1 className="h3">{orgName}&apos;s feedback platform</h1>
           <p className="text-sm text-muted-foreground">
             Powered by Feedbackland
           </p>

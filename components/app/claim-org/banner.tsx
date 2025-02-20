@@ -76,7 +76,12 @@ export function ClaimOrgBanner({
             <span className="text-sm text-primary-foreground">
               This is a unclaimed platform. Claim it to make it yours!
             </span>
-            <Button onClick={handleOpenDialog} size="default" variant="outline">
+            <Button
+              onClick={handleOpenDialog}
+              size="sm"
+              variant="ghost"
+              className="border border-muted-foreground bg-transparent text-primary-foreground hover:border-primary-foreground hover:bg-transparent hover:text-primary-foreground"
+            >
               Claim this platform
             </Button>
           </div>
