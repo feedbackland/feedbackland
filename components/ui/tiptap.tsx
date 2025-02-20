@@ -2,20 +2,31 @@ import { useState } from "react";
 import { Content } from "@tiptap/react";
 import { MinimalTiptapEditor } from "./minimal-tiptap";
 
-export const Tiptap = () => {
+export const Tiptap = ({
+  placeholder,
+  onChange,
+}: {
+  placeholder: string;
+  onChange: (richText: string) => void;
+}) => {
   const [value, setValue] = useState<Content>("");
+
+  const handleChange = (value: Content) => {
+    setValue(value);
+    console.log(value);
+  };
 
   return (
     <MinimalTiptapEditor
       value={value}
-      onChange={setValue}
-      className="w-full bg-background"
-      editorContentClassName="p-5"
-      output="html"
-      placeholder="Enter your description..."
-      autofocus={true}
-      editable={true}
+      onChange={handleChange}
+      className="min-h-20 w-full bg-background"
+      editorContentClassName="p-2.5 text-sm"
       editorClassName="focus:outline-none"
+      output="html"
+      placeholder={placeholder}
+      autofocus={false}
+      editable={true}
     />
   );
 };

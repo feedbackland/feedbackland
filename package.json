@@ -31,6 +31,7 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@react-email/components": "0.0.33",
+    "@supabase/supabase-js": "^2.48.1",
     "@tiptap/extension-code-block-lowlight": "^2.11.5",
     "@tiptap/extension-color": "^2.11.5",
     "@tiptap/extension-heading": "^2.11.5",

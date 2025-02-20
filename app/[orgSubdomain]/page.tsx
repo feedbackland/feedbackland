@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tiptap } from "@/components/ui/tiptap";
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
+import { FeedbackForm } from "./feedback-form";
 
 export default function OrgPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function OrgPage() {
                 </Button>
               </div>
             ) : (
-              <div className="relative h-[500px] w-full rounded-lg border border-border bg-secondary shadow">
+              <div className="relative w-full rounded-lg border border-border bg-secondary shadow">
                 <Button
                   size="icon"
                   variant="ghost"
@@ -57,15 +58,17 @@ export default function OrgPage() {
                   <XIcon className="size-4" />
                 </Button>
                 <div className="space-y-6 p-6">
-                  <h3 className="h3">Share your idea</h3>
-                  <Input
+                  <h3 className="h4">What&apos;s your idea?</h3>
+                  <FeedbackForm />
+                  {/* <Input
+                    autoFocus
                     placeholder="Share your idea"
                     className="w-full bg-background"
                   />
                   <Tiptap />
                   <div className="flex justify-end">
                     <Button>Submit your idea</Button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}
