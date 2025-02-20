@@ -15,9 +15,14 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Tiptap2 } from "@/components/ui/tiptap2";
 import { Tiptap } from "@/components/ui/tiptap";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 export function FeedbackForm() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+
   const formSchema = z.object({
     title: z
       .string()
