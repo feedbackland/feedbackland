@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
+import { cookieNames } from "@/lib/utils";
 
 export const config = {
   matcher: [
@@ -58,9 +59,9 @@ export function middleware(req: NextRequest) {
     sameSite: "lax",
   } satisfies Partial<ResponseCookie>;
 
-  response.cookies.set("subdomain", subdomain, cookieSettings);
-  response.cookies.set("maindomain", maindomain, cookieSettings);
-  response.cookies.set("platform-url", platformUrl, cookieSettings);
+  response.cookies.set(cookieNames.subDomain, subdomain, cookieSettings);
+  response.cookies.set(cookieNames.mainDomain, maindomain, cookieSettings);
+  response.cookies.set(cookieNames.platformUrl, platformUrl, cookieSettings);
 
   return response;
 }

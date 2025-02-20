@@ -14,6 +14,12 @@ export const triggers = {
   claimOrg: "claim-org",
 };
 
+export const cookieNames = {
+  mainDomain: "maindomain",
+  subDomain: "subdomain",
+  platformUrl: "platform-url",
+};
+
 export const slugifySubdomain = (text: string) => {
   return text
     .toLowerCase()
