@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { reservedSubdomains } from "@/lib/utils";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 export const config = {

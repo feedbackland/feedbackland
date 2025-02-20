@@ -1,17 +1,23 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TriangleAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function Error({
   title,
   description,
+  className,
 }: {
   title: string;
   description?: string;
+  className?: React.ComponentProps<"div">["className"];
 }) {
   return (
     <Alert
       variant="default"
-      className="w-full max-w-md border-red-500 bg-red-50 dark:border-red-900 dark:bg-red-950"
+      className={cn(
+        "w-full max-w-md border-red-800 bg-red-50 dark:border-red-900 dark:bg-red-950",
+        className,
+      )}
     >
       <TriangleAlert className="!dark:text-red-400 size-4 !text-red-800" />
       <AlertTitle className="mt-1 text-red-800 dark:text-red-400">

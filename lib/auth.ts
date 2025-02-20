@@ -6,6 +6,7 @@ import { resend } from "@/lib/resend";
 import { ResetPasswordEmail } from "@/components/emails/password-reset";
 import { getPlatformUrl } from "@/lib/server/utils";
 import { triggers } from "@/lib/utils";
+import { updateVerification } from "@/lib/queries";
 
 export const auth = betterAuth({
   trustedOrigins: ["*"],
@@ -16,8 +17,6 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, token, url }) => {
-      console.log("sendResetPassword", { user, token, url });
-
       try {
         const platformUrl = await getPlatformUrl();
         const url = `${platformUrl}?${triggers.resetPasswordToken}=${token}`;
@@ -26,6 +25,10 @@ export const auth = betterAuth({
           to: [user.email],
           subject: "Reset your password",
           react: ResetPasswordEmail({ url }),
+        });
+        await updateVerification({
+          identifier: `reset-password:${token}`,
+          value: user.id,
         });
       } catch {
         throw new Error("Failed to send reset password email");

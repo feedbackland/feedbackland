@@ -100,22 +100,24 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
           >
             Send reset link
           </Button>
-
-          {formState === "success" && (
-            <Success
-              title="Password reset email sent"
-              description="Please check your email for the password reset link."
-            />
-          )}
-
-          {formState === "error" && (
-            <Error
-              title="Could not sent password reset email"
-              description="An error occured while trying to send the password reset email. Please try again."
-            />
-          )}
         </form>
       </Form>
+
+      {formState === "success" && (
+        <Success
+          title="Password reset email sent"
+          description="Please check your email for the password reset link."
+          className="mt-4"
+        />
+      )}
+
+      {formState === "error" && (
+        <Error
+          title="Could not sent password reset email"
+          description="An error occured while trying to send the password reset email. Please try again."
+          className="mt-4"
+        />
+      )}
     </div>
   );
 }

@@ -65,9 +65,6 @@ export function ResetPasswordForm({
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ password }) => {
-    console.log("token", token);
-    console.log("password", password);
-
     await resetPassword(
       {
         newPassword: password,
@@ -82,9 +79,8 @@ export function ResetPasswordForm({
           setFormState("success");
           onSuccess?.();
         },
-        onError: (error) => {
+        onError: () => {
           setFormState("error");
-          console.log("error", error);
         },
       },
     );
