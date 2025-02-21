@@ -1,12 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tiptap } from "@/components/ui/tiptap";
-import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { FeedbackForm } from "./feedback-form";
+import { FeedbackForm } from "@/components/app/feedback-form/form";
+import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 
 export default function OrgPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -22,98 +19,18 @@ export default function OrgPage() {
         <TabsContent value="ideas">
           <div className="mt-4">
             {!isFormOpen ? (
-              // <Input
-              //   placeholder="Add an idea"
-              //   type="text"
-              //   className="w-full"
-              //   onClick={() => {
-              //     setIsFormOpen(true);
-              //   }}
-              // />
-              <div
-                className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background px-3 py-2 shadow-sm transition-colors ease-out hover:border hover:border-primary"
-                onClick={() => {
-                  setIsFormOpen(true);
-                }}
-              >
-                <span className="text-sm text-foreground">
-                  Have an idea for an improvement, a new feature,... ? Share it
-                  here.
-                </span>
-                <Button size="sm">
-                  <PlusIcon className="size-4" />
-                  Share your idea
-                </Button>
-              </div>
+              <FeedbackFormBanner
+                bannerText="Have an idea..."
+                buttonText="Share your idea"
+                onClick={() => setIsFormOpen(true)}
+              />
             ) : (
-              <div className="relative w-full rounded-lg border border-border bg-secondary shadow">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="absolute right-3 top-3 p-6"
-                  onClick={() => {
-                    setIsFormOpen(false);
-                  }}
-                >
-                  <XIcon className="size-4" />
-                </Button>
-                <div className="space-y-6 p-6">
-                  <h3 className="h4">What&apos;s your idea?</h3>
-                  <FeedbackForm />
-                  {/* <Input
-                    autoFocus
-                    placeholder="Share your idea"
-                    className="w-full bg-background"
-                  />
-                  <Tiptap />
-                  <div className="flex justify-end">
-                    <Button>Submit your idea</Button>
-                  </div> */}
-                </div>
-              </div>
+              <FeedbackForm onClose={() => setIsFormOpen(false)} />
             )}
           </div>
         </TabsContent>
         <TabsContent value="issues">
-          <div className="mt-4">
-            {!isFormOpen ? (
-              // <Input
-              //   placeholder="Add an idea"
-              //   type="text"
-              //   className="w-full"
-              //   onClick={() => {
-              //     setIsFormOpen(true);
-              //   }}
-              // />
-              <div
-                className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background px-3 py-2 shadow-sm transition-colors ease-out hover:border hover:border-primary"
-                onClick={() => {
-                  setIsFormOpen(true);
-                }}
-              >
-                <span className="text-sm text-foreground">
-                  Experiencing an issue or bug? Report it here.
-                </span>
-                <Button size="sm">
-                  <PlusIcon className="size-4" />
-                  Report your issue
-                </Button>
-              </div>
-            ) : (
-              <div className="relative h-[500px] w-full rounded-lg border border-border bg-secondary shadow">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="absolute right-3 top-3 p-6"
-                  onClick={() => {
-                    setIsFormOpen(false);
-                  }}
-                >
-                  <XIcon className="size-4" />
-                </Button>
-              </div>
-            )}
-          </div>
+          <div>Issues</div>
         </TabsContent>
         <TabsContent value="questions">
           <div>Questions</div>

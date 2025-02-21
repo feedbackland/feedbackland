@@ -7,13 +7,13 @@ export const Tiptap = ({
   onChange,
 }: {
   placeholder: string;
-  onChange: (richText: string) => void;
+  onChange: (value: string) => void;
 }) => {
   const [value, setValue] = useState<Content>("");
 
   const handleChange = (value: Content) => {
     setValue(value);
-    console.log(value);
+    onChange(value as string);
   };
 
   return (

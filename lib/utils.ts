@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { supabase } from "@/lib/supabase";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,4 +30,71 @@ export const slugifySubdomain = (text: string) => {
     .replace(/--+/g, "-") // Replace multiple hyphens with single hyphen
     .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
+};
+
+export const base64ToBlob = ({
+  base64,
+  contentType,
+}: {
+  base64: string;
+  contentType: string;
+}) => {
+  const byteCharacters = atob(base64);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  return new Blob(byteArrays, { type: contentType });
+};
+
+export const processImagesInHTML = async (html: string) => {
+  const base64Regex = /<img.*?src="(data:image\/(.*?);base64,([^"]*))"[^>]*>/g;
+  let modifiedHTML = html;
+
+  const matches = Array.from(html.matchAll(base64Regex));
+
+  for (const match of matches) {
+    const fullMatch = match[0];
+    // const dataURL = match[1];
+    const imageType = match[2];
+    const base64Data = match[3];
+
+    try {
+      const blob = base64ToBlob({
+        base64: base64Data,
+        contentType: `image/${imageType}`,
+      });
+      const filename = `feedback-image-${Date.now()}-${Math.random().toString(36).substring(7)}.${imageType}`;
+      const { error } = await supabase.storage
+        .from("images")
+        .upload(filename, blob);
+
+      if (error) {
+        throw error;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(filename);
+
+      modifiedHTML = modifiedHTML.replace(
+        fullMatch,
+        `<img src="${publicUrl}" alt="Uploaded Image">`,
+      );
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+    }
+  }
+
+  return modifiedHTML;
 };
