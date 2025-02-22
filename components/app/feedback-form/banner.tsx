@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export function FeedbackFormBanner({
   bannerText,
@@ -12,16 +13,19 @@ export function FeedbackFormBanner({
   buttonText: string;
   onClick: () => void;
 }) {
+  // return (
+  //   <Input placeholder="Have an idea? Share it here!" className="w-full" />
+  // );
   return (
     <div
-      className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background px-3 py-2 shadow-sm transition-colors ease-out hover:border hover:border-primary"
+      className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background px-3 py-3 text-sm text-muted-foreground shadow-sm transition-colors ease-out hover:border hover:border-primary"
       onClick={onClick}
     >
-      <span className="text-sm text-foreground">{bannerText}</span>
-      <Button size="sm">
+      {bannerText}
+      {/* <Button size="sm">
         <PlusIcon className="size-4" />
         {buttonText}
-      </Button>
+      </Button> */}
     </div>
   );
 }

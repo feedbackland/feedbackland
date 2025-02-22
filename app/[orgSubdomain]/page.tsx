@@ -1,13 +1,7 @@
-"use client";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
-import { FeedbackForm } from "@/components/app/feedback-form/form";
-import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
+import { FeedbackFormContainer } from "@/components/app/feedback-form/container";
 
 export default function OrgPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
   return (
     <div className="mt-10">
       <Tabs defaultValue="ideas" className="w-full">
@@ -18,15 +12,7 @@ export default function OrgPage() {
         </TabsList>
         <TabsContent value="ideas">
           <div className="mt-4">
-            {!isFormOpen ? (
-              <FeedbackFormBanner
-                bannerText="Have an idea..."
-                buttonText="Share your idea"
-                onClick={() => setIsFormOpen(true)}
-              />
-            ) : (
-              <FeedbackForm onClose={() => setIsFormOpen(false)} />
-            )}
+            <FeedbackFormContainer />
           </div>
         </TabsContent>
         <TabsContent value="issues">

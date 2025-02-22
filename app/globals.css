@@ -98,3 +98,7 @@
 .h5 {
   @apply scroll-m-20 text-lg font-semibold tracking-tight;
 }
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground)) !important;
+}
