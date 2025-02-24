@@ -8,6 +8,7 @@ import { CreateTypes } from "canvas-confetti";
 import { Confetti } from "@/components/ui/confetti";
 import { signOut } from "@/lib/client/auth-client";
 import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
 
 export function ClaimOrgBanner({
   orgId,
@@ -73,12 +74,14 @@ export function ClaimOrgBanner({
           )}
         >
           <div className="flex w-full max-w-[700px] items-center justify-between">
-            <span className="text-sm text-primary-foreground">
-              This is a unclaimed platform. Claim it to make it yours!
-            </span>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-primary-foreground" />
+              <span className="text-sm text-primary-foreground">
+                This platform is unclaimed. Take ownership of this platform.
+              </span>
+            </div>
             <Button
               onClick={handleOpenDialog}
-              size="sm"
               variant="ghost"
               className="border border-muted-foreground bg-transparent text-primary-foreground hover:border-primary-foreground hover:bg-transparent hover:text-primary-foreground"
             >

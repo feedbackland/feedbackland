@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,7 +16,6 @@ import { Tiptap } from "@/components/ui/tiptap";
 import { processImagesInHTML } from "@/lib/utils";
 import { XIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
 
 export function FeedbackForm({ onClose }: { onClose: () => void }) {
@@ -28,7 +26,8 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    mode: "onChange",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: {
       title: "",
       description: "",
@@ -53,19 +52,18 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="relative rounded-lg border border-border bg-background p-4 shadow-sm">
-      {/* <Button
+    <div className="relative rounded-lg border border-primary bg-background px-4 py-3 shadow-sm">
+      <Button
         size="icon"
         variant="ghost"
-        className="absolute right-3 top-3"
+        className="absolute right-2.5 top-2.5"
         onClick={onClose}
       >
         <XIcon className="size-4" />
-      </Button> */}
+      </Button>
       <div className="flex flex-col">
-        {/* <h3 className="h4 mb-5">What&apos;s your idea?</h3> */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="title"
@@ -75,7 +73,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                   <FormControl>
                     <TextareaAutoResize
                       autoFocus
-                      placeholder="Title of your idea"
+                      placeholder="Title of your feedback"
                       className="min-h-0 w-full border-none bg-background !p-0 !text-xl font-bold shadow-none focus-visible:ring-0"
                       {...field}
                     />
@@ -92,7 +90,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                   <FormLabel className="sr-only">Description</FormLabel>
                   <FormControl>
                     <Tiptap
-                      placeholder="Description of your idea"
+                      placeholder={`Description of your feedback, for example:
+• a feature request
+• a bug report
+• or anything else!`}
                       onChange={(value) => {
                         field.onChange(value);
                       }}
@@ -103,12 +104,12 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
               )}
             />
             <div className="my-4 flex justify-end gap-3">
-              <Button variant="secondary" onClick={onClose}>
-                Cancel
-              </Button>
+              {/* <Button variant="secondary" onClick={onClose}>
+                Close
+              </Button> */}
               <Button className="" type="submit" loading={isPending}>
                 <SendIcon className="size-4" />
-                Submit idea
+                Submit
               </Button>
             </div>
           </form>

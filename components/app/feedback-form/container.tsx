@@ -5,14 +5,13 @@ import { FeedbackForm } from "@/components/app/feedback-form/form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 
 export function FeedbackFormContainer() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(true);
 
   return (
     <>
       {!isFormOpen ? (
         <FeedbackFormBanner
-          bannerText="Have an idea for a new feature or improvement? Type it here..."
-          buttonText="Share your idea"
+          bannerText="Any feedback? We'd love to hear from you."
           onClick={() => setIsFormOpen(true)}
         />
       ) : (

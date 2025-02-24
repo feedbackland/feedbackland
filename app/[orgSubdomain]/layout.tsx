@@ -29,7 +29,7 @@ export default async function OrgLayout({
           isSignedIn={isSignedIn}
         />
         <ResetPasswordDialog />
-        <div className="m-auto mt-10 flex w-full max-w-[700px] flex-col space-y-3">
+        <div className="m-auto mt-10 flex w-full max-w-[700px] grow flex-col">
           <PlatformHeader
             orgName={orgName}
             isSignedIn={isSignedIn}

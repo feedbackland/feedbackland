@@ -20,7 +20,7 @@ export const Tiptap = ({
     <MinimalTiptapEditor
       value={value}
       onChange={handleChange}
-      className="min-h-20 w-full border-none bg-background shadow-none"
+      className="min-h-16 w-full border-none bg-background shadow-none"
       editorContentClassName="p-0 text-sm"
       editorClassName="focus:outline-none"
       output="html"

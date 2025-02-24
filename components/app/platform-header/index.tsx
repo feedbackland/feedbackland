@@ -27,7 +27,7 @@ export function PlatformHeader({
   const platformUrl = usePlatformUrl();
 
   return (
-    <>
+    <div className="mb-5">
       <SignUpInDialog
         open={isSignUpInDialogOpen}
         initialSelectedMethod="sign-in"
@@ -35,12 +35,9 @@ export function PlatformHeader({
       />
       <div className="flex justify-between">
         <div className="flex flex-col">
-          <h1 className="h3">{orgName}&apos;s feedback platform</h1>
-          <p className="text-sm text-muted-foreground">
-            Powered by Feedbackland
-          </p>
+          <h1 className="h3 font-extrabold">Feedback</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           {isAdmin && (
             <Button variant="link" size="default" asChild>
               <Link prefetch={false} href={`${platformUrl}/admin`}>
@@ -70,6 +67,9 @@ export function PlatformHeader({
           )}
         </div>
       </div>
-    </>
+      <p className="-mt-1 text-sm text-muted-foreground">
+        Powered by Feedbackland
+      </p>
+    </div>
   );
 }
