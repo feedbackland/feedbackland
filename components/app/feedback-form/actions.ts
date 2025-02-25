@@ -3,16 +3,15 @@
 import { actionClient } from "@/lib/server/safe-action";
 import { createFeedback } from "./queries";
 import { createFeedbackSchema } from "./validations";
-import { getSession, getSubdomain } from "@/lib/server/utils";
+import { getSession } from "@/lib/server/utils";
 import { getOrg } from "@/lib/queries";
 
 export const createFeedbackAction = actionClient
   .schema(createFeedbackSchema)
   .action(async ({ parsedInput: { title, description } }) => {
     try {
-      const subdomain = await getSubdomain();
       const session = await getSession();
-      const org = await getOrg(subdomain);
+      const org = await getOrg();
       const orgId = org?.id;
       const userId = session?.user?.id;
 
