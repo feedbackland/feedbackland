@@ -345,6 +345,16 @@ export interface ExtensionsWrappersFdwStats {
   updated_at: Generated<Timestamp>;
 }
 
+export interface Feedback {
+  createdAt: Generated<Timestamp>;
+  description: string;
+  id: Generated<string>;
+  orgId: string;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+}
+
 export interface Org {
   id: Generated<string>;
   isClaimed: Generated<boolean>;
@@ -598,6 +608,7 @@ export interface DB {
   "extensions.pg_stat_statements": ExtensionsPgStatStatements;
   "extensions.pg_stat_statements_info": ExtensionsPgStatStatementsInfo;
   "extensions.wrappers_fdw_stats": ExtensionsWrappersFdwStats;
+  feedback: Feedback;
   org: Org;
   "pgsodium.decrypted_key": PgsodiumDecryptedKey;
   "pgsodium.key": PgsodiumKey;

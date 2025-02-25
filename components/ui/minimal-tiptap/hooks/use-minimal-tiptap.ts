@@ -51,19 +51,19 @@ const createExtensions = (placeholder: string) => [
     allowedMimeTypes: ["image/*"],
     maxFileSize: 5 * 1024 * 1024,
     allowBase64: true,
-    uploadFn: async (file) => {
-      // NOTE: This is a fake upload function. Replace this with your own upload logic.
-      // This function should return the uploaded image URL.
+    // uploadFn: async (file) => {
+    //   // NOTE: This is a fake upload function. Replace this with your own upload logic.
+    //   // This function should return the uploaded image URL.
 
-      // wait 3s to simulate upload
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+    //   // wait 3s to simulate upload
+    //   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      const src = await fileToBase64(file);
+    //   const src = await fileToBase64(file);
 
-      // either return { id: string | number, src: string } or just src
-      // return src;
-      return { id: randomId(), src };
-    },
+    //   // either return { id: string | number, src: string } or just src
+    //   // return src;
+    //   return { id: randomId(), src };
+    // },
     onToggle(editor, files, pos) {
       editor.commands.insertContentAt(
         pos,

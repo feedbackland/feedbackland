@@ -14,9 +14,10 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { processImagesInHTML } from "@/lib/utils";
-import { XIcon, SendIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import { useState } from "react";
 import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
+import { createFeedbackAction } from "./actions";
 
 export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const formSchema = z.object({
@@ -43,7 +44,19 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
       const processedDescription = await processImagesInHTML(
         values.description,
       );
-      console.log("processedDescription", processedDescription);
+
+      const result = await createFeedbackAction({
+        title: values.title,
+        description: processedDescription,
+      });
+
+      if (result && "success" in result && result.success) {
+        console.log("Feedback submitted successfully");
+      } else {
+        throw new Error("Failed to submit feedback");
+      }
+
+      // onClose();
     } catch (error) {
       console.error("Error submitting feedback:", error);
     } finally {
@@ -53,17 +66,17 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="relative rounded-lg border border-primary bg-background px-4 py-3 shadow-sm">
-      <Button
+      {/* <Button
         size="icon"
         variant="ghost"
         className="absolute right-2.5 top-2.5"
         onClick={onClose}
       >
         <XIcon className="size-4" />
-      </Button>
+      </Button> */}
       <div className="flex flex-col">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="title"
@@ -73,7 +86,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                   <FormControl>
                     <TextareaAutoResize
                       autoFocus
-                      placeholder="Title of your feedback"
+                      placeholder="The title of your feedback"
                       className="min-h-0 w-full border-none bg-background !p-0 !text-xl font-bold shadow-none focus-visible:ring-0"
                       {...field}
                     />
@@ -90,10 +103,13 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                   <FormLabel className="sr-only">Description</FormLabel>
                   <FormControl>
                     <Tiptap
-                      placeholder={`Description of your feedback, for example:
-• a feature request
-• a bug report
-• or anything else!`}
+                      // placeholder={`Description of your feedback. This can be...
+                      // • a feature request
+                      // • a bug report
+                      // • or anything else that's on your mind`}
+                      // placeholder={`Description of your feedback, i.e. a feature request, bug report, or anything else that's on your mind`}
+                      // placeholder={`The description of your feature request, bug report, or anything else that's on your mind`}
+                      placeholder={`The description of your feature request, suggestion, issue, ...`}
                       onChange={(value) => {
                         field.onChange(value);
                       }}
@@ -104,12 +120,12 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
               )}
             />
             <div className="my-4 flex justify-end gap-3">
-              {/* <Button variant="secondary" onClick={onClose}>
-                Close
-              </Button> */}
-              <Button className="" type="submit" loading={isPending}>
+              <Button type="submit" loading={isPending} className="order-2">
                 <SendIcon className="size-4" />
                 Submit
+              </Button>
+              <Button variant="secondary" onClick={onClose} className="order-1">
+                Close
               </Button>
             </div>
           </form>

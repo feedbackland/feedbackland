@@ -1,4 +1,4 @@
-import { getSession, getSubdomain } from "@/lib/server/utils";
+import { getSession } from "@/lib/server/utils";
 import { getOrg, getIsAdmin } from "@/lib/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { PlatformHeader } from "@/components/app/platform-header";
@@ -9,10 +9,9 @@ export default async function OrgLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const subdomain = await getSubdomain();
   const session = await getSession();
+  const org = await getOrg();
   const userId = session?.user?.id;
-  const org = await getOrg({ orgSubdomain: subdomain });
   const orgId = org?.id;
   const orgName = org?.name;
   const isOrgClaimed = !!org?.isClaimed;

@@ -50,6 +50,12 @@ export const auth = betterAuth({
       enabled: true,
       domain: process.env.ROOT_DOMAIN as string,
     },
+    defaultCookieAttributes: {
+      path: "/",
+      secure: true,
+      httpOnly: true,
+      sameSite: "none", // Allows CORS-based cookie sharing across subdomains
+    },
   },
   plugins: [nextCookies(), anonymous()],
 });

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { supabase } from "@/lib/supabase";
+import { v4 as uuidv4 } from "uuid";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -74,7 +75,7 @@ export const processImagesInHTML = async (html: string) => {
         base64: base64Data,
         contentType: `image/${imageType}`,
       });
-      const filename = `feedback-image-${Date.now()}-${Math.random().toString(36).substring(7)}.${imageType}`;
+      const filename = `image-${uuidv4()}.${imageType}`;
       const { error } = await supabase.storage
         .from("images")
         .upload(filename, blob);
