@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "@/lib/client/auth-client";
 import { z } from "zod";
 import {
   Form,
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Method } from "../sign-up-in";
+import { useAuth } from "@/hooks/useAuth";
 
 export const signInSchema = z.object({
   email: z
@@ -44,6 +44,8 @@ export function SignInEmailForm({
 }) {
   const [isPending, setIsPending] = useState(false);
 
+  const { signInWithEmail } = useAuth();
+
   const form = useForm<FormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -63,24 +65,19 @@ export function SignInEmailForm({
 
     setIsPending(true);
 
-    await signIn.email(
-      {
+    try {
+      const user = await signInWithEmail({
         email,
         password,
-      },
-      {
-        onSuccess: (ctx) => {
-          setIsPending(false);
-          onSuccess({ userId: ctx?.data?.user?.id });
-        },
-        onError: ({ error }) => {
-          setIsPending(false);
-          setError("root.serverError", {
-            message: error?.message || "An error occured. Please try again.",
-          });
-        },
-      },
-    );
+      });
+      onSuccess({ userId: user.uid });
+    } catch (error: any) {
+      setError("root.serverError", {
+        message: error?.message || "An error occured. Please try again.",
+      });
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {

@@ -1,16 +1,23 @@
 "use client";
 
-import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
 import { MicrosoftLogo } from "@/components/ui/logos";
-import { getSSOCallbackUrl } from "@/lib/client/utils";
+import { useAuth } from "@/hooks/useAuth";
 
-export function SSOButtonMicrosoft({ context }: { context?: string }) {
+export function SSOButtonMicrosoft({
+  onSuccess,
+}: {
+  onSuccess: ({ userId }: { userId: string }) => void;
+}) {
+  const { signOnWithMicrosoft } = useAuth();
+
   const continueWithMicrosoft = async () => {
-    await signIn.social({
-      provider: "microsoft",
-      callbackURL: getSSOCallbackUrl({ context }),
-    });
+    try {
+      const { uid } = await signOnWithMicrosoft();
+      onSuccess({ userId: uid });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

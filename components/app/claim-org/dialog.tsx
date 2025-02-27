@@ -7,12 +7,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { SignUpIn } from "@/components/app/sign-up-in";
+import { Method, SignUpIn } from "@/components/app/sign-up-in";
 import { useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { WidgetDocsContent } from "../widget-docs/content";
-import { cn, triggers } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -35,10 +35,16 @@ export function ClaimOrgDialog({
     initialSelectedStep,
   );
 
+  const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
+
   const { execute: claimOrg } = useAction(claimOrgAction, {
     onSuccess: () => {
+      console.log("claimOrg sucecss");
       setSelectedStep("success");
       onClaimed?.();
+    },
+    onError: (error) => {
+      console.log("claimOrg error", error);
     },
   });
 
@@ -77,8 +83,10 @@ export function ClaimOrgDialog({
                 </DialogDescription>
               </DialogHeader>
               <SignUpIn
-                context={triggers.claimOrg}
-                selectedMethod="sign-up"
+                selectedMethod={selectedMethod}
+                onSelectedMethodChange={(newSelectedMethod) =>
+                  setSelectedMethod(newSelectedMethod)
+                }
                 onSuccess={handleSignUpInSuccess}
               />
             </>

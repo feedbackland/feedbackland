@@ -1,8 +1,7 @@
-import { getSession } from "@/lib/server/utils";
+import { getSession } from "@/lib/auth/session";
 import { getOrg, getIsAdmin } from "@/lib/queries";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { PlatformHeader } from "@/components/app/platform-header";
-import { ResetPasswordDialog } from "@/components/app/reset-password/dialog";
 
 export default async function OrgLayout({
   children,
@@ -11,7 +10,7 @@ export default async function OrgLayout({
 }) {
   const session = await getSession();
   const org = await getOrg();
-  const userId = session?.user?.id;
+  const userId = session?.uid;
   const orgId = org?.id;
   const orgName = org?.name;
   const isOrgClaimed = !!org?.isClaimed;
@@ -23,11 +22,9 @@ export default async function OrgLayout({
       <>
         <ClaimOrgBanner
           orgId={orgId}
-          userId={userId}
           isOrgClaimed={isOrgClaimed}
           isSignedIn={isSignedIn}
         />
-        <ResetPasswordDialog />
         <div className="m-auto mt-10 flex w-full max-w-[700px] grow flex-col">
           <PlatformHeader
             orgName={orgName}

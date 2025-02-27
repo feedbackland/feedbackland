@@ -1,6 +1,5 @@
 "use client";
 
-import { signUp } from "@/lib/client/auth-client";
 import { z } from "zod";
 import {
   Form,
@@ -16,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export const signUpSchema = z.object({
   name: z.string().nonempty("Name is required"),
@@ -50,6 +50,8 @@ export function SignUpEmailForm({
     },
   });
 
+  const { signUpWithEmail } = useAuth();
+
   const {
     formState: { errors },
     setError,
@@ -65,25 +67,19 @@ export function SignUpEmailForm({
 
     setIsPending(true);
 
-    await signUp.email(
-      {
-        name,
+    try {
+      const { uid } = await signUpWithEmail({
         email,
         password,
-      },
-      {
-        onSuccess: (ctx) => {
-          setIsPending(false);
-          onSuccess({ userId: ctx?.data?.user?.id });
-        },
-        onError: ({ error }) => {
-          setIsPending(false);
-          setError("root.serverError", {
-            message: error?.message || "An error occured. Please try again.",
-          });
-        },
-      },
-    );
+      });
+      onSuccess({ userId: uid });
+    } catch (error: any) {
+      setError("root.serverError", {
+        message: error?.message || "An error occured. Please try again.",
+      });
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (

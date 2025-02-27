@@ -14,10 +14,11 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { forgetPassword } from "@/lib/client/auth-client";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { Success } from "@/components/ui/success";
 import { Error } from "@/components/ui/error";
 import { ArrowLeft } from "lucide-react";
+import { auth } from "@/lib/auth/client";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -26,9 +27,10 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
-  const [formState, setFormState] = useState<
-    "idle" | "pending" | "success" | "error"
-  >("idle");
+  const [formState, setFormState] = useState<{
+    type: "idle" | "pending" | "success" | "error";
+    message?: string;
+  }>({ type: "idle" });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -45,23 +47,26 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ email }) => {
-    await forgetPassword(
-      {
-        email: email,
-      },
-      {
-        onRequest: () => {
-          setFormState("pending");
-        },
-        onSuccess: () => {
-          reset();
-          setFormState("success");
-        },
-        onError: () => {
-          setFormState("error");
-        },
-      },
-    );
+    setFormState({ type: "pending" });
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setFormState({ type: "success" });
+      reset();
+    } catch (error: any) {
+      let errorMessage = "An error occurred. Please try again.";
+
+      // Handle common Firebase auth errors
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No user found with this email address.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address format.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many attempts. Please try again later.";
+      }
+
+      setFormState({ type: "error", message: errorMessage });
+    }
   };
 
   return (
@@ -96,14 +101,14 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
           <Button
             type="submit"
             className="w-full"
-            loading={formState === "pending"}
+            loading={formState.type === "pending"}
           >
             Send reset link
           </Button>
         </form>
       </Form>
 
-      {formState === "success" && (
+      {formState.type === "success" && (
         <Success
           title="Password reset email sent"
           description="Please check your email for the password reset link."
@@ -111,10 +116,10 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
         />
       )}
 
-      {formState === "error" && (
+      {formState.type === "error" && formState.message && (
         <Error
           title="Could not sent password reset email"
-          description="An error occured while trying to send the password reset email. Please try again."
+          description={formState.message}
           className="mt-4"
         />
       )}

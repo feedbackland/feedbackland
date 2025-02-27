@@ -1,15 +1,5 @@
-import { headers } from "next/headers";
 import { cookies } from "next/headers";
-import { auth } from "@/lib/auth";
 import { cookieNames } from "@/lib/utils";
-
-export const getSession = async () => {
-  const headersList = await headers();
-  const session = await auth.api.getSession({
-    headers: headersList,
-  });
-  return session;
-};
 
 export const getSubdomain = async () => {
   const cookieStore = await cookies();

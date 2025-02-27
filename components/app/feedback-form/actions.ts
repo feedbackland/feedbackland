@@ -3,7 +3,7 @@
 import { actionClient } from "@/lib/server/safe-action";
 import { createFeedback } from "./queries";
 import { createFeedbackSchema } from "./validations";
-import { getSession } from "@/lib/server/utils";
+import { getSession } from "@/lib/auth/session";
 import { getOrg } from "@/lib/queries";
 
 export const createFeedbackAction = actionClient
@@ -13,13 +13,13 @@ export const createFeedbackAction = actionClient
       const session = await getSession();
       const org = await getOrg();
       const orgId = org?.id;
-      const userId = session?.user?.id;
+      const authorId = session?.uid;
 
-      if (userId && orgId) {
+      if (authorId && orgId) {
         const feedback = await createFeedback({
           title,
           description,
-          userId,
+          authorId,
           orgId,
         });
 

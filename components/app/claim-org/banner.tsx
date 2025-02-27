@@ -3,26 +3,25 @@
 import { useState, useRef } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
-import { ClaimOrgListener } from "@/components/app/claim-org/listener";
 import { CreateTypes } from "canvas-confetti";
 import { Confetti } from "@/components/ui/confetti";
-import { signOut } from "@/lib/client/auth-client";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function ClaimOrgBanner({
   orgId,
-  userId,
   isOrgClaimed,
   isSignedIn,
 }: {
   orgId: string | undefined;
-  userId: string | undefined;
   isOrgClaimed: boolean;
   isSignedIn: boolean;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isClaimedClientSide, setIsClaimedClientSide] = useState(false);
+
+  const { signOut } = useAuth();
 
   const confettiRef = useRef<CreateTypes>(null);
 
@@ -51,13 +50,6 @@ export function ClaimOrgBanner({
 
   return (
     <>
-      <ClaimOrgListener
-        orgId={orgId}
-        userId={userId}
-        isOrgClaimed={isOrgClaimed}
-        onClaimed={onClaimed}
-      />
-
       <ClaimOrgDialog
         open={isDialogOpen}
         initialSelectedStep="sign-up-in"

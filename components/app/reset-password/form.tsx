@@ -13,7 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { resetPassword } from "@/lib/client/auth-client";
+// import { resetPassword } from "@/lib/client/auth-client";
 import { useState } from "react";
 import { Success } from "@/components/ui/success";
 import { Error } from "@/components/ui/error";
@@ -65,25 +65,25 @@ export function ResetPasswordForm({
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ password }) => {
-    await resetPassword(
-      {
-        newPassword: password,
-        token,
-      },
-      {
-        onRequest: () => {
-          setFormState("pending");
-        },
-        onSuccess: () => {
-          reset();
-          setFormState("success");
-          onSuccess?.();
-        },
-        onError: () => {
-          setFormState("error");
-        },
-      },
-    );
+    // await resetPassword(
+    //   {
+    //     newPassword: password,
+    //     token,
+    //   },
+    //   {
+    //     onRequest: () => {
+    //       setFormState("pending");
+    //     },
+    //     onSuccess: () => {
+    //       reset();
+    //       setFormState("success");
+    //       onSuccess?.();
+    //     },
+    //     onError: () => {
+    //       setFormState("error");
+    //     },
+    //   },
+    // );
   };
 
   return (

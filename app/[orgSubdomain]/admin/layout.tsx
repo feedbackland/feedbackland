@@ -1,4 +1,5 @@
-import { getPlatformUrl, getSession } from "@/lib/server/utils";
+import { getPlatformUrl } from "@/lib/server/utils";
+import { getSession } from "@/lib/auth/session";
 import { getOrg, getIsAdmin } from "@/lib/queries";
 import { redirect } from "next/navigation";
 
@@ -8,7 +9,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  const userId = session?.user?.id;
+  const userId = session?.uid;
   const org = await getOrg();
   const orgId = org?.id;
   const isAdmin = !!(userId && orgId && (await getIsAdmin({ userId, orgId })));

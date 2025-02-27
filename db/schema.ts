@@ -43,23 +43,6 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export type UserOrgRole = "admin" | "user";
 
-export interface Account {
-  accessToken: string | null;
-  accessTokenExpiresAt: Timestamp | null;
-  accountId: string;
-  createdAt: Timestamp;
-  expiresAt: Timestamp | null;
-  id: string;
-  idToken: string | null;
-  password: string | null;
-  providerId: string;
-  refreshToken: string | null;
-  refreshTokenExpiresAt: Timestamp | null;
-  scope: string | null;
-  updatedAt: Timestamp;
-  userId: string;
-}
-
 export interface AuthAuditLogEntries {
   created_at: Timestamp | null;
   id: string;
@@ -346,20 +329,22 @@ export interface ExtensionsWrappersFdwStats {
 }
 
 export interface Feedback {
+  authorId: string;
   createdAt: Generated<Timestamp>;
   description: string;
   id: Generated<string>;
   orgId: string;
   title: string;
   updatedAt: Generated<Timestamp>;
-  userId: string;
 }
 
 export interface Org {
+  createdAt: Generated<Timestamp>;
   id: Generated<string>;
   isClaimed: Generated<boolean>;
   name: string;
-  subdomain: Generated<string>;
+  subdomain: string;
+  updatedAt: Generated<Timestamp>;
 }
 
 export interface PgsodiumDecryptedKey {
@@ -461,17 +446,6 @@ export interface RealtimeSubscription {
   subscription_id: string;
 }
 
-export interface Session {
-  createdAt: Timestamp;
-  expiresAt: Timestamp;
-  id: string;
-  ipAddress: string | null;
-  token: string;
-  updatedAt: Timestamp;
-  userAgent: string | null;
-  userId: string;
-}
-
 export interface StorageBuckets {
   allowed_mime_types: string[] | null;
   avif_autodetection: Generated<boolean | null>;
@@ -539,14 +513,11 @@ export interface StorageS3MultipartUploadsParts {
 }
 
 export interface User {
-  createdAt: Timestamp;
+  createdAt: Generated<Timestamp>;
   email: string;
-  emailVerified: boolean;
   id: string;
-  image: string | null;
-  isAnonymous: boolean | null;
-  name: string;
-  updatedAt: Timestamp;
+  name: string | null;
+  updatedAt: Generated<Timestamp>;
 }
 
 export interface UserOrg {
@@ -578,17 +549,7 @@ export interface VaultSecrets {
   updated_at: Generated<Timestamp>;
 }
 
-export interface Verification {
-  createdAt: Timestamp | null;
-  expiresAt: Timestamp;
-  id: string;
-  identifier: string;
-  updatedAt: Timestamp | null;
-  value: string;
-}
-
 export interface DB {
-  account: Account;
   "auth.audit_log_entries": AuthAuditLogEntries;
   "auth.flow_state": AuthFlowState;
   "auth.identities": AuthIdentities;
@@ -618,7 +579,6 @@ export interface DB {
   "realtime.messages": RealtimeMessages;
   "realtime.schema_migrations": RealtimeSchemaMigrations;
   "realtime.subscription": RealtimeSubscription;
-  session: Session;
   "storage.buckets": StorageBuckets;
   "storage.migrations": StorageMigrations;
   "storage.objects": StorageObjects;
@@ -628,5 +588,4 @@ export interface DB {
   user_org: UserOrg;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
-  verification: Verification;
 }

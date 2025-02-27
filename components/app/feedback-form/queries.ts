@@ -3,12 +3,12 @@ import { db } from "@/db/db";
 export async function createFeedback({
   title,
   description,
-  userId,
+  authorId,
   orgId,
 }: {
   title: string;
   description: string;
-  userId: string;
+  authorId: string;
   orgId: string;
 }) {
   return await db
@@ -16,7 +16,7 @@ export async function createFeedback({
     .values({
       title,
       description,
-      userId,
+      authorId,
       orgId,
     })
     .returningAll()

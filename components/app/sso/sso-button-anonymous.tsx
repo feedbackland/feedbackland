@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "@/lib/client/auth-client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
 export function SSOButtonAnonymous({
@@ -8,11 +8,14 @@ export function SSOButtonAnonymous({
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
 }) {
-  const continueAsAnonymous = async () => {
-    const { data, error } = await signIn.anonymous();
+  const { signInAnonymously } = useAuth();
 
-    if (data && "user" in data && !error) {
-      onSuccess({ userId: data?.user?.id });
+  const continueAsAnonymous = async () => {
+    try {
+      const { uid } = await signInAnonymously();
+      onSuccess({ userId: uid });
+    } catch (error) {
+      console.error(error);
     }
   };
 

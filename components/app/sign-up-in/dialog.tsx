@@ -13,13 +13,11 @@ import { Method } from ".";
 export function SignUpInDialog({
   open,
   initialSelectedMethod,
-  refreshOnSuccess = true,
   onClose,
   onSuccess,
 }: {
   open: boolean;
   initialSelectedMethod: "sign-up" | "sign-in";
-  refreshOnSuccess?: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }) {
@@ -51,7 +49,6 @@ export function SignUpInDialog({
         </DialogHeader>
         <SignUpIn
           selectedMethod={selectedMethod}
-          refreshOnSuccess={refreshOnSuccess}
           onSuccess={handleOnSuccess}
           onSelectedMethodChange={(newSelectedMethod) =>
             setSelectedMethod(newSelectedMethod)

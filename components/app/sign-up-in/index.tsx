@@ -10,22 +10,18 @@ export type Method = "sign-up" | "sign-in" | "forgot-password";
 export function SignUpIn({
   selectedMethod,
   includeAnonymous,
-  refreshOnSuccess = true,
-  context,
   onSelectedMethodChange,
   onSuccess,
 }: {
   selectedMethod: Method;
   includeAnonymous?: boolean;
-  refreshOnSuccess?: boolean;
-  context?: string;
   onSuccess: ({ userId }: { userId: string }) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const router = useRouter();
 
-  const handleOnSuccess = ({ userId }: { userId: string }) => {
-    if (refreshOnSuccess) router.refresh();
+  const handleOnSuccess = async ({ userId }: { userId: string }) => {
+    router.refresh();
     onSuccess({ userId });
   };
 
@@ -39,7 +35,6 @@ export function SignUpIn({
         onSuccess={handleOnSuccess}
         onSelectedMethodChange={handleOnSelectedMethodChange}
         includeAnonymous={includeAnonymous}
-        context={context}
       />
     );
   }
@@ -50,7 +45,6 @@ export function SignUpIn({
         onSuccess={handleOnSuccess}
         onSelectedMethodChange={handleOnSelectedMethodChange}
         includeAnonymous={includeAnonymous}
-        context={context}
       />
     );
   }

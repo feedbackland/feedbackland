@@ -1,28 +1,23 @@
 "use client";
 
-import { signIn } from "@/lib/client/auth-client";
 import { Button } from "@/components/ui/button";
 import { GoogleLogo } from "@/components/ui/logos";
-import { getSSOCallbackUrl } from "@/lib/client/utils";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { useAuth } from "@/hooks/useAuth";
 
-export function SSOButtonGoogle({ context }: { context?: string }) {
-  const provider = new GoogleAuthProvider();
+export function SSOButtonGoogle({
+  onSuccess,
+}: {
+  onSuccess: ({ userId }: { userId: string }) => void;
+}) {
+  const { signOnWithGoogle } = useAuth();
 
   const continueWithGoogle = async () => {
-    // await signIn.social({
-    //   provider: "google",
-    //   callbackURL: getSSOCallbackUrl({ context }),
-    // });
-
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        console.log("success", result);
-      })
-      .catch((error) => {
-        console.log("error");
-      });
+    try {
+      const { uid } = await signOnWithGoogle();
+      onSuccess({ userId: uid });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

@@ -13,12 +13,10 @@ export function SignIn({
   onSuccess,
   onSelectedMethodChange,
   includeAnonymous,
-  context,
 }: {
   onSuccess: ({ userId }: { userId: string }) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
   includeAnonymous?: boolean;
-  context?: string;
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
@@ -34,8 +32,8 @@ export function SignIn({
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
-          <SSOButtonGoogle context={context} />
-          <SSOButtonMicrosoft context={context} />
+          <SSOButtonGoogle onSuccess={handleOnSuccess} />
+          <SSOButtonMicrosoft onSuccess={handleOnSuccess} />
           <Button
             variant="outline"
             size="lg"
