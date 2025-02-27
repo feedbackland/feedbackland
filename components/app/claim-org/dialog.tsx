@@ -11,10 +11,10 @@ import { Method, SignUpIn } from "@/components/app/sign-up-in";
 import { useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
-import { WidgetDocsContent } from "../widget-docs/content";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PartyPopper } from "lucide-react";
 
 export function ClaimOrgDialog({
   orgId,
@@ -39,9 +39,7 @@ export function ClaimOrgDialog({
 
   const { execute: claimOrg } = useAction(claimOrgAction, {
     onSuccess: () => {
-      console.log("claimOrg sucecss");
-      setSelectedStep("success");
-      onClaimed?.();
+      handleOnClaimed();
     },
     onError: (error) => {
       console.log("claimOrg error", error);
@@ -50,6 +48,11 @@ export function ClaimOrgDialog({
 
   const handleSignUpInSuccess = async ({ userId }: { userId: string }) => {
     if (orgId) claimOrg({ orgId, userId });
+  };
+
+  const handleOnClaimed = () => {
+    setSelectedStep("success");
+    onClaimed?.();
   };
 
   const handleOnClose = () => {
@@ -66,10 +69,7 @@ export function ClaimOrgDialog({
         }}
       >
         <DialogContent
-          className={cn(
-            "flex max-w-[400px] flex-col",
-            selectedStep === "success" && "max-w-[650px]",
-          )}
+          className={cn("flex max-w-[400px] flex-col")}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {selectedStep === "sign-up-in" && (
@@ -78,12 +78,14 @@ export function ClaimOrgDialog({
                 <DialogTitle className="h3 text-center">
                   Claim this platform
                 </DialogTitle>
-                <DialogDescription className="sr-only">
-                  Sign up or in to claim ownership of this platform
+                <DialogDescription className="text-center text-primary">
+                  Create an account or sign in to your existing account to claim
+                  ownership of this platform
                 </DialogDescription>
               </DialogHeader>
               <SignUpIn
                 selectedMethod={selectedMethod}
+                refreshOnSuccess={false}
                 onSelectedMethodChange={(newSelectedMethod) =>
                   setSelectedMethod(newSelectedMethod)
                 }
@@ -95,20 +97,15 @@ export function ClaimOrgDialog({
           {selectedStep === "success" && (
             <>
               <DialogHeader className="mb-3 mt-2">
+                <PartyPopper className="mx-auto mb-3 size-14 text-primary" />
                 <DialogTitle className="h3 mb-2 text-center">
                   Congratulations!
                 </DialogTitle>
-                <DialogDescription className="flex flex-col space-y-1 text-center text-sm">
-                  <span className="text-primary">
-                    You&apos;ve successfully claimed ownership of this platform.
-                  </span>
-                  <span className="text-primary">
-                    Want to embed your platform in your app? Install the widget!
-                  </span>
+                <DialogDescription className="text-center text-primary">
+                  You&apos;ve successfully claimed ownership of this platform.
                 </DialogDescription>
               </DialogHeader>
-              <WidgetDocsContent orgId={orgId} />
-              <div className="flex justify-end">
+              <div className="flex justify-center">
                 <Button
                   onClick={handleOnClose}
                   variant="secondary"

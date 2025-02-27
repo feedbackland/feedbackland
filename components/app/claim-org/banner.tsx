@@ -1,13 +1,22 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
-import { CreateTypes } from "canvas-confetti";
-import { Confetti } from "@/components/ui/confetti";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import confetti from "canvas-confetti";
+
+const triggerConfetti = () => {
+  confetti({
+    particleCount: 100,
+    spread: 700,
+    origin: { y: 0.3 },
+    scalar: 1.1,
+    ticks: 200,
+  });
+};
 
 export function ClaimOrgBanner({
   orgId,
@@ -19,11 +28,9 @@ export function ClaimOrgBanner({
   isSignedIn: boolean;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isClaimedClientSide, setIsClaimedClientSide] = useState(false);
+  const [hideBanner, setHideBanner] = useState(false);
 
   const { signOut } = useAuth();
-
-  const confettiRef = useRef<CreateTypes>(null);
 
   const handleOpenDialog = async () => {
     setIsDialogOpen(true);
@@ -38,14 +45,8 @@ export function ClaimOrgBanner({
   };
 
   const onClaimed = () => {
-    setIsClaimedClientSide(true);
-    setTimeout(() => {
-      confettiRef.current?.({
-        particleCount: 100,
-        spread: 700,
-        origin: { y: 0.3 },
-      });
-    }, 500);
+    setHideBanner(true);
+    triggerConfetti();
   };
 
   return (
@@ -62,7 +63,7 @@ export function ClaimOrgBanner({
         <div
           className={cn(
             "flex items-center justify-center border-b border-border bg-primary px-4 py-2",
-            isClaimedClientSide && "hidden",
+            hideBanner && "hidden",
           )}
         >
           <div className="flex w-full max-w-[700px] items-center justify-between">
@@ -82,12 +83,6 @@ export function ClaimOrgBanner({
           </div>
         </div>
       )}
-
-      <Confetti
-        onInit={({ confetti }: { confetti: CreateTypes }) => {
-          confettiRef.current = confetti;
-        }}
-      />
     </>
   );
 }
