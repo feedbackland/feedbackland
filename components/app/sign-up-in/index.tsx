@@ -22,6 +22,7 @@ export function SignUpIn({
 
   const handleOnSuccess = async ({ userId }: { userId: string }) => {
     router.refresh();
+    console.log("SignUpIn userId", userId);
     onSuccess({ userId });
   };
 

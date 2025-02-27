@@ -14,6 +14,7 @@ export function SSOButtonGoogle({
   const continueWithGoogle = async () => {
     try {
       const { uid } = await signOnWithGoogle();
+      console.log("SSOButtonGoogle uid", uid);
       onSuccess({ userId: uid });
     } catch (error) {
       console.error(error);

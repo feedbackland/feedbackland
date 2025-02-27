@@ -21,6 +21,7 @@ export function SignUp({
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
   const handleOnSuccess = ({ userId }: { userId: string }) => {
+    console.log("SignUp userId", userId);
     onSuccess({ userId });
   };
 
