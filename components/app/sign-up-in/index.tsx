@@ -10,20 +10,18 @@ export type Method = "sign-up" | "sign-in" | "forgot-password";
 export function SignUpIn({
   selectedMethod,
   includeAnonymous,
-  refreshOnSuccess = true,
   onSelectedMethodChange,
   onSuccess,
 }: {
   selectedMethod: Method;
   includeAnonymous?: boolean;
-  refreshOnSuccess?: boolean;
   onSuccess: ({ userId }: { userId: string }) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const router = useRouter();
 
   const handleOnSuccess = async ({ userId }: { userId: string }) => {
-    if (refreshOnSuccess) router.refresh();
+    router.refresh();
     onSuccess({ userId });
   };
 

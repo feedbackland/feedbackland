@@ -12,7 +12,6 @@ import { useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PartyPopper } from "lucide-react";
 
@@ -29,8 +28,6 @@ export function ClaimOrgDialog({
   onClaimed?: () => void;
   onClose?: () => void;
 }) {
-  const router = useRouter();
-
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
   );
@@ -56,7 +53,6 @@ export function ClaimOrgDialog({
   };
 
   const handleOnClose = () => {
-    router.refresh();
     onClose?.();
   };
 
@@ -85,7 +81,6 @@ export function ClaimOrgDialog({
               </DialogHeader>
               <SignUpIn
                 selectedMethod={selectedMethod}
-                refreshOnSuccess={false}
                 onSelectedMethodChange={(newSelectedMethod) =>
                   setSelectedMethod(newSelectedMethod)
                 }

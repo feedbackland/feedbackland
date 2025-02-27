@@ -7,14 +7,15 @@ import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import confetti from "canvas-confetti";
+import { useRouter } from "next/navigation";
 
 const triggerConfetti = () => {
   confetti({
     particleCount: 100,
     spread: 700,
-    origin: { y: 0.3 },
-    scalar: 1.1,
-    ticks: 200,
+    origin: { y: 0.1 },
+    scalar: 1.2,
+    ticks: 150,
   });
 };
 
@@ -29,6 +30,8 @@ export function ClaimOrgBanner({
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
+
+  const router = useRouter();
 
   const { signOut } = useAuth();
 
@@ -46,6 +49,7 @@ export function ClaimOrgBanner({
 
   const onClaimed = () => {
     setHideBanner(true);
+    router.refresh();
     triggerConfetti();
   };
 
