@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       throw new Error("Missing ID token");
     }
   } catch (error) {
+    console.log("Error creating session:", error);
     const message =
       error instanceof Error
         ? error.message
