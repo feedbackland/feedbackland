@@ -48,15 +48,19 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 async function createSession({ idToken }: { idToken: string }) {
-  const response = await fetch("/api/auth/create-session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ idToken }),
-  });
+  try {
+    const response = await fetch("/api/auth/create-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    });
 
-  return response.json();
+    return response.json();
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function upsertUser() {

@@ -4,6 +4,8 @@ export async function POST(request: Request) {
   try {
     const { idToken } = await request.json();
 
+    console.log("idToken", idToken);
+
     if (idToken) {
       const user = await createSession(idToken);
       return Response.json(user);

@@ -16,6 +16,8 @@ export async function createSession(idToken: string) {
     // Verify the ID token
     const decodedToken = await adminAuth.verifyIdToken(idToken);
 
+    console.log("decodedToken", decodedToken);
+
     const { uid, email, picture, displayName } = decodedToken;
 
     // Create session cookie (2 weeks expiration)
@@ -25,6 +27,8 @@ export async function createSession(idToken: string) {
       expiresIn,
     });
 
+    console.log("createSession sessionData", sessionData);
+
     // Set the session cookie
     (await cookies()).set("session", sessionData, {
       maxAge: expiresIn,
@@ -33,6 +37,8 @@ export async function createSession(idToken: string) {
       path: "/",
       sameSite: "lax",
     });
+
+    console.log("cookie set");
 
     // Return user data
     return {
