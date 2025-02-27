@@ -9,11 +9,14 @@ export async function POST(request: Request) {
     if (idToken) {
       const user = await createSession(idToken);
       return Response.json(user);
+    } else {
+      throw new Error("Missing ID token");
     }
-
-    return Response.json({ error: "Missing ID token" }, { status: 400 });
   } catch (error) {
-    console.error("Session creation error:", error);
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error for api/auth/create-session";
+    return Response.json({ error: message }, { status: 400 });
   }
 }
