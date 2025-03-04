@@ -1,18 +1,18 @@
 import { upsertOrgQuery as upsertOrgQuery } from "@/queries/upsert-org";
-// import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
-// const schema = z.object({
-//   orgId: z.string().uuid().describe("The UUID of the organization."),
-// });
+const schema = z.object({
+  orgId: z.string().uuid().describe("The UUID of the organization."),
+});
 
 export async function POST(request: Request) {
   try {
-    // const bodyRaw = await request.json();
-    // const { orgId } = schema.parse(bodyRaw);
+    const bodyRaw = await request.json();
+    const { orgId } = schema.parse(bodyRaw);
 
-    const res = await request.json();
-    const { orgId } = res;
+    // const res = await request.json();
+    // const { orgId } = res;
 
     if (orgId && orgId.length > 0) {
       const org = await upsertOrgQuery({ orgId });
