@@ -11,9 +11,6 @@ export async function POST(request: Request) {
     const bodyRaw = await request.json();
     const { orgId } = schema.parse(bodyRaw);
 
-    // const res = await request.json();
-    // const { orgId } = res;
-
     if (orgId && orgId.length > 0) {
       const org = await upsertOrgQuery({ orgId });
       return NextResponse.json(org, { status: 200 });

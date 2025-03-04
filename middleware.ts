@@ -41,12 +41,6 @@ const getMaindomainFromUrl = (urlString: string) => {
   return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };
 
-// const isUUID = (uuid: string) => {
-//   const uuidV4Regex =
-//     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-//   return uuidV4Regex.test(uuid);
-// };
-
 const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
