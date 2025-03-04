@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     if (orgId && orgId.length > 0) {
       const org = await upsertOrgQuery({ orgId });
-      return NextResponse.json({ success: true }, { status: 200 });
+      return NextResponse.json(org, { status: 200 });
     } else {
       throw new Error("No subdomain provided");
     }
