@@ -58,6 +58,9 @@ export async function middleware(req: NextRequest) {
   const isLocalhost = hostname.includes("localhost");
   let subdomain = getSubdomainFromUrl(url.toString());
   const maindomain = getMaindomainFromUrl(url.toString());
+  let platformUrl = isLocalhost
+    ? `${origin}/${subdomain}`
+    : `https://${subdomain}.${maindomain}`;
 
   if (
     subdomain &&
@@ -70,18 +73,16 @@ export async function middleware(req: NextRequest) {
       // const newUrl = !isLocalhost
       //   ? `/${subdomain}${pathname}${search}`
       //   : `/${subdomain}${pathname.replace(`/${org.id}`, "")}${search}`;
-      const newUrl = `/${subdomain}${pathname}${search}`;
-      console.log("new URL(newUrl, req.url)", new URL(newUrl, req.url));
-      response = NextResponse.redirect(new URL(newUrl, req.url));
+      // const newUrl = `/${subdomain}${pathname}${search}`;
+      platformUrl = isLocalhost
+        ? `${origin}/${subdomain}`
+        : `https://${subdomain}.${maindomain}`;
+      response = NextResponse.redirect(platformUrl);
     } else if (!isLocalhost) {
       const newUrl = `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }
-
-  const platformUrl = isLocalhost
-    ? `${origin}/${subdomain}`
-    : `https://${subdomain}.${maindomain}`;
 
   const cookieSettings = {
     path: "/",
