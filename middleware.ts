@@ -52,6 +52,8 @@ const isUUID = (uuid: string) => {
 // };
 
 export async function middleware(req: NextRequest) {
+  console.log("middleware req", req);
+
   let response = NextResponse.next();
   const url = req.nextUrl;
   const { hostname, pathname, search, origin } = url;
@@ -59,8 +61,9 @@ export async function middleware(req: NextRequest) {
   let subdomain = getSubdomainFromUrl(url.toString());
   const maindomain = getMaindomainFromUrl(url.toString());
 
+  console.log("middleware url.toString()", url.toString());
   console.log("middleware subdomain", subdomain);
-  console.log("isUUID", isUUID(subdomain));
+  console.log("middleware isUUID", isUUID(subdomain));
 
   if (
     subdomain &&
