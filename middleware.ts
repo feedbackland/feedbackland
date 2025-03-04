@@ -52,18 +52,12 @@ const isUUID = (uuid: string) => {
 // };
 
 export async function middleware(req: NextRequest) {
-  console.log("middleware req", req);
-
   let response = NextResponse.next();
   const url = req.nextUrl;
   const { hostname, pathname, search, origin } = url;
   const isLocalhost = hostname.includes("localhost");
   let subdomain = getSubdomainFromUrl(url.toString());
   const maindomain = getMaindomainFromUrl(url.toString());
-
-  console.log("middleware url.toString()", url.toString());
-  console.log("middleware subdomain", subdomain);
-  console.log("middleware isUUID", isUUID(subdomain));
 
   if (
     subdomain &&
@@ -72,11 +66,12 @@ export async function middleware(req: NextRequest) {
   ) {
     if (isUUID(subdomain)) {
       const org = await upsertOrgFetch({ orgId: subdomain });
-      console.log("middleware org", org);
       subdomain = org.subdomain;
-      const newUrl = !isLocalhost
-        ? `/${subdomain}${pathname}${search}`
-        : `/${subdomain}${pathname.replace(`/${org.id}`, "")}${search}`;
+      // const newUrl = !isLocalhost
+      //   ? `/${subdomain}${pathname}${search}`
+      //   : `/${subdomain}${pathname.replace(`/${org.id}`, "")}${search}`;
+      const newUrl = `/${subdomain}${pathname}${search}`;
+      console.log("new URL(newUrl, req.url)", new URL(newUrl, req.url));
       response = NextResponse.redirect(new URL(newUrl, req.url));
     } else if (!isLocalhost) {
       const newUrl = `/${subdomain}${pathname}${search}`;

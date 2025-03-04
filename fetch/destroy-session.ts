@@ -1,10 +1,5 @@
 export async function destroySessionFetch() {
   try {
-    console.log(
-      "destroySessionFetch() called",
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/destroy-session`,
-    );
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/destroy-session`,
       {

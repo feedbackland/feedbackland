@@ -6,11 +6,6 @@ export async function createSessionFetch({
   idToken: string;
 }): Promise<Session> {
   try {
-    console.log(
-      "createSessionFetch() called",
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/create-session`,
-    );
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/create-session`,
       {

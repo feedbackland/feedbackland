@@ -12,9 +12,7 @@ export async function POST(request: Request) {
     // const { orgId } = schema.parse(bodyRaw);
 
     const res = await request.json();
-    console.log("res", res);
     const { orgId } = res;
-    console.log("orgId", orgId);
 
     if (orgId && orgId.length > 0) {
       const org = await upsertOrgQuery({ orgId });
