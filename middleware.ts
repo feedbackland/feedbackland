@@ -59,6 +59,9 @@ export async function middleware(req: NextRequest) {
   let subdomain = getSubdomainFromUrl(url.toString());
   const maindomain = getMaindomainFromUrl(url.toString());
 
+  console.log("middleware subdomain", subdomain);
+  console.log("isUUID", isUUID(subdomain));
+
   if (
     subdomain &&
     subdomain.length > 0 &&
@@ -66,6 +69,7 @@ export async function middleware(req: NextRequest) {
   ) {
     if (isUUID(subdomain)) {
       const org = await upsertOrgFetch({ orgId: subdomain });
+      console.log("middleware org", org);
       subdomain = org.subdomain;
       const newUrl = !isLocalhost
         ? `/${subdomain}${pathname}${search}`

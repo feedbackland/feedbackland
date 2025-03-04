@@ -2,6 +2,10 @@ import { Org } from "@/db/schema";
 
 export async function upsertOrgFetch({ orgId }: { orgId: string }) {
   try {
+    console.log(
+      "upsertOrgFetch",
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/org/upsert-org`,
+    );
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/org/upsert-org`,
       {
@@ -14,6 +18,8 @@ export async function upsertOrgFetch({ orgId }: { orgId: string }) {
     );
 
     const org: Org = await response.json();
+
+    console.log("upsertOrgFetch org", org);
 
     return org;
   } catch (error) {
