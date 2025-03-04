@@ -12,8 +12,10 @@ export async function upsertOrgFetch({ orgId }: { orgId: string }) {
         body: JSON.stringify({ orgId }),
       },
     );
-    const org = await response.json();
-    return org as Org;
+
+    const org: Org = await response.json();
+
+    return org;
   } catch (error) {
     console.error("Error upserting org:", error);
     throw error;
