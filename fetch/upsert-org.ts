@@ -1,10 +1,6 @@
 import { Org } from "@/db/schema";
 
-export async function upsertOrgFetch({
-  orgId,
-}: {
-  orgId: string;
-}): Promise<Org> {
+export async function upsertOrgFetch({ orgId }: { orgId: string }) {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/org/upsert-org`,
@@ -16,7 +12,8 @@ export async function upsertOrgFetch({
         body: JSON.stringify({ orgId }),
       },
     );
-    return response.json();
+    const org = await response.json();
+    return org as Org;
   } catch (error) {
     console.error("Error upserting org:", error);
     throw error;

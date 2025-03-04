@@ -22,7 +22,7 @@ export async function createSessionFetch({
       },
     );
 
-    return response.json();
+    return await response.json();
   } catch (err) {
     throw err;
   }

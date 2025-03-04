@@ -12,7 +12,7 @@ export async function destroySessionFetch() {
       },
     );
 
-    return response.json();
+    return await response.json();
   } catch (err) {
     throw err;
   }

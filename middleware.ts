@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookieNames } from "@/lib/utils";
 import { upsertOrgFetch } from "@/fetch/upsert-org";
+// import { validate as uuidValidate } from "uuid";
+// import { version as uuidVersion } from "uuid";
 
 export const config = {
   matcher: [
@@ -39,11 +41,15 @@ const getMaindomainFromUrl = (urlString: string) => {
   return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };
 
-function isUUID(uuid: string): boolean {
+const isUUID = (uuid: string) => {
   const uuidV4Regex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidV4Regex.test(uuid);
-}
+};
+
+// const isUUID = (uuid: string) => {
+//   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
+// };
 
 export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
