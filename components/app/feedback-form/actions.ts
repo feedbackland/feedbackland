@@ -4,14 +4,14 @@ import { actionClient } from "@/lib/server/safe-action";
 import { createFeedback } from "./queries";
 import { createFeedbackSchema } from "./validations";
 import { getSession } from "@/lib/auth/session";
-import { getOrg } from "@/lib/queries";
+import { getOrgQuery } from "@/queries/get-org";
 
 export const createFeedbackAction = actionClient
   .schema(createFeedbackSchema)
   .action(async ({ parsedInput: { title, description } }) => {
     try {
       const session = await getSession();
-      const org = await getOrg();
+      const org = await getOrgQuery();
       const orgId = org?.id;
       const authorId = session?.uid;
 

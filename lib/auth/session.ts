@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/auth/admin";
 
-export type UserSession = {
+export type Session = {
   uid: string;
   email: string | null;
   name: string | null;
@@ -16,8 +16,6 @@ export async function createSession(idToken: string) {
     // Verify the ID token
     const decodedToken = await adminAuth.verifyIdToken(idToken);
 
-    console.log("decodedToken", decodedToken);
-
     const { uid, email, picture, displayName } = decodedToken;
 
     // Create session cookie (2 weeks expiration)
@@ -26,8 +24,6 @@ export async function createSession(idToken: string) {
     const sessionData = await adminAuth.createSessionCookie(idToken, {
       expiresIn,
     });
-
-    console.log("createSession sessionData", sessionData);
 
     // Set the session cookie
     (await cookies()).set("session", sessionData, {
@@ -38,15 +34,13 @@ export async function createSession(idToken: string) {
       sameSite: "lax",
     });
 
-    console.log("cookie set");
-
     // Return user data
     return {
       uid,
       email: email || null,
       name: displayName || null,
       photoURL: picture || null,
-    } satisfies UserSession;
+    } satisfies Session;
   } catch (error) {
     console.error("Error creating session:", error);
     throw new Error("Unauthorized");
@@ -75,7 +69,7 @@ export async function getSession() {
       email: user.email || null,
       name: user.displayName || null,
       photoURL: user.photoURL || null,
-    } satisfies UserSession;
+    } satisfies Session;
   } catch (error) {
     console.error("Error getting session:", error);
     throw error;

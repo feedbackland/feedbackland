@@ -11,11 +11,6 @@ export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 export const reservedSubdomains = ["get-started", "auth", "public"];
 
-// export const triggers = {
-//   resetPasswordToken: "reset-password-token",
-//   claimOrg: "claim-org",
-// };
-
 export const cookieNames = {
   mainDomain: "maindomain",
   subDomain: "subdomain",

@@ -342,7 +342,7 @@ export interface Org {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
   isClaimed: Generated<boolean>;
-  name: string;
+  name: string | null;
   subdomain: string;
   updatedAt: Generated<Timestamp>;
 }

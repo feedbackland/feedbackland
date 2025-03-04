@@ -1,14 +1,14 @@
 "use server";
 
 import { actionClient } from "@/lib/server/safe-action";
-import { createOrg } from "./queries";
+import { createOrgQuery } from "@/queries/create-org";
 import { createOrgSchema } from "./validations";
 
 export const createOrgAction = actionClient
   .schema(createOrgSchema)
   .action(async ({ parsedInput: { orgName, orgSubdomain } }) => {
     try {
-      const org = await createOrg({ orgName, orgSubdomain });
+      const org = await createOrgQuery({ orgName, orgSubdomain });
       return { success: true, org };
     } catch (error) {
       return {

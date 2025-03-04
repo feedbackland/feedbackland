@@ -13,100 +13,67 @@ import {
   User,
 } from "firebase/auth";
 import { auth } from "@/lib/auth/client";
-import { UserSession } from "@/lib/auth/session";
+import { Session } from "@/lib/auth/session";
+import { createSessionFetch } from "@/fetch/create-session";
+import { upsertUserFetch } from "@/fetch/upsert-user";
+import { destroySessionFetch } from "@/fetch/destroy-session";
 
 type AuthContextType = {
-  session: UserSession | null;
+  session: Session | null;
   signInWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<UserSession>;
-  signInAnonymously: () => Promise<UserSession>;
+  }) => Promise<Session>;
+  signInAnonymously: () => Promise<Session>;
   signUpWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<UserSession>;
-  signOnWithGoogle: () => Promise<UserSession>;
-  signOnWithMicrosoft: () => Promise<UserSession>;
+  }) => Promise<Session>;
+  signOnWithGoogle: () => Promise<Session>;
+  signOnWithMicrosoft: () => Promise<Session>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
-  signInWithEmail: async () => ({}) as UserSession,
-  signInAnonymously: async () => ({}) as UserSession,
-  signUpWithEmail: async () => ({}) as UserSession,
-  signOnWithGoogle: async () => ({}) as UserSession,
-  signOnWithMicrosoft: async () => ({}) as UserSession,
+  signInWithEmail: async () => ({}) as Session,
+  signInAnonymously: async () => ({}) as Session,
+  signUpWithEmail: async () => ({}) as Session,
+  signOnWithGoogle: async () => ({}) as Session,
+  signOnWithMicrosoft: async () => ({}) as Session,
   signOut: async () => {},
 });
 
-async function createSession({ idToken }: { idToken: string }) {
-  try {
-    const response = await fetch("/api/auth/create-session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    });
-
-    return response.json();
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function upsertUser() {
-  try {
-    await fetch("/api/auth/upsert-user", {
-      method: "POST",
-    });
-  } catch (err) {
-    throw err;
-  }
-}
-async function getSession() {
-  try {
-    const response = await fetch("/api/auth/get-session");
-    return response.json();
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function destroySession() {
-  try {
-    const response = await fetch("/api/auth/destroy-session", {
-      method: "POST",
-    });
-    return response.json();
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function setAuthSession({ user }: { user: User }) {
-  console.log("setAuthSession");
-
+async function setAuthSession({
+  user,
+  upsert = false,
+}: {
+  user: User;
+  upsert?: boolean;
+}) {
   try {
     const idToken = await user.getIdToken();
-    const sessionData = await createSession({ idToken });
-    await upsertUser();
-    return sessionData as UserSession;
+    const sessionData = await createSessionFetch({ idToken });
+    if (upsert) await upsertUserFetch();
+    return sessionData as Session;
   } catch (err) {
     throw err;
   }
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<UserSession | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+
+  const clearSession = async () => {
+    await destroySessionFetch();
+    setSession(null);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -117,17 +84,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (authSession) {
             setSession(authSession);
           } else {
-            await destroySession();
-            setSession(null);
+            await clearSession;
           }
-        } catch (error) {
-          console.error("Error creating session:", error);
-          await destroySession();
-          setSession(null);
+        } catch {
+          await clearSession();
         }
       } else {
-        await destroySession();
-        setSession(null);
+        await clearSession();
       }
     });
 
@@ -152,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      return await setAuthSession({ user });
+      return await setAuthSession({ user, upsert: true });
     } catch (err) {
       throw err;
     }
@@ -171,7 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      return await setAuthSession({ user });
+      return await setAuthSession({ user, upsert: true });
     } catch (err) {
       throw err;
     }
@@ -181,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      return await setAuthSession({ user });
+      return await setAuthSession({ user, upsert: true });
     } catch (err) {
       throw err;
     }
@@ -191,7 +154,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      return await setAuthSession({ user });
+      return await setAuthSession({ user, upsert: true });
     } catch (err) {
       throw err;
     }
@@ -200,7 +163,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      await destroySession();
+      await destroySessionFetch();
     } catch (err) {
       throw err;
     }

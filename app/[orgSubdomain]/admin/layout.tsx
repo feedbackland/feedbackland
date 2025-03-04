@@ -1,6 +1,7 @@
 import { getPlatformUrl } from "@/lib/server/utils";
 import { getSession } from "@/lib/auth/session";
-import { getOrg, getIsAdmin } from "@/lib/queries";
+import { getOrgQuery } from "@/queries/get-org";
+import { getIsAdminQuery } from "@/queries/get-is-admin";
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
@@ -10,9 +11,13 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
   const userId = session?.uid;
-  const org = await getOrg();
+  const org = await getOrgQuery();
   const orgId = org?.id;
-  const isAdmin = !!(userId && orgId && (await getIsAdmin({ userId, orgId })));
+  const isAdmin = !!(
+    userId &&
+    orgId &&
+    (await getIsAdminQuery({ userId, orgId }))
+  );
 
   if (isAdmin) {
     return <div>{children}</div>;

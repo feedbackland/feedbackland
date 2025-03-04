@@ -33,7 +33,6 @@ export const claimOrgAction = actionClient
 
       return { success: true, message: "Org claimed successfully!" };
     } catch (error) {
-      console.log("claimOrgAction error", error);
       throw new Error(
         error instanceof Error
           ? error?.message

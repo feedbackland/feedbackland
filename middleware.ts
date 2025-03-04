@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookieNames } from "@/lib/utils";
+import { upsertOrgFetch } from "@/fetch/upsert-org";
+import { validate as uuidValidate } from "uuid";
+import { version as uuidVersion } from "uuid";
 
 export const config = {
   matcher: [
@@ -38,20 +41,39 @@ const getMaindomainFromUrl = (urlString: string) => {
   return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };
 
-export function middleware(req: NextRequest) {
+const isUUID = (uuid: string) => {
+  return uuidValidate(uuid) && uuidVersion(uuid) === 4;
+};
+
+export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
   const url = req.nextUrl;
   const { hostname, pathname, search, origin } = url;
   const isLocalhost = hostname.includes("localhost");
-  const subdomain = getSubdomainFromUrl(url.toString());
+  let subdomain = getSubdomainFromUrl(url.toString());
   const maindomain = getMaindomainFromUrl(url.toString());
-  const platformUrl = isLocalhost ? `${origin}/${subdomain}` : origin;
 
-  // Rewrite request if valid subdomain exists
-  if (!isLocalhost && subdomain && !["auth", "public"].includes(subdomain)) {
-    const newUrl = `/${subdomain}${pathname}${search}`;
-    response = NextResponse.rewrite(new URL(newUrl, req.url));
+  if (
+    subdomain &&
+    subdomain.length > 0 &&
+    !["www", "api"].includes(subdomain)
+  ) {
+    if (isUUID(subdomain)) {
+      const org = await upsertOrgFetch({ orgId: subdomain });
+      subdomain = org.subdomain;
+      const newUrl = !isLocalhost
+        ? `/${subdomain}${pathname}${search}`
+        : `/${subdomain}${pathname.replace(`/${org.id}`, "")}${search}`;
+      response = NextResponse.redirect(new URL(newUrl, req.url));
+    } else if (!isLocalhost) {
+      const newUrl = `/${subdomain}${pathname}${search}`;
+      response = NextResponse.rewrite(new URL(newUrl, req.url));
+    }
   }
+
+  const platformUrl = isLocalhost
+    ? `${origin}/${subdomain}`
+    : `https://${subdomain}.${maindomain}`;
 
   const cookieSettings = {
     path: "/",

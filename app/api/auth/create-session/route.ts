@@ -1,23 +1,29 @@
 import { createSession } from "@/lib/auth/session";
+import { z } from "zod";
+
+const schema = z.object({
+  idToken: z
+    .string()
+    .min(1)
+    .describe("The idToken of the authenticated firebase user."),
+});
 
 export async function POST(request: Request) {
   try {
-    const { idToken } = await request.json();
-
-    console.log("idToken", idToken);
+    const bodyRaw = await request.json();
+    const { idToken } = schema.parse(bodyRaw);
 
     if (idToken) {
-      const user = await createSession(idToken);
-      return Response.json(user);
+      const session = await createSession(idToken);
+      return Response.json(session);
     } else {
       throw new Error("Missing ID token");
     }
   } catch (error) {
-    console.log("Error creating session:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Unknown error for api/auth/create-session";
-    return Response.json({ error: message }, { status: 400 });
+    return Response.json({ error: message }, { status: 500 });
   }
 }

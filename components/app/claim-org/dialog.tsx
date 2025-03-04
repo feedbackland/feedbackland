@@ -46,10 +46,6 @@ export function ClaimOrgDialog({
   const handleSignUpInSuccess = async ({ userId }: { userId: string }) => {
     if (orgId && userId) {
       claimOrg({ orgId, userId });
-    } else {
-      console.log("No orgId and/or userId found");
-      console.log("orgId", orgId);
-      console.log("userId", userId);
     }
   };
 

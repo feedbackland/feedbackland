@@ -15,11 +15,9 @@ import { SignOutButton } from "@/components/app/sign-out";
 import { usePlatformUrl } from "@/hooks/usePlatformUrl";
 
 export function PlatformHeader({
-  orgName,
   isSignedIn,
   isAdmin,
 }: {
-  orgName: string;
   isSignedIn: boolean;
   isAdmin: boolean;
 }) {
