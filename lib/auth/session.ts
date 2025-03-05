@@ -31,7 +31,7 @@ export async function createSession(idToken: string) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      sameSite: "lax",
+      sameSite: "none",
     });
 
     // Return user data

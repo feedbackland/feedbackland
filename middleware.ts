@@ -76,7 +76,8 @@ export async function middleware(req: NextRequest) {
   const cookieSettings = {
     path: "/",
     httpOnly: false,
-    sameSite: "lax",
+    secure: false,
+    sameSite: "none",
   } satisfies Partial<ResponseCookie>;
 
   response.cookies.set(cookieNames.subDomain, subdomain, cookieSettings);
