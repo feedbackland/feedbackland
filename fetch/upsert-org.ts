@@ -2,16 +2,13 @@ import { Org } from "@/db/schema";
 
 export async function fetchUpsertOrg({ orgId }: { orgId: string }) {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/org/upsert-org`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orgId }),
+    const response = await fetch(`/api/org/upsert-org`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ orgId }),
+    });
 
     const org: Org = await response.json();
 

@@ -1,6 +1,6 @@
 export async function fetchDestroySession() {
   try {
-    const response = await fetch(`/auth/destroy-session`, {
+    const response = await fetch(`/api/auth/destroy-session`, {
       method: "POST",
     });
 

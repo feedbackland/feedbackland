@@ -6,7 +6,7 @@ export async function fetchCreateSession({
   idToken: string;
 }): Promise<Session> {
   try {
-    const response = await fetch(`/auth/create-session`, {
+    const response = await fetch(`/api/auth/create-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

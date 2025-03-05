@@ -5,9 +5,9 @@ export async function POST() {
   try {
     await destroySession();
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch {
+  } catch (error: any) {
     return NextResponse.json(
-      { error: "Failed to destroy session cookie" },
+      { error: error?.message || "Failed to destroy session cookie" },
       { status: 500 },
     );
   }
