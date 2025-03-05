@@ -1,8 +1,14 @@
 import { Org } from "@/db/schema";
 
-export async function fetchUpsertOrg({ orgId }: { orgId: string }) {
+export async function fetchUpsertOrg({
+  orgId,
+  baseUrl = "",
+}: {
+  orgId: string;
+  baseUrl?: string;
+}) {
   try {
-    const response = await fetch(`/api/org/upsert-org`, {
+    const response = await fetch(`${baseUrl}/api/org/upsert-org`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

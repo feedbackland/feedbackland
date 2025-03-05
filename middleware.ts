@@ -58,7 +58,10 @@ export async function middleware(req: NextRequest) {
 
   if (subdomain && subdomain.length > 0) {
     if (isUUID(subdomain)) {
-      const org = await fetchUpsertOrg({ orgId: subdomain });
+      const org = await fetchUpsertOrg({
+        orgId: subdomain,
+        baseUrl: platformUrl,
+      });
       subdomain = org.subdomain;
       platformUrl = isLocalhost
         ? `${origin}/${subdomain}`
