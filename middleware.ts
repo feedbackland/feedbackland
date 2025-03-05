@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { cookieNames } from "@/lib/utils";
-import { upsertOrgFetch } from "@/fetch/upsert-org";
+import { fetchUpsertOrg } from "@/fetch/upsert-org";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
 
@@ -56,13 +56,9 @@ export async function middleware(req: NextRequest) {
     ? `${origin}/${subdomain}`
     : `https://${subdomain}.${maindomain}`;
 
-  if (
-    subdomain &&
-    subdomain.length > 0 &&
-    !["www", "api"].includes(subdomain)
-  ) {
+  if (subdomain && subdomain.length > 0) {
     if (isUUID(subdomain)) {
-      const org = await upsertOrgFetch({ orgId: subdomain });
+      const org = await fetchUpsertOrg({ orgId: subdomain });
       subdomain = org.subdomain;
       platformUrl = isLocalhost
         ? `${origin}/${subdomain}`

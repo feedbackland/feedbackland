@@ -1,4 +1,4 @@
-import { upsertOrgQuery as upsertOrgQuery } from "@/queries/upsert-org";
+import { upsertOrgQuery } from "@/queries/upsert-org";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

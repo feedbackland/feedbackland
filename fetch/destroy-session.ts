@@ -1,11 +1,8 @@
-export async function destroySessionFetch() {
+export async function fetchDestroySession() {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/destroy-session`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await fetch(`/auth/destroy-session`, {
+      method: "POST",
+    });
 
     return await response.json();
   } catch (err) {

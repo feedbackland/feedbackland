@@ -14,9 +14,9 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/auth/client";
 import { Session } from "@/lib/auth/session";
-import { createSessionFetch } from "@/fetch/create-session";
-import { upsertUserFetch } from "@/fetch/upsert-user";
-import { destroySessionFetch } from "@/fetch/destroy-session";
+import { fetchCreateSession } from "@/fetch/create-session";
+import { fetchUpsertUser } from "@/fetch/upsert-user";
+import { fetchDestroySession } from "@/fetch/destroy-session";
 
 type AuthContextType = {
   session: Session | null;
@@ -59,8 +59,8 @@ async function setAuthSession({
 }) {
   try {
     const idToken = await user.getIdToken();
-    const sessionData = await createSessionFetch({ idToken });
-    if (upsert) await upsertUserFetch();
+    const sessionData = await fetchCreateSession({ idToken });
+    if (upsert) await fetchUpsertUser();
     return sessionData as Session;
   } catch (err) {
     throw err;
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
 
   const clearSession = async () => {
-    await destroySessionFetch();
+    await fetchDestroySession();
     setSession(null);
   };
 
@@ -163,7 +163,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      await destroySessionFetch();
+      await fetchDestroySession();
     } catch (err) {
       throw err;
     }

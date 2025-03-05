@@ -1,6 +1,6 @@
 import { Org } from "@/db/schema";
 
-export async function upsertOrgFetch({ orgId }: { orgId: string }) {
+export async function fetchUpsertOrg({ orgId }: { orgId: string }) {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/org/upsert-org`,
