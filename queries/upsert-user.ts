@@ -12,16 +12,18 @@ export const upsertUserQuery = async ({
   name: string;
 }) => {
   try {
-    return await db
+    const user = await db
       .insertInto("user")
       .values({
         id,
         email,
         name,
       })
-      .onConflict((oc) => oc.column("id").doNothing())
+      .onConflict((oc) => oc.doNothing())
       .returningAll()
       .executeTakeFirstOrThrow();
+
+    return user;
   } catch (error: any) {
     throw error;
   }
