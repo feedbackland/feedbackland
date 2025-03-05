@@ -20,7 +20,7 @@ export const upsertUserQuery = async ({
         .executeTakeFirst();
 
       if (!user) {
-        user = await db
+        user = await trx
           .insertInto("user")
           .values({
             id,
