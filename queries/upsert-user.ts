@@ -32,25 +32,8 @@ export const upsertUserQuery = async ({
           .executeTakeFirstOrThrow();
       }
 
-      console.log("upsertUserQuery user", user);
-
       return user;
     });
-
-    // const user = await db
-    //   .insertInto("user")
-    //   .values({
-    //     id,
-    //     email,
-    //     name,
-    //   })
-    //   .onConflict((oc) => oc.column("email").doNothing())
-    //   .returningAll()
-    //   .executeTakeFirstOrThrow();
-
-    // console.log("upsertUserQuery user", user);
-
-    // return user;
   } catch (error: any) {
     throw error;
   }

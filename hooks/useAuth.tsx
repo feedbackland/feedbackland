@@ -77,8 +77,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("Auth state changed", user);
-
       if (user) {
         try {
           const authSession = await setAuthSession({ user });
