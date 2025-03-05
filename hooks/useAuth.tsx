@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (authSession) {
             setSession(authSession);
           } else {
-            await clearSession;
+            await clearSession();
           }
         } catch {
           await clearSession();

@@ -19,7 +19,7 @@ export const upsertUserQuery = async ({
         email,
         name,
       })
-      .onConflict((oc) => oc.columns(["id", "email"]).doNothing())
+      .onConflict((oc) => oc.column("id").doNothing())
       .returningAll()
       .executeTakeFirstOrThrow();
   } catch (error: any) {
