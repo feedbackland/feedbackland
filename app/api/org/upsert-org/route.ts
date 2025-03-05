@@ -1,12 +1,12 @@
 import { upsertOrgQuery } from "@/queries/upsert-org";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 const schema = z.object({
   orgId: z.string().uuid().describe("The UUID of the organization."),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const bodyRaw = await request.json();
     const { orgId } = schema.parse(bodyRaw);

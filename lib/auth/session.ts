@@ -77,5 +77,12 @@ export async function getSession() {
 }
 
 export async function destroySession() {
-  (await cookies()).delete("session");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session")?.value;
+
+  if (sessionCookie) {
+    cookieStore.delete("session");
+  }
+
+  return true;
 }
