@@ -6,6 +6,9 @@ export async function fetchUpsertUser() {
       method: "POST",
     });
     const user = await response.json();
+
+    console.log("fetchUpsertUser user", user);
+
     return user as User;
   } catch (err) {
     throw err;

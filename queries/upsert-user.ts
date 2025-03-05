@@ -23,6 +23,8 @@ export const upsertUserQuery = async ({
       .returningAll()
       .executeTakeFirstOrThrow();
 
+    console.log("upsertUserQuery user", user);
+
     return user;
   } catch (error: any) {
     throw error;
