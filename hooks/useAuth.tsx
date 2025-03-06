@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { auth } from "@/lib/firebase/client";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -12,86 +13,62 @@ import {
   signOut as firebaseSignOut,
   User,
 } from "firebase/auth";
-import { auth } from "@/lib/auth/client";
-import { Session } from "@/lib/auth/session";
-import { fetchCreateSession } from "@/fetch/create-session";
-import { fetchUpsertUser } from "@/fetch/upsert-user";
-import { fetchDestroySession } from "@/fetch/destroy-session";
 
 type AuthContextType = {
-  session: Session | null;
+  session: User | null;
   signInWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<Session>;
-  signInAnonymously: () => Promise<Session>;
+  }) => Promise<User>;
+  signInAnonymously: () => Promise<User>;
   signUpWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<Session>;
-  signOnWithGoogle: () => Promise<Session>;
-  signOnWithMicrosoft: () => Promise<Session>;
+  }) => Promise<User>;
+  signOnWithGoogle: () => Promise<User>;
+  signOnWithMicrosoft: () => Promise<User>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
-  signInWithEmail: async () => ({}) as Session,
-  signInAnonymously: async () => ({}) as Session,
-  signUpWithEmail: async () => ({}) as Session,
-  signOnWithGoogle: async () => ({}) as Session,
-  signOnWithMicrosoft: async () => ({}) as Session,
+  signInWithEmail: async () => ({}) as User,
+  signInAnonymously: async () => ({}) as User,
+  signUpWithEmail: async () => ({}) as User,
+  signOnWithGoogle: async () => ({}) as User,
+  signOnWithMicrosoft: async () => ({}) as User,
   signOut: async () => {},
 });
 
-async function setAuthSession({
-  user,
-  upsert = false,
-}: {
-  user: User;
-  upsert?: boolean;
-}) {
+const fetchUpsertUser = async (user: User) => {
   try {
-    const idToken = await user.getIdToken();
-    const sessionData = await fetchCreateSession({ idToken });
-    if (upsert) await fetchUpsertUser();
-    return sessionData as Session;
+    const { uid, email, displayName } = user;
+    const response = await fetch(`/api/user/upsert-user`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uid, email, name: displayName }),
+    });
+    const repsonse = await response.json();
+    return repsonse as User;
   } catch (err) {
     throw err;
   }
-}
+};
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-
-  const clearSession = async () => {
-    await fetchDestroySession();
-    setSession(null);
-  };
+  const [session, setSession] = useState<User | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const authSession = await setAuthSession({ user });
-
-          if (authSession) {
-            setSession(authSession);
-          } else {
-            await clearSession();
-          }
-        } catch {
-          await clearSession();
-        }
-      } else {
-        await clearSession();
-      }
+      setSession(user);
     });
 
     return () => unsubscribe();
@@ -106,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      return await setAuthSession({ user });
+      return user;
     } catch (err) {
       throw err;
     }
@@ -115,7 +92,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      return await setAuthSession({ user, upsert: true });
+      await fetchUpsertUser(user);
+      return user;
     } catch (err) {
       throw err;
     }
@@ -134,7 +112,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      return await setAuthSession({ user, upsert: true });
+      await fetchUpsertUser(user);
+      return user;
     } catch (err) {
       throw err;
     }
@@ -144,7 +123,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      return await setAuthSession({ user, upsert: true });
+      await fetchUpsertUser(user);
+      return user;
     } catch (err) {
       throw err;
     }
@@ -154,7 +134,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      return await setAuthSession({ user, upsert: true });
+      await fetchUpsertUser(user);
+      return user;
     } catch (err) {
       throw err;
     }
@@ -163,7 +144,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      await fetchDestroySession();
     } catch (err) {
       throw err;
     }

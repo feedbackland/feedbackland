@@ -5,9 +5,10 @@ import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrg } from "@/hooks/useOrg";
 
 const triggerConfetti = () => {
   confetti({
@@ -19,21 +20,17 @@ const triggerConfetti = () => {
   });
 };
 
-export function ClaimOrgBanner({
-  orgId,
-  isOrgClaimed,
-  isSignedIn,
-}: {
-  orgId: string | undefined;
-  isOrgClaimed: boolean;
-  isSignedIn: boolean;
-}) {
+export function ClaimOrgBanner() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
-
   const router = useRouter();
+  const { signOut, session } = useAuth();
+  const org = useOrg();
+  const orgId = org?.id;
+  const isOrgClaimed = org?.isClaimed;
+  const isSignedIn = !!session;
 
-  const { signOut } = useAuth();
+  console.log("org", org);
 
   const handleOpenDialog = async () => {
     setIsDialogOpen(true);

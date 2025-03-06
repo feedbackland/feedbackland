@@ -1,6 +1,6 @@
 "use server";
 
-import { actionClient } from "@/lib/server/safe-action";
+import { actionClient } from "@/lib/safe-action";
 import { createOrgQuery } from "@/queries/create-org";
 import { createOrgSchema } from "./validations";
 

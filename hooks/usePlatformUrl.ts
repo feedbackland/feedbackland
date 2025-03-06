@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
-import { cookieNames } from "@/lib/utils";
+
+function getPlatformUrl(url: string): string | null {
+  try {
+    const urlObject = new URL(url);
+    return urlObject.origin;
+  } catch (error) {
+    console.error("Invalid URL:", error);
+    return null;
+  }
+}
 
 export function usePlatformUrl() {
   const [platformUrl, setPlatformUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const value = Cookies.get(cookieNames.platformUrl);
-    setPlatformUrl(value ?? null);
+    setPlatformUrl(getPlatformUrl(window.location.href));
   }, []);
 
   return platformUrl;

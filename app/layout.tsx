@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TRPCClientProvider } from "@/providers/trpc-client";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   description: "User Feedback Platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -21,9 +22,11 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="font-sans">
         <AuthProvider>
-          <TooltipProvider>
-            <NuqsAdapter>{children}</NuqsAdapter>
-          </TooltipProvider>
+          <TRPCClientProvider>
+            <TooltipProvider>
+              <NuqsAdapter>{children}</NuqsAdapter>
+            </TooltipProvider>
+          </TRPCClientProvider>
         </AuthProvider>
       </body>
     </html>

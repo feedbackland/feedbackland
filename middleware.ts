@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
-import { cookieNames } from "@/lib/utils";
-import { fetchUpsertOrg } from "@/fetch/upsert-org";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
+import { Org } from "@/db/schema";
 
 export const config = {
   matcher: [
@@ -45,6 +43,30 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
+const fetchUpsertOrg = async ({
+  orgId,
+  baseUrl = "",
+}: {
+  orgId: string;
+  baseUrl?: string;
+}) => {
+  try {
+    const response = await fetch(`${baseUrl}/api/org/upsert-org`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ orgId }),
+    });
+
+    const org: Org = await response.json();
+    return org;
+  } catch (error) {
+    console.error("Error upserting org:", error);
+    throw error;
+  }
+};
+
 export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
   const url = req.nextUrl;
@@ -72,17 +94,6 @@ export async function middleware(req: NextRequest) {
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }
-
-  const cookieSettings = {
-    path: "/",
-    httpOnly: false,
-    secure: false,
-    sameSite: "none",
-  } satisfies Partial<ResponseCookie>;
-
-  response.cookies.set(cookieNames.subDomain, subdomain, cookieSettings);
-  response.cookies.set(cookieNames.mainDomain, maindomain, cookieSettings);
-  response.cookies.set(cookieNames.platformUrl, platformUrl, cookieSettings);
 
   return response;
 }

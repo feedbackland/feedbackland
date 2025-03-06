@@ -9,7 +9,7 @@ export const upsertUserQuery = async ({
 }: {
   id: string;
   email: string;
-  name: string;
+  name: string | null | undefined;
 }) => {
   try {
     return await db.transaction().execute(async (trx) => {

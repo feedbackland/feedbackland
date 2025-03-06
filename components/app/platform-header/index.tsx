@@ -13,16 +13,22 @@ import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { SignOutButton } from "@/components/app/sign-out";
 import { usePlatformUrl } from "@/hooks/usePlatformUrl";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubdomain } from "@/hooks/useSubdomain";
+import { useMaindomain } from "@/hooks/useMaindomain";
 
-export function PlatformHeader({
-  isSignedIn,
-  isAdmin,
-}: {
-  isSignedIn: boolean;
-  isAdmin: boolean;
-}) {
+export function PlatformHeader() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
+  const subdomain = useSubdomain();
+  const maindomain = useMaindomain();
   const platformUrl = usePlatformUrl();
+  const { session } = useAuth();
+  const isSignedIn = !!session;
+
+  console.log("subdomain", subdomain);
+  console.log("maindomain", maindomain);
+  console.log("platformUrl", platformUrl);
+  console.log("session", session);
 
   return (
     <div className="mb-5">
@@ -36,14 +42,14 @@ export function PlatformHeader({
           <h1 className="h3 font-extrabold">Feedback</h1>
         </div>
         <div className="flex items-center">
-          {isAdmin && (
+          {/* {isAdmin && (
             <Button variant="link" size="default" asChild>
               <Link prefetch={false} href={`${platformUrl}/admin`}>
                 <Shield className="size-4" />
                 Admin panel
               </Link>
             </Button>
-          )}
+          )} */}
           {!isSignedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

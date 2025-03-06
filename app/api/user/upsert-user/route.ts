@@ -1,22 +1,25 @@
-import { getSession } from "@/lib/auth/session";
 import { upsertUserQuery as upsertUserQuery } from "@/queries/upsert-user";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
-export async function POST() {
+const schema = z.object({
+  uid: z.string().min(1),
+  email: z.string().email(),
+  name: z.string().min(1).optional(),
+});
+
+export async function POST(request: NextRequest) {
   try {
-    const session = await getSession();
+    const bodyRaw = await request.json();
+    const { uid, email, name } = schema.parse(bodyRaw);
 
-    if (session && session.email && session.name) {
-      const user = await upsertUserQuery({
-        id: session.uid,
-        email: session.email,
-        name: session.name,
-      });
+    const user = await upsertUserQuery({
+      id: uid,
+      email,
+      name,
+    });
 
-      return NextResponse.json(user, { status: 200 });
-    } else {
-      throw new Error("No session found");
-    }
+    return NextResponse.json(user);
   } catch (error: any) {
     return NextResponse.json(
       { error: `Failed to upsert user: ${error?.message}` },

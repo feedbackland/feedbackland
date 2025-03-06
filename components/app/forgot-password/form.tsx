@@ -18,7 +18,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { Success } from "@/components/ui/success";
 import { Error } from "@/components/ui/error";
 import { ArrowLeft } from "lucide-react";
-import { auth } from "@/lib/auth/client";
+import { auth } from "@/lib/firebase/client";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),

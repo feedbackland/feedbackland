@@ -1,32 +1,28 @@
 "use server";
 
-import { actionClient } from "@/lib/server/safe-action";
+import { actionClient } from "@/lib/safe-action";
 import { createFeedback } from "./queries";
-import { createFeedbackSchema } from "./validations";
-import { getSession } from "@/lib/auth/session";
-import { getOrgQuery } from "@/queries/get-org";
+import { z } from "zod";
+
+const schema = z.object({
+  authorId: z.string().trim().min(1),
+  orgId: z.string().trim().min(1),
+  title: z.string().trim().min(1, "Please provide a title"),
+  description: z.string().trim().min(1, "Please provide a description"),
+});
 
 export const createFeedbackAction = actionClient
-  .schema(createFeedbackSchema)
-  .action(async ({ parsedInput: { title, description } }) => {
+  .schema(schema)
+  .action(async ({ parsedInput: { authorId, orgId, title, description } }) => {
     try {
-      const session = await getSession();
-      const org = await getOrgQuery();
-      const orgId = org?.id;
-      const authorId = session?.uid;
+      const feedback = await createFeedback({
+        title,
+        description,
+        authorId,
+        orgId,
+      });
 
-      if (authorId && orgId) {
-        const feedback = await createFeedback({
-          title,
-          description,
-          authorId,
-          orgId,
-        });
-
-        return { success: true, feedback };
-      }
-
-      return { success: false, message: "Unauthorized" };
+      return { success: true, feedback };
     } catch (error) {
       return {
         success: false,

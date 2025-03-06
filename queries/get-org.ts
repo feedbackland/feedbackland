@@ -1,17 +1,20 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { getSubdomain } from "@/lib/server/utils";
 
-export const getOrgQuery = async () => {
+export const getOrgQuery = async ({
+  orgSubdomain,
+}: {
+  orgSubdomain: string;
+}) => {
   try {
-    const orgSubdomain = await getSubdomain();
-
-    return await db
+    const org = await db
       .selectFrom("org")
       .where("org.subdomain", "=", orgSubdomain)
-      .select(["id", "name", "isClaimed"])
+      .selectAll()
       .executeTakeFirst();
+
+    return org;
   } catch (error: any) {
     throw error;
   }
