@@ -18,6 +18,8 @@ import { SendIcon } from "lucide-react";
 import { useState } from "react";
 import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
 import { createFeedbackAction } from "./actions";
+import { useOrg } from "@/hooks/useOrg";
+import { useAuth } from "@/hooks/useAuth";
 
 export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const formSchema = z.object({
@@ -35,6 +37,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
     },
   });
 
+  const org = useOrg();
+
+  const { session } = useAuth();
+
   const [isPending, setIsPending] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -45,15 +51,19 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
         values.description,
       );
 
-      const result = await createFeedbackAction({
-        title: values.title,
-        description: processedDescription,
-      });
+      if (org?.id && session?.uid) {
+        const result = await createFeedbackAction({
+          orgId: org.id,
+          authorId: session.uid,
+          title: values.title,
+          description: processedDescription,
+        });
 
-      if (result && "success" in result && result.success) {
-        console.log("Feedback submitted successfully");
-      } else {
-        throw new Error("Failed to submit feedback");
+        if (result && "success" in result && result.success) {
+          console.log("Feedback submitted successfully");
+        } else {
+          throw new Error("Failed to submit feedback");
+        }
       }
 
       // onClose();
