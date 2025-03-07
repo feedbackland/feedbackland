@@ -22,6 +22,39 @@ export const slugifySubdomain = (text: string) => {
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
 };
 
+export const getSubdomainFromUrl = (urlString: string) => {
+  const { hostname, pathname } = new URL(urlString);
+
+  if (hostname.includes("localhost")) {
+    const segments = pathname.split("/").filter(Boolean);
+    return segments.length > 0 ? segments[0] : "";
+  }
+
+  const parts = hostname.split(".");
+  return parts.length > 2 ? parts[0] : "";
+};
+
+export const getMaindomainFromUrl = (urlString: string) => {
+  const { hostname } = new URL(urlString);
+
+  if (hostname.includes("localhost")) {
+    return "localhost";
+  }
+
+  const parts = hostname.split(".");
+  return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
+};
+
+export const getPlatformUrl = (url: string) => {
+  try {
+    const urlObject = new URL(url);
+    return urlObject.origin;
+  } catch (error) {
+    console.error("Invalid URL:", error);
+    return null;
+  }
+};
+
 export const base64ToBlob = ({
   base64,
   contentType,

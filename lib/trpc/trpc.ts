@@ -2,20 +2,27 @@ import { adminAuth } from "@/lib/firebase/admin";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { getSubdomainFromUrl } from "@/lib/utils";
+import { getOrgQuery } from "@/queries/get-org";
 
-async function getUserFromRequest(req: Request) {
+const getUser = async (req: Request) => {
   const authorization = req.headers.get("authorization");
-  if (!authorization) return null;
-  const token = authorization.split(" ")[1];
-  if (!token) return null;
-  const decodedIdToken = await adminAuth.verifyIdToken(token);
-  if (!decodedIdToken) return null;
-  return decodedIdToken;
-}
+  const idToken = authorization?.split(" ")?.[1];
+  const user = idToken ? await adminAuth.verifyIdToken(idToken) : null;
+  return user || null;
+};
 
-export const createContext = async ({ req }: any) => {
-  const user = await getUserFromRequest(req);
-  return { user };
+const getOrg = async (req: Request) => {
+  const url = req.headers.get("referer");
+  const subdomain = url ? getSubdomainFromUrl(url) : null;
+  const org = subdomain ? await getOrgQuery({ orgSubdomain: subdomain }) : null;
+  return org || null;
+};
+
+export const createContext = async ({ req }: { req: Request }) => {
+  const user = await getUser(req);
+  const org = await getOrg(req);
+  return { user, org };
 };
 
 export type Context = typeof createContext;
@@ -34,21 +41,34 @@ const t = initTRPC.context<Context>().create({
   },
 });
 
-const isAuthed = t.middleware((opts) => {
+const publicProcedureMiddleware = t.middleware((opts) => {
   const { ctx } = opts;
 
-  if (!ctx.user) {
+  if (!ctx.org) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be logged in.",
+      code: "BAD_REQUEST",
+      message: "No organization was found",
     });
   }
 
-  return opts.next({
-    ctx: { user: ctx.user },
-  });
+  return opts.next(opts);
 });
 
+const userProcedureMiddleware = publicProcedureMiddleware.unstable_pipe(
+  (opts) => {
+    const { ctx } = opts;
+
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be logged in.",
+      });
+    }
+
+    return opts.next(opts);
+  },
+);
+
 export const router = t.router;
-export const publicProcedure = t.procedure;
-export const protectedUserProcedure = t.procedure.use(isAuthed);
+export const publicProcedure = t.procedure.use(publicProcedureMiddleware);
+export const userProcedure = t.procedure.use(userProcedureMiddleware);

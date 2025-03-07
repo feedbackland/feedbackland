@@ -8,6 +8,7 @@ import type { AppRouter } from "@/lib/trpc";
 import { auth } from "@/lib/firebase/client";
 import { Auth, getIdToken } from "firebase/auth";
 import superjson from "superjson";
+import { getSubdomainFromUrl } from "@/lib/utils";
 
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();
@@ -68,7 +69,11 @@ export const TRPCClientProvider = ({
           url: `${getBaseUrl()}/api/trpc`,
           headers: async () => {
             const idToken = await getAuthIdToken(auth);
-            return idToken ? { Authorization: `Bearer ${idToken}` } : {};
+            const subdomain = await getSubdomainFromUrl(window.location.href);
+            return {
+              ...(idToken && { Authorization: `Bearer ${idToken}` }),
+              ...(!!subdomain && { subdomain: subdomain }),
+            };
           },
         }),
       ],

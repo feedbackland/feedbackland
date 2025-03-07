@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
 import { Org } from "@/db/schema";
+import { getMaindomainFromUrl, getSubdomainFromUrl } from "@/lib/utils";
 
 export const config = {
   matcher: [
@@ -14,29 +15,6 @@ export const config = {
      */
     "/((?!api/|_next/|_static/|_vercel|[\\w-]+\\.\\w+).*)",
   ],
-};
-
-const getSubdomainFromUrl = (urlString: string) => {
-  const { hostname, pathname } = new URL(urlString);
-
-  if (hostname.includes("localhost")) {
-    const segments = pathname.split("/").filter(Boolean);
-    return segments.length > 0 ? segments[0] : "";
-  }
-
-  const parts = hostname.split(".");
-  return parts.length > 2 ? parts[0] : "";
-};
-
-const getMaindomainFromUrl = (urlString: string) => {
-  const { hostname } = new URL(urlString);
-
-  if (hostname.includes("localhost")) {
-    return "localhost";
-  }
-
-  const parts = hostname.split(".");
-  return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };
 
 const isUUID = (uuid: string) => {

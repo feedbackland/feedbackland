@@ -15,13 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
-import { useState } from "react";
 import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
-import { createFeedbackAction } from "./actions";
-import { useOrg } from "@/hooks/useOrg";
-import { useAuth } from "@/hooks/useAuth";
+import { useTRPC } from "@/providers/trpc-client";
+import { useMutation } from "@tanstack/react-query";
 
 export function FeedbackForm({ onClose }: { onClose: () => void }) {
+  const trpc = useTRPC();
+
   const formSchema = z.object({
     title: z.string().trim().min(1, "Please provide a title"),
     description: z.string().trim().min(1, "Please provide a description"),
@@ -37,42 +37,28 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
     },
   });
 
-  const org = useOrg();
+  const postFeedback = useMutation(
+    trpc.postFeedback.mutationOptions({
+      onSuccess: () => {
+        form.reset();
+      },
+      onError: (error) => {
+        console.error("useMutation error", error);
+      },
+    }),
+  );
 
-  const { session } = useAuth();
+  const onSubmit = async ({
+    description,
+    title,
+  }: z.infer<typeof formSchema>) => {
+    const processedDescription = await processImagesInHTML(description);
 
-  const [isPending, setIsPending] = useState(false);
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsPending(true);
-
-    try {
-      const processedDescription = await processImagesInHTML(
-        values.description,
-      );
-
-      if (org?.id && session?.uid) {
-        const result = await createFeedbackAction({
-          orgId: org.id,
-          authorId: session.uid,
-          title: values.title,
-          description: processedDescription,
-        });
-
-        if (result && "success" in result && result.success) {
-          console.log("Feedback submitted successfully");
-        } else {
-          throw new Error("Failed to submit feedback");
-        }
-      }
-
-      // onClose();
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-    } finally {
-      setIsPending(false);
-    }
-  }
+    postFeedback.mutate({
+      title,
+      description: processedDescription,
+    });
+  };
 
   return (
     <div className="relative rounded-lg border border-primary bg-background px-4 py-3 shadow-sm">
@@ -130,7 +116,11 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
               )}
             />
             <div className="my-4 flex justify-end gap-3">
-              <Button type="submit" loading={isPending} className="order-2">
+              <Button
+                type="submit"
+                loading={postFeedback.isPending}
+                className="order-2"
+              >
                 <SendIcon className="size-4" />
                 Submit
               </Button>
