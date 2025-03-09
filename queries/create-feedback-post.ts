@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 
-export async function createFeedbackQuery({
+export async function createFeedbackPostQuery({
   title,
   description,
   authorId,

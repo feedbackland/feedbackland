@@ -21,7 +21,7 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
-const fetchUpsertOrg = async ({
+const upsertOrg = async ({
   orgId,
   baseUrl = "",
 }: {
@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
 
   if (subdomain && subdomain.length > 0) {
     if (isUUID(subdomain)) {
-      const org = await fetchUpsertOrg({
+      const org = await upsertOrg({
         orgId: subdomain,
         baseUrl: platformUrl,
       });

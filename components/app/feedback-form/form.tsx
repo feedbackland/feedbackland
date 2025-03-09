@@ -37,8 +37,8 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
     },
   });
 
-  const postFeedback = useMutation(
-    trpc.postFeedback.mutationOptions({
+  const saveFeedback = useMutation(
+    trpc.createFeedbackPost.mutationOptions({
       onSuccess: () => {
         form.reset();
       },
@@ -54,7 +54,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   }: z.infer<typeof formSchema>) => {
     const processedDescription = await processImagesInHTML(description);
 
-    postFeedback.mutate({
+    saveFeedback.mutate({
       title,
       description: processedDescription,
     });
@@ -118,7 +118,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
             <div className="my-4 flex justify-end gap-3">
               <Button
                 type="submit"
-                loading={postFeedback.isPending}
+                loading={saveFeedback.isPending}
                 className="order-2"
               >
                 <SendIcon className="size-4" />

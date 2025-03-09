@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 import confetti from "canvas-confetti";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrg } from "@/hooks/useOrg";
+import { getQueryClient } from "@/providers/trpc-client";
 
 const triggerConfetti = () => {
   confetti({
@@ -21,16 +21,14 @@ const triggerConfetti = () => {
 };
 
 export function ClaimOrgBanner() {
+  const queryClient = getQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
-  const router = useRouter();
   const { signOut, session } = useAuth();
   const org = useOrg();
   const orgId = org?.id;
   const isOrgClaimed = org?.isClaimed;
   const isSignedIn = !!session;
-
-  console.log("org", org);
 
   const handleOpenDialog = async () => {
     setIsDialogOpen(true);
@@ -46,7 +44,7 @@ export function ClaimOrgBanner() {
 
   const onClaimed = () => {
     setHideBanner(true);
-    router.refresh();
+    queryClient.invalidateQueries();
     triggerConfetti();
   };
 
@@ -60,7 +58,7 @@ export function ClaimOrgBanner() {
         onClaimed={onClaimed}
       />
 
-      {!isOrgClaimed && (
+      {isOrgClaimed === false && (
         <div
           className={cn(
             "flex items-center justify-center border-b border-border bg-primary px-4 py-2",

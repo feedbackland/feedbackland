@@ -46,7 +46,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
-const fetchUpsertUser = async (user: User) => {
+const upsertUser = async (user: User) => {
   try {
     const { uid, email, displayName } = user;
     const response = await fetch(`/api/user/upsert-user`, {
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      await fetchUpsertUser(user);
+      await upsertUser(user);
       return user;
     } catch (err) {
       throw err;
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      await fetchUpsertUser(user);
+      await upsertUser(user);
       return user;
     } catch (err) {
       throw err;
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      await fetchUpsertUser(user);
+      await upsertUser(user);
       return user;
     } catch (err) {
       throw err;
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      await fetchUpsertUser(user);
+      await upsertUser(user);
       return user;
     } catch (err) {
       throw err;

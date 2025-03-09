@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
+import { getQueryClient } from "@/providers/trpc-client";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
 
@@ -18,10 +18,10 @@ export function SignUpIn({
   onSuccess: ({ userId }: { userId: string }) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
-  const router = useRouter();
+  const queryClient = getQueryClient();
 
   const handleOnSuccess = async ({ userId }: { userId: string }) => {
-    router.refresh();
+    queryClient.invalidateQueries();
     onSuccess({ userId });
   };
 
