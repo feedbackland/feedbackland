@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
-import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
+// import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 
@@ -23,7 +23,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const trpc = useTRPC();
 
   const formSchema = z.object({
-    title: z.string().trim().min(1, "Please provide a title"),
+    // title: z.string().trim().min(1, "Please provide a title"),
     description: z.string().trim().min(1, "Please provide a description"),
   });
 
@@ -32,7 +32,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
-      title: "",
+      // title: "",
       description: "",
     },
   });
@@ -48,14 +48,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
     }),
   );
 
-  const onSubmit = async ({
-    description,
-    title,
-  }: z.infer<typeof formSchema>) => {
+  const onSubmit = async ({ description }: z.infer<typeof formSchema>) => {
     const processedDescription = await processImagesInHTML(description);
 
     saveFeedback.mutate({
-      title,
       description: processedDescription,
     });
   };
@@ -73,7 +69,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
       <div className="flex flex-col">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+            {/* <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
@@ -90,7 +86,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="description"
@@ -118,15 +114,16 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
             <div className="my-4 flex justify-end gap-3">
               <Button
                 type="submit"
+                size="icon"
                 loading={saveFeedback.isPending}
                 className="order-2"
               >
                 <SendIcon className="size-4" />
-                Submit
+                {/* Submit */}
               </Button>
-              <Button variant="secondary" onClick={onClose} className="order-1">
+              {/* <Button variant="secondary" onClick={onClose} className="order-1">
                 Close
-              </Button>
+              </Button> */}
             </div>
           </form>
         </Form>

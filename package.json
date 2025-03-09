@@ -13,6 +13,7 @@
     "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "@hookform/resolvers": "^4.1.3",
     "@iframe-resizer/child": "^5.3.3",
     "@radix-ui/react-context-menu": "^2.2.6",

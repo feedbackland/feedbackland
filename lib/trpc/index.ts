@@ -10,11 +10,10 @@ export const appRouter = router({
   createFeedbackPost: userProcedure
     .input(
       z.object({
-        title: z.string().trim().min(1),
         description: z.string().trim().min(1),
       }),
     )
-    .mutation(async ({ input: { title, description }, ctx }) => {
+    .mutation(async ({ input: { description }, ctx }) => {
       try {
         const authorId = ctx?.user?.uid;
         const orgId = ctx?.org?.id;
@@ -24,7 +23,6 @@ export const appRouter = router({
         }
 
         await createFeedbackPostQuery({
-          title,
           description,
           authorId,
           orgId,
