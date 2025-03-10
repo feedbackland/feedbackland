@@ -1,25 +1,25 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { SendIcon } from "lucide-react";
+
 export function FeedbackFormBanner({
-  bannerText,
   onClick,
+  className,
 }: {
-  bannerText: string;
   onClick: () => void;
+  className?: string;
 }) {
-  // return (
-  //   <Input placeholder="Have an idea? Share it here!" className="w-full" />
-  // );
   return (
     <div
-      className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground shadow-sm transition-colors ease-out hover:border hover:border-primary"
+      className={cn(
+        "flex cursor-pointer items-center justify-between rounded-lg border border-border bg-background p-3 text-sm leading-5 text-muted-foreground shadow-sm transition-colors ease-out hover:border hover:border-primary",
+        className,
+      )}
       onClick={onClick}
     >
-      {bannerText}
-      {/* <Button size="sm">
-        <PlusIcon className="size-4" />
-        {buttonText}
-      </Button> */}
+      Share your feature request, bug report, or any other feedback...
     </div>
   );
 }

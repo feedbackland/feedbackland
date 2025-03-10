@@ -15,7 +15,7 @@ export function Info({
     <Alert
       variant="default"
       className={cn(
-        "w-full max-w-md border-blue-800 bg-blue-50 dark:border-blue-900 dark:bg-blue-950",
+        "w-full border-blue-800 bg-blue-50 dark:border-blue-900 dark:bg-blue-950",
         className,
       )}
     >

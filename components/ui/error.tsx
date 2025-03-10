@@ -15,16 +15,16 @@ export function Error({
     <Alert
       variant="default"
       className={cn(
-        "w-full max-w-md border-red-800 bg-red-50 dark:border-red-900 dark:bg-red-950",
+        "w-full border-red-700 bg-red-50 dark:border-red-900 dark:bg-red-950",
         className,
       )}
     >
-      <TriangleAlert className="!dark:text-red-400 size-4 !text-red-800" />
-      <AlertTitle className="mt-1 text-red-800 dark:text-red-400">
+      <TriangleAlert className="!dark:text-red-400 size-4 !text-red-700" />
+      <AlertTitle className="mt-1 text-red-700 dark:text-red-400">
         {title}
       </AlertTitle>
       {description && (
-        <AlertDescription className="text-red-800 dark:text-red-400">
+        <AlertDescription className="text-red-700 dark:text-red-400">
           {description}
         </AlertDescription>
       )}

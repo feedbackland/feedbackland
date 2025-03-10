@@ -10,10 +10,7 @@ export function FeedbackFormContainer() {
   return (
     <>
       {!isFormOpen ? (
-        <FeedbackFormBanner
-          bannerText="Any feedback? We'd love to hear from you."
-          onClick={() => setIsFormOpen(true)}
-        />
+        <FeedbackFormBanner onClick={() => setIsFormOpen(true)} />
       ) : (
         <FeedbackForm onClose={() => setIsFormOpen(false)} />
       )}
