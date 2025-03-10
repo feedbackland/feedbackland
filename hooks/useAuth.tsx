@@ -83,6 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
+      setSession(user);
       return user;
     } catch (err) {
       throw err;
@@ -93,6 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
       await upsertUser(user);
+      setSession(user);
       return user;
     } catch (err) {
       throw err;
@@ -113,6 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
       );
       await upsertUser(user);
+      setSession(user);
       return user;
     } catch (err) {
       throw err;
@@ -124,6 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
       await upsertUser(user);
+      setSession(user);
       return user;
     } catch (err) {
       throw err;
@@ -135,6 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
       await upsertUser(user);
+      setSession(user);
       return user;
     } catch (err) {
       throw err;
@@ -144,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      setSession(null);
     } catch (err) {
       throw err;
     }

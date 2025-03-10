@@ -17,6 +17,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Method } from "../sign-up-in";
 import { useAuth } from "@/hooks/useAuth";
+import { User } from "firebase/auth";
 
 export const signInSchema = z.object({
   email: z
@@ -38,7 +39,7 @@ export function SignInEmailForm({
   onClose,
   onSelectedMethodChange,
 }: {
-  onSuccess: ({ userId }: { userId: string }) => void;
+  onSuccess: (user: User) => void;
   onClose?: () => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
@@ -70,7 +71,7 @@ export function SignInEmailForm({
         email,
         password,
       });
-      onSuccess({ userId: user.uid });
+      onSuccess(user);
     } catch (error: any) {
       setError("root.serverError", {
         message: error?.message || "An error occured. Please try again.",

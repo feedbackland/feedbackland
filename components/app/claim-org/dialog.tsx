@@ -14,6 +14,7 @@ import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PartyPopper } from "lucide-react";
+import { User } from "firebase/auth";
 
 export function ClaimOrgDialog({
   orgId,
@@ -43,7 +44,9 @@ export function ClaimOrgDialog({
     },
   });
 
-  const handleSignUpInSuccess = async ({ userId }: { userId: string }) => {
+  const handleSignUpInSuccess = async (user: User) => {
+    const userId = user.uid;
+
     if (orgId && userId) {
       claimOrg({ orgId, userId });
     }

@@ -9,6 +9,7 @@ import {
 import { SignUpIn } from ".";
 import { useState } from "react";
 import { Method } from ".";
+import { User } from "firebase/auth";
 
 export function SignUpInDialog({
   open,
@@ -19,14 +20,14 @@ export function SignUpInDialog({
   open: boolean;
   initialSelectedMethod: "sign-up" | "sign-in";
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (user: User) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
 
-  const handleOnSuccess = () => {
-    onSuccess?.();
+  const handleOnSuccess = (user: User) => {
+    onSuccess?.(user);
     onClose();
   };
 

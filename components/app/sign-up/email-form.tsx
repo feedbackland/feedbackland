@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { User } from "firebase/auth";
 
 export const signUpSchema = z.object({
   name: z.string().nonempty("Name is required"),
@@ -36,7 +37,7 @@ export function SignUpEmailForm({
   onSuccess,
   onClose,
 }: {
-  onSuccess: ({ userId }: { userId: string }) => void;
+  onSuccess: (user: User) => void;
   onClose?: () => void;
 }) {
   const [isPending, setIsPending] = useState(false);
@@ -68,11 +69,11 @@ export function SignUpEmailForm({
     setIsPending(true);
 
     try {
-      const { uid } = await signUpWithEmail({
+      const user = await signUpWithEmail({
         email,
         password,
       });
-      onSuccess({ userId: uid });
+      onSuccess(user);
     } catch (error: any) {
       setError("root.serverError", {
         message: error?.message || "An error occured. Please try again.",

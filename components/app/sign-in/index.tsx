@@ -8,20 +8,21 @@ import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Method } from "../sign-up-in";
+import { User } from "firebase/auth";
 
 export function SignIn({
   onSuccess,
   onSelectedMethodChange,
   includeAnonymous,
 }: {
-  onSuccess: ({ userId }: { userId: string }) => void;
+  onSuccess: (user: User) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
   includeAnonymous?: boolean;
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
-  const handleOnSuccess = ({ userId }: { userId: string }) => {
-    onSuccess({ userId });
+  const handleOnSuccess = (user: User) => {
+    onSuccess(user);
   };
 
   const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {

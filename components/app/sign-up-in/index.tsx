@@ -4,6 +4,7 @@ import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
 import { getQueryClient } from "@/providers/trpc-client";
+import { User } from "firebase/auth";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
 
@@ -15,14 +16,14 @@ export function SignUpIn({
 }: {
   selectedMethod: Method;
   includeAnonymous?: boolean;
-  onSuccess: ({ userId }: { userId: string }) => void;
+  onSuccess: (user: User) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const queryClient = getQueryClient();
 
-  const handleOnSuccess = async ({ userId }: { userId: string }) => {
+  const handleOnSuccess = async (user: User) => {
     queryClient.invalidateQueries();
-    onSuccess({ userId });
+    onSuccess(user);
   };
 
   const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {
