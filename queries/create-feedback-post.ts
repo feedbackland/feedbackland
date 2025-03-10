@@ -1,17 +1,4 @@
 import { db } from "@/db/db";
-// import { model } from "@/lib/gemini";
-
-type OpenRouterResponse = {
-  choices: {
-    message: {
-      content: string;
-    };
-  }[];
-  error?: {
-    // Include error handling
-    message: string;
-  };
-};
 
 export async function createFeedbackPostQuery({
   description,
@@ -23,12 +10,6 @@ export async function createFeedbackPostQuery({
   orgId: string;
 }) {
   try {
-    // const type = (
-    //   await model.generateContent(
-    //     `is this a feature request, bug report or something else? Return either 'feature request', 'bug report' or 'other' (and nothing else, just one of those 3 strings). The text: ${description}`,
-    //   )
-    // ).response.text();
-
     const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions. 
     Given the following description, create a short title that sounds like it was written by a human.
@@ -68,23 +49,20 @@ export async function createFeedbackPostQuery({
     );
 
     const data = await response.json();
-    console.log("data", data);
     const content = data.choices[0]?.message?.content || "";
-    console.log("content", content);
     const parsedContent = JSON.parse(content) as {
       title: string;
       category: "feature request" | "bug report" | "other";
     };
-    console.log("parsedContent", parsedContent);
     const title = parsedContent.title || "Untitled";
-    const type = parsedContent.category || "other";
+    const category = parsedContent.category || "other";
 
     return await db
       .insertInto("feedback")
       .values({
         title,
         description,
-        type,
+        category,
         authorId,
         orgId,
       })

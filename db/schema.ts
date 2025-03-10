@@ -330,12 +330,12 @@ export interface ExtensionsWrappersFdwStats {
 
 export interface Feedback {
   authorId: string;
+  category: string | null;
   createdAt: Generated<Timestamp>;
   description: string;
   id: Generated<string>;
   orgId: string;
   title: string;
-  type: string | null;
   updatedAt: Generated<Timestamp>;
 }
 
