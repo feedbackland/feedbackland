@@ -8,7 +8,7 @@ import type { AppRouter } from "@/lib/trpc";
 import { auth } from "@/lib/firebase/client";
 import { Auth, getIdToken } from "firebase/auth";
 import superjson from "superjson";
-import { getSubdomainFromUrl } from "@/lib/utils";
+import { getBaseUrl, getSubdomainFromUrl } from "@/lib/utils";
 
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();
@@ -39,11 +39,11 @@ export const getQueryClient = () => {
   }
 };
 
-const getBaseUrl = () => {
-  if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
-  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
-};
+// const getBaseUrl = () => {
+//   if (typeof window !== "undefined") return ""; // browser should use relative url
+//   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+//   return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
+// };
 
 async function getAuthIdToken(auth: Auth) {
   await auth.authStateReady();

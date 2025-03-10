@@ -335,6 +335,7 @@ export interface Feedback {
   id: Generated<string>;
   orgId: string;
   title: string;
+  type: string | null;
   updatedAt: Generated<Timestamp>;
 }
 
