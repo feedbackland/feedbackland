@@ -30,7 +30,6 @@ export const appRouter = router({
 
         return { success: true, message: "Post created successfully!" };
       } catch (error) {
-        console.log("userProcedure error", error);
         throw error;
       }
     }),

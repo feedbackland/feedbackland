@@ -35,11 +35,11 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
     <div className="">
       <ToolbarButton
         isActive={editor.isActive("image")}
-        tooltip="Image"
+        tooltip="Upload images"
         aria-label="Image"
         onClick={handleClick}
       >
-        <ImageIcon className="size-5" />
+        <ImageIcon className="!size-3.5" />
       </ToolbarButton>
       <input
         type="file"

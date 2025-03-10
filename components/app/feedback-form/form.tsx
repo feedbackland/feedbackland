@@ -10,17 +10,20 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { set, z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { processImagesInHTML } from "@/lib/utils";
+import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 // import { TextareaAutoResize } from "@/components/ui/textarea-autoresize";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const trpc = useTRPC();
+
+  const [isFocused, setIsFocused] = useState(false);
 
   const formSchema = z.object({
     // title: z.string().trim().min(1, "Please provide a title"),
@@ -40,7 +43,6 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
       onSuccess: () => {
-        console.log("zolg");
         form.reset({ description: "" });
       },
       onError: (error) => {
@@ -56,6 +58,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
       description: processedDescription,
     });
   };
+
+  const hasText = form.getValues("description").trim().length > 0;
+
+  const isExpanded = isFocused || hasText;
 
   return (
     <div className="relative">
@@ -105,6 +111,11 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                       placeholder={`The description of your feature request, suggestion, issue, ...`}
                       value={field.value}
                       onChange={(value) => field.onChange(value)}
+                      className={cn("min-h-20 shadow-none")}
+                      showToolbar={true}
+                      autofocus={true}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -116,9 +127,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                 type="submit"
                 size="icon"
                 loading={saveFeedback.isPending}
-                className="order-2"
+                className="size-8"
+                disabled={!hasText}
               >
-                <SendIcon className="size-4" />
+                <SendIcon className="size-3" />
                 {/* Submit */}
               </Button>
               {/* <Button variant="secondary" onClick={onClose} className="order-1">

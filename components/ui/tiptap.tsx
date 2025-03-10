@@ -1,14 +1,25 @@
 import { Content } from "@tiptap/react";
 import { MinimalTiptapEditor } from "./minimal-tiptap";
+import { cn } from "@/lib/utils";
 
 export const Tiptap = ({
   value,
   placeholder,
   onChange,
+  onFocus,
+  onBlur,
+  className,
+  showToolbar = false,
+  autofocus = false,
 }: {
   value: Content;
   placeholder: string;
   onChange: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  className?: React.ComponentProps<"div">["className"];
+  showToolbar?: boolean;
+  autofocus?: boolean;
 }) => {
   const handleChange = (value: Content) => {
     onChange(value as string);
@@ -18,13 +29,16 @@ export const Tiptap = ({
     <MinimalTiptapEditor
       value={value}
       onChange={handleChange}
-      className="min-h-20 bg-background shadow-none"
-      editorContentClassName="p-0 text-sm leading-5 h-full p-4"
+      className={cn("h-full bg-background", className)}
+      editorContentClassName="text-sm leading-5 p-4"
       editorClassName="focus:outline-none"
       output="html"
       placeholder={placeholder}
-      autofocus={true}
+      autofocus={!!autofocus}
       editable={true}
+      showToolbar={showToolbar}
+      onFocus={onFocus}
+      onBlur={onBlur}
     />
   );
 };

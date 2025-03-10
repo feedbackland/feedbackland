@@ -12,23 +12,12 @@ import {
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { SignOutButton } from "@/components/app/sign-out";
-import { usePlatformUrl } from "@/hooks/usePlatformUrl";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubdomain } from "@/hooks/useSubdomain";
-import { useMaindomain } from "@/hooks/useMaindomain";
 
 export function PlatformHeader() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
-  const subdomain = useSubdomain();
-  const maindomain = useMaindomain();
-  const platformUrl = usePlatformUrl();
   const { session } = useAuth();
   const isSignedIn = !!session;
-
-  console.log("subdomain", subdomain);
-  console.log("maindomain", maindomain);
-  console.log("platformUrl", platformUrl);
-  console.log("session", session);
 
   return (
     <div className="mb-5">

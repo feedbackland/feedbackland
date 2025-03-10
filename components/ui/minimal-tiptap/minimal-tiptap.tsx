@@ -16,10 +16,17 @@ export interface MinimalTiptapProps
   onChange?: (value: Content) => void;
   className?: string;
   editorContentClassName?: string;
+  showToolbar?: boolean;
 }
 
-const Toolbar = ({ editor }: { editor: Editor }) => (
-  <div className="flex h-12 items-center px-2">
+const Toolbar = ({
+  editor,
+  hide = false,
+}: {
+  editor: Editor;
+  hide?: boolean;
+}) => (
+  <div className={cn("flex h-12 items-center px-2", hide && "hidden")}>
     <ImageSelectBlock editor={editor} />
   </div>
 );
@@ -27,42 +34,57 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 export const MinimalTiptapEditor = React.forwardRef<
   HTMLDivElement,
   MinimalTiptapProps
->(({ value, onChange, className, editorContentClassName, ...props }, ref) => {
-  const editor = useMinimalTiptapEditor({
-    value,
-    onUpdate: onChange,
-    ...props,
-  });
+>(
+  (
+    {
+      value,
+      onChange,
+      className,
+      editorContentClassName,
+      showToolbar = false,
+      ...props
+    },
+    ref,
+  ) => {
+    const editor = useMinimalTiptapEditor({
+      value,
+      onUpdate: onChange,
+      ...props,
+    });
 
-  React.useEffect(() => {
-    if (value === "") {
-      editor?.commands.setContent("");
+    React.useEffect(() => {
+      if (value === "") {
+        editor?.commands.setContent("");
+      }
+    }, [value, editor]);
+
+    if (!editor) {
+      return null;
     }
-  }, [value, editor]);
 
-  if (!editor) {
-    return null;
-  }
-
-  return (
-    <MeasuredContainer
-      as="div"
-      name="editor"
-      ref={ref}
-      className={cn(
-        "flex h-full w-full flex-col rounded-md border border-input shadow-sm focus-within:border-primary",
-        className,
-      )}
-    >
-      <EditorContent
-        editor={editor}
-        className={cn("minimal-tiptap-editor flex-1", editorContentClassName)}
-      />
-      <Toolbar editor={editor} />
-      <LinkBubbleMenu editor={editor} />
-    </MeasuredContainer>
-  );
-});
+    return (
+      <MeasuredContainer
+        as="div"
+        name="editor"
+        ref={ref}
+        className={cn(
+          "flex h-full w-full flex-col rounded-md border border-input shadow-sm focus-within:border-primary",
+          className,
+        )}
+      >
+        <EditorContent
+          editor={editor}
+          className={cn(
+            "minimal-tiptap-editor h-full flex-1",
+            editorContentClassName,
+          )}
+        />
+        <Toolbar editor={editor} hide={!showToolbar} />
+        <LinkBubbleMenu editor={editor} />
+      </MeasuredContainer>
+    );
+  },
+);
 
 MinimalTiptapEditor.displayName = "MinimalTiptapEditor";
 
