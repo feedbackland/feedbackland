@@ -69,7 +69,7 @@
 
 @layer utilities {
   .debug {
-    @apply border-[1px] border-red-500;
+    @apply !border-[1px] !border-solid !border-red-500;
   }
 
   .scrollbar {

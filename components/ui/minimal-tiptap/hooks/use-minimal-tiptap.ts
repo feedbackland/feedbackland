@@ -210,7 +210,10 @@ export const useMinimalTiptapEditor = ({
   );
 
   const handleBlur = React.useCallback(
-    (editor: Editor) => onBlur?.(getOutput(editor, output)),
+    (editor: Editor) => {
+      // editor.commands.setTextSelection(editor.state.doc.content.size);
+      onBlur?.(getOutput(editor, output));
+    },
     [output, onBlur],
   );
 

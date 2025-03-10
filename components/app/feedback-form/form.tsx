@@ -40,7 +40,8 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
       onSuccess: () => {
-        form.reset();
+        console.log("zolg");
+        form.reset({ description: "" });
       },
       onError: (error) => {
         console.error("useMutation error", error);
@@ -57,7 +58,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="relative rounded-lg border border-primary bg-background px-4 py-3 shadow-sm">
+    <div className="relative">
       {/* <Button
         size="icon"
         variant="ghost"
@@ -102,16 +103,15 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
                       // placeholder={`Description of your feedback, i.e. a feature request, bug report, or anything else that's on your mind`}
                       // placeholder={`The description of your feature request, bug report, or anything else that's on your mind`}
                       placeholder={`The description of your feature request, suggestion, issue, ...`}
-                      onChange={(value) => {
-                        field.onChange(value);
-                      }}
+                      value={field.value}
+                      onChange={(value) => field.onChange(value)}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="my-4 flex justify-end gap-3">
+            <div className="absolute bottom-2 right-2 my-4 flex justify-end gap-3">
               <Button
                 type="submit"
                 size="icon"
