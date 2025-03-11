@@ -57,7 +57,7 @@ export async function createFeedbackPostQuery({
     const title = parsedContent.title || "Untitled";
     const category = parsedContent.category || "other";
 
-    return await db
+    const feedbackPost = await db
       .insertInto("feedback")
       .values({
         title,
@@ -68,6 +68,8 @@ export async function createFeedbackPostQuery({
       })
       .returningAll()
       .executeTakeFirst();
+
+    return feedbackPost;
   } catch (error: any) {
     console.log(error);
     throw error;

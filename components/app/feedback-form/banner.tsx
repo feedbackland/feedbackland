@@ -1,8 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { SendIcon } from "lucide-react";
 
 export function FeedbackFormBanner({
   onClick,

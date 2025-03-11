@@ -1,54 +1,24 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/providers/trpc-client";
+import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
+import DOMPurify from "dompurify";
+import parse from "html-react-parser";
 
-export function PostList() {
+export function FeedbackPostsList() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // const {
-  //   data,
-  //   fetchNextPage,
-  //   hasNextPage,
-  //   isFetchingNextPage,
-  //   isLoading,
-  //   isError,
-  // } = trpc.posts.infinitePosts.useInfiniteQuery(
-  //   {
-  //     limit: 10,
-  //   },
-  //   {
-  //     getNextPageParam: (lastPage) => lastPage.nextCursor,
-  //   },
-  // );
-
-  // return useInfiniteQuery<PaginatedResponse, Error>({
-  //   queryKey: ['posts', 'infinite'],
-  //   queryFn: fetchPosts,
-  //   initialPageParam: null,
-  //   getNextPageParam: (lastPage) =>
-  //     lastPage.pagination.hasNextPage ? lastPage.pagination.nextCursor : undefined,
-  // });
-
-  const trpc = useTRPC();
-
   const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = useInfiniteQuery(
-    trpc.getFeedbackPosts.infiniteQueryOptions(
-      { limit: 10, cursor: null },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      },
-    ),
-  );
+    query: {
+      data,
+      fetchNextPage,
+      hasNextPage,
+      isFetchingNextPage,
+      isLoading,
+      isError,
+    },
+  } = useFeedbackPosts();
 
   useEffect(() => {
     if (loadMoreRef.current) {
@@ -81,23 +51,20 @@ export function PostList() {
   const posts = data?.pages.flatMap((page) => page.feedbackPosts) || [];
 
   return (
-    <div className="space-y-6">
-      <h2 className="mb-4 text-2xl font-semibold">Posts</h2>
-
+    <div className="mt-16 space-y-6">
       {posts.length === 0 ? (
         <p className="text-gray-500">No posts found</p>
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <div
-              key={post.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 shadow"
-            >
+            <div key={post.id} className="">
               <h3 className="text-xl font-semibold">{post.title}</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <div className="mt-1 text-sm text-gray-500">
                 By {post.authorId} • {post.createdAt.toISOString()}
-              </p>
-              <p className="mt-2">{post.description}</p>
+              </div>
+              <div className="mt-2">
+                {parse(DOMPurify.sanitize(post.description))}
+              </div>
             </div>
           ))}
 

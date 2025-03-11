@@ -22,13 +22,13 @@ export const appRouter = router({
           throw new Error("No authorId or orgId provided");
         }
 
-        await createFeedbackPostQuery({
+        const feedbackPost = await createFeedbackPostQuery({
           description,
           authorId,
           orgId,
         });
 
-        return { success: true, message: "Post created successfully!" };
+        return feedbackPost;
       } catch (error) {
         throw error;
       }
@@ -46,6 +46,7 @@ export const appRouter = router({
         limit,
         cursor,
       });
+
       return {
         feedbackPosts,
         nextCursor,

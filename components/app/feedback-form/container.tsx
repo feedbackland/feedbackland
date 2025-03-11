@@ -4,7 +4,11 @@ import { useState } from "react";
 import { FeedbackForm } from "@/components/app/feedback-form/form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 
-export function FeedbackFormContainer() {
+export function FeedbackFormContainer({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) {
   const [isFormOpen, setIsFormOpen] = useState(true);
 
   return (
@@ -12,7 +16,10 @@ export function FeedbackFormContainer() {
       {!isFormOpen ? (
         <FeedbackFormBanner onClick={() => setIsFormOpen(true)} />
       ) : (
-        <FeedbackForm onClose={() => setIsFormOpen(false)} />
+        <FeedbackForm
+          onClose={() => setIsFormOpen(false)}
+          onSuccess={onSuccess}
+        />
       )}
     </>
   );

@@ -11,11 +11,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { User } from "firebase/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
 
-export function FeedbackForm({ onClose }: { onClose: () => void }) {
+export function FeedbackForm({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess?: () => void;
+}) {
   const trpc = useTRPC();
-
+  const queryClient = useQueryClient();
   const { session } = useAuth();
+  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts();
 
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
@@ -29,7 +38,10 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getFeedbackPostsQueryKey });
         setValue("");
+        onClose();
+        onSuccess?.();
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");
@@ -39,7 +51,7 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
 
   const onSubmit = async (user: User | null) => {
     if (!value || value.trim().length === 0) {
-      setErrormessage("Please enter some feedback.");
+      setErrormessage("Please enter some feedback");
       return;
     }
 
@@ -48,18 +60,11 @@ export function FeedbackForm({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    const processedDescription = await processImagesInHTML(value);
+    const description = await processImagesInHTML(value);
 
-    saveFeedback.mutate(
-      {
-        description: processedDescription,
-      },
-      {
-        onSuccess: () => {
-          onClose();
-        },
-      },
-    );
+    saveFeedback.mutate({
+      description,
+    });
   };
 
   return (
