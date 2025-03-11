@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
-import DOMPurify from "dompurify";
-import parse from "html-react-parser";
+import { FeedbackPost } from "./post";
 
 export function FeedbackPostsList() {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -57,15 +56,14 @@ export function FeedbackPostsList() {
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <div key={post.id} className="">
-              <h3 className="text-xl font-semibold">{post.title}</h3>
-              <div className="mt-1 text-sm text-gray-500">
-                By {post.authorId} • {post.createdAt.toISOString()}
-              </div>
-              <div className="mt-2">
-                {parse(DOMPurify.sanitize(post.description))}
-              </div>
-            </div>
+            <FeedbackPost
+              key={post.id}
+              title={post.title}
+              description={post.description}
+              authorId={post.authorId}
+              authorName={post.authorName || "unknown"}
+              createdAt={post.createdAt}
+            />
           ))}
 
           <div

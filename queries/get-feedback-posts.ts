@@ -12,13 +12,24 @@ export const getFeedbackPostsQuery = async ({
   try {
     let query = db
       .selectFrom("feedback")
-      .selectAll()
-      .orderBy("createdAt", "desc")
+      .innerJoin("user", "feedback.authorId", "user.id")
+      .select([
+        "feedback.id",
+        "feedback.createdAt",
+        "feedback.updatedAt",
+        "feedback.orgId",
+        "feedback.authorId",
+        "feedback.category",
+        "feedback.title",
+        "feedback.description",
+        "user.name as authorName",
+      ])
+      .orderBy("feedback.createdAt", "desc")
       .limit(limit + 1);
 
     // Apply the cursor filter if we have one
     if (cursor) {
-      query = query.where("createdAt", "<", new Date(cursor));
+      query = query.where("feedback.createdAt", "<", new Date(cursor));
     }
 
     const feedbackPosts = await query.execute();
