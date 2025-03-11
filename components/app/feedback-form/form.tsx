@@ -84,7 +84,7 @@ export function FeedbackForm({
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
-            className={cn("min-h-32 shadow-none")}
+            className={cn("min-h-32 shadow-sm")}
             showToolbar={true}
             autofocus={true}
           />

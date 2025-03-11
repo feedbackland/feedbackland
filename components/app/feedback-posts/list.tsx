@@ -50,17 +50,17 @@ export function FeedbackPostsList() {
   const posts = data?.pages.flatMap((page) => page.feedbackPosts) || [];
 
   return (
-    <div className="mt-16 space-y-6">
+    <div className="mt-12">
       {posts.length === 0 ? (
         <p className="text-gray-500">No posts found</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-10">
           {posts.map((post) => (
             <FeedbackPost
               key={post.id}
               title={post.title}
               description={post.description}
-              authorId={post.authorId}
+              category={post.category || "other"}
               authorName={post.authorName || "unknown"}
               createdAt={post.createdAt}
             />
