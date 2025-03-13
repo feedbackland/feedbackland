@@ -3,9 +3,13 @@
 import { db } from "@/db/db";
 
 export const getFeedbackPostsQuery = async ({
+  orgId,
+  userId,
   limit,
   cursor,
 }: {
+  orgId: string;
+  userId: string | null;
   limit: number;
   cursor: string | null | undefined;
 }) => {
@@ -13,6 +17,12 @@ export const getFeedbackPostsQuery = async ({
     let query = db
       .selectFrom("feedback")
       .innerJoin("user", "feedback.authorId", "user.id")
+      .leftJoin("user_upvote", (join) =>
+        join
+          .onRef("feedback.id", "=", "user_upvote.postId")
+          .on("user_upvote.userId", "=", userId),
+      )
+      .where("feedback.orgId", "=", orgId)
       .select([
         "feedback.id",
         "feedback.createdAt",
@@ -22,7 +32,18 @@ export const getFeedbackPostsQuery = async ({
         "feedback.category",
         "feedback.title",
         "feedback.description",
+        "feedback.upvotes",
         "user.name as authorName",
+      ])
+      .select([
+        (eb) =>
+          eb
+            .case()
+            .when("user_upvote.userId", "=", userId)
+            .then(true)
+            .else(false)
+            .end()
+            .as("hasUserUpvote"),
       ])
       .orderBy("feedback.createdAt", "desc")
       .limit(limit + 1);

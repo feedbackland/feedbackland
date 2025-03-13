@@ -9,7 +9,7 @@ export default async function OrgLayout({
   return (
     <>
       <ClaimOrgBanner />
-      <div className="m-auto mt-10 flex w-full max-w-[700px] grow flex-col">
+      <div className="m-auto mt-10 flex w-full max-w-[600px] grow flex-col">
         <PlatformHeader />
         {children}
       </div>

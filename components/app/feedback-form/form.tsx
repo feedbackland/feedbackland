@@ -18,7 +18,7 @@ export function FeedbackForm({
   onClose,
   onSuccess,
 }: {
-  onClose: () => void;
+  onClose?: () => void;
   onSuccess?: () => void;
 }) {
   const trpc = useTRPC();
@@ -40,7 +40,6 @@ export function FeedbackForm({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getFeedbackPostsQueryKey });
         setValue("");
-        onClose();
         onSuccess?.();
       },
       onError: () => {

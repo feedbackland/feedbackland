@@ -61,7 +61,7 @@ const userProcedureMiddleware = publicProcedureMiddleware.unstable_pipe(
     if (!ctx.user) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "You must be logged in.",
+        message: "You must be logged in",
       });
     }
 

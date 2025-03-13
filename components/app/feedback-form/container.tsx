@@ -4,12 +4,8 @@ import { useState } from "react";
 import { FeedbackForm } from "@/components/app/feedback-form/form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 
-export function FeedbackFormContainer({
-  onSuccess,
-}: {
-  onSuccess?: () => void;
-}) {
-  const [isFormOpen, setIsFormOpen] = useState(true);
+export function FeedbackFormContainer() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
     <>
@@ -18,7 +14,7 @@ export function FeedbackFormContainer({
       ) : (
         <FeedbackForm
           onClose={() => setIsFormOpen(false)}
-          onSuccess={onSuccess}
+          onSuccess={() => setIsFormOpen(false)}
         />
       )}
     </>

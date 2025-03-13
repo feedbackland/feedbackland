@@ -2,13 +2,13 @@
 
 import "@iframe-resizer/child";
 import { FeedbackFormContainer } from "@/components/app/feedback-form/container";
-import { FeedbackPostsList } from "@/components/app/feedback-posts/list";
+import { FeedbackPosts } from "@/components/app/feedback-posts";
 
 export default function OrgPage() {
   return (
     <div className="">
       <FeedbackFormContainer />
-      <FeedbackPostsList />
+      <FeedbackPosts />
     </div>
   );
 }

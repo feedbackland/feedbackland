@@ -337,6 +337,7 @@ export interface Feedback {
   orgId: string;
   title: string;
   updatedAt: Generated<Timestamp>;
+  upvotes: Generated<Numeric>;
 }
 
 export interface Org {
@@ -527,6 +528,12 @@ export interface UserOrg {
   userId: string;
 }
 
+export interface UserUpvote {
+  createdAt: Generated<Timestamp>;
+  postId: string;
+  userId: string;
+}
+
 export interface VaultDecryptedSecrets {
   created_at: Timestamp | null;
   decrypted_secret: string | null;
@@ -587,6 +594,7 @@ export interface DB {
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
   user: User;
   user_org: UserOrg;
+  user_upvote: UserUpvote;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
 }

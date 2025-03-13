@@ -25,7 +25,9 @@ export function ClaimOrgBanner() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
-  const org = useOrg();
+  const {
+    query: { data: org },
+  } = useOrg();
   const orgId = org?.id;
   const isOrgClaimed = org?.isClaimed;
   const isSignedIn = !!session;
@@ -65,7 +67,7 @@ export function ClaimOrgBanner() {
             hideBanner && "hidden",
           )}
         >
-          <div className="flex w-full max-w-[700px] items-center justify-between">
+          <div className="flex w-full max-w-[600px] items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="size-4 text-primary-foreground" />
               <span className="text-sm text-primary-foreground">
