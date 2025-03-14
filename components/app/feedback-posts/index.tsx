@@ -55,8 +55,6 @@ export function FeedbackPosts() {
 
   const posts = data?.pages.flatMap((page) => page.feedbackPosts) || [];
 
-  console.log("posts", posts);
-
   return (
     <div className="mt-12">
       {posts.length === 0 ? (

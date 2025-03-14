@@ -23,9 +23,6 @@ export function UpvoteButton({
 
   const upvote = useMutation(
     trpc.upvoteFeedbackPost.mutationOptions({
-      // onSuccess: () => {
-      //   queryClient.invalidateQueries({ queryKey: feedbackPost.queryKey });
-      // },
       onSettled: async () => {
         return await queryClient.invalidateQueries({
           queryKey: feedbackPost.queryKey,
@@ -63,7 +60,7 @@ export function UpvoteButton({
     <Button
       variant={hasUserUpvote ? "default" : "outline"}
       size="sm"
-      className="h-fit px-1.5 py-1 [&>span]:gap-1"
+      className="h-fit px-2.5 py-1 [&>span]:gap-1"
       onClick={handleUpvote}
     >
       <ArrowBigUp

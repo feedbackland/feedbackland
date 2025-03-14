@@ -27,7 +27,7 @@ function InnerFeedbackPost({
   hasUserUpvote: boolean;
 }) {
   return (
-    <div className="flex flex-col items-stretch space-y-2">
+    <div className="flex flex-col items-stretch space-y-1">
       <div className="flex justify-between">
         <div className="flex flex-col space-y-0">
           <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
@@ -41,7 +41,7 @@ function InnerFeedbackPost({
 
       <div className="text-sm">{parse(DOMPurify.sanitize(description))}</div>
 
-      <div className="flex gap-3 pt-0.5">
+      <div className="flex gap-3.5 pt-1.5">
         <UpvoteButton
           postId={id}
           upvoteCount={upvoteCount}
