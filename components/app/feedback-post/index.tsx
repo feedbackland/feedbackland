@@ -27,15 +27,15 @@ function InnerFeedbackPost({
   hasUserUpvote: boolean;
 }) {
   return (
-    <div className="flex flex-col items-stretch space-y-2.5">
+    <div className="flex flex-col items-stretch space-y-2">
       <div className="flex justify-between">
         <div className="flex flex-col space-y-0">
-          <h3 className="text-lg font-semibold">{title}</h3>
           <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
             <span className="capitalize">{category}</span>
             <span>•</span>
             <span>{timeAgo.format(createdAt)}</span>
           </div>
+          <h3 className="text-lg font-semibold">{title}</h3>
         </div>
       </div>
 

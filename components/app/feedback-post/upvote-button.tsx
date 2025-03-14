@@ -23,8 +23,13 @@ export function UpvoteButton({
 
   const upvote = useMutation(
     trpc.upvoteFeedbackPost.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: feedbackPost.queryKey });
+      // onSuccess: () => {
+      //   queryClient.invalidateQueries({ queryKey: feedbackPost.queryKey });
+      // },
+      onSettled: async () => {
+        return await queryClient.invalidateQueries({
+          queryKey: feedbackPost.queryKey,
+        });
       },
     }),
   );
@@ -39,21 +44,33 @@ export function UpvoteButton({
     }
   };
 
-  const hasUserUpvote =
+  let hasUserUpvote =
     feedbackPost?.query?.data?.hasUserUpvote !== undefined
       ? feedbackPost?.query?.data?.hasUserUpvote
       : props.hasUserUpvote;
 
-  const upvoteCount = feedbackPost?.query?.data?.upvotes || props.upvoteCount;
+  let upvoteCount = parseInt(
+    feedbackPost?.query?.data?.upvotes || props.upvoteCount,
+    10,
+  );
+
+  if (upvote.isPending) {
+    hasUserUpvote = !hasUserUpvote;
+    upvoteCount = hasUserUpvote ? upvoteCount + 1 : upvoteCount - 1;
+  }
 
   return (
     <Button
       variant={hasUserUpvote ? "default" : "outline"}
       size="sm"
-      className=""
+      className="h-fit px-1.5 py-1 [&>span]:gap-1"
       onClick={handleUpvote}
     >
-      <ArrowBigUp className="!size-[19px]" strokeWidth={1.25} />
+      <ArrowBigUp
+        className="!size-[1.1rem]"
+        strokeWidth={1.25}
+        fill={hasUserUpvote ? "white" : "none"}
+      />
       <span className="text-xs">{upvoteCount}</span>
     </Button>
   );
