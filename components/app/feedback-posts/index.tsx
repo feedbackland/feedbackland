@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
 import { FeedbackPost } from "@/components/app/feedback-post";
 import { Spinner } from "@/components/ui/spinner";
+import { SearchInput } from "@/components/ui/search-input";
+import { useSearchFeedbackPosts } from "@/hooks/useSearchFeedbackPosts";
 
 export function FeedbackPosts() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const [searchValue, setSearchValue] = useState("");
 
   const {
     query: {
@@ -19,6 +23,15 @@ export function FeedbackPosts() {
       isError,
     },
   } = useFeedbackPosts();
+
+  const zolg = useSearchFeedbackPosts({
+    searchValue,
+    enabled: searchValue?.length > 0,
+  });
+
+  console.log("searchValue", searchValue);
+  console.log("enabled", searchValue?.length > 0);
+  console.log("data", zolg?.query?.data);
 
   useEffect(() => {
     if (loadMoreRef.current) {
@@ -55,12 +68,17 @@ export function FeedbackPosts() {
 
   const posts = data?.pages.flatMap((page) => page.feedbackPosts) || [];
 
+  const handleSearch = (value: string) => {
+    setSearchValue(value || "");
+  };
+
   return (
     <div className="mt-12">
       {posts.length === 0 ? (
         <p className="text-muted-foreground">No posts found</p>
       ) : (
         <div className="space-y-10">
+          <SearchInput onDebouncedChange={handleSearch} delay={500} />
           {posts.map((post) => (
             <FeedbackPost
               key={post.id}

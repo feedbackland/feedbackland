@@ -333,6 +333,7 @@ export interface Feedback {
   category: string | null;
   createdAt: Generated<Timestamp>;
   description: string;
+  embedding: string | null;
   id: Generated<string>;
   orgId: string;
   title: string;

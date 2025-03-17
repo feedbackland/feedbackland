@@ -18,7 +18,17 @@ export const getFeedbackPost = async ({
           .on("user_upvote.userId", "=", userId),
       )
       .where("feedback.id", "=", postId)
-      .selectAll("feedback")
+      .select([
+        "feedback.id",
+        "feedback.createdAt",
+        "feedback.updatedAt",
+        "feedback.orgId",
+        "feedback.authorId",
+        "feedback.category",
+        "feedback.title",
+        "feedback.description",
+        "feedback.upvotes",
+      ])
       .select([
         (eb) =>
           eb

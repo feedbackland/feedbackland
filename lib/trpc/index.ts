@@ -5,6 +5,10 @@ import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
 import { getFeedbackPost } from "@/queries/get-feedback-post";
+import {
+  searchFeedbackPosts,
+  searchFeedbackPostsQuery,
+} from "@/queries/search-feedback-posts";
 
 export const appRouter = router({
   getOrg: publicProcedure.query(async ({ ctx }) => {
@@ -82,6 +86,28 @@ export const appRouter = router({
       } catch (error) {
         throw error;
       }
+    }),
+  searchFeedbackPosts: publicProcedure
+    .input(
+      z.object({
+        searchValue: z.string().trim(),
+      }),
+    )
+    .query(async ({ input: { searchValue }, ctx }) => {
+      const orgId = ctx?.org?.id;
+
+      if (!orgId) {
+        throw new Error("No orgId");
+      }
+
+      const result = await searchFeedbackPostsQuery({
+        orgId,
+        searchValue,
+      });
+
+      console.log("trpc searchFeedbackPosts result", result);
+
+      return result;
     }),
   getFeedbackPosts: publicProcedure
     .input(
