@@ -103,15 +103,23 @@ export function FeedbackPosts() {
             setOrderBy(value as OrderBy);
           }}
         >
-          <SelectTrigger className="pl-1 pr-2 text-sm">
-            <span className="ml-1.5 text-muted-foreground">Sort by:</span>
-            <SelectValue />
+          <SelectTrigger className="flex items-center pl-1 pr-2 text-xs shadow-sm">
+            <span className="ml-1.5 text-xs text-muted-foreground">
+              Sort by:
+            </span>
+            <SelectValue className="" />
           </SelectTrigger>
           <SelectContent align="end">
             <SelectGroup>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="upvotes">Most upvotes</SelectItem>
-              <SelectItem value="comments">Most comments</SelectItem>
+              <SelectItem value="newest" className="text-xs">
+                Newest
+              </SelectItem>
+              <SelectItem value="upvotes" className="text-xs">
+                Most upvotes
+              </SelectItem>
+              <SelectItem value="comments" className="text-xs">
+                Most comments
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

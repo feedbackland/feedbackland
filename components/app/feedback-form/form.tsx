@@ -24,11 +24,15 @@ export function FeedbackForm({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts({});
+  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts({
+    enabled: true,
+    orderBy: "newest",
+  });
 
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const onChange = (value: string) => {
     setErrormessage("");
@@ -101,31 +105,29 @@ export function FeedbackForm({
             placeholder={`Share your feedback`}
             value={value}
             onChange={onChange}
-            className={cn("min-h-[7.1rem] shadow-sm")}
+            className={cn(
+              "min-h-[7.7rem] shadow-sm",
+              isFocused && "ring-1 ring-ring",
+            )}
             showToolbar={true}
             autofocus={true}
+            onFocus={() => {
+              setIsFocused(true);
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+            }}
           />
           <div className="absolute bottom-2.5 right-2.5 flex flex-row-reverse justify-end gap-3">
-            {value?.length > 0 && (
-              <Button
-                type="submit"
-                size="icon"
-                loading={saveFeedback.isPending}
-                onClick={() => onSubmit(session)}
-                className="order-1 size-auto p-2"
-              >
-                <SendIcon className="size-3" />
-                {/* Submit */}
-              </Button>
-            )}
-            {/* <Button
-              size="sm"
-              variant="secondary"
-              onClick={onClose}
-              className="order-2"
+            <Button
+              type="submit"
+              size="icon"
+              loading={saveFeedback.isPending}
+              onClick={() => onSubmit(session)}
+              className="order-1 size-auto p-2"
             >
-              Cancel
-            </Button> */}
+              <SendIcon className="size-3" />
+            </Button>
           </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}
