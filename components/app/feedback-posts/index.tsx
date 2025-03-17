@@ -11,20 +11,21 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderBy } from "@/lib/typings";
 
 export function FeedbackPosts() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const [searchValue, setSearchValue] = useState("");
-  const [selectedSort, setSelectedSort] = useState<string>("new");
-  const [selectedCategory, setSelectedCategory] = useState("apple");
+  const [orderBy, setOrderBy] = useState<OrderBy>("newest");
 
   const isSearching = !!(searchValue?.length > 0);
+
+  console.log("FeedbackPosts orderBy", orderBy);
 
   const {
     query: {
@@ -32,16 +33,14 @@ export function FeedbackPosts() {
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
-      isLoading: isPostsLoading,
       isPending: isPostsPending,
       isError: isPostsError,
     },
-  } = useFeedbackPosts({ enabled: !isSearching });
+  } = useFeedbackPosts({ enabled: !isSearching, orderBy });
 
   const {
     query: {
       data: searchData,
-      isLoading: isSearchLoading,
       isPending: isSearchPending,
       isError: isSearchError,
     },
@@ -50,18 +49,12 @@ export function FeedbackPosts() {
     enabled: isSearching,
   });
 
-  // const data = isSearching ? searchData : postsData;
   const posts =
     (isSearching
       ? searchData
       : postsData?.pages.flatMap((page) => page.feedbackPosts)) || [];
-  const isLoading = isSearching ? isSearchLoading : isPostsLoading;
   const isPending = isSearching ? isSearchPending : isPostsPending;
   const isError = isSearching ? isSearchError : isPostsError;
-
-  // console.log("searchValue", searchValue);
-  // console.log("enabled", searchValue?.length > 0);
-  // console.log("data", zolg?.query?.data);
 
   useEffect(() => {
     if (loadMoreRef.current) {
@@ -105,18 +98,19 @@ export function FeedbackPosts() {
       <div className="relative flex items-center justify-between">
         <SearchInput onDebouncedChange={handleSearch} delay={500} />
         <Select
-          value={selectedSort}
+          value={orderBy}
           onValueChange={(value) => {
-            setSelectedSort(value);
+            setOrderBy(value as OrderBy);
           }}
         >
-          <SelectTrigger className="">
+          <SelectTrigger className="pl-1 pr-2 text-sm">
+            <span className="ml-1.5 text-muted-foreground">Sort by:</span>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent align="start">
+          <SelectContent align="end">
             <SelectGroup>
-              <SelectItem value="new">Newest</SelectItem>
-              <SelectItem value="upvotes">Most upvoted</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="upvotes">Most upvotes</SelectItem>
               <SelectItem value="comments">Most comments</SelectItem>
             </SelectGroup>
           </SelectContent>

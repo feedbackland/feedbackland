@@ -17,7 +17,7 @@ export function FeedbackFormBanner({
       )}
       onClick={onClick}
     >
-      Share your feature request, bug report, or any other feedback...
+      Share your feedback
     </div>
   );
 }

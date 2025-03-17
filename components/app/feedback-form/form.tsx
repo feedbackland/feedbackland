@@ -6,7 +6,7 @@ import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
@@ -66,6 +66,21 @@ export function FeedbackForm({
     });
   };
 
+  const handleEscapeKeyPress = useCallback((event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      setValue("");
+      onClose?.();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleEscapeKeyPress);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKeyPress);
+    };
+  }, [handleEscapeKeyPress]);
+
   return (
     <>
       <SignUpInDialog
@@ -80,7 +95,7 @@ export function FeedbackForm({
       <div className="flex flex-col gap-3">
         <div className="relative">
           <Tiptap
-            placeholder={`Share your feature request, bug report, or any other feedback...`}
+            placeholder={`Share your feedback`}
             value={value}
             onChange={onChange}
             className={cn("min-h-[7.1rem] shadow-sm")}
@@ -88,16 +103,18 @@ export function FeedbackForm({
             autofocus={true}
           />
           <div className="absolute bottom-2.5 right-2.5 flex flex-row-reverse justify-end gap-3">
-            <Button
-              type="submit"
-              size="icon"
-              loading={saveFeedback.isPending}
-              onClick={() => onSubmit(session)}
-              className="order-1 size-auto p-2"
-            >
-              <SendIcon className="size-3" />
-              {/* Submit */}
-            </Button>
+            {value?.length > 0 && (
+              <Button
+                type="submit"
+                size="icon"
+                loading={saveFeedback.isPending}
+                onClick={() => onSubmit(session)}
+                className="order-1 size-auto p-2"
+              >
+                <SendIcon className="size-3" />
+                {/* Submit */}
+              </Button>
+            )}
             {/* <Button
               size="sm"
               variant="secondary"

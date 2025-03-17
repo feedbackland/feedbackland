@@ -5,10 +5,8 @@ import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
 import { getFeedbackPost } from "@/queries/get-feedback-post";
-import {
-  searchFeedbackPosts,
-  searchFeedbackPostsQuery,
-} from "@/queries/search-feedback-posts";
+import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
+import { OrderBy } from "../typings";
 
 export const appRouter = router({
   getOrg: publicProcedure.query(async ({ ctx }) => {
@@ -95,6 +93,7 @@ export const appRouter = router({
     )
     .query(async ({ input: { searchValue }, ctx }) => {
       const orgId = ctx?.org?.id;
+      const userId = ctx?.user?.uid || null;
 
       if (!orgId) {
         throw new Error("No orgId");
@@ -102,10 +101,9 @@ export const appRouter = router({
 
       const result = await searchFeedbackPostsQuery({
         orgId,
+        userId,
         searchValue,
       });
-
-      console.log("trpc searchFeedbackPosts result", result);
 
       return result;
     }),
@@ -114,11 +112,14 @@ export const appRouter = router({
       z.object({
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().datetime({ offset: true }).nullish(),
+        orderBy: z.enum(["newest", "upvotes", "comments"]),
       }),
     )
-    .query(async ({ input: { limit, cursor }, ctx }) => {
+    .query(async ({ input: { limit, cursor, orderBy }, ctx }) => {
       const orgId = ctx?.org?.id;
       const userId = ctx?.user?.uid || null;
+
+      console.log("getFeedbackPosts orderBy", orderBy);
 
       if (!orgId) {
         throw new Error("No orgId");
@@ -129,6 +130,7 @@ export const appRouter = router({
         userId,
         limit,
         cursor,
+        orderBy,
       });
 
       return {

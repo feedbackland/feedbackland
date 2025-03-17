@@ -1,18 +1,23 @@
 "server-only";
 
 import { db } from "@/db/db";
+import { OrderBy } from "@/lib/typings";
 
 export const getFeedbackPostsQuery = async ({
   orgId,
   userId,
   limit,
   cursor,
+  orderBy,
 }: {
   orgId: string;
   userId: string | null;
   limit: number;
   cursor: string | null | undefined;
+  orderBy: OrderBy;
 }) => {
+  console.log("getFeedbackPostsQuery orderBy", orderBy);
+
   try {
     let query = db
       .selectFrom("feedback")
@@ -43,10 +48,20 @@ export const getFeedbackPostsQuery = async ({
             .end()
             .as("hasUserUpvote"),
       ])
-      .orderBy("feedback.createdAt", "desc")
       .limit(limit + 1);
 
-    // Apply the cursor filter if we have one
+    if (orderBy === "newest") {
+      query = query.orderBy("feedback.createdAt", "desc");
+    }
+
+    if (orderBy === "upvotes") {
+      query = query.orderBy("feedback.upvotes", "desc");
+    }
+
+    // if (orderBy === 'comments') {
+    //   query = query.orderBy("feedback.upvotes", "desc");
+    // }
+
     if (cursor) {
       query = query.where("feedback.createdAt", "<", new Date(cursor));
     }
