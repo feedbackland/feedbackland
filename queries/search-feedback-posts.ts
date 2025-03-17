@@ -6,9 +6,11 @@ import { cosineDistance } from "pgvector/kysely";
 
 export const searchFeedbackPostsQuery = async ({
   orgId,
+  userId,
   searchValue,
 }: {
   orgId: string;
+  userId: string | null;
   searchValue: string;
 }) => {
   const {
@@ -17,15 +19,50 @@ export const searchFeedbackPostsQuery = async ({
 
   const distance = cosineDistance("embedding", values);
 
-  const results = await db
+  const results = db
     .selectFrom("feedback")
-    .select(["id", "title", "description", "createdAt"])
+    .leftJoin("user_upvote", (join) =>
+      join
+        .onRef("feedback.id", "=", "user_upvote.postId")
+        .on("user_upvote.userId", "=", userId),
+    )
+    .where("feedback.orgId", "=", orgId)
+    .select([
+      "feedback.id",
+      "feedback.createdAt",
+      "feedback.updatedAt",
+      "feedback.orgId",
+      "feedback.authorId",
+      "feedback.category",
+      "feedback.title",
+      "feedback.description",
+      "feedback.upvotes",
+    ])
+    .select([
+      (eb) =>
+        eb
+          .case()
+          .when("user_upvote.userId", "=", userId)
+          .then(true)
+          .else(false)
+          .end()
+          .as("hasUserUpvote"),
+    ])
     .select([() => distance.as("distance")])
-    .where("orgId", "=", orgId)
     .where(distance, "<", 0.5)
     .orderBy(distance)
     .limit(10)
     .execute();
+
+  // const results = await db
+  //   .selectFrom("feedback")
+  //   .select(["id", "title", "description", "createdAt"])
+  //   .select([() => distance.as("distance")])
+  //   .where("orgId", "=", orgId)
+  //   .where(distance, "<", 0.5)
+  //   .orderBy(distance)
+  //   .limit(10)
+  //   .execute();
 
   return results;
 };

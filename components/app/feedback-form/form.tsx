@@ -24,7 +24,7 @@ export function FeedbackForm({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts();
+  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts({});
 
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
@@ -83,29 +83,29 @@ export function FeedbackForm({
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
-            className={cn("min-h-32 shadow-sm")}
+            className={cn("min-h-[7.1rem] shadow-sm")}
             showToolbar={true}
             autofocus={true}
           />
-          <div className="absolute bottom-2 right-2 flex flex-row-reverse justify-end gap-3">
+          <div className="absolute bottom-2.5 right-2.5 flex flex-row-reverse justify-end gap-3">
             <Button
               type="submit"
-              size="sm"
+              size="icon"
               loading={saveFeedback.isPending}
               onClick={() => onSubmit(session)}
-              className="order-1"
+              className="order-1 size-auto p-2"
             >
               <SendIcon className="size-3" />
-              Submit
+              {/* Submit */}
             </Button>
-            <Button
+            {/* <Button
               size="sm"
               variant="secondary"
               onClick={onClose}
               className="order-2"
             >
               Cancel
-            </Button>
+            </Button> */}
           </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}

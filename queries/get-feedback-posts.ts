@@ -16,7 +16,6 @@ export const getFeedbackPostsQuery = async ({
   try {
     let query = db
       .selectFrom("feedback")
-      .innerJoin("user", "feedback.authorId", "user.id")
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("feedback.id", "=", "user_upvote.postId")
@@ -33,7 +32,6 @@ export const getFeedbackPostsQuery = async ({
         "feedback.title",
         "feedback.description",
         "feedback.upvotes",
-        "user.name as authorName",
       ])
       .select([
         (eb) =>

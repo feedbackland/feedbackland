@@ -21,7 +21,6 @@ function InnerFeedbackPost({
   title: string;
   description: string;
   category: string;
-  authorName: string;
   createdAt: Date;
   upvoteCount: string;
   hasUserUpvote: boolean;

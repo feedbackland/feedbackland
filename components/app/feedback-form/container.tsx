@@ -5,7 +5,7 @@ import { FeedbackForm } from "@/components/app/feedback-form/form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 
 export function FeedbackFormContainer() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(true);
 
   return (
     <>
