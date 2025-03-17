@@ -45,8 +45,9 @@ export const SearchInput: React.FC<InputProps> = ({
   return (
     <div
       className={cn(
-        "relative w-full max-w-56 bg-background",
-        isActive && "absolute left-0 right-0 top-0 z-10 max-w-full",
+        "relative w-full max-w-60 bg-background",
+        // isActive && "absolute left-0 right-0 top-0 z-10 max-w-full",
+        // isActive && "max-w-64",
       )}
     >
       <SearchIcon className="absolute left-3 top-2.5 size-4" />

@@ -66,12 +66,15 @@ export function FeedbackForm({
     });
   };
 
-  const handleEscapeKeyPress = useCallback((event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      setValue("");
-      onClose?.();
-    }
-  }, []);
+  const handleEscapeKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setValue("");
+        onClose?.();
+      }
+    },
+    [onClose],
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", handleEscapeKeyPress);
