@@ -1,3 +1,6 @@
+@reference "tailwindcss";
+@reference "../../../../../app/globals.css";
+
 .minimal-tiptap-editor .ProseMirror ol {
   @apply list-decimal;
 }

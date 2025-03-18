@@ -34,7 +34,7 @@ export const CopyButton = ({
         className,
       )}
     >
-      {isCopied ? <Check className="!size-3" /> : <Copy className="!size-3" />}
+      {isCopied ? <Check className="size-3!" /> : <Copy className="size-3!" />}
     </Button>
   );
 };

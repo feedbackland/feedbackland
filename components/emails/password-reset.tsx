@@ -46,7 +46,7 @@ export const ResetPasswordEmail = ({ url }: { url: string }) => {
             </Text>
             <Section className="my-[32px] text-center">
               <Button
-                className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                className="rounded-md bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={url}
               >
                 Reset password

@@ -19,7 +19,7 @@ export function Success({
         className,
       )}
     >
-      <CheckCircle2 className="!dark:text-green-400 size-4 !text-green-800" />
+      <CheckCircle2 className="!dark:text-green-400 size-4 text-green-800!" />
       <AlertTitle className="mt-1 text-green-800 dark:text-green-400">
         {title}
       </AlertTitle>

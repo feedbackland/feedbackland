@@ -9,20 +9,11 @@ const eslintConfig = [
     extends: [
       "next/core-web-vitals",
       "next/typescript",
-      "plugin:tailwindcss/recommended",
     ],
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "@next/next/no-img-element": "warn",
-      "tailwindcss/no-unnecessary-arbitrary-value": "warn",
-      "tailwindcss/enforces-shorthand": "warn",
-      "tailwindcss/no-custom-classname": [
-        "warn",
-        {
-          whitelist: ["toaster", "destructive"],
-        },
-      ],
     },
   }),
 ];

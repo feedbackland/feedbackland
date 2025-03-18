@@ -70,7 +70,7 @@ export const SearchInput: React.FC<InputProps> = ({
         size="icon"
         variant="link"
         className={cn(
-          "!absolute right-0.5 top-[0.2rem] hidden text-muted-foreground hover:text-primary",
+          "absolute! right-0.5 top-[0.2rem] hidden text-muted-foreground hover:text-primary",
           inputValue?.length > 0 && "block",
         )}
         onClick={reset}

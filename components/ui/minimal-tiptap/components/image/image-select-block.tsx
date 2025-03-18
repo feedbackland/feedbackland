@@ -39,7 +39,7 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
         aria-label="Image"
         onClick={handleClick}
       >
-        <ImageIcon className="!size-3.5" />
+        <ImageIcon className="size-3.5!" />
       </ToolbarButton>
       <input
         type="file"

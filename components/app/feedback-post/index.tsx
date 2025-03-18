@@ -47,7 +47,7 @@ function InnerFeedbackPost({
           hasUserUpvote={hasUserUpvote}
         />
         <Button variant="secondary" size="sm" className="h-[26px] px-2 py-1.5">
-          <MessageSquare className="!size-3" />
+          <MessageSquare className="size-3!" />
           <span className="text-xs">0</span>
         </Button>
       </div>

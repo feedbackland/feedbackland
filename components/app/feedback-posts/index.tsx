@@ -106,7 +106,7 @@ export function FeedbackPosts() {
           value={orderBy}
           onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="flex items-center pl-1 pr-2 text-sm shadow-sm">
+          <SelectTrigger className="flex items-center pl-1 pr-2 text-sm shadow-xs">
             <span className="ml-1.5 text-muted-foreground">Sort by:</span>
             <SelectValue />
           </SelectTrigger>

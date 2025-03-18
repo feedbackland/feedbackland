@@ -19,7 +19,7 @@ export function Error({
         className,
       )}
     >
-      <TriangleAlert className="!dark:text-red-400 size-4 !text-red-700" />
+      <TriangleAlert className="!dark:text-red-400 size-4 text-red-700!" />
       <AlertTitle className="mt-1 text-red-700 dark:text-red-400">
         {title}
       </AlertTitle>

@@ -64,7 +64,7 @@ export function UpvoteButton({
       onClick={handleUpvote}
     >
       <ArrowBigUp
-        className="!size-[1.1rem]"
+        className="size-[1.1rem]!"
         strokeWidth={1.25}
         fill={hasUserUpvote ? "white" : "none"}
       />

@@ -10,7 +10,7 @@ interface CodeProps {
   className?: React.ComponentProps<"div">["className"];
 }
 
-const tabsTriggerClassnames = `inline-flex items-center justify-center whitespace-nowrap rounded-none border-b border-transparent bg-transparent p-0 pb-2 font-mono text-xs font-medium text-zinc-400 ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-b-white data-[state=active]:bg-transparent data-[state=active]:text-primary-foreground data-[state=active]:shadow`;
+const tabsTriggerClassnames = `inline-flex items-center justify-center whitespace-nowrap rounded-none border-b border-transparent bg-transparent p-0 pb-2 font-mono text-xs font-medium text-zinc-400 ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-b-white data-[state=active]:bg-transparent data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm`;
 
 const tabsContentClassnames = `border-t border-border/20 px-4 py-3 font-mono text-xs`;
 

@@ -108,7 +108,7 @@ export function FeedbackForm({
             value={value}
             onChange={onChange}
             className={cn(
-              "min-h-[7.7rem] shadow-sm",
+              "min-h-[7.7rem] shadow-xs",
               isFocused && "ring-1 ring-ring",
             )}
             showToolbar={true}

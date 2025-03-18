@@ -19,7 +19,7 @@ export function Info({
         className,
       )}
     >
-      <BadgeInfo className="!dark:text-blue-400 size-4 !text-blue-800" />
+      <BadgeInfo className="!dark:text-blue-400 size-4 text-blue-800!" />
       <AlertTitle className="mt-1 text-blue-800 dark:text-blue-400">
         {title}
       </AlertTitle>
