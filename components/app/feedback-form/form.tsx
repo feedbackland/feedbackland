@@ -88,6 +88,8 @@ export function FeedbackForm({
     };
   }, [handleEscapeKeyPress]);
 
+  const hasText = value?.length > 0;
+
   return (
     <>
       <SignUpInDialog
@@ -124,7 +126,8 @@ export function FeedbackForm({
               size="icon"
               loading={saveFeedback.isPending}
               onClick={() => onSubmit(session)}
-              className="order-1 size-auto p-2"
+              className="size-auto p-2"
+              disabled={!hasText || saveFeedback.isPending}
             >
               <SendIcon className="size-3" />
             </Button>

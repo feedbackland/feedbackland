@@ -58,9 +58,9 @@ export function UpvoteButton({
 
   return (
     <Button
-      variant={hasUserUpvote ? "default" : "outline"}
+      variant={hasUserUpvote ? "default" : "secondary"}
       size="sm"
-      className="h-fit px-2.5 py-1 [&>span]:gap-1"
+      className="h-[26px] px-2.5 py-1 [&>span]:gap-1"
       onClick={handleUpvote}
     >
       <ArrowBigUp

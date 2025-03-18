@@ -40,13 +40,13 @@ function InnerFeedbackPost({
 
       <div className="text-sm">{parse(DOMPurify.sanitize(description))}</div>
 
-      <div className="flex gap-3.5 pt-1.5">
+      <div className="flex gap-4 pt-1.5">
         <UpvoteButton
           postId={id}
           upvoteCount={upvoteCount}
           hasUserUpvote={hasUserUpvote}
         />
-        <Button variant="ghost" size="sm" className="h-fit px-2 py-1.5">
+        <Button variant="secondary" size="sm" className="h-[26px] px-2 py-1.5">
           <MessageSquare className="!size-3" />
           <span className="text-xs">0</span>
         </Button>

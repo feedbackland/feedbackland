@@ -48,18 +48,17 @@ export const SearchInput: React.FC<InputProps> = ({
     <div
       className={cn(
         "relative w-full max-w-60 bg-background",
-        isActive && "absolute left-0 z-10 max-w-full",
+        isActive && "absolute left-0 right-0 top-0 z-10 max-w-full",
         className,
       )}
     >
-      <SearchIcon className="absolute left-3 top-[0.65rem] size-3.5" />
-
+      <SearchIcon className="absolute left-3 top-2.5 size-4" />
       <Input
         type="text"
         placeholder="Search..."
         value={inputValue}
         onChange={handleChange}
-        className={cn("h-[36px] w-full px-9 py-0 !text-xs")}
+        className={cn("h-9 w-full px-9 py-0")}
         onFocus={() => {
           setIsFocused(true);
         }}
@@ -67,17 +66,16 @@ export const SearchInput: React.FC<InputProps> = ({
           setIsFocused(false);
         }}
       />
-
       <Button
         size="icon"
         variant="link"
         className={cn(
-          "!absolute right-0.5 top-0 hidden text-muted-foreground hover:text-primary",
+          "!absolute right-0.5 top-[0.2rem] hidden text-muted-foreground hover:text-primary",
           inputValue?.length > 0 && "block",
         )}
         onClick={reset}
       >
-        <XIcon className="size-3" />
+        <XIcon className="size-4" />
       </Button>
     </div>
   );

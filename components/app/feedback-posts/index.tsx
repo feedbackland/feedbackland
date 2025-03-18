@@ -23,11 +23,10 @@ export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("newest");
 
-  const isSearching = !!(searchValue?.length > 0);
-
-  console.log("FeedbackPosts orderBy", orderBy);
+  const isSearchActive = !!(searchValue?.length > 0);
 
   const {
+    queryKey,
     query: {
       data: postsData,
       fetchNextPage,
@@ -36,7 +35,9 @@ export function FeedbackPosts() {
       isPending: isPostsPending,
       isError: isPostsError,
     },
-  } = useFeedbackPosts({ enabled: !isSearching, orderBy });
+  } = useFeedbackPosts({ enabled: !isSearchActive, orderBy });
+
+  console.log(queryKey);
 
   const {
     query: {
@@ -46,15 +47,15 @@ export function FeedbackPosts() {
     },
   } = useSearchFeedbackPosts({
     searchValue,
-    enabled: isSearching,
+    enabled: isSearchActive,
   });
 
   const posts =
-    (isSearching
+    (isSearchActive
       ? searchData
       : postsData?.pages.flatMap((page) => page.feedbackPosts)) || [];
-  const isPending = isSearching ? isSearchPending : isPostsPending;
-  const isError = isSearching ? isSearchError : isPostsError;
+  const isPending = isSearchActive ? isSearchPending : isPostsPending;
+  const isError = isSearchActive ? isSearchError : isPostsError;
 
   useEffect(() => {
     if (loadMoreRef.current) {
@@ -67,67 +68,71 @@ export function FeedbackPosts() {
       observerRef.current.observe(loadMoreRef.current);
     }
 
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
+    return () => observerRef?.current?.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
-
-  if (isPending) {
-    return (
-      <div className="mt-10 flex flex-col items-center justify-center space-y-2">
-        <Spinner size="small" />
-        <span className="text-sm">Loading posts...</span>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="py-4 text-center text-red-500">Error loading posts</div>
-    );
-  }
 
   const handleSearch = (value: string) => {
     setSearchValue(value || "");
   };
 
-  return (
-    <div className="mt-12 space-y-5">
+  const Pending = (): React.ReactNode => {
+    if (isPending) {
+      return (
+        <div className="mt-10 flex flex-col items-center justify-center space-y-2">
+          <Spinner size="small" />
+          <span className="text-sm">Loading posts...</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const Error = (): React.ReactNode => {
+    if (isError) {
+      return (
+        <div className="py-4 text-center text-red-500">Error loading posts</div>
+      );
+    }
+
+    return null;
+  };
+
+  const TopBar = (): React.ReactNode => {
+    return (
       <div className="relative flex items-center justify-between">
         <SearchInput onDebouncedChange={handleSearch} delay={500} />
         <Select
           value={orderBy}
-          onValueChange={(value) => {
-            setOrderBy(value as OrderBy);
-          }}
+          onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="flex items-center pl-1 pr-2 text-xs shadow-sm">
-            <span className="ml-1.5 text-xs text-muted-foreground">
-              Sort by:
-            </span>
-            <SelectValue className="" />
+          <SelectTrigger className="flex items-center pl-1 pr-2 text-sm shadow-sm">
+            <span className="ml-1.5 text-muted-foreground">Sort by:</span>
+            <SelectValue />
           </SelectTrigger>
           <SelectContent align="end">
             <SelectGroup>
-              <SelectItem value="newest" className="text-xs">
-                Newest
-              </SelectItem>
-              <SelectItem value="upvotes" className="text-xs">
-                Most upvotes
-              </SelectItem>
-              <SelectItem value="comments" className="text-xs">
-                Most comments
-              </SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="upvotes">Most upvotes</SelectItem>
+              <SelectItem value="comments">Most comments</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
       </div>
-      {posts.length === 0 ? (
-        <p className="text-muted-foreground">No posts found</p>
-      ) : (
-        <div className="space-y-10">
+    );
+  };
+
+  const NoPosts = (): React.ReactNode => {
+    if (!isPending && !isError && posts.length === 0) {
+      return <p className="text-muted-foreground">No posts found</p>;
+    }
+    return null;
+  };
+
+  const Posts = (): React.ReactNode => {
+    if (!isPending && !isError && posts.length > 0) {
+      return (
+        <div className="space-y-9">
           {posts.map((post) => (
             <FeedbackPost
               key={post.id}
@@ -149,7 +154,19 @@ export function FeedbackPosts() {
 
           <div ref={loadMoreRef} className="h-1 w-full" />
         </div>
-      )}
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="mt-12 space-y-5">
+      <TopBar />
+      <Pending />
+      <Error />
+      <NoPosts />
+      <Posts />
     </div>
   );
 }
