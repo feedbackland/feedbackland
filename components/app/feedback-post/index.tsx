@@ -7,6 +7,7 @@ import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
 import { UpvoteButton } from "./upvote-button";
 import { MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function InnerFeedbackPost({
   id,
@@ -16,6 +17,7 @@ function InnerFeedbackPost({
   createdAt,
   upvoteCount,
   hasUserUpvote,
+  className,
 }: {
   id: string;
   title: string;
@@ -24,23 +26,26 @@ function InnerFeedbackPost({
   createdAt: Date;
   upvoteCount: string;
   hasUserUpvote: boolean;
+  className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <div className="flex flex-col items-stretch space-y-1">
+    <div className={cn("flex flex-col items-stretch space-y-2", className)}>
       <div className="flex justify-between">
-        <div className="flex flex-col space-y-0">
-          <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
-            <span className="capitalize">{category}</span>
+        <div className="flex flex-col">
+          <div className="text-muted-foreground mb-0.5 flex items-center gap-2 text-xs font-normal">
+            <span>{timeAgo.format(createdAt, "twitter-minute-now")}</span>
             <span>•</span>
-            <span>{timeAgo.format(createdAt)}</span>
+            <span className="capitalize">{category}</span>
           </div>
-          <h3 className="text-lg font-semibold">{title}</h3>
+          <h3 className="text-[17px] leading-6 font-semibold">{title}</h3>
         </div>
       </div>
 
-      <div className="text-sm">{parse(DOMPurify.sanitize(description))}</div>
+      <div className="line-clamp-4 text-sm">
+        {parse(DOMPurify.sanitize(description))}
+      </div>
 
-      <div className="flex gap-4 pt-1.5">
+      <div className="flex gap-4">
         <UpvoteButton
           postId={id}
           upvoteCount={upvoteCount}

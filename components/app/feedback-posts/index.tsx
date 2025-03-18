@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPost } from "@/components/app/feedback-post";
 import { Spinner } from "@/components/ui/spinner";
-import { SearchInput } from "@/components/ui/search-input";
+import { SearchInput } from "./search-input";
 import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
 import {
   Select,
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OrderBy } from "@/lib/typings";
+import { Separator } from "@/components/ui/separator";
 
 export function FeedbackPosts() {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -72,78 +73,65 @@ export function FeedbackPosts() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleSearch = (value: string) => {
-    setSearchValue(value || "");
+    setSearchValue(value);
   };
 
-  const Pending = (): React.ReactNode => {
-    if (isPending) {
-      return (
-        <div className="mt-10 flex flex-col items-center justify-center space-y-2">
-          <Spinner size="small" />
-          <span className="text-sm">Loading posts...</span>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const Error = (): React.ReactNode => {
-    if (isError) {
-      return (
-        <div className="py-4 text-center text-red-500">Error loading posts</div>
-      );
-    }
-
-    return null;
-  };
-
-  const TopBar = (): React.ReactNode => {
-    return (
-      <div className="relative flex items-center justify-between">
-        <SearchInput onDebouncedChange={handleSearch} delay={500} />
+  return (
+    <div className="mt-10">
+      <div className="relative flex flex-row-reverse items-center justify-between">
+        <SearchInput onDebouncedChange={handleSearch} />
         <Select
           value={orderBy}
           onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="flex items-center pr-2 pl-1 text-sm shadow-xs">
-            <span className="text-muted-foreground ml-1.5">Sort by:</span>
+          <SelectTrigger className="gap-1 border-none p-0 text-sm shadow-none">
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="end">
             <SelectGroup>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="upvotes">Most upvotes</SelectItem>
-              <SelectItem value="comments">Most comments</SelectItem>
+              <SelectItem value="newest">New</SelectItem>
+              <SelectItem value="upvotes">Upvotes</SelectItem>
+              <SelectItem value="comments">Comments</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
       </div>
-    );
-  };
 
-  const NoPosts = (): React.ReactNode => {
-    if (!isPending && !isError && posts.length === 0) {
-      return <p className="text-muted-foreground">No posts found</p>;
-    }
-    return null;
-  };
+      {isPending && (
+        <div className="mt-10 flex flex-col items-center justify-center space-y-2">
+          <Spinner size="small" />
+          <span className="text-sm">
+            {isSearchActive ? "Searching..." : "Loading feedback..."}
+          </span>
+        </div>
+      )}
 
-  const Posts = (): React.ReactNode => {
-    if (!isPending && !isError && posts.length > 0) {
-      return (
-        <div className="space-y-9">
+      {isError && (
+        <div className="py-4 text-center text-red-500">Error loading posts</div>
+      )}
+
+      {!!(!isPending && !isError && posts.length === 0) && (
+        <div className="text-muted-foreground py-4 text-center">
+          No posts found
+        </div>
+      )}
+
+      {!!(!isPending && !isError && posts.length > 0) && (
+        <>
           {posts.map((post) => (
-            <FeedbackPost
-              key={post.id}
-              id={post.id}
-              title={post.title}
-              description={post.description}
-              category={post.category || "other"}
-              createdAt={post.createdAt}
-              upvoteCount={post.upvotes}
-              hasUserUpvote={post.hasUserUpvote}
-            />
+            <div key={post.id}>
+              <FeedbackPost
+                id={post.id}
+                title={post.title}
+                description={post.description}
+                category={post.category || "other"}
+                createdAt={post.createdAt}
+                upvoteCount={post.upvotes}
+                hasUserUpvote={post.hasUserUpvote}
+                className="py-5"
+              />
+              <Separator className="bg-border/80" />
+            </div>
           ))}
 
           {isFetchingNextPage && (
@@ -153,20 +141,8 @@ export function FeedbackPosts() {
           )}
 
           <div ref={loadMoreRef} className="h-1 w-full" />
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  return (
-    <div className="mt-12 space-y-5">
-      <TopBar />
-      <Pending />
-      <Error />
-      <NoPosts />
-      <Posts />
+        </>
+      )}
     </div>
   );
 }

@@ -7,6 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowBigUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
+import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
+import { useState } from "react";
 
 export function UpvoteButton({
   ...props
@@ -21,6 +23,8 @@ export function UpvoteButton({
   const queryClient = useQueryClient();
   const feedbackPost = useFeedbackPost({ postId });
 
+  const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
+
   const upvote = useMutation(
     trpc.upvoteFeedbackPost.mutationOptions({
       onSettled: async () => {
@@ -32,12 +36,16 @@ export function UpvoteButton({
   );
 
   const handleUpvote = () => {
-    if (session && !upvote.isPending) {
+    if (upvote.isPending) {
+      return;
+    }
+
+    if (session) {
       upvote.mutate({
         feedbackPostId: postId,
       });
     } else {
-      console.log("not logged in");
+      setShowSignUpInDialog(true);
     }
   };
 
@@ -57,18 +65,30 @@ export function UpvoteButton({
   }
 
   return (
-    <Button
-      variant={hasUserUpvote ? "default" : "secondary"}
-      size="sm"
-      className="h-[26px] px-2.5 py-1 [&>span]:gap-1"
-      onClick={handleUpvote}
-    >
-      <ArrowBigUp
-        className="size-[1.1rem]!"
-        strokeWidth={1.25}
-        fill={hasUserUpvote ? "white" : "none"}
+    <>
+      <Button
+        variant={hasUserUpvote ? "default" : "secondary"}
+        size="sm"
+        className="h-[26px] px-2.5 py-1 [&>span]:gap-1"
+        onClick={handleUpvote}
+      >
+        <ArrowBigUp
+          className="size-[1.1rem]!"
+          strokeWidth={1.5}
+          fill={hasUserUpvote ? "white" : "none"}
+        />
+        <span className="text-xs">{upvoteCount}</span>
+      </Button>
+
+      <SignUpInDialog
+        open={showSignUpInDialog}
+        initialSelectedMethod="sign-in"
+        onClose={() => setShowSignUpInDialog(false)}
+        onSuccess={() => {
+          setShowSignUpInDialog(false);
+          handleUpvote();
+        }}
       />
-      <span className="text-xs">{upvoteCount}</span>
-    </Button>
+    </>
   );
 }

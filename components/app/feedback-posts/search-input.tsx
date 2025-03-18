@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
-import { Button } from "./button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface InputProps {
-  onDebouncedChange: (value: string) => void;
-  delay?: number; // Optional delay in milliseconds (default: 500ms)
-  className?: React.ComponentProps<"div">["className"];
-}
-
-export const SearchInput: React.FC<InputProps> = ({
+export const SearchInput = ({
   onDebouncedChange,
   delay = 500,
   className,
+}: {
+  onDebouncedChange: (value: string) => void;
+  delay?: number;
+  className?: React.ComponentProps<"div">["className"];
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -47,18 +47,18 @@ export const SearchInput: React.FC<InputProps> = ({
   return (
     <div
       className={cn(
-        "relative w-full max-w-60 bg-background",
-        isActive && "absolute left-0 right-0 top-0 z-10 max-w-full",
+        "bg-background relative w-full max-w-48 transition-none",
+        isActive && "absolute top-0 right-0 left-0 z-10 max-w-full",
         className,
       )}
     >
-      <SearchIcon className="absolute left-3 top-2.5 size-4" />
+      <SearchIcon className="absolute top-[0.55rem] left-2.5 size-3.5" />
       <Input
         type="text"
         placeholder="Search..."
         value={inputValue}
         onChange={handleChange}
-        className={cn("h-9 w-full px-9 py-0")}
+        className={cn("h-8 w-full px-8 py-0 text-sm")}
         onFocus={() => {
           setIsFocused(true);
         }}
@@ -70,7 +70,7 @@ export const SearchInput: React.FC<InputProps> = ({
         size="icon"
         variant="link"
         className={cn(
-          "absolute! right-0.5 top-[0.2rem] hidden text-muted-foreground hover:text-primary",
+          "text-muted-foreground hover:text-primary absolute! top-0 right-0.5 hidden",
           inputValue?.length > 0 && "block",
         )}
         onClick={reset}
