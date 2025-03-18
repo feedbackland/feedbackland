@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
+import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPost } from "@/components/app/feedback-post";
 import { Spinner } from "@/components/ui/spinner";
 import { SearchInput } from "@/components/ui/search-input";
-import { useSearchFeedbackPosts } from "@/hooks/useSearchFeedbackPosts";
+import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
 import {
   Select,
   SelectContent,
@@ -106,8 +106,8 @@ export function FeedbackPosts() {
           value={orderBy}
           onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="flex items-center pl-1 pr-2 text-sm shadow-xs">
-            <span className="ml-1.5 text-muted-foreground">Sort by:</span>
+          <SelectTrigger className="flex items-center pr-2 pl-1 text-sm shadow-xs">
+            <span className="text-muted-foreground ml-1.5">Sort by:</span>
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="end">

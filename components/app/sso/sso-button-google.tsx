@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { GoogleLogo } from "@/components/ui/logos";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { User } from "firebase/auth";
 
 export function SSOButtonGoogle({

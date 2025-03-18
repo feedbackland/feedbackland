@@ -2,7 +2,7 @@
 
 import { CreateOrgCard } from "@/components/app/create-org/card";
 import { FeedbacklandLogoFull } from "@/components/ui/logos";
-import { useMaindomain } from "@/hooks/useMaindomain";
+import { useMaindomain } from "@/hooks/use-maindomain";
 
 const navigateToSubdomain = ({
   subdomain,
@@ -25,7 +25,7 @@ export default function GetStartedPage() {
   const maindomain = useMaindomain();
 
   return (
-    <div className="m-auto flex min-h-dvh w-dvw flex-col items-center bg-muted/50 pt-14">
+    <div className="bg-muted/50 m-auto flex min-h-dvh w-dvw flex-col items-center pt-14">
       <FeedbacklandLogoFull className="mb-14 w-[165px]" />
       <CreateOrgCard
         onSuccess={({ orgSubdomain: subdomain }) => {

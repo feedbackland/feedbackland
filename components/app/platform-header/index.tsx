@@ -12,7 +12,7 @@ import {
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { SignOutButton } from "@/components/app/sign-out";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 
 export function PlatformHeader() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
@@ -60,7 +60,7 @@ export function PlatformHeader() {
           )}
         </div>
       </div>
-      <p className="-mt-1 text-sm text-muted-foreground">
+      <p className="text-muted-foreground -mt-1 text-sm">
         Powered by Feedbackland
       </p>
     </div>

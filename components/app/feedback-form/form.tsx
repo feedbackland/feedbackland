@@ -7,12 +7,12 @@ import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { User } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFeedbackPosts } from "@/hooks/useFeedbackPosts";
+import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 
 export function FeedbackForm({
   onClose,
@@ -109,7 +109,7 @@ export function FeedbackForm({
             onChange={onChange}
             className={cn(
               "min-h-[7.7rem] shadow-xs",
-              isFocused && "ring-1 ring-ring",
+              isFocused && "ring-ring ring-1",
             )}
             showToolbar={true}
             autofocus={true}
@@ -120,7 +120,7 @@ export function FeedbackForm({
               setIsFocused(false);
             }}
           />
-          <div className="absolute bottom-2.5 right-2.5 flex flex-row-reverse justify-end gap-3">
+          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-3">
             <Button
               type="submit"
               size="icon"

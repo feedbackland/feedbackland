@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import "./globals.css";
 

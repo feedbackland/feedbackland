@@ -5,8 +5,8 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowBigUp } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useFeedbackPost } from "@/hooks/useFeedbackPost";
+import { useAuth } from "@/hooks/use-auth";
+import { useFeedbackPost } from "@/hooks/use-feedback-post";
 
 export function UpvoteButton({
   ...props

@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Method } from "../sign-up-in";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { User } from "firebase/auth";
 
 export const signInSchema = z.object({
@@ -131,7 +131,7 @@ export function SignInEmailForm({
                   <Button
                     variant="link"
                     size="sm"
-                    className="p-0 text-muted-foreground underline hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground p-0 underline"
                     onClick={() =>
                       handleOnSelectedMethodChange("forgot-password")
                     }

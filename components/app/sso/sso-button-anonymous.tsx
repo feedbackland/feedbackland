@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { User } from "firebase/auth";
 
@@ -22,7 +22,7 @@ export function SSOButtonAnonymous({
 
   return (
     <div className="m-auto flex items-center">
-      <span className="mr-1 text-sm text-foreground">Or</span>
+      <span className="text-foreground mr-1 text-sm">Or</span>
       <Button
         variant="link"
         onClick={continueAsAnonymous}
