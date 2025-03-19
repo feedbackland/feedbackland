@@ -119,8 +119,6 @@ export const appRouter = router({
       const orgId = ctx?.org?.id;
       const userId = ctx?.user?.uid || null;
 
-      console.log("getFeedbackPosts orderBy", orderBy);
-
       if (!orgId) {
         throw new Error("No orgId");
       }

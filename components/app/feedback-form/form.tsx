@@ -13,6 +13,7 @@ import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { User } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
+import { dequal } from "dequal";
 
 export function FeedbackForm({
   onClose,
@@ -24,15 +25,11 @@ export function FeedbackForm({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const { queryKey: getFeedbackPostsQueryKey } = useFeedbackPosts({
-    enabled: true,
-    orderBy: "newest",
-  });
-
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({});
 
   const onChange = (value: string) => {
     setErrormessage("");
@@ -42,7 +39,11 @@ export function FeedbackForm({
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getFeedbackPostsQueryKey });
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
+          },
+        });
         setValue("");
         onSuccess?.();
       },

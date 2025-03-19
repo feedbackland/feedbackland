@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPost } from "@/components/app/feedback-post";
 import { Spinner } from "@/components/ui/spinner";
@@ -27,7 +27,6 @@ export function FeedbackPosts() {
   const isSearchActive = !!(searchValue?.length > 0);
 
   const {
-    queryKey,
     query: {
       data: postsData,
       fetchNextPage,
@@ -37,8 +36,6 @@ export function FeedbackPosts() {
       isError: isPostsError,
     },
   } = useFeedbackPosts({ enabled: !isSearchActive, orderBy });
-
-  console.log(queryKey);
 
   const {
     query: {
@@ -135,8 +132,9 @@ export function FeedbackPosts() {
           ))}
 
           {isFetchingNextPage && (
-            <div className="flex justify-start">
+            <div className="flex items-center justify-start py-5">
               <Spinner size="small" />
+              <span className="ml-2 text-sm">Loading more...</span>
             </div>
           )}
 

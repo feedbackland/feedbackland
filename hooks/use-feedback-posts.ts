@@ -3,13 +3,12 @@ import { useTRPC } from "@/providers/trpc-client";
 import { OrderBy } from "@/lib/typings";
 
 export function useFeedbackPosts({
-  enabled,
+  enabled = false,
   orderBy = "newest",
 }: {
-  enabled: boolean;
-  orderBy: OrderBy;
+  enabled?: boolean;
+  orderBy?: OrderBy;
 }) {
-  console.log("useFeedbackPosts orderBy", orderBy);
   const trpc = useTRPC();
   const queryFn = trpc.getFeedbackPosts.infiniteQueryOptions(
     { limit: 10, cursor: null, orderBy },

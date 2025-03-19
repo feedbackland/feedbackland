@@ -16,8 +16,6 @@ export const getFeedbackPostsQuery = async ({
   cursor: string | null | undefined;
   orderBy: OrderBy;
 }) => {
-  console.log("getFeedbackPostsQuery orderBy", orderBy);
-
   try {
     let query = db
       .selectFrom("feedback")
