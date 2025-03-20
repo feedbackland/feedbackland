@@ -5,7 +5,7 @@ export function usePlatformUrl() {
   const [platformUrl, setPlatformUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    setPlatformUrl(getPlatformUrl(window.location.href));
+    setPlatformUrl(getPlatformUrl());
   }, []);
 
   return platformUrl;

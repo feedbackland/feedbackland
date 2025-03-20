@@ -154,34 +154,55 @@
   stroke-width: 1.5px;
 } */
 
-/* Typography */
-.h1 {
-  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
-}
-
-.h2 {
-  @apply scroll-m-20 border-b pb-2 text-3xl font-bold tracking-tight transition-colors first:mt-0;
-}
-
-.h3 {
-  @apply scroll-m-20 text-2xl font-bold tracking-tight;
-}
-
-.h4 {
-  @apply scroll-m-20 text-xl font-semibold tracking-tight;
-}
-
-.h5 {
-  @apply scroll-m-20 text-lg font-semibold tracking-tight;
-}
-
+/* tiptap placeholder color */
 .tiptap p.is-editor-empty:first-child::before {
   color: var(--muted-foreground) !important;
 }
 
-/*
-  ---break---
-*/
+.h1,
+.tiptap-output h1 {
+  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+}
+
+.h2,
+.tiptap-output h2 {
+  @apply scroll-m-20 border-b pb-2 text-3xl font-bold tracking-tight transition-colors first:mt-0;
+}
+
+.h3,
+.tiptap-output h3 {
+  @apply scroll-m-20 text-2xl font-bold tracking-tight;
+}
+
+.h4,
+.tiptap-output h4 {
+  @apply scroll-m-20 text-xl font-semibold tracking-tight;
+}
+
+.h5,
+.tiptap-output h5 {
+  @apply scroll-m-20 text-lg font-semibold tracking-tight;
+}
+
+.tiptap-output {
+  @apply text-sm leading-relaxed;
+}
+
+.tiptap-output p {
+  @apply leading-5 [&:not(:first-child)]:mt-3;
+}
+
+.tiptap-output ul {
+  @apply my-3 ml-5 list-disc [&>li]:mt-1;
+}
+
+.tiptap-output ol {
+  @apply my-3 ml-5 list-decimal [&>li]:mt-1;
+}
+
+.tiptap-output a {
+  @apply underline;
+}
 
 @theme inline {
   --color-sidebar: var(--sidebar);

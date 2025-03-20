@@ -22,8 +22,24 @@ export const slugifySubdomain = (text: string) => {
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
 };
 
-export const getSubdomainFromUrl = (urlString: string) => {
-  const { hostname, pathname } = new URL(urlString);
+const getUrlObject = (urlString?: string) => {
+  if (urlString && urlString.length > 0) {
+    return new URL(urlString);
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location;
+  }
+
+  return null;
+};
+
+export const getSubdomain = (urlString?: string) => {
+  const url = getUrlObject(urlString);
+
+  if (!url) return null;
+
+  const { hostname, pathname } = url;
 
   if (hostname.includes("localhost")) {
     const segments = pathname.split("/").filter(Boolean);
@@ -31,27 +47,41 @@ export const getSubdomainFromUrl = (urlString: string) => {
   }
 
   const parts = hostname.split(".");
+
   return parts.length > 2 ? parts[0] : "";
 };
 
-export const getMaindomainFromUrl = (urlString: string) => {
-  const { hostname } = new URL(urlString);
+export const getMaindomain = (urlString?: string) => {
+  const url = getUrlObject(urlString);
+
+  if (!url) return null;
+
+  const { hostname } = url;
 
   if (hostname.includes("localhost")) {
     return "localhost";
   }
 
   const parts = hostname.split(".");
+
   return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
 };
 
-export const getPlatformUrl = (url: string) => {
-  try {
-    const urlObject = new URL(url);
-    return urlObject.origin;
-  } catch (error) {
-    console.error("Invalid URL:", error);
-    return null;
+export const getPlatformUrl = (urlString?: string) => {
+  const url = getUrlObject(urlString);
+
+  if (!url) return null;
+
+  if (!url.hostname.includes("localhost")) {
+    return `${url.protocol}//${url.hostname}`;
+  } else {
+    const pathParts = url.pathname.split("/");
+
+    if (pathParts.length > 1 && pathParts[1]) {
+      return `${url.protocol}//${url.hostname}:${url.port}/${pathParts[1]}`;
+    }
+
+    return `${url.protocol}//${url.hostname}:${url.port}`;
   }
 };
 

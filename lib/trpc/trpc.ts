@@ -2,7 +2,7 @@ import { adminAuth } from "@/lib/firebase/admin";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { getSubdomainFromUrl } from "@/lib/utils";
+import { getSubdomain } from "@/lib/utils";
 import { getOrgQuery } from "@/queries/get-org";
 
 const getUser = async (req: Request) => {
@@ -13,8 +13,8 @@ const getUser = async (req: Request) => {
 };
 
 const getOrg = async (req: Request) => {
-  const url = req.headers.get("referer");
-  const subdomain = url ? getSubdomainFromUrl(url) : null;
+  const urlString = req.headers.get("referer");
+  const subdomain = urlString ? getSubdomain(urlString) : null;
   const org = subdomain ? await getOrgQuery({ orgSubdomain: subdomain }) : null;
   return org || null;
 };

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
 import { Org } from "@/db/schema";
-import { getMaindomainFromUrl, getSubdomainFromUrl } from "@/lib/utils";
+import { getMaindomain, getSubdomain } from "@/lib/utils";
 
 export const config = {
   matcher: [
@@ -50,8 +50,9 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const { hostname, pathname, search, origin } = url;
   const isLocalhost = hostname.includes("localhost");
-  let subdomain = getSubdomainFromUrl(url.toString());
-  const maindomain = getMaindomainFromUrl(url.toString());
+  const urlString = url.toString();
+  let subdomain = getSubdomain(urlString);
+  const maindomain = getMaindomain(urlString);
   let platformUrl = isLocalhost
     ? `${origin}/${subdomain}`
     : `https://${subdomain}.${maindomain}`;

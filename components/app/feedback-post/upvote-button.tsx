@@ -9,15 +9,18 @@ import { useAuth } from "@/hooks/use-auth";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-export function UpvoteButton({
+export function FeedbackPostUpvoteButton({
+  postId,
+  className,
   ...props
 }: {
   postId: string;
   upvoteCount: string;
   hasUserUpvote: boolean;
+  className?: React.ComponentProps<"div">["className"];
 }) {
-  const { postId } = props;
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -69,8 +72,12 @@ export function UpvoteButton({
       <Button
         variant={hasUserUpvote ? "default" : "secondary"}
         size="sm"
-        className="h-[26px] px-2.5 py-1 [&>span]:gap-1"
-        onClick={handleUpvote}
+        className={cn("", className)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleUpvote();
+        }}
       >
         <ArrowBigUp
           className="size-[1.1rem]!"

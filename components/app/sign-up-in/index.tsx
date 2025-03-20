@@ -3,8 +3,8 @@
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
-import { getQueryClient } from "@/providers/trpc-client";
 import { User } from "firebase/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
 
@@ -19,7 +19,7 @@ export function SignUpIn({
   onSuccess: (user: User) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
-  const queryClient = getQueryClient();
+  const queryClient = useQueryClient();
 
   const handleOnSuccess = async (user: User) => {
     queryClient.invalidateQueries();

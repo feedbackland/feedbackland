@@ -13,6 +13,7 @@ import {
   signOut as firebaseSignOut,
   User,
 } from "firebase/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AuthContextType = {
   session: User | null;
@@ -64,6 +65,8 @@ const upsertUser = async (user: User) => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient();
+
   const [session, setSession] = useState<User | null>(null);
 
   useEffect(() => {
@@ -149,6 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      queryClient.invalidateQueries();
       setSession(null);
     } catch (err) {
       throw err;

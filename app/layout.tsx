@@ -33,14 +33,14 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${roboto_mono.variable}`}>
-      <body className="font-sans">
-        <AuthProvider>
-          <TRPCClientProvider>
+      <body className="bg-background font-sans">
+        <TRPCClientProvider>
+          <AuthProvider>
             <TooltipProvider>
               <NuqsAdapter>{children}</NuqsAdapter>
             </TooltipProvider>
-          </TRPCClientProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </TRPCClientProvider>
       </body>
     </html>
   );

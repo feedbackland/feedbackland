@@ -1,11 +1,11 @@
-import { getMaindomainFromUrl } from "@/lib/utils";
+import { getMaindomain } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
 export function useMaindomain() {
   const [maindomain, setMaindomain] = useState<string | null>(null);
 
   useEffect(() => {
-    setMaindomain(getMaindomainFromUrl(window.location.href));
+    setMaindomain(getMaindomain());
   }, []);
 
   return maindomain;

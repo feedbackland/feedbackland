@@ -102,10 +102,10 @@ export function FeedbackForm({
           onSubmit(user);
         }}
       />
-      <div className="flex flex-col gap-3">
+      <div className="flex min-h-[123px] flex-col gap-3">
         <div className="relative">
           <Tiptap
-            placeholder={`Share your feedback`}
+            placeholder={`Any feedback? We’d love to hear from you!`}
             value={value}
             onChange={onChange}
             className={cn(

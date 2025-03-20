@@ -6,7 +6,7 @@ import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export const SearchInput = ({
+export const FeedbackPostsSearchInput = ({
   onDebouncedChange,
   delay = 500,
   className,
@@ -52,13 +52,13 @@ export const SearchInput = ({
         className,
       )}
     >
-      <SearchIcon className="absolute top-[0.55rem] left-2.5 size-3.5" />
+      <SearchIcon className="absolute top-[0.58rem] left-2.5 size-4" />
       <Input
         type="text"
         placeholder="Search..."
         value={inputValue}
         onChange={handleChange}
-        className={cn("h-8 w-full px-8 py-0 text-sm")}
+        className={cn("px-9")}
         onFocus={() => {
           setIsFocused(true);
         }}
@@ -70,7 +70,7 @@ export const SearchInput = ({
         size="icon"
         variant="link"
         className={cn(
-          "text-muted-foreground hover:text-primary absolute! top-0 right-0.5 hidden",
+          "text-muted-foreground hover:text-primary absolute! top-[0.2rem] right-0.5 hidden",
           inputValue?.length > 0 && "block",
         )}
         onClick={reset}

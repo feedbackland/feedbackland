@@ -8,7 +8,7 @@ import { AlertTriangle } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
-import { getQueryClient } from "@/providers/trpc-client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const triggerConfetti = () => {
   confetti({
@@ -21,7 +21,7 @@ const triggerConfetti = () => {
 };
 
 export function ClaimOrgBanner() {
-  const queryClient = getQueryClient();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();

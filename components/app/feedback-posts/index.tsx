@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
-import { FeedbackPost } from "@/components/app/feedback-post";
+import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
-import { SearchInput } from "./search-input";
+import { FeedbackPostsSearchInput } from "./search-input";
 import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
 import {
   Select,
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OrderBy } from "@/lib/typings";
-import { Separator } from "@/components/ui/separator";
 
 export function FeedbackPosts() {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -75,20 +74,20 @@ export function FeedbackPosts() {
 
   return (
     <div className="mt-10">
-      <div className="relative flex flex-row-reverse items-center justify-between">
-        <SearchInput onDebouncedChange={handleSearch} />
+      <div className="relative mb-4 flex flex-row-reverse items-center justify-between">
+        <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
         <Select
           value={orderBy}
           onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="gap-1 border-none p-0 text-sm shadow-none">
+          <SelectTrigger className="">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent align="end">
+          <SelectContent align="start">
             <SelectGroup>
-              <SelectItem value="newest">New</SelectItem>
-              <SelectItem value="upvotes">Upvotes</SelectItem>
-              <SelectItem value="comments">Comments</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="upvotes">Most upvotes</SelectItem>
+              <SelectItem value="comments">Most comments</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -114,20 +113,18 @@ export function FeedbackPosts() {
       )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
-        <>
+        <div className="space-y-5">
           {posts.map((post) => (
-            <div key={post.id}>
-              <FeedbackPost
-                id={post.id}
+            <div key={post.id} className="">
+              <FeedbackPostCompact
+                postId={post.id}
                 title={post.title}
                 description={post.description}
-                category={post.category || "other"}
                 createdAt={post.createdAt}
+                category={post.category}
                 upvoteCount={post.upvotes}
                 hasUserUpvote={post.hasUserUpvote}
-                className="py-5"
               />
-              <Separator className="bg-border/80" />
             </div>
           ))}
 
@@ -139,7 +136,7 @@ export function FeedbackPosts() {
           )}
 
           <div ref={loadMoreRef} className="h-1 w-full" />
-        </>
+        </div>
       )}
     </div>
   );
