@@ -1,18 +1,18 @@
 import { db } from "@/db/db";
 
-export async function upvoteFeedbackPostQuery({
+export async function upvoteCommentQuery({
   userId,
-  postId,
+  commentId,
 }: {
   userId: string;
-  postId: string;
+  commentId: string;
 }) {
   try {
     return await db.transaction().execute(async (trx) => {
       const userUpvote = await db
         .selectFrom("user_upvote")
         .where("user_upvote.userId", "=", userId)
-        .where("user_upvote.contentId", "=", postId)
+        .where("user_upvote.contentId", "=", commentId)
         .selectAll()
         .executeTakeFirst();
 
@@ -20,32 +20,32 @@ export async function upvoteFeedbackPostQuery({
 
       if (hasUpvote) {
         await trx
-          .updateTable("feedback")
+          .updateTable("comment")
           .set({
             upvotes: (eb) => eb("upvotes", "-", 1 as any),
           })
-          .where("id", "=", postId)
+          .where("id", "=", commentId)
           .executeTakeFirstOrThrow();
 
         await trx
           .deleteFrom("user_upvote")
           .where("userId", "=", userId)
-          .where("contentId", "=", postId)
+          .where("contentId", "=", commentId)
           .executeTakeFirstOrThrow();
       } else {
         await trx
-          .updateTable("feedback")
+          .updateTable("comment")
           .set({
             upvotes: (eb) => eb("upvotes", "+", 1 as any),
           })
-          .where("id", "=", postId)
+          .where("id", "=", commentId)
           .executeTakeFirstOrThrow();
 
         await trx
           .insertInto("user_upvote")
           .values({
             userId,
-            contentId: postId,
+            contentId: commentId,
           })
           .executeTakeFirstOrThrow();
       }
@@ -53,7 +53,7 @@ export async function upvoteFeedbackPostQuery({
       return { success: true };
     });
   } catch (error) {
-    console.error("Error for upvoteFeedbackPostQuery", error);
+    console.error("Error for upvoteCommentQuery", error);
     throw error;
   }
 }

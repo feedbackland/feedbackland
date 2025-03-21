@@ -2,32 +2,33 @@
 
 import { db } from "@/db/db";
 
-export const getFeedbackPost = async ({
-  postId,
+export const getCommentQuery = async ({
+  commentId,
   userId,
 }: {
-  postId: string;
+  commentId: string;
   userId: string | null;
 }) => {
   try {
     return await db
-      .selectFrom("feedback")
+      .selectFrom("comment")
+      .leftJoin("user", (join) =>
+        join.onRef("comment.authorId", "=", "user.id"),
+      )
       .leftJoin("user_upvote", (join) =>
         join
-          .onRef("feedback.id", "=", "user_upvote.contentId")
+          .onRef("comment.id", "=", "user_upvote.contentId")
           .on("user_upvote.userId", "=", userId),
       )
-      .where("feedback.id", "=", postId)
+      .where("comment.id", "=", commentId)
       .select([
-        "feedback.id",
-        "feedback.createdAt",
-        "feedback.updatedAt",
-        "feedback.orgId",
-        "feedback.authorId",
-        "feedback.category",
-        "feedback.title",
-        "feedback.description",
-        "feedback.upvotes",
+        "comment.id",
+        "comment.createdAt",
+        "comment.updatedAt",
+        "comment.authorId",
+        "comment.content",
+        "comment.upvotes",
+        "user.name as authorName",
       ])
       .select([
         (eb) =>
@@ -39,7 +40,7 @@ export const getFeedbackPost = async ({
             .end()
             .as("hasUserUpvote"),
       ])
-      .executeTakeFirst();
+      .executeTakeFirstOrThrow();
   } catch (error: any) {
     throw error;
   }

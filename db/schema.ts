@@ -255,6 +255,7 @@ export interface Comment {
   parentCommentId: string | null;
   postId: string;
   updatedAt: Generated<Timestamp>;
+  upvotes: Numeric;
 }
 
 export interface ExtensionsPgStatStatements {
@@ -540,8 +541,8 @@ export interface UserOrg {
 }
 
 export interface UserUpvote {
+  contentId: string;
   createdAt: Generated<Timestamp>;
-  postId: string;
   userId: string;
 }
 

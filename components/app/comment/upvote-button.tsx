@@ -6,17 +6,17 @@ import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowBigUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useFeedbackPost } from "@/hooks/use-feedback-post";
+import { useComment } from "@/hooks/use-comment";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function FeedbackPostUpvoteButton({
-  postId,
+export function CommentUpvoteButton({
+  commentId,
   className,
   ...props
 }: {
-  postId: string;
+  commentId: string;
   upvoteCount: string;
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
@@ -24,15 +24,15 @@ export function FeedbackPostUpvoteButton({
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const feedbackPost = useFeedbackPost({ postId });
+  const comment = useComment({ commentId });
 
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
 
   const upvote = useMutation(
-    trpc.upvoteFeedbackPost.mutationOptions({
+    trpc.upvoteComment.mutationOptions({
       onSettled: async () => {
         return await queryClient.invalidateQueries({
-          queryKey: feedbackPost.queryKey,
+          queryKey: comment.queryKey,
         });
       },
     }),
@@ -45,7 +45,7 @@ export function FeedbackPostUpvoteButton({
 
     if (session) {
       upvote.mutate({
-        postId,
+        commentId,
       });
     } else {
       setShowSignUpInDialog(true);
@@ -53,12 +53,12 @@ export function FeedbackPostUpvoteButton({
   };
 
   let hasUserUpvote =
-    feedbackPost?.query?.data?.hasUserUpvote !== undefined
-      ? feedbackPost?.query?.data?.hasUserUpvote
+    comment?.query?.data?.hasUserUpvote !== undefined
+      ? comment?.query?.data?.hasUserUpvote
       : props.hasUserUpvote;
 
   let upvoteCount = parseInt(
-    feedbackPost?.query?.data?.upvotes || props.upvoteCount,
+    comment?.query?.data?.upvotes || props.upvoteCount,
     10,
   );
 

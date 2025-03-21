@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 
-export function useSearchFeedbackPosts({
-  searchValue,
-  enabled = false,
+export function useComment({
+  commentId,
 }: {
-  searchValue: string;
-  enabled: boolean;
+  commentId: string | null | undefined;
 }) {
   const trpc = useTRPC();
-  const trpcQuery = trpc.searchFeedbackPosts.queryOptions(
-    { searchValue },
-    { enabled },
+  const trpcQuery = trpc.getComment.queryOptions(
+    {
+      commentId: commentId as string,
+    },
+    {
+      enabled: !!commentId,
+    },
   );
   const queryKey = trpcQuery.queryKey;
   const query = useQuery(trpcQuery);

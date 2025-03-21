@@ -6,8 +6,10 @@ import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
 import { getFeedbackPost } from "@/queries/get-feedback-post";
 import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
-import { OrderBy } from "../typings";
 import { createCommentQuery } from "@/queries/create-comment";
+import { getCommentsQuery } from "@/queries/get-comments";
+import { upvoteCommentQuery } from "@/queries/upvote-comment";
+import { getCommentQuery } from "@/queries/get-comment";
 
 export const appRouter = router({
   getOrg: publicProcedure.query(async ({ ctx }) => {
@@ -16,15 +18,15 @@ export const appRouter = router({
   getUserUpvote: publicProcedure
     .input(
       z.object({
-        postId: z.string().uuid(),
+        contentId: z.string().uuid(),
       }),
     )
-    .query(async ({ input: { postId }, ctx }) => {
+    .query(async ({ input: { contentId }, ctx }) => {
       try {
         const userId = ctx?.user?.uid;
 
-        if (userId && postId) {
-          return await getUserUpvoteQuery({ userId, postId });
+        if (userId && contentId) {
+          return await getUserUpvoteQuery({ userId, contentId });
         }
 
         return null;
@@ -61,10 +63,10 @@ export const appRouter = router({
   upvoteFeedbackPost: userProcedure
     .input(
       z.object({
-        feedbackPostId: z.string().uuid(),
+        postId: z.string().uuid(),
       }),
     )
-    .mutation(async ({ input: { feedbackPostId }, ctx }) => {
+    .mutation(async ({ input: { postId }, ctx }) => {
       try {
         const userId = ctx?.user?.uid;
 
@@ -72,13 +74,13 @@ export const appRouter = router({
           throw new Error("No userId");
         }
 
-        if (!feedbackPostId) {
-          throw new Error("No feedbackPostId");
+        if (!postId) {
+          throw new Error("No postId");
         }
 
         const feedbackPost = await upvoteFeedbackPostQuery({
           userId,
-          feedbackPostId,
+          postId,
         });
 
         return feedbackPost;
@@ -172,6 +174,76 @@ export const appRouter = router({
           authorId,
           postId,
           parentCommentId,
+        });
+
+        return comment;
+      } catch (error) {
+        throw error;
+      }
+    }),
+  getComment: publicProcedure
+    .input(
+      z.object({
+        commentId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ input: { commentId }, ctx }) => {
+      const userId = ctx?.user?.uid || null;
+
+      return await getCommentQuery({
+        commentId,
+        userId,
+      });
+    }),
+  getComments: publicProcedure
+    .input(
+      z.object({
+        postId: z.string().uuid(),
+        limit: z.number().min(1).max(100).default(20),
+        cursor: z.string().datetime({ offset: true }).nullish(),
+      }),
+    )
+    .query(async ({ input: { postId, limit, cursor }, ctx }) => {
+      const orgId = ctx?.org?.id;
+      const userId = ctx?.user?.uid || null;
+
+      if (!orgId) {
+        throw new Error("No orgId");
+      }
+
+      const { comments, nextCursor } = await getCommentsQuery({
+        postId,
+        userId,
+        limit,
+        cursor,
+      });
+
+      return {
+        comments,
+        nextCursor,
+      };
+    }),
+  upvoteComment: userProcedure
+    .input(
+      z.object({
+        commentId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ input: { commentId }, ctx }) => {
+      try {
+        const userId = ctx?.user?.uid;
+
+        if (!userId) {
+          throw new Error("No userId");
+        }
+
+        if (!commentId) {
+          throw new Error("No postId");
+        }
+
+        const comment = await upvoteCommentQuery({
+          userId,
+          commentId,
         });
 
         return comment;

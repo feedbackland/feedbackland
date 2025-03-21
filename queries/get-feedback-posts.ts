@@ -21,7 +21,7 @@ export const getFeedbackPostsQuery = async ({
       .selectFrom("feedback")
       .leftJoin("user_upvote", (join) =>
         join
-          .onRef("feedback.id", "=", "user_upvote.postId")
+          .onRef("feedback.id", "=", "user_upvote.contentId")
           .on("user_upvote.userId", "=", userId),
       )
       .where("feedback.orgId", "=", orgId)

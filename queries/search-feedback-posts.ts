@@ -23,7 +23,7 @@ export const searchFeedbackPostsQuery = async ({
     .selectFrom("feedback")
     .leftJoin("user_upvote", (join) =>
       join
-        .onRef("feedback.id", "=", "user_upvote.postId")
+        .onRef("feedback.id", "=", "user_upvote.contentId")
         .on("user_upvote.userId", "=", userId),
     )
     .where("feedback.orgId", "=", orgId)
@@ -53,16 +53,6 @@ export const searchFeedbackPostsQuery = async ({
     .orderBy(distance)
     .limit(10)
     .execute();
-
-  // const results = await db
-  //   .selectFrom("feedback")
-  //   .select(["id", "title", "description", "createdAt"])
-  //   .select([() => distance.as("distance")])
-  //   .where("orgId", "=", orgId)
-  //   .where(distance, "<", 0.5)
-  //   .orderBy(distance)
-  //   .limit(10)
-  //   .execute();
 
   return results;
 };
