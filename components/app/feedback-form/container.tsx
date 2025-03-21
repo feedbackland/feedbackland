@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FeedbackForm } from "@/components/app/feedback-form/form";
+import { FeedbackForm } from "@/components/app/feedback-form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 import { useQueryState } from "nuqs";
 

@@ -7,13 +7,15 @@ export function useFeedbackPost({
   postId: string | null | undefined;
 }) {
   const trpc = useTRPC();
-  const queryFn = trpc.getFeedbackPost.queryOptions(
+  const trpcQuery = trpc.getFeedbackPost.queryOptions(
     {
       postId: postId as string,
     },
-    { enabled: !!postId },
+    {
+      enabled: !!postId,
+    },
   );
-  const queryKey = queryFn.queryKey;
-  const query = useQuery(queryFn);
+  const queryKey = trpcQuery.queryKey;
+  const query = useQuery(trpcQuery);
   return { queryKey, query };
 }

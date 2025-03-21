@@ -7,27 +7,33 @@ import { Button } from "@/components/ui/button";
 import { FeedbackPostUpvoteButton } from "./upvote-button";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
-import { useSubdomain } from "@/hooks/useSubdomain";
 import { GoBackButton } from "./go-back-button";
+import { useEffect } from "react";
+// import { usePlatformUrl } from "@/hooks/use-platform-url";
+// import { useSubdomain } from "@/hooks/useSubdomain";
 
 export function FeedbackPostFull({
   postId,
   className,
+  onLoaded,
 }: {
   postId: string;
   className?: React.ComponentProps<"div">["className"];
+  onLoaded?: () => void;
 }) {
-  const platformUrl = usePlatformUrl();
-  const subdomain = useSubdomain();
-
-  console.log("platformUrl", platformUrl);
-  console.log("subdomain", subdomain);
+  // const platformUrl = usePlatformUrl();
+  // const subdomain = useSubdomain();
 
   const {
     query: { data },
   } = useFeedbackPost({ postId });
+
+  useEffect(() => {
+    if (data) {
+      onLoaded?.();
+    }
+  }, [data, onLoaded]);
 
   if (data) {
     const {

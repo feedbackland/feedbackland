@@ -105,7 +105,9 @@ export function FeedbackForm({
       <div className="flex min-h-[123px] flex-col gap-3">
         <div className="relative">
           <Tiptap
-            placeholder={`Any feedback? We’d love to hear from you!`}
+            // placeholder={`Any feedback? We’d love to hear from you!`}
+            // placeholder={`Share your feedback, such as a feature request, bug report, suggestion,…`}
+            placeholder={`Describe your feature request, bug report, or any other feedback…`}
             value={value}
             onChange={onChange}
             className={cn(
