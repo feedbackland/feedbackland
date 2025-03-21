@@ -6,7 +6,7 @@ import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
 import { useQueryState } from "nuqs";
 
 export function FeedbackFormContainer() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(true);
 
   const [openForm, setOpenForm] = useQueryState("open-form", {
     parse: (value) => value === "true", // Convert query string to boolean

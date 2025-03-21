@@ -100,7 +100,7 @@ export function CommentForm({
       <div className="flex min-h-[123px] flex-col gap-3">
         <div className="relative">
           <Tiptap
-            placeholder={`Type a comment`}
+            placeholder={`Add a comment`}
             value={value}
             onChange={onChange}
             className={cn(
