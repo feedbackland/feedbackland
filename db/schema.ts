@@ -247,6 +247,16 @@ export interface AuthUsers {
   updated_at: Timestamp | null;
 }
 
+export interface Comment {
+  authorId: string;
+  content: string;
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  parentCommentId: string | null;
+  postId: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface ExtensionsPgStatStatements {
   blk_read_time: number | null;
   blk_write_time: number | null;
@@ -575,6 +585,7 @@ export interface DB {
   "auth.sso_domains": AuthSsoDomains;
   "auth.sso_providers": AuthSsoProviders;
   "auth.users": AuthUsers;
+  comment: Comment;
   "extensions.pg_stat_statements": ExtensionsPgStatStatements;
   "extensions.pg_stat_statements_info": ExtensionsPgStatStatementsInfo;
   "extensions.wrappers_fdw_stats": ExtensionsWrappersFdwStats;

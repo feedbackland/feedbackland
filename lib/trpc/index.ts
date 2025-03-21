@@ -7,6 +7,7 @@ import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
 import { getFeedbackPost } from "@/queries/get-feedback-post";
 import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
 import { OrderBy } from "../typings";
+import { createCommentQuery } from "@/queries/create-comment";
 
 export const appRouter = router({
   getOrg: publicProcedure.query(async ({ ctx }) => {
@@ -149,6 +150,34 @@ export const appRouter = router({
         postId,
         userId,
       });
+    }),
+  createComment: userProcedure
+    .input(
+      z.object({
+        postId: z.string().uuid(),
+        parentCommentId: z.string().uuid().optional(),
+        content: z.string().trim().min(1),
+      }),
+    )
+    .mutation(async ({ input: { postId, parentCommentId, content }, ctx }) => {
+      try {
+        const authorId = ctx?.user?.uid;
+
+        if (!authorId) {
+          throw new Error("No authorId provided");
+        }
+
+        const comment = await createCommentQuery({
+          content,
+          authorId,
+          postId,
+          parentCommentId,
+        });
+
+        return comment;
+      } catch (error) {
+        throw error;
+      }
     }),
 });
 

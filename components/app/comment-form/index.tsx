@@ -11,40 +11,33 @@ import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { User } from "firebase/auth";
-import { useQueryClient } from "@tanstack/react-query";
-import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
-import { dequal } from "dequal";
 
 export function CommentForm({
+  postId,
+  parentCommentId,
   onClose,
   onSuccess,
 }: {
+  postId: string;
+  parentCommentId: string;
   onClose?: () => void;
   onSuccess?: () => void;
 }) {
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
   const { session } = useAuth();
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({});
 
   const onChange = (value: string) => {
     setErrormessage("");
     setValue(value);
   };
 
-  const saveFeedback = useMutation(
-    trpc.createFeedbackPost.mutationOptions({
+  const saveComment = useMutation(
+    trpc.createComment.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
-          },
-        });
-        setValue("");
         onSuccess?.();
       },
       onError: () => {
@@ -55,7 +48,7 @@ export function CommentForm({
 
   const onSubmit = async (user: User | null) => {
     if (!value || value.trim().length === 0) {
-      setErrormessage("Please enter some feedback");
+      setErrormessage("Please enter a comment");
       return;
     }
 
@@ -64,10 +57,12 @@ export function CommentForm({
       return;
     }
 
-    const description = await processImagesInHTML(value);
+    const content = await processImagesInHTML(value);
 
-    saveFeedback.mutate({
-      description,
+    saveComment.mutate({
+      postId,
+      parentCommentId,
+      content,
     });
   };
 
@@ -114,21 +109,17 @@ export function CommentForm({
             )}
             showToolbar={true}
             autofocus={false}
-            onFocus={() => {
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-            }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-3">
             <Button
               type="submit"
               size="icon"
-              loading={saveFeedback.isPending}
+              loading={saveComment.isPending}
               onClick={() => onSubmit(session)}
               className="size-auto p-2"
-              disabled={!hasText || saveFeedback.isPending}
+              disabled={!hasText || saveComment.isPending}
             >
               <SendIcon className="size-3" />
             </Button>
