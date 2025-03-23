@@ -3,7 +3,7 @@
 import "@iframe-resizer/child";
 import { useParams } from "next/navigation";
 import { FeedbackPostFull } from "@/components/app/feedback-post/full";
-import { CommentForm } from "@/components/app/comment-form";
+import { CommentFormContainer } from "@/components/app/comment-form/container";
 import { useState } from "react";
 
 export default function FeedbackPostPage() {
@@ -16,7 +16,7 @@ export default function FeedbackPostPage() {
         postId={params.postId}
         onLoaded={() => setIsPostLoaded(true)}
       />
-      {isPostLoaded && <CommentForm />}
+      {isPostLoaded && <CommentFormContainer postId={params.postId} />}
     </div>
   );
 }

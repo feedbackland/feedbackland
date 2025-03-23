@@ -19,7 +19,7 @@ export function CommentForm({
   onSuccess,
 }: {
   postId: string;
-  parentCommentId: string;
+  parentCommentId?: string;
   onClose?: () => void;
   onSuccess?: () => void;
 }) {
@@ -108,12 +108,12 @@ export function CommentForm({
               isFocused && "ring-ring ring-1",
             )}
             showToolbar={true}
-            autofocus={false}
+            autofocus={true}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
-          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-3">
-            <Button
+          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+            {/* <Button
               type="submit"
               size="icon"
               loading={saveComment.isPending}
@@ -122,6 +122,19 @@ export function CommentForm({
               disabled={!hasText || saveComment.isPending}
             >
               <SendIcon className="size-3" />
+            </Button> */}
+            <Button
+              type="submit"
+              size="sm"
+              loading={saveComment.isPending}
+              onClick={() => onSubmit(session)}
+              disabled={!hasText || saveComment.isPending}
+            >
+              <SendIcon className="size-3" />
+              Submit
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
+              Cancel
             </Button>
           </div>
         </div>

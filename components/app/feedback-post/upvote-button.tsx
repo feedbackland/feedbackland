@@ -13,10 +13,18 @@ import { cn } from "@/lib/utils";
 
 export function FeedbackPostUpvoteButton({
   postId,
+  variant,
   className,
   ...props
 }: {
   postId: string;
+  variant:
+    | "link"
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost";
   upvoteCount: string;
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
@@ -70,7 +78,7 @@ export function FeedbackPostUpvoteButton({
   return (
     <>
       <Button
-        variant={hasUserUpvote ? "default" : "secondary"}
+        variant={hasUserUpvote ? "default" : variant}
         size="sm"
         className={cn("", className)}
         onClick={(e) => {

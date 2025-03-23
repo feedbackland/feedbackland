@@ -1,33 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FeedbackForm } from "@/components/app/feedback-form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
-import { useQueryState } from "nuqs";
+import { isFeedbackFormOpenAtom } from "@/lib/atoms";
+import { useAtom } from "jotai";
 
 export function FeedbackFormContainer() {
-  const [isFormOpen, setIsFormOpen] = useState(true);
-
-  const [openForm, setOpenForm] = useQueryState("open-form", {
-    parse: (value) => value === "true", // Convert query string to boolean
-    serialize: (value) => (value ? "true" : "false"), // Convert boolean to string
-  });
-
-  useEffect(() => {
-    if (openForm) {
-      setIsFormOpen(true);
-      setOpenForm(null);
-    }
-  }, [openForm, setOpenForm, setIsFormOpen]);
+  const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useAtom(
+    isFeedbackFormOpenAtom,
+  );
 
   return (
     <>
-      {!isFormOpen ? (
-        <FeedbackFormBanner onClick={() => setIsFormOpen(true)} />
+      {!isFeedbackFormOpen ? (
+        <FeedbackFormBanner onClick={() => setIsFeedbackFormOpen(true)} />
       ) : (
         <FeedbackForm
-          onClose={() => setIsFormOpen(false)}
-          onSuccess={() => setIsFormOpen(false)}
+          onClose={() => setIsFeedbackFormOpen(false)}
+          onSuccess={() => setIsFeedbackFormOpen(false)}
         />
       )}
     </>

@@ -37,7 +37,7 @@ function Inner({
       <Link href={`${platformUrl}/${postId}`}>
         <div
           className={cn(
-            "bg-background border-border group-hover:border-muted-foreground flex flex-col items-stretch space-y-2 rounded-md border p-3.5 pb-13",
+            "bg-background border-border group-hover:border-muted-foreground/80 flex flex-col items-stretch space-y-2 rounded-lg border p-3.5 pb-13",
             className,
           )}
         >
@@ -60,6 +60,7 @@ function Inner({
       <div className="absolute bottom-3 left-3 flex items-center gap-3">
         <FeedbackPostUpvoteButton
           postId={postId}
+          variant="secondary"
           upvoteCount={upvoteCount}
           hasUserUpvote={hasUserUpvote}
           className="h-[25px] px-2 py-1 [&>span]:gap-1"

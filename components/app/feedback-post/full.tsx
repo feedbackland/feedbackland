@@ -71,6 +71,7 @@ export function FeedbackPostFull({
           <div className="flex items-center gap-2.5 pt-2">
             <FeedbackPostUpvoteButton
               postId={id}
+              variant="secondary"
               upvoteCount={upvotes}
               hasUserUpvote={hasUserUpvote}
               className="h-[25px] px-2 py-1 [&>span]:gap-1"

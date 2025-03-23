@@ -113,7 +113,7 @@ export function FeedbackPosts() {
       )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
-        <div className="space-y-5">
+        <div className="space-y-5.5">
           {posts.map((post) => (
             <div key={post.id} className="">
               <FeedbackPostCompact

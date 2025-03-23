@@ -1,7 +1,12 @@
 import * as React from "react";
 import type { Editor } from "@tiptap/react";
 import { ImageIcon } from "@radix-ui/react-icons";
-import { ToolbarButton } from "../toolbar-button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -33,14 +38,31 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
 
   return (
     <div className="">
-      <ToolbarButton
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClick}
+            className="size-7!"
+          >
+            <ImageIcon className="size-3.5!" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs!">Upload images</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* <ToolbarButton
         isActive={editor.isActive("image")}
         tooltip="Upload images"
-        aria-label="Image"
+        aria-label="Upload images"
         onClick={handleClick}
       >
         <ImageIcon className="size-3.5!" />
-      </ToolbarButton>
+      </ToolbarButton> */}
+
       <input
         type="file"
         accept="image/*"

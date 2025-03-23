@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import "./globals.css";
+import { JotaiProvider } from "@/providers/jotai";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -37,7 +38,9 @@ export default async function RootLayout({
         <TRPCClientProvider>
           <AuthProvider>
             <TooltipProvider>
-              <NuqsAdapter>{children}</NuqsAdapter>
+              <JotaiProvider>
+                <NuqsAdapter>{children}</NuqsAdapter>
+              </JotaiProvider>
             </TooltipProvider>
           </AuthProvider>
         </TRPCClientProvider>

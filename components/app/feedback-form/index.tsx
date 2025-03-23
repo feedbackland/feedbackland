@@ -110,10 +110,7 @@ export function FeedbackForm({
             placeholder={`Describe your feature request, bug report, or any other feedback…`}
             value={value}
             onChange={onChange}
-            className={cn(
-              "min-h-[7.7rem] shadow-xs",
-              isFocused && "ring-ring ring-1",
-            )}
+            className={cn("min-h-[7.7rem]", isFocused && "ring-ring ring-1")}
             showToolbar={true}
             autofocus={true}
             onFocus={() => {

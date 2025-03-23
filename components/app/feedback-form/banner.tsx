@@ -50,7 +50,7 @@ export function FeedbackFormBanner({ onClick }: { onClick: () => void }) {
     <Button
       variant="outline"
       onClick={onClick}
-      className="text-muted-foreground bg-background hover:bg-background hover:text-muted-foreground h-fit w-full cursor-text justify-start p-3 text-sm leading-5 font-normal"
+      className="text-muted-foreground hover:ring-ring bg-background hover:bg-background hover:text-muted-foreground h-fit w-full cursor-text justify-start rounded-lg p-3 text-sm leading-5 font-normal hover:ring-1"
     >
       Any feedback? We’d love to hear from you!
     </Button>
