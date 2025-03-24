@@ -229,9 +229,10 @@ export const appRouter = router({
     .input(
       z.object({
         commentId: z.string().uuid(),
+        allowUndo: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input: { commentId }, ctx }) => {
+    .mutation(async ({ input: { commentId, allowUndo }, ctx }) => {
       try {
         const userId = ctx?.user?.uid;
 
@@ -246,6 +247,7 @@ export const appRouter = router({
         const comment = await upvoteCommentQuery({
           userId,
           commentId,
+          allowUndo,
         });
 
         return comment;

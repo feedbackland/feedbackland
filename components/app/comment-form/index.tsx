@@ -99,7 +99,7 @@ export function CommentForm({
           onSubmit(user);
         }}
       />
-      <div className="flex min-h-[123px] flex-col gap-3">
+      <div className="flex min-h-[7.7rem] flex-col gap-3">
         <div className="relative">
           <Tiptap
             placeholder={`Add a comment`}

@@ -3,9 +3,11 @@ import { db } from "@/db/db";
 export async function upvoteCommentQuery({
   userId,
   commentId,
+  allowUndo = true,
 }: {
   userId: string;
   commentId: string;
+  allowUndo?: boolean;
 }) {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -18,11 +20,11 @@ export async function upvoteCommentQuery({
 
       const hasUpvote = !!userUpvote;
 
-      if (hasUpvote) {
+      if (hasUpvote && allowUndo) {
         await trx
           .updateTable("comment")
           .set({
-            upvotes: (eb) => eb("upvotes", "-", 1 as any),
+            upvotes: (eb) => eb("upvotes", "-", "1"),
           })
           .where("id", "=", commentId)
           .executeTakeFirstOrThrow();
@@ -32,11 +34,13 @@ export async function upvoteCommentQuery({
           .where("userId", "=", userId)
           .where("contentId", "=", commentId)
           .executeTakeFirstOrThrow();
-      } else {
+      }
+
+      if (!hasUpvote) {
         await trx
           .updateTable("comment")
           .set({
-            upvotes: (eb) => eb("upvotes", "+", 1 as any),
+            upvotes: (eb) => eb("upvotes", "+", "1"),
           })
           .where("id", "=", commentId)
           .executeTakeFirstOrThrow();
