@@ -5,12 +5,14 @@ import { Tiptap } from "@/components/ui/tiptap";
 import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { User } from "firebase/auth";
+import { useComments } from "@/hooks/use-comments";
+import { dequal } from "dequal";
 
 export function CommentForm({
   postId,
@@ -23,12 +25,18 @@ export function CommentForm({
   onClose?: () => void;
   onSuccess?: () => void;
 }) {
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
   const { session } = useAuth();
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+
+  const { queryKey: commentsQueryKey } = useComments({
+    postId,
+    enabled: false,
+  });
 
   const onChange = (value: string) => {
     setErrormessage("");
@@ -38,6 +46,12 @@ export function CommentForm({
   const saveComment = useMutation(
     trpc.createComment.mutationOptions({
       onSuccess: () => {
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            return dequal(query.queryKey?.[0], commentsQueryKey?.[0]);
+          },
+        });
+        setValue("");
         onSuccess?.();
       },
       onError: () => {
@@ -113,16 +127,6 @@ export function CommentForm({
             onBlur={() => setIsFocused(false)}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            {/* <Button
-              type="submit"
-              size="icon"
-              loading={saveComment.isPending}
-              onClick={() => onSubmit(session)}
-              className="size-auto p-2"
-              disabled={!hasText || saveComment.isPending}
-            >
-              <SendIcon className="size-3" />
-            </Button> */}
             <Button
               type="submit"
               size="sm"

@@ -56,9 +56,9 @@ export const TRPCClientProvider = ({
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        loggerLink({
-          enabled: () => process.env.NODE_ENV === "development",
-        }),
+        // loggerLink({
+        //   enabled: () => process.env.NODE_ENV === "development",
+        // }),
         httpBatchLink({
           transformer: superjson,
           url: `${getBaseUrl()}/api/trpc`,

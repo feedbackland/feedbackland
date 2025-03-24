@@ -25,6 +25,7 @@ export function FeedbackForm({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { session } = useAuth();
+  const [isEditorLoaded, setIsEditorLoaded] = useState(false);
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
@@ -102,17 +103,18 @@ export function FeedbackForm({
           onSubmit(user);
         }}
       />
-      <div className="flex min-h-[123px] flex-col gap-3">
-        <div className="relative">
+      <div className="flex flex-col gap-3">
+        <div className="relative min-h-[7.7rem] w-full">
           <Tiptap
-            // placeholder={`Any feedback? We’d love to hear from you!`}
-            // placeholder={`Share your feedback, such as a feature request, bug report, suggestion,…`}
             placeholder={`Describe your feature request, bug report, or any other feedback…`}
             value={value}
             onChange={onChange}
             className={cn("min-h-[7.7rem]", isFocused && "ring-ring ring-1")}
             showToolbar={true}
             autofocus={true}
+            onCreate={() => {
+              setIsEditorLoaded(true);
+            }}
             onFocus={() => {
               setIsFocused(true);
             }}
@@ -120,31 +122,23 @@ export function FeedbackForm({
               setIsFocused(false);
             }}
           />
-          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            {/* <Button
-              type="submit"
-              size="icon"
-              loading={saveFeedback.isPending}
-              onClick={() => onSubmit(session)}
-              className="size-auto p-2"
-              disabled={!hasText || saveFeedback.isPending}
-            >
-              <SendIcon className="size-3" />
-            </Button> */}
-            <Button
-              type="submit"
-              size="sm"
-              loading={saveFeedback.isPending}
-              onClick={() => onSubmit(session)}
-              disabled={!hasText || saveFeedback.isPending}
-            >
-              <SendIcon className="size-3" />
-              Submit
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
-              Cancel
-            </Button>
-          </div>
+          {isEditorLoaded && (
+            <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+              <Button
+                type="submit"
+                size="sm"
+                loading={saveFeedback.isPending}
+                onClick={() => onSubmit(session)}
+                disabled={!hasText || saveFeedback.isPending}
+              >
+                <SendIcon className="size-3" />
+                Submit
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}
       </div>

@@ -52,7 +52,7 @@ export function FeedbackPostFull({
           <GoBackButton />
         </div>
 
-        <div className={cn("flex flex-col items-stretch space-y-4", className)}>
+        <div className={cn("flex flex-col items-stretch space-y-3", className)}>
           <div className="flex justify-between">
             <div className="flex flex-col">
               <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
@@ -70,16 +70,16 @@ export function FeedbackPostFull({
 
           <div className="flex items-center gap-2.5 pt-2">
             <FeedbackPostUpvoteButton
-              postId={id}
+              postId={postId}
               variant="secondary"
               upvoteCount={upvotes}
               hasUserUpvote={hasUserUpvote}
-              className="h-[25px] px-2 py-1 [&>span]:gap-1"
+              className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
             />
             <Button
               variant="secondary"
               size="sm"
-              className="h-[25px] px-2 py-1.5"
+              className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
             >
               <MessageSquare className="size-3!" />
               <span className="text-xs">0</span>

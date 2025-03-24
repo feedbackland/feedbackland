@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useComments } from "@/hooks/use-comments";
 import { Comment } from "@/components/app/comment";
+import { useInView } from "react-intersection-observer";
 
 export function Comments({ postId }: { postId: string }) {
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
   const {
     query: {
       data,
@@ -22,19 +19,14 @@ export function Comments({ postId }: { postId: string }) {
 
   const comments = data?.pages.flatMap((page) => page.comments) || [];
 
-  useEffect(() => {
-    if (loadMoreRef.current) {
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => observerRef?.current?.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const { ref } = useInView({
+    threshold: 0,
+    onChange: (inView) => {
+      if (inView && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+  });
 
   return (
     <div className="mt-10">
@@ -58,18 +50,17 @@ export function Comments({ postId }: { postId: string }) {
       {!!(!isPending && !isError && comments.length > 0) && (
         <div className="space-y-5">
           {comments.map((comment) => (
-            <div key={comment.id} className="">
-              <Comment
-                postId={postId}
-                commentId={comment.id}
-                authorId={comment.authorId}
-                authorName={comment.authorName || ""}
-                content={comment.content}
-                createdAt={comment.createdAt}
-                upvoteCount={comment.upvotes}
-                hasUserUpvote={comment.hasUserUpvote}
-              />
-            </div>
+            <Comment
+              key={comment.id}
+              postId={postId}
+              commentId={comment.id}
+              authorId={comment.authorId}
+              authorName={comment.authorName || ""}
+              content={comment.content}
+              createdAt={comment.createdAt}
+              upvoteCount={comment.upvotes}
+              hasUserUpvote={comment.hasUserUpvote}
+            />
           ))}
 
           {isFetchingNextPage && (
@@ -79,7 +70,7 @@ export function Comments({ postId }: { postId: string }) {
             </div>
           )}
 
-          <div ref={loadMoreRef} className="h-1 w-full" />
+          <div ref={ref} className="h-1 w-full" />
         </div>
       )}
     </div>

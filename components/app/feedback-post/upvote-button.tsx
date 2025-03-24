@@ -8,8 +8,9 @@ import { ArrowBigUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { User } from "firebase/auth";
 
 export function FeedbackPostUpvoteButton({
   postId,
@@ -46,19 +47,7 @@ export function FeedbackPostUpvoteButton({
     }),
   );
 
-  const handleUpvote = () => {
-    if (upvote.isPending) {
-      return;
-    }
-
-    if (session) {
-      upvote.mutate({
-        postId,
-      });
-    } else {
-      setShowSignUpInDialog(true);
-    }
-  };
+  const isUpvotePending = upvote.isPending;
 
   let hasUserUpvote =
     feedbackPost?.query?.data?.hasUserUpvote !== undefined
@@ -70,10 +59,32 @@ export function FeedbackPostUpvoteButton({
     10,
   );
 
-  if (upvote.isPending) {
+  // optimistic update
+  if (isUpvotePending) {
     hasUserUpvote = !hasUserUpvote;
     upvoteCount = hasUserUpvote ? upvoteCount + 1 : upvoteCount - 1;
   }
+
+  const handleUpvote = ({
+    session,
+    allowUndo = true,
+  }: {
+    session: User | null;
+    allowUndo?: boolean;
+  }) => {
+    if (isUpvotePending) {
+      return;
+    }
+
+    if (session) {
+      upvote.mutate({
+        postId,
+        allowUndo,
+      });
+    } else {
+      setShowSignUpInDialog(true);
+    }
+  };
 
   return (
     <>
@@ -84,7 +95,7 @@ export function FeedbackPostUpvoteButton({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          handleUpvote();
+          handleUpvote({ session });
         }}
       >
         <ArrowBigUp
@@ -99,9 +110,9 @@ export function FeedbackPostUpvoteButton({
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={() => {
+        onSuccess={(session) => {
           setShowSignUpInDialog(false);
-          handleUpvote();
+          handleUpvote({ session, allowUndo: false });
         }}
       />
     </>

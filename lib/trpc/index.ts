@@ -64,9 +64,10 @@ export const appRouter = router({
     .input(
       z.object({
         postId: z.string().uuid(),
+        allowUndo: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input: { postId }, ctx }) => {
+    .mutation(async ({ input: { postId, allowUndo }, ctx }) => {
       try {
         const userId = ctx?.user?.uid;
 
@@ -81,6 +82,7 @@ export const appRouter = router({
         const feedbackPost = await upvoteFeedbackPostQuery({
           userId,
           postId,
+          allowUndo,
         });
 
         return feedbackPost;

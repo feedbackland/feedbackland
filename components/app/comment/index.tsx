@@ -42,7 +42,7 @@ function Inner({
         commentId={commentId}
         upvoteCount={upvoteCount}
         hasUserUpvote={hasUserUpvote}
-        className="pt-2"
+        className=""
       />
     </div>
   );

@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import "./globals.css";
 import { JotaiProvider } from "@/providers/jotai";
+import { RouteChangeListener } from "./route-change-listener";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -39,7 +40,10 @@ export default async function RootLayout({
           <AuthProvider>
             <TooltipProvider>
               <JotaiProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
+                <NuqsAdapter>
+                  <RouteChangeListener />
+                  {children}
+                </NuqsAdapter>
               </JotaiProvider>
             </TooltipProvider>
           </AuthProvider>

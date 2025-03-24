@@ -8,6 +8,7 @@ export const Tiptap = ({
   onChange,
   onFocus,
   onBlur,
+  onCreate,
   className,
   showToolbar = false,
   autofocus = false,
@@ -17,6 +18,7 @@ export const Tiptap = ({
   onChange: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  onCreate?: () => void;
   className?: React.ComponentProps<"div">["className"];
   showToolbar?: boolean;
   autofocus?: boolean;
@@ -39,6 +41,7 @@ export const Tiptap = ({
       showToolbar={showToolbar}
       onFocus={onFocus}
       onBlur={onBlur}
+      onCreate={onCreate}
     />
   );
 };

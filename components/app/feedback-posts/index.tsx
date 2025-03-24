@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
@@ -15,11 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OrderBy } from "@/lib/typings";
+import { Separator } from "@/components/ui/separator";
+import { useInView } from "react-intersection-observer";
 
 export function FeedbackPosts() {
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
   const [searchValue, setSearchValue] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("newest");
 
@@ -54,19 +53,14 @@ export function FeedbackPosts() {
   const isPending = isSearchActive ? isSearchPending : isPostsPending;
   const isError = isSearchActive ? isSearchError : isPostsError;
 
-  useEffect(() => {
-    if (loadMoreRef.current) {
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => observerRef?.current?.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const { ref } = useInView({
+    threshold: 0,
+    onChange: (inView) => {
+      if (inView && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+  });
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -74,23 +68,24 @@ export function FeedbackPosts() {
 
   return (
     <div className="mt-10">
-      <div className="relative mb-4 flex flex-row-reverse items-center justify-between">
-        <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
+      <div className="relative mb-3 flex items-center justify-between">
         <Select
+          defaultValue="newest"
           value={orderBy}
           onValueChange={(value) => setOrderBy(value as OrderBy)}
         >
-          <SelectTrigger className="">
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="start">
             <SelectGroup>
               <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="upvotes">Most upvotes</SelectItem>
-              <SelectItem value="comments">Most comments</SelectItem>
+              <SelectItem value="upvotes">Most upvoted</SelectItem>
+              <SelectItem value="comments">Most commented</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
+        <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
       </div>
 
       {isPending && (
@@ -113,9 +108,10 @@ export function FeedbackPosts() {
       )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
-        <div className="space-y-5.5">
+        <div className="">
           {posts.map((post) => (
             <div key={post.id} className="">
+              <Separator className="bg-sidebar-border/80" />
               <FeedbackPostCompact
                 postId={post.id}
                 title={post.title}
@@ -135,7 +131,7 @@ export function FeedbackPosts() {
             </div>
           )}
 
-          <div ref={loadMoreRef} className="h-1 w-full" />
+          <div ref={ref} className="h-1 w-full" />
         </div>
       )}
     </div>
