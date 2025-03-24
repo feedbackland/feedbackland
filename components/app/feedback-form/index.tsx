@@ -6,7 +6,7 @@ import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
@@ -14,6 +14,7 @@ import { User } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
+import { useKey } from "react-use";
 
 export function FeedbackForm({
   onClose,
@@ -72,23 +73,10 @@ export function FeedbackForm({
     });
   };
 
-  const handleEscapeKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setValue("");
-        onClose?.();
-      }
-    },
-    [onClose],
-  );
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleEscapeKeyPress);
-
-    return () => {
-      document.removeEventListener("keydown", handleEscapeKeyPress);
-    };
-  }, [handleEscapeKeyPress]);
+  useKey("Escape", () => {
+    setValue("");
+    onClose?.();
+  });
 
   const hasText = value?.length > 0;
 

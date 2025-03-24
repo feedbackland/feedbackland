@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "react-use";
 
 export const FeedbackPostsSearchInput = ({
   onDebouncedChange,
@@ -16,30 +17,22 @@ export const FeedbackPostsSearchInput = ({
   className?: React.ComponentProps<"div">["className"];
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const [debouncedValue, setDebouncedValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
   };
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedValue(inputValue);
-    }, delay);
-
-    return () => {
-      clearTimeout(timeoutId); // Clear the timeout if the component unmounts or inputValue changes
-    };
-  }, [inputValue, delay]);
-
-  useEffect(() => {
-    onDebouncedChange(debouncedValue);
-  }, [debouncedValue, onDebouncedChange]);
+  useDebounce(
+    () => {
+      onDebouncedChange(inputValue);
+    },
+    delay,
+    [inputValue],
+  );
 
   const reset = () => {
     setInputValue("");
-    setDebouncedValue("");
   };
 
   const isActive = !!(isFocused || inputValue?.length > 0);
