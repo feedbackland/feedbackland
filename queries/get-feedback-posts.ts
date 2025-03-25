@@ -66,10 +66,12 @@ export const getFeedbackPostsQuery = async ({
 
     const feedbackPosts = await query.execute();
 
-    const nextCursor =
-      feedbackPosts.length > 0
-        ? feedbackPosts[feedbackPosts.length - 1].createdAt.toISOString()
-        : null;
+    let nextCursor: typeof cursor | undefined = undefined;
+
+    if (feedbackPosts.length > limit) {
+      const nextItem = feedbackPosts.pop();
+      nextCursor = nextItem?.createdAt?.toISOString();
+    }
 
     return {
       feedbackPosts,

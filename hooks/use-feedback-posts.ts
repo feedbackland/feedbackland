@@ -11,10 +11,11 @@ export function useFeedbackPosts({
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getFeedbackPosts.infiniteQueryOptions(
-    { limit: 10, cursor: null, orderBy },
+    { limit: 10, orderBy },
     {
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialCursor: null,
     },
   );
   const queryKey = trpcQuery.queryKey;

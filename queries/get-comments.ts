@@ -44,19 +44,21 @@ export const getCommentsQuery = async ({
             .end()
             .as("hasUserUpvote"),
       ])
-      .orderBy("comment.createdAt", "desc")
+      .orderBy("comment.createdAt", "asc")
       .limit(limit + 1);
 
     if (cursor) {
-      query = query.where("comment.createdAt", "<", new Date(cursor));
+      query = query.where("comment.createdAt", ">", new Date(cursor));
     }
 
     const comments = await query.execute();
 
-    const nextCursor =
-      comments.length > 0
-        ? comments[comments.length - 1].createdAt.toISOString()
-        : null;
+    let nextCursor: typeof cursor | undefined = undefined;
+
+    if (comments.length > limit) {
+      const nextItem = comments.pop();
+      nextCursor = nextItem?.createdAt?.toISOString();
+    }
 
     return {
       comments,

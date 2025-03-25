@@ -5,18 +5,24 @@ import { useParams } from "next/navigation";
 import { FeedbackPostFull } from "@/components/app/feedback-post/full";
 import { CommentFormContainer } from "@/components/app/comment-form/container";
 import { useState } from "react";
+import { Comments } from "@/components/app/comments";
 
 export default function FeedbackPostPage() {
-  const params = useParams<{ postId: string }>();
+  const { postId } = useParams<{ postId: string }>();
   const [isPostLoaded, setIsPostLoaded] = useState(false);
 
   return (
     <div className="space-y-10">
       <FeedbackPostFull
-        postId={params.postId}
+        postId={postId}
         onLoaded={() => setIsPostLoaded(true)}
       />
-      {isPostLoaded && <CommentFormContainer postId={params.postId} />}
+      {isPostLoaded && (
+        <div className="space-y-10">
+          <CommentFormContainer postId={postId} />
+          <Comments postId={postId} />
+        </div>
+      )}
     </div>
   );
 }

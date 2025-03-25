@@ -54,7 +54,6 @@ export function FeedbackPosts() {
   const isError = isSearchActive ? isSearchError : isPostsError;
 
   const { ref } = useInView({
-    threshold: 0,
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
         fetchNextPage();

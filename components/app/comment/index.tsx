@@ -21,7 +21,7 @@ function Inner({
   postId: string;
   commentId: string;
   authorId: string;
-  authorName: string;
+  authorName: string | null;
   content: string;
   createdAt: Date;
   upvoteCount: string;
@@ -33,7 +33,9 @@ function Inner({
       <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
         <span>{timeAgo.format(createdAt)}</span>
         <span className="text-[8px]">•</span>
-        <span className="capitalize">posted by {authorName}</span>
+        <span className="capitalize">
+          posted by {authorName || "unknown author"}
+        </span>
       </div>
       <div className="tiptap-output line-clamp-4">
         {parse(DOMPurify.sanitize(content))}

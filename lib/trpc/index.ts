@@ -115,7 +115,7 @@ export const appRouter = router({
   getFeedbackPosts: publicProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(100).default(10),
+        limit: z.number().min(1).max(100),
         cursor: z.string().datetime({ offset: true }).nullish(),
         orderBy: z.enum(["newest", "upvotes", "comments"]),
       }),
@@ -201,13 +201,15 @@ export const appRouter = router({
     .input(
       z.object({
         postId: z.string().uuid(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.number().min(1).max(100),
         cursor: z.string().datetime({ offset: true }).nullish(),
       }),
     )
     .query(async ({ input: { postId, limit, cursor }, ctx }) => {
       const orgId = ctx?.org?.id;
       const userId = ctx?.user?.uid || null;
+
+      console.log("trpc cursor", cursor);
 
       if (!orgId) {
         throw new Error("No orgId");

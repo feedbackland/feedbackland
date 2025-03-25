@@ -255,7 +255,7 @@ export interface Comment {
   parentCommentId: string | null;
   postId: string;
   updatedAt: Generated<Timestamp>;
-  upvotes: Numeric;
+  upvotes: Generated<Numeric>;
 }
 
 export interface ExtensionsPgStatStatements {
