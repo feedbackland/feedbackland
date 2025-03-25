@@ -6,10 +6,12 @@ export const upsertUserQuery = async ({
   id,
   email,
   name,
+  photoURL,
 }: {
   id: string;
   email: string;
-  name: string | null | undefined;
+  name: string | null;
+  photoURL: string | null;
 }) => {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -26,6 +28,7 @@ export const upsertUserQuery = async ({
             id,
             email,
             name,
+            photoURL,
           })
           .returningAll()
           .executeTakeFirstOrThrow();

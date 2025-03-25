@@ -52,11 +52,21 @@ export const getFeedbackPostsQuery = async ({
       query = query.orderBy("feedback.createdAt", "desc");
 
       if (cursor) {
-        query = query.where(
-          "feedback.createdAt",
-          "<",
-          new Date(cursor.createdAt),
+        query = query.where((eb) =>
+          eb.or([
+            eb("feedback.createdAt", "<", new Date(cursor.createdAt)),
+            eb.and([
+              eb("feedback.createdAt", "=", new Date(cursor.createdAt)),
+              eb("id", "<", cursor.id),
+            ]),
+          ]),
         );
+
+        // query = query.where(
+        //   "feedback.createdAt",
+        //   "<",
+        //   new Date(cursor.createdAt),
+        // );
       }
     } else if (orderBy === "upvotes") {
       query = query.orderBy("feedback.upvotes", "desc");

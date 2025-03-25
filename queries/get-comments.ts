@@ -33,6 +33,7 @@ export const getCommentsQuery = async ({
         "comment.content",
         "comment.upvotes",
         "user.name as authorName",
+        "user.photoURL as authorPhotoURL",
       ])
       .select([
         (eb) =>

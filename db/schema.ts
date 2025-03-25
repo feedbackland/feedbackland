@@ -531,6 +531,7 @@ export interface User {
   email: string;
   id: string;
   name: string | null;
+  photoURL: string | null;
   updatedAt: Generated<Timestamp>;
 }
 

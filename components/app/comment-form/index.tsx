@@ -114,7 +114,7 @@ export function CommentForm({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
-          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+          <div className="absolute right-3 bottom-3 flex flex-row-reverse justify-end gap-2.5">
             {/* <Button
               type="submit"
               size="sm"
@@ -134,8 +134,9 @@ export function CommentForm({
               loading={saveComment.isPending}
               onClick={() => onSubmit(session)}
               disabled={!hasText || saveComment.isPending}
+              className="size-8!"
             >
-              <SendIcon className="size-3" />
+              <SendIcon className="size-4!" />
             </Button>
           </div>
         </div>

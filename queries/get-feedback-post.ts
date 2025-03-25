@@ -12,6 +12,9 @@ export const getFeedbackPost = async ({
   try {
     return await db
       .selectFrom("feedback")
+      .leftJoin("user", (join) =>
+        join.onRef("feedback.authorId", "=", "user.id"),
+      )
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("feedback.id", "=", "user_upvote.contentId")
@@ -28,6 +31,7 @@ export const getFeedbackPost = async ({
         "feedback.title",
         "feedback.description",
         "feedback.upvotes",
+        "user.name as authorName",
       ])
       .select([
         (eb) =>

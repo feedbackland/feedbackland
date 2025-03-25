@@ -6,11 +6,13 @@ import parse from "html-react-parser";
 import { timeAgo } from "@/lib/time-ago";
 import { CommentUpvoteButton } from "./upvote-button";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function Inner({
   postId,
   commentId,
   authorId,
+  authorPhotoURL,
   authorName,
   content,
   createdAt,
@@ -21,6 +23,7 @@ function Inner({
   postId: string;
   commentId: string;
   authorId: string;
+  authorPhotoURL: string | null;
   authorName: string | null;
   content: string;
   createdAt: Date;
@@ -30,6 +33,10 @@ function Inner({
 }) {
   return (
     <div className={cn("space-y-2", className)}>
+      <Avatar>
+        <AvatarImage src={authorPhotoURL || undefined} />
+        <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
+      </Avatar>
       <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
         <span>{timeAgo.format(createdAt)}</span>
         <span className="text-[8px]">•</span>
@@ -44,7 +51,7 @@ function Inner({
         commentId={commentId}
         upvoteCount={upvoteCount}
         hasUserUpvote={hasUserUpvote}
-        className=""
+        className="-mt-1"
       />
     </div>
   );

@@ -62,6 +62,7 @@ export function Comments({
               commentId={comment.id}
               authorId={comment.authorId}
               authorName={comment.authorName}
+              authorPhotoURL={comment.authorPhotoURL}
               content={comment.content}
               createdAt={comment.createdAt}
               upvoteCount={comment.upvotes}

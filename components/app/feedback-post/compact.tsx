@@ -48,7 +48,7 @@ function Inner({
                 <span className="text-[8px]">•</span>
                 <span className="capitalize">{category}</span>
               </div>
-              <h3 className="text-[16px] leading-5.5 font-semibold">{title}</h3>
+              <h3 className="text-[17px] leading-5.5 font-semibold">{title}</h3>
             </div>
 
             <div className="tiptap-output mt-[-1] line-clamp-4">

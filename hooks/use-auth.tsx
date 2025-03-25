@@ -49,13 +49,13 @@ const AuthContext = createContext<AuthContextType>({
 
 const upsertUser = async (user: User) => {
   try {
-    const { uid, email, displayName } = user;
+    const { uid, email, displayName, photoURL } = user;
     const response = await fetch(`/api/user/upsert-user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uid, email, name: displayName }),
+      body: JSON.stringify({ uid, email, name: displayName, photoURL }),
     });
     const repsonse = await response.json();
     return repsonse as User;

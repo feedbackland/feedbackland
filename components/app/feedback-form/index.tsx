@@ -139,8 +139,9 @@ export function FeedbackForm({
                 loading={saveFeedback.isPending}
                 onClick={() => onSubmit(session)}
                 disabled={!hasText || saveFeedback.isPending}
+                className="size-8!"
               >
-                <SendIcon className="size-3" />
+                <SendIcon className="size-4!" />
               </Button>
             </div>
           )}
