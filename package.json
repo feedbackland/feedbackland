@@ -44,7 +44,7 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@react-email/components": "0.0.34",
-    "@supabase/supabase-js": "^2.49.2",
+    "@supabase/supabase-js": "^2.49.3",
     "@tanstack/react-query": "^5.69.0",
     "@tanstack/react-query-devtools": "^5.69.0",
     "@tiptap/extension-code-block-lowlight": "^2.11.5",
@@ -82,7 +82,7 @@
     "kysely": "^0.27.6",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.483.0",
-    "next": "^15.2.3",
+    "next": "^15.2.4",
     "next-safe-action": "^7.10.4",
     "next-themes": "^0.4.6",
     "nuqs": "^2.4.1",
@@ -113,18 +113,18 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.15",
+    "@tailwindcss/postcss": "^4.0.16",
     "@types/node": "^22.13.13",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "eslint": "^9.23.0",
-    "eslint-config-next": "^15.2.3",
+    "eslint-config-next": "^15.2.4",
     "kysely-codegen": "^0.18.3",
     "kysely-ctl": "^0.12.1",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.0.15",
+    "tailwindcss": "^4.0.16",
     "typescript": "^5.8.2"
   }
 }
