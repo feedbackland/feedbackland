@@ -159,6 +159,13 @@
   color: var(--muted-foreground) !important;
 }
 
+.tiptap-output,
+.tiptap-output p,
+.tiptap-output .text-node,
+.tiptap-output .text-node span {
+  @apply text-primary/80!;
+}
+
 .h1,
 .tiptap-output h1 {
   @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;

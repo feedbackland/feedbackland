@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { cn, processImagesInHTML } from "@/lib/utils";
-import { SendIcon } from "lucide-react";
+import { SendIcon, XIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -113,18 +113,34 @@ export function FeedbackForm({
           />
           {isEditorLoaded && (
             <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-              <Button
+              {/* <Button
                 type="submit"
-                size="sm"
+                size="default"
                 loading={saveFeedback.isPending}
                 onClick={() => onSubmit(session)}
                 disabled={!hasText || saveFeedback.isPending}
               >
                 <SendIcon className="size-3" />
-                Submit
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
+                Submit feedback
+              </Button> */}
+              {/* <Button
+                variant="secondary"
+                size="default"
+                onClick={() => onClose?.()}
+              >
                 Cancel
+              </Button> */}
+              {/* <Button variant="ghost" size="icon" onClick={() => onClose?.()}>
+                <XIcon className="size-3" />
+              </Button> */}
+              <Button
+                type="submit"
+                size="icon"
+                loading={saveFeedback.isPending}
+                onClick={() => onSubmit(session)}
+                disabled={!hasText || saveFeedback.isPending}
+              >
+                <SendIcon className="size-3" />
               </Button>
             </div>
           )}

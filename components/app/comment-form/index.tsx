@@ -115,7 +115,7 @@ export function CommentForm({
             onBlur={() => setIsFocused(false)}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            <Button
+            {/* <Button
               type="submit"
               size="sm"
               loading={saveComment.isPending}
@@ -127,6 +127,15 @@ export function CommentForm({
             </Button>
             <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
               Cancel
+            </Button> */}
+            <Button
+              type="submit"
+              size="icon"
+              loading={saveComment.isPending}
+              onClick={() => onSubmit(session)}
+              disabled={!hasText || saveComment.isPending}
+            >
+              <SendIcon className="size-3" />
             </Button>
           </div>
         </div>

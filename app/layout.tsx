@@ -1,15 +1,14 @@
 import "@iframe-resizer/child";
+import "./globals.css";
 import type { Metadata } from "next";
-// import { GeistSans } from "geist/font/sans";
-// import { GeistMono } from "geist/font/mono";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
-import "./globals.css";
 import { JotaiProvider } from "@/providers/jotai";
 import { RouteChangeListener } from "./route-change-listener";
+import { ThemeProvider } from "@/providers/theme";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -34,20 +33,31 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${roboto_mono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${roboto_mono.variable}`}
+    >
       <body className="bg-background font-sans">
-        <TRPCClientProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <JotaiProvider>
-                <NuqsAdapter>
-                  <RouteChangeListener />
-                  {children}
-                </NuqsAdapter>
-              </JotaiProvider>
-            </TooltipProvider>
-          </AuthProvider>
-        </TRPCClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TRPCClientProvider>
+            <AuthProvider>
+              <TooltipProvider>
+                <JotaiProvider>
+                  <NuqsAdapter>
+                    <RouteChangeListener />
+                    {children}
+                  </NuqsAdapter>
+                </JotaiProvider>
+              </TooltipProvider>
+            </AuthProvider>
+          </TRPCClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

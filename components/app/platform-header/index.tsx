@@ -13,6 +13,7 @@ import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { ModeToggle } from "@/components/app/mode-toggle";
 
 export function PlatformHeader() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
@@ -36,7 +37,7 @@ export function PlatformHeader() {
           <h1 className="h3 font-extrabold">Feedback</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="link" size="default" asChild>
+          <Button variant="outline" size="default" asChild>
             <Link href={`${platformUrl}/admin`}>
               <span className="flex items-center gap-2">
                 <Shield className="size-3.5!" />
@@ -54,7 +55,7 @@ export function PlatformHeader() {
           )} */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="">
+              <Button size="icon" variant="outline" className="">
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -76,6 +77,7 @@ export function PlatformHeader() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+          <ModeToggle />
         </div>
       </div>
       <p className="text-muted-foreground -mt-1 text-sm">
