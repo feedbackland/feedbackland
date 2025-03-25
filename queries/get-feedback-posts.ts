@@ -17,9 +17,6 @@ export const getFeedbackPostsQuery = async ({
   orderBy: OrderBy;
 }) => {
   try {
-    console.log("cursor", cursor);
-    console.log("orderBy", orderBy);
-
     let query = db
       .selectFrom("feedback")
       .leftJoin("user_upvote", (join) =>

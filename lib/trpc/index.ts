@@ -133,9 +133,6 @@ export const appRouter = router({
         throw new Error("No orgId");
       }
 
-      console.log("trpc cursor", cursor);
-      console.log("trpc orderBy", orderBy);
-
       const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
         orgId,
         userId,

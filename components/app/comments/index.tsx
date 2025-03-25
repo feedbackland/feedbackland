@@ -16,7 +16,6 @@ export function Comments({
   const { ref } = useInView({
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
-        console.log("fetchNextPage");
         fetchNextPage();
       }
     },
