@@ -33,11 +33,11 @@ function Inner({
   const platformUrl = usePlatformUrl();
 
   return (
-    <div className="group bg-background relative">
+    <div className="flex flex-col items-stretch space-y-2">
       <Link href={`${platformUrl}/${postId}`}>
         <div
           className={cn(
-            "flex flex-col items-stretch space-y-2 pt-5 pb-14",
+            "group flex flex-col items-stretch space-y-1.5",
             className,
           )}
         >
@@ -57,7 +57,7 @@ function Inner({
           </div>
         </div>
       </Link>
-      <div className="absolute bottom-5 left-0 flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         <FeedbackPostUpvoteButton
           postId={postId}
           variant="secondary"

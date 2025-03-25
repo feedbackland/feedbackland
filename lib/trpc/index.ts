@@ -116,7 +116,12 @@ export const appRouter = router({
     .input(
       z.object({
         limit: z.number().min(1).max(100),
-        cursor: z.string().datetime({ offset: true }).nullish(),
+        cursor: z
+          .object({
+            id: z.string(),
+            createdAt: z.string(),
+          })
+          .nullish(),
         orderBy: z.enum(["newest", "upvotes", "comments"]),
       }),
     )
@@ -127,6 +132,9 @@ export const appRouter = router({
       if (!orgId) {
         throw new Error("No orgId");
       }
+
+      console.log("trpc cursor", cursor);
+      console.log("trpc orderBy", orderBy);
 
       const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
         orgId,

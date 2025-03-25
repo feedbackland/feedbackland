@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OrderBy } from "@/lib/typings";
-import { Separator } from "@/components/ui/separator";
 import { useInView } from "react-intersection-observer";
 
 export function FeedbackPosts() {
@@ -67,7 +66,7 @@ export function FeedbackPosts() {
 
   return (
     <div className="mt-10">
-      <div className="relative mb-3 flex items-center justify-between">
+      <div className="relative mb-5 flex items-center justify-between">
         <Select
           defaultValue="newest"
           value={orderBy}
@@ -107,20 +106,18 @@ export function FeedbackPosts() {
       )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
-        <div className="">
+        <div className="space-y-8">
           {posts.map((post) => (
-            <div key={post.id} className="">
-              <Separator className="bg-sidebar-border/80" />
-              <FeedbackPostCompact
-                postId={post.id}
-                title={post.title}
-                description={post.description}
-                createdAt={post.createdAt}
-                category={post.category}
-                upvoteCount={post.upvotes}
-                hasUserUpvote={post.hasUserUpvote}
-              />
-            </div>
+            <FeedbackPostCompact
+              key={post.id}
+              postId={post.id}
+              title={post.title}
+              description={post.description}
+              createdAt={post.createdAt}
+              category={post.category}
+              upvoteCount={post.upvotes}
+              hasUserUpvote={post.hasUserUpvote}
+            />
           ))}
 
           {isFetchingNextPage && (

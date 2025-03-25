@@ -15,7 +15,6 @@ export function useFeedbackPosts({
     {
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      initialCursor: null,
     },
   );
   const queryKey = trpcQuery.queryKey;

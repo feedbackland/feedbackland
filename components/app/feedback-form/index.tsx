@@ -94,7 +94,8 @@ export function FeedbackForm({
       <div className="flex flex-col gap-3">
         <div className="relative min-h-[7.7rem] w-full">
           <Tiptap
-            placeholder={`Describe your feature request, bug report, or any other feedback…`}
+            placeholder={`Add your feature request, bug report, or any other feedback…`}
+            // placeholder="Any feedback? We’d love to hear from you!"
             value={value}
             onChange={onChange}
             className={cn("min-h-[7.7rem]", isFocused && "ring-ring ring-1")}

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { previousPathnameAtom } from "@/lib/atoms";
+import { useSubdomain } from "@/hooks/useSubdomain";
 
 export const GoBackButton = ({
   className,
@@ -12,28 +14,25 @@ export const GoBackButton = ({
   className?: React.ComponentProps<"div">["className"];
 }) => {
   const router = useRouter();
-
-  useEffect(() => {
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-  }, []);
+  const subdomain = useSubdomain();
+  const previousPathname = useAtomValue(previousPathnameAtom);
 
   const handleGoBack = () => {
-    router.back();
+    if (previousPathname) {
+      router.back();
+    } else {
+      router.push(`/${subdomain}`);
+    }
   };
 
   return (
     <Button
-      size="sm"
+      size="icon"
       onClick={handleGoBack}
-      // variant="link"
-      // className={cn("size-fit p-0", className)}
-      variant="secondary"
-      className={cn("", className)}
+      variant="outline"
+      className={cn("size-8", className)}
     >
       <ArrowLeft className="size-4" />
-      Back to overview
     </Button>
   );
 };

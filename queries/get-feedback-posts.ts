@@ -13,10 +13,13 @@ export const getFeedbackPostsQuery = async ({
   orgId: string;
   userId: string | null;
   limit: number;
-  cursor: string | null | undefined;
+  cursor: { id: string; createdAt: string } | null | undefined;
   orderBy: OrderBy;
 }) => {
   try {
+    console.log("cursor", cursor);
+    console.log("orderBy", orderBy);
+
     let query = db
       .selectFrom("feedback")
       .leftJoin("user_upvote", (join) =>
@@ -50,18 +53,20 @@ export const getFeedbackPostsQuery = async ({
 
     if (orderBy === "newest") {
       query = query.orderBy("feedback.createdAt", "desc");
-    }
 
-    if (orderBy === "upvotes") {
+      if (cursor) {
+        query = query.where(
+          "feedback.createdAt",
+          "<",
+          new Date(cursor.createdAt),
+        );
+      }
+    } else if (orderBy === "upvotes") {
       query = query.orderBy("feedback.upvotes", "desc");
-    }
 
-    // if (orderBy === 'comments') {
-    //   query = query.orderBy("feedback.upvotes", "desc");
-    // }
-
-    if (cursor) {
-      query = query.where("feedback.createdAt", "<", new Date(cursor));
+      if (cursor) {
+        query = query.where("feedback.id", ">", cursor.id);
+      }
     }
 
     const feedbackPosts = await query.execute();
@@ -70,7 +75,13 @@ export const getFeedbackPostsQuery = async ({
 
     if (feedbackPosts.length > limit) {
       const nextItem = feedbackPosts.pop();
-      nextCursor = nextItem?.createdAt?.toISOString();
+
+      if (nextItem) {
+        nextCursor = {
+          id: nextItem?.id,
+          createdAt: nextItem.createdAt.toISOString(),
+        };
+      }
     }
 
     return {

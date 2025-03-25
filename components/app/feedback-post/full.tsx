@@ -48,9 +48,7 @@ export function FeedbackPostFull({
 
     return (
       <div className="mt-4">
-        <div className="mb-5">
-          <GoBackButton />
-        </div>
+        <GoBackButton className="mb-3" />
 
         <div className={cn("flex flex-col items-stretch space-y-3", className)}>
           <div className="flex justify-between">

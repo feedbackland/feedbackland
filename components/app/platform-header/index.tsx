@@ -54,7 +54,7 @@ export function PlatformHeader() {
           )} */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="link" className="w-fit p-0">
+              <Button size="icon" variant="ghost" className="">
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
