@@ -17,6 +17,13 @@ import {
 import { OrderBy } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 
+function convertToString(value: string | number | bigint | null): string {
+  if (value === null) {
+    return ""; // or 'null' if you prefer to represent null as a string
+  }
+  return value.toString();
+}
+
 export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("newest");
@@ -116,6 +123,7 @@ export function FeedbackPosts() {
               createdAt={post.createdAt}
               category={post.category}
               upvoteCount={post.upvotes}
+              commentCount={convertToString(post?.commentCount)}
               hasUserUpvote={post.hasUserUpvote}
             />
           ))}

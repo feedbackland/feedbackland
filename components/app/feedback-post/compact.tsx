@@ -18,6 +18,7 @@ function Inner({
   createdAt,
   category,
   upvoteCount,
+  commentCount,
   hasUserUpvote,
   className,
 }: {
@@ -27,6 +28,7 @@ function Inner({
   createdAt: Date;
   category: string | null;
   upvoteCount: string;
+  commentCount: string;
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
@@ -76,7 +78,7 @@ function Inner({
             className="flex items-center gap-1"
           >
             <MessageSquare className="size-3!" />
-            <span className="text-xs">0</span>
+            <span className="text-xs">{commentCount}</span>
           </Link>
         </Button>
       </div>

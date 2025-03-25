@@ -37,8 +37,6 @@ export const searchFeedbackPostsQuery = async ({
       "feedback.title",
       "feedback.description",
       "feedback.upvotes",
-    ])
-    .select([
       (eb) =>
         eb
           .case()
@@ -47,8 +45,14 @@ export const searchFeedbackPostsQuery = async ({
           .else(false)
           .end()
           .as("hasUserUpvote"),
+      (eb) =>
+        eb
+          .selectFrom("comment")
+          .select(eb.fn.countAll().as("commentCount"))
+          .whereRef("comment.postId", "=", "feedback.id")
+          .as("commentCount"),
+      distance.as("distance"),
     ])
-    .select([() => distance.as("distance")])
     .where(distance, "<", 0.5)
     .orderBy(distance)
     .limit(10)

@@ -35,8 +35,6 @@ export const getFeedbackPostsQuery = async ({
         "feedback.title",
         "feedback.description",
         "feedback.upvotes",
-      ])
-      .select([
         (eb) =>
           eb
             .case()
@@ -45,6 +43,12 @@ export const getFeedbackPostsQuery = async ({
             .else(false)
             .end()
             .as("hasUserUpvote"),
+        (eb) =>
+          eb
+            .selectFrom("comment")
+            .select(eb.fn.countAll().as("commentCount"))
+            .whereRef("comment.postId", "=", "feedback.id")
+            .as("commentCount"),
       ])
       .limit(limit + 1);
 
