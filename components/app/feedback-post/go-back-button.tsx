@@ -29,7 +29,7 @@ export const GoBackButton = ({
     <Button
       size="icon"
       onClick={handleGoBack}
-      variant="outline"
+      variant="ghost"
       className={cn("size-8", className)}
     >
       <ArrowLeft className="size-4" />

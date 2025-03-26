@@ -19,8 +19,9 @@ import { useInView } from "react-intersection-observer";
 
 function convertToString(value: string | number | bigint | null): string {
   if (value === null) {
-    return ""; // or 'null' if you prefer to represent null as a string
+    return "";
   }
+
   return value.toString();
 }
 
@@ -113,7 +114,7 @@ export function FeedbackPosts() {
       )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
-        <div className="space-y-4">
+        <div className="space-y-8">
           {posts.map((post) => (
             <FeedbackPostCompact
               key={post.id}

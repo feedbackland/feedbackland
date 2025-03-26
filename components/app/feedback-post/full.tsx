@@ -11,6 +11,7 @@ import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { GoBackButton } from "./go-back-button";
 import { useEffect } from "react";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { usePlatformUrl } from "@/hooks/use-platform-url";
 // import { useSubdomain } from "@/hooks/useSubdomain";
 
@@ -45,14 +46,30 @@ export function FeedbackPostFull({
       upvotes,
       hasUserUpvote,
       authorName,
+      authorPhotoURL,
+      commentCount,
     } = data;
 
     return (
-      <div className="mt-4">
-        <GoBackButton className="mb-3" />
+      <div className="mt-3">
+        <div className="mb-3 -ml-11 flex items-center gap-2">
+          <GoBackButton className="" />
+          <Avatar className="">
+            <AvatarImage src={authorPhotoURL || undefined} />
+            <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col space-y-0">
+            <div className="text-primary text-xs font-normal">{authorName}</div>
+            <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
+              <span>{timeAgo.format(createdAt)}</span>
+              <span className="text-[8px]">•</span>
+              <span className="capitalize">{category}</span>
+            </div>
+          </div>
+        </div>
 
-        <div className={cn("flex flex-col items-stretch space-y-3", className)}>
-          <div className="flex flex-col items-stretch">
+        <div className={cn("flex flex-col items-stretch space-y-2", className)}>
+          {/* <div className="flex flex-col items-stretch">
             <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
               <span>{timeAgo.format(createdAt)}</span>
               <span className="text-[8px]">•</span>
@@ -74,7 +91,9 @@ export function FeedbackPostFull({
               </span>
             </div>
             <h2 className="text-xl font-semibold">{title}</h2>
-          </div>
+          </div> */}
+
+          <h2 className="text-xl font-semibold">{title}</h2>
 
           <div className="tiptap-output">
             {parse(DOMPurify.sanitize(description))}
@@ -94,7 +113,7 @@ export function FeedbackPostFull({
               className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
             >
               <MessageSquare className="size-3!" />
-              <span className="text-xs">0</span>
+              <span className="text-xs">{commentCount}</span>
             </Button>
           </div>
         </div>

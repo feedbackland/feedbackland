@@ -38,19 +38,22 @@ function Inner({
     <div className="group relative">
       <Link
         href={`${platformUrl}/${postId}`}
-        className="group-hover:border-primary/40 flex flex-col items-stretch space-y-2 rounded-lg border p-3.5 pb-12"
+        // className="group-hover:border-primary/40 border-border flex flex-col items-stretch space-y-2 rounded-lg border p-3.5 pb-12"
+        className="group-hover:border-primary/40 border-border flex flex-col items-stretch space-y-2 pb-8"
       >
         <>
           <div
             className={cn("flex flex-col items-stretch space-y-1.5", className)}
           >
             <div className="flex flex-col items-stretch">
-              <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
+              {/* <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
                 <span>{timeAgo.format(createdAt)}</span>
                 <span className="text-[8px]">•</span>
                 <span className="capitalize">{category}</span>
-              </div>
-              <h3 className="text-[17px] leading-5.5 font-semibold">{title}</h3>
+              </div> */}
+              <h3 className="text-[16px] leading-5.5 font-semibold group-hover:underline">
+                {title}
+              </h3>
             </div>
 
             <div className="tiptap-output mt-[-1] line-clamp-4">
@@ -59,18 +62,18 @@ function Inner({
           </div>
         </>
       </Link>
-      <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2.5">
+      <div className="absolute bottom-0 left-0 z-10 flex items-center gap-2.5">
         <FeedbackPostUpvoteButton
           postId={postId}
           variant="secondary"
           upvoteCount={upvoteCount}
           hasUserUpvote={hasUserUpvote}
-          className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
+          className="flex h-[24px] items-center px-1.5 py-0 [&>span]:gap-1"
         />
         <Button
           variant="secondary"
           size="sm"
-          className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
+          className="flex h-[24px] items-center px-1.5 py-0 [&>span]:gap-1"
           asChild
         >
           <Link

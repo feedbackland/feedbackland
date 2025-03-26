@@ -20,11 +20,13 @@ export function CommentForm({
   parentCommentId,
   onClose,
   onSuccess,
+  className,
 }: {
   postId: string;
   parentCommentId?: string;
   onClose?: () => void;
   onSuccess?: () => void;
+  className?: React.ComponentProps<"div">["className"];
 }) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
@@ -99,7 +101,7 @@ export function CommentForm({
           onSubmit(user);
         }}
       />
-      <div className="flex min-h-[7.7rem] flex-col gap-3">
+      <div className={cn("flex min-h-[7.7rem] flex-col gap-3", className)}>
         <div className="relative">
           <Tiptap
             placeholder={`Add a comment`}
@@ -115,7 +117,7 @@ export function CommentForm({
             onBlur={() => setIsFocused(false)}
           />
           <div className="absolute right-3 bottom-3 flex flex-row-reverse justify-end gap-2.5">
-            {/* <Button
+            <Button
               type="submit"
               size="sm"
               loading={saveComment.isPending}
@@ -127,8 +129,8 @@ export function CommentForm({
             </Button>
             <Button variant="secondary" size="sm" onClick={() => onClose?.()}>
               Cancel
-            </Button> */}
-            <Button
+            </Button>
+            {/* <Button
               type="submit"
               size="icon"
               loading={saveComment.isPending}
@@ -137,7 +139,7 @@ export function CommentForm({
               className="size-8!"
             >
               <SendIcon className="size-4!" />
-            </Button>
+            </Button> */}
           </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}

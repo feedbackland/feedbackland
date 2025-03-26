@@ -32,8 +32,7 @@ export const getFeedbackPost = async ({
         "feedback.description",
         "feedback.upvotes",
         "user.name as authorName",
-      ])
-      .select([
+        "user.photoURL as authorPhotoURL",
         (eb) =>
           eb
             .case()
@@ -42,6 +41,12 @@ export const getFeedbackPost = async ({
             .else(false)
             .end()
             .as("hasUserUpvote"),
+        (eb) =>
+          eb
+            .selectFrom("comment")
+            .select(eb.fn.countAll().as("commentCount"))
+            .whereRef("comment.postId", "=", "feedback.id")
+            .as("commentCount"),
       ])
       .executeTakeFirst();
   } catch (error: any) {
