@@ -19,7 +19,7 @@ export default function FeedbackPostPage() {
       />
       {isPostLoaded && (
         <div className="space-y-10">
-          <CommentFormContainer postId={postId} />
+          <CommentFormContainer postId={postId} parentCommentId={null} />
           <Comments postId={postId} />
         </div>
       )}

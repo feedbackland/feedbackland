@@ -1,0 +1,33 @@
+"use client";
+
+import { CommentUpvoteButton } from "./upvote-button";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+export function CommentFooter({
+  commentId,
+  upvotes,
+  hasUserUpvote,
+  className,
+  onReplyClicked,
+}: {
+  commentId: string;
+  upvotes: string;
+  hasUserUpvote: boolean;
+  className?: React.ComponentProps<"div">["className"];
+  onReplyClicked: () => void;
+}) {
+  return (
+    <div className={cn("mt-1 flex items-center gap-0", className)}>
+      <CommentUpvoteButton
+        commentId={commentId}
+        upvoteCount={upvotes}
+        hasUserUpvote={hasUserUpvote}
+      />
+      {/* <span className="text-[8px]">•</span> */}
+      <Button variant="link" size="sm" onClick={onReplyClicked} className="">
+        Reply
+      </Button>
+    </div>
+  );
+}

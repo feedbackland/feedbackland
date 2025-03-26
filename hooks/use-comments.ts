@@ -12,9 +12,8 @@ export function useComments({
   const trpcQuery = trpc.getComments.infiniteQueryOptions(
     { postId, limit: 10 },
     {
-      enabled,
+      enabled: !!(enabled && postId),
       getNextPageParam: (lastPage) => lastPage?.nextCursor,
-      initialCursor: null,
     },
   );
   const queryKey = trpcQuery.queryKey;

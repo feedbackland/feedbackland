@@ -11,7 +11,7 @@ export async function createCommentQuery({
   content: string;
   authorId: string;
   postId: string;
-  parentCommentId?: string;
+  parentCommentId: string | null;
 }) {
   try {
     const comment = await db
@@ -20,7 +20,7 @@ export async function createCommentQuery({
         content,
         authorId,
         postId,
-        parentCommentId: parentCommentId || null,
+        parentCommentId: parentCommentId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

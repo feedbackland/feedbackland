@@ -23,6 +23,8 @@ export const getCommentQuery = async ({
       .where("comment.id", "=", commentId)
       .select([
         "comment.id",
+        "comment.parentCommentId",
+        "comment.postId",
         "comment.createdAt",
         "comment.updatedAt",
         "comment.authorId",
@@ -30,8 +32,6 @@ export const getCommentQuery = async ({
         "comment.upvotes",
         "user.name as authorName",
         "user.photoURL as authorPhotoURL",
-      ])
-      .select([
         (eb) =>
           eb
             .case()

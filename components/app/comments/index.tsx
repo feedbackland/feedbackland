@@ -5,6 +5,8 @@ import { useComments } from "@/hooks/use-comments";
 import { Comment } from "@/components/app/comment";
 import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { Fragment } from "react";
 
 export function Comments({
   postId,
@@ -34,6 +36,10 @@ export function Comments({
 
   const comments = data?.pages.flatMap((page) => page.comments) || [];
 
+  const parentComments = comments.filter((comment) => !comment.parentCommentId);
+
+  console.log("comments", comments);
+
   return (
     <div className={cn("", className)}>
       {/* {isPending && (
@@ -54,21 +60,19 @@ export function Comments({
       )} */}
 
       {!!(!isPending && !isError && comments.length > 0) && (
-        <div className="space-y-5">
-          {comments.map((comment) => (
-            <Comment
-              key={comment.id}
-              postId={postId}
-              commentId={comment.id}
-              authorId={comment.authorId}
-              authorName={comment.authorName}
-              authorPhotoURL={comment.authorPhotoURL}
-              content={comment.content}
-              createdAt={comment.createdAt}
-              upvoteCount={comment.upvotes}
-              hasUserUpvote={comment.hasUserUpvote}
-            />
-          ))}
+        <div className="space-y-2.5">
+          {parentComments.map((comment) => {
+            const childComments = comments.filter(
+              (i) => i.parentCommentId === comment.id,
+            );
+
+            return (
+              <Fragment key={comment.id}>
+                <Comment comment={comment} childComments={childComments} />
+                <Separator />
+              </Fragment>
+            );
+          })}
 
           {isFetchingNextPage && (
             <div className="flex items-center justify-start py-5">

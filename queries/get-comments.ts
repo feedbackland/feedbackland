@@ -11,7 +11,7 @@ export const getCommentsQuery = async ({
   postId: string;
   userId: string | null;
   limit: number;
-  cursor: string | null | undefined;
+  cursor: { id: string; createdAt: string } | null | undefined;
 }) => {
   try {
     let query = db
@@ -27,6 +27,8 @@ export const getCommentsQuery = async ({
       .where("comment.postId", "=", postId)
       .select([
         "comment.id",
+        "comment.parentCommentId",
+        "comment.postId",
         "comment.createdAt",
         "comment.updatedAt",
         "comment.authorId",
@@ -34,8 +36,6 @@ export const getCommentsQuery = async ({
         "comment.upvotes",
         "user.name as authorName",
         "user.photoURL as authorPhotoURL",
-      ])
-      .select([
         (eb) =>
           eb
             .case()
@@ -45,11 +45,25 @@ export const getCommentsQuery = async ({
             .end()
             .as("hasUserUpvote"),
       ])
-      .orderBy("comment.createdAt", "asc")
+      .orderBy("comment.createdAt", "desc")
       .limit(limit + 1);
 
     if (cursor) {
-      query = query.where("comment.createdAt", ">", new Date(cursor));
+      query = query.where((eb) =>
+        eb.or([
+          eb("comment.createdAt", "<", new Date(cursor.createdAt)),
+          eb.and([
+            eb("comment.createdAt", "=", new Date(cursor.createdAt)),
+            eb("id", "<", cursor.id),
+          ]),
+        ]),
+      );
+
+      // query = query.where(
+      //   "comment.createdAt",
+      //   "<",
+      //   new Date(cursor.createdAt),
+      // );
     }
 
     const comments = await query.execute();
@@ -58,7 +72,13 @@ export const getCommentsQuery = async ({
 
     if (comments.length > limit) {
       const nextItem = comments.pop();
-      nextCursor = nextItem?.createdAt?.toISOString();
+
+      if (nextItem) {
+        nextCursor = {
+          id: nextItem?.id,
+          createdAt: nextItem.createdAt.toISOString(),
+        };
+      }
     }
 
     return {

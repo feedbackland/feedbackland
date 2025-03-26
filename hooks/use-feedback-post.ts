@@ -3,8 +3,10 @@ import { useTRPC } from "@/providers/trpc-client";
 
 export function useFeedbackPost({
   postId,
+  enabled = true,
 }: {
   postId: string | null | undefined;
+  enabled?: boolean;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getFeedbackPost.queryOptions(
@@ -12,7 +14,7 @@ export function useFeedbackPost({
       postId: postId as string,
     },
     {
-      enabled: !!postId,
+      enabled: !!(enabled && postId),
     },
   );
   const queryKey = trpcQuery.queryKey;

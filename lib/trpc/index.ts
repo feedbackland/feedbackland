@@ -119,7 +119,7 @@ export const appRouter = router({
         cursor: z
           .object({
             id: z.string(),
-            createdAt: z.string(),
+            createdAt: z.string().datetime({ offset: true }),
           })
           .nullish(),
         orderBy: z.enum(["newest", "upvotes", "comments"]),
@@ -164,7 +164,7 @@ export const appRouter = router({
     .input(
       z.object({
         postId: z.string().uuid(),
-        parentCommentId: z.string().uuid().optional(),
+        parentCommentId: z.string().uuid().nullable(),
         content: z.string().trim().min(1),
       }),
     )
@@ -207,7 +207,12 @@ export const appRouter = router({
       z.object({
         postId: z.string().uuid(),
         limit: z.number().min(1).max(100),
-        cursor: z.string().datetime({ offset: true }).nullish(),
+        cursor: z
+          .object({
+            id: z.string(),
+            createdAt: z.string().datetime({ offset: true }),
+          })
+          .nullish(),
       }),
     )
     .query(async ({ input: { postId, limit, cursor }, ctx }) => {

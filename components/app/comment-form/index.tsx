@@ -14,6 +14,8 @@ import { User } from "firebase/auth";
 import { useComments } from "@/hooks/use-comments";
 import { dequal } from "dequal";
 import { useKey } from "react-use";
+import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
+import { useFeedbackPost } from "@/hooks/use-feedback-post";
 
 export function CommentForm({
   postId,
@@ -23,7 +25,7 @@ export function CommentForm({
   className,
 }: {
   postId: string;
-  parentCommentId?: string;
+  parentCommentId: string | null;
   onClose?: () => void;
   onSuccess?: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -35,6 +37,15 @@ export function CommentForm({
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+
+  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
+    enabled: false,
+  });
+
+  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
+    enabled: false,
+    postId,
+  });
 
   const { queryKey: commentsQueryKey } = useComments({
     postId,
@@ -50,9 +61,14 @@ export function CommentForm({
     trpc.createComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(query.queryKey?.[0], commentsQueryKey?.[0]);
-          },
+          queryKey: commentsQueryKey,
+        });
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            dequal(query.queryKey[0], feedbackPostsQueryKey[0]),
+        });
+        queryClient.invalidateQueries({
+          queryKey: feedbackPostQueryKey,
         });
         setValue("");
         onSuccess?.();

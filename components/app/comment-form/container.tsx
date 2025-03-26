@@ -9,7 +9,7 @@ export function CommentFormContainer({
   parentCommentId,
 }: {
   postId: string;
-  parentCommentId?: string;
+  parentCommentId: string | null;
 }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
