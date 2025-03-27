@@ -22,10 +22,12 @@ export interface Comment {
 export const Comment = memo(function Comment({
   comment,
   childComments,
+  isExpanded = true,
   className,
 }: {
   comment: Comment;
   childComments: Comment[];
+  isExpanded?: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
   const [showReply, setShowReply] = useState(false);
@@ -46,17 +48,25 @@ export const Comment = memo(function Comment({
 
   return (
     <div className={cn("", className)}>
-      <CommentInner key={comment.id} comment={comment} onReply={handleReply} />
-      <div className="space-y-2">
-        {childComments.map((childComment) => (
-          <CommentInner
-            key={childComment.id}
-            comment={childComment}
-            onReply={handleReply}
-          />
-        ))}
-      </div>
-      {showReply && (
+      <CommentInner
+        key={comment.id}
+        comment={comment}
+        onReply={handleReply}
+        isExpanded={isExpanded}
+      />
+      {isExpanded && childComments?.length > 0 && (
+        <div className="mt-3 ml-8 space-y-3">
+          {childComments.map((childComment) => (
+            <CommentInner
+              key={childComment.id}
+              comment={childComment}
+              onReply={handleReply}
+              className=""
+            />
+          ))}
+        </div>
+      )}
+      {isExpanded && showReply && (
         <CommentForm
           postId={comment.postId}
           parentCommentId={replyParentCommentId}

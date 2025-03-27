@@ -8,10 +8,12 @@ import { Comment } from "./";
 
 export function CommentInner({
   comment,
+  isExpanded = true,
   className,
   onReply,
 }: {
   comment: Comment;
+  isExpanded?: boolean;
   className?: React.ComponentProps<"div">["className"];
   onReply: ({
     commentId,
@@ -39,15 +41,19 @@ export function CommentInner({
         authorPhotoURL={authorPhotoURL}
         createdAt={createdAt}
       />
-      <CommentContent content={content} key={id} />
-      <CommentFooter
-        commentId={id}
-        upvotes={upvotes}
-        hasUserUpvote={hasUserUpvote}
-        onReplyClicked={() => {
-          onReply({ commentId: id, parentCommentId });
-        }}
-      />
+      {isExpanded && (
+        <div className="pl-8">
+          <CommentContent content={content} key={id} />
+          <CommentFooter
+            commentId={id}
+            upvotes={upvotes}
+            hasUserUpvote={hasUserUpvote}
+            onReplyClicked={() => {
+              onReply({ commentId: id, parentCommentId });
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,11 +2,9 @@
 
 import { Spinner } from "@/components/ui/spinner";
 import { useComments } from "@/hooks/use-comments";
-import { Comment } from "@/components/app/comment";
 import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
-import { Fragment } from "react";
+import { CommentWrapper } from "../comment/wrapper";
 
 export function Comments({
   postId,
@@ -38,8 +36,6 @@ export function Comments({
 
   const parentComments = comments.filter((comment) => !comment.parentCommentId);
 
-  console.log("comments", comments);
-
   return (
     <div className={cn("", className)}>
       {/* {isPending && (
@@ -60,17 +56,19 @@ export function Comments({
       )} */}
 
       {!!(!isPending && !isError && comments.length > 0) && (
-        <div className="space-y-2.5">
+        <div className="space-y-4">
           {parentComments.map((comment) => {
             const childComments = comments.filter(
               (i) => i.parentCommentId === comment.id,
             );
 
             return (
-              <Fragment key={comment.id}>
-                <Comment comment={comment} childComments={childComments} />
-                <Separator />
-              </Fragment>
+              <CommentWrapper
+                key={comment.id}
+                comment={comment}
+                childComments={childComments}
+                className=""
+              />
             );
           })}
 

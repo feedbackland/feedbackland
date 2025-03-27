@@ -12,7 +12,7 @@ export function CommentContent({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <div className={cn("tiptap-output", className)}>
+    <div className={cn("tiptap-output mt-0.5", className)}>
       {parse(DOMPurify.sanitize(content))}
     </div>
   );
