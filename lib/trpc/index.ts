@@ -69,7 +69,6 @@ export const appRouter = router({
           name,
         })) as [{ id: string; name: string }];
     }),
-
   getOrg: publicProcedure.query(async ({ ctx }) => {
     return ctx?.org || null;
   }),
