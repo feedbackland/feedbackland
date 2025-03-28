@@ -3,19 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { MicrosoftLogo } from "@/components/ui/logos";
 import { useAuth } from "@/hooks/use-auth";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function SSOButtonMicrosoft({
   onSuccess,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
 }) {
   const { signOnWithMicrosoft } = useAuth();
 
   const continueWithMicrosoft = async () => {
     try {
-      const user = await signOnWithMicrosoft();
-      onSuccess(user);
+      const session = await signOnWithMicrosoft();
+      onSuccess(session);
     } catch (error) {
       console.error(error);
     }

@@ -17,7 +17,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Method } from "../sign-up-in";
 import { useAuth } from "@/hooks/use-auth";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export const signInSchema = z.object({
   email: z
@@ -39,7 +39,7 @@ export function SignInEmailForm({
   onClose,
   onSelectedMethodChange,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
   onClose?: () => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {

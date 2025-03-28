@@ -10,7 +10,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 import { useComments } from "@/hooks/use-comments";
 import { dequal } from "dequal";
 import { useKey } from "react-use";
@@ -79,13 +79,13 @@ export function CommentForm({
     }),
   );
 
-  const onSubmit = async (user: User | null) => {
+  const onSubmit = async (session: Session | null) => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter a comment");
       return;
     }
 
-    if (!user) {
+    if (!session) {
       setShowSignUpInDialog(true);
       return;
     }

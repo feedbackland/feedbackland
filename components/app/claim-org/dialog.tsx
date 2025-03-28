@@ -14,7 +14,7 @@ import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PartyPopper } from "lucide-react";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function ClaimOrgDialog({
   orgId,
@@ -44,8 +44,8 @@ export function ClaimOrgDialog({
     },
   });
 
-  const handleSignUpInSuccess = async (user: User) => {
-    const userId = user.uid;
+  const handleSignUpInSuccess = async (session: Session) => {
+    const userId = session.uid;
 
     if (orgId && userId) {
       claimOrg({ orgId, userId });
@@ -75,11 +75,11 @@ export function ClaimOrgDialog({
         >
           {selectedStep === "sign-up-in" && (
             <>
-              <DialogHeader className="mb-3 mt-2">
+              <DialogHeader className="mt-2 mb-3">
                 <DialogTitle className="h3 text-center">
                   Claim this platform
                 </DialogTitle>
-                <DialogDescription className="text-center text-primary">
+                <DialogDescription className="text-primary text-center">
                   Create an account or sign in to your existing account to claim
                   ownership of this platform
                 </DialogDescription>
@@ -96,12 +96,12 @@ export function ClaimOrgDialog({
 
           {selectedStep === "success" && (
             <>
-              <DialogHeader className="mb-3 mt-2">
-                <PartyPopper className="mx-auto mb-3 size-14 text-primary" />
+              <DialogHeader className="mt-2 mb-3">
+                <PartyPopper className="text-primary mx-auto mb-3 size-14" />
                 <DialogTitle className="h3 mb-2 text-center">
                   Congratulations!
                 </DialogTitle>
-                <DialogDescription className="text-center text-primary">
+                <DialogDescription className="text-primary text-center">
                   You&apos;ve successfully claimed ownership of this platform.
                 </DialogDescription>
               </DialogHeader>

@@ -9,7 +9,7 @@ import {
 import { SignUpIn } from ".";
 import { useState } from "react";
 import { Method } from ".";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function SignUpInDialog({
   open,
@@ -20,14 +20,14 @@ export function SignUpInDialog({
   open: boolean;
   initialSelectedMethod: "sign-up" | "sign-in";
   onClose: () => void;
-  onSuccess?: (user: User) => void;
+  onSuccess?: (session: Session) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
 
-  const handleOnSuccess = (user: User) => {
-    onSuccess?.(user);
+  const handleOnSuccess = (session: Session) => {
+    onSuccess?.(session);
     onClose();
   };
 

@@ -8,9 +8,9 @@ import { ArrowBigUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function FeedbackPostUpvoteButton({
   postId,
@@ -69,7 +69,7 @@ export function FeedbackPostUpvoteButton({
     session,
     allowUndo = true,
   }: {
-    session: User | null;
+    session: Session | null;
     allowUndo?: boolean;
   }) => {
     if (isUpvotePending) {

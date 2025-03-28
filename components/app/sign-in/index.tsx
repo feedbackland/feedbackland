@@ -8,21 +8,21 @@ import { SignInEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Method } from "../sign-up-in";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function SignIn({
   onSuccess,
   onSelectedMethodChange,
   includeAnonymous,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
   includeAnonymous?: boolean;
 }) {
   const [isEmailSelected, setIsEmailSelected] = useState(false);
 
-  const handleOnSuccess = (user: User) => {
-    onSuccess(user);
+  const handleOnSuccess = (session: Session) => {
+    onSuccess(session);
   };
 
   const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {
@@ -47,7 +47,7 @@ export function SignIn({
             <SSOButtonAnonymous onSuccess={handleOnSuccess} />
           )}
           <div className="m-auto mt-8 flex items-center">
-            <span className="mr-1 text-sm text-foreground">
+            <span className="text-foreground mr-1 text-sm">
               No account yet?
             </span>
             <Button

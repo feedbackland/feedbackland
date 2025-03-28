@@ -3,14 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { cn, processImagesInHTML } from "@/lib/utils";
-import { SendIcon, XIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
@@ -55,13 +55,13 @@ export function FeedbackForm({
     }),
   );
 
-  const onSubmit = async (user: User | null) => {
+  const onSubmit = async (session: Session | null) => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter some feedback");
       return;
     }
 
-    if (!user) {
+    if (!session) {
       setShowSignUpInDialog(true);
       return;
     }

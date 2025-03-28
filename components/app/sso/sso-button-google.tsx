@@ -3,19 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { GoogleLogo } from "@/components/ui/logos";
 import { useAuth } from "@/hooks/use-auth";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function SSOButtonGoogle({
   onSuccess,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
 }) {
   const { signOnWithGoogle } = useAuth();
 
   const continueWithGoogle = async () => {
     try {
-      const user = await signOnWithGoogle();
-      onSuccess(user);
+      const session = await signOnWithGoogle();
+      onSuccess(session);
     } catch (error) {
       console.error(error);
     }

@@ -3,7 +3,7 @@
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
@@ -16,14 +16,14 @@ export function SignUpIn({
 }: {
   selectedMethod: Method;
   includeAnonymous?: boolean;
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
   const queryClient = useQueryClient();
 
-  const handleOnSuccess = async (user: User) => {
+  const handleOnSuccess = async (session: Session) => {
     queryClient.invalidateQueries();
-    onSuccess(user);
+    onSuccess(session);
   };
 
   const handleOnSelectedMethodChange = (newSelectedMethod: Method) => {

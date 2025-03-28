@@ -2,19 +2,19 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export function SSOButtonAnonymous({
   onSuccess,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
 }) {
   const { signInAnonymously } = useAuth();
 
   const continueAsAnonymous = async () => {
     try {
-      const user = await signInAnonymously();
-      onSuccess(user);
+      const session = await signInAnonymously();
+      onSuccess(session);
     } catch (error) {
       console.error(error);
     }

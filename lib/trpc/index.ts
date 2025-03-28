@@ -11,8 +11,39 @@ import { getCommentsQuery } from "@/queries/get-comments";
 import { upvoteCommentQuery } from "@/queries/upvote-comment";
 import { getCommentQuery } from "@/queries/get-comment";
 import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
+import { upsertUserQuery } from "@/queries/upsert-user";
 
 export const appRouter = router({
+  upsertUser: userProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).nullable(),
+        email: z.string().email().nullable(),
+        photoURL: z.string().min(1).nullable(),
+      }),
+    )
+    .mutation(async ({ input: { name, email, photoURL }, ctx }) => {
+      try {
+        const userId = ctx?.user?.uid;
+        const orgId = ctx?.org?.id;
+
+        if (!userId || !orgId) {
+          throw new Error("No userId or orgId");
+        }
+
+        const user = await upsertUserQuery({
+          userId,
+          orgId,
+          email,
+          name,
+          photoURL,
+        });
+
+        return user;
+      } catch (error) {
+        throw error;
+      }
+    }),
   getMentionableUsers: publicProcedure
     .input(
       z.object({
@@ -32,11 +63,11 @@ export const appRouter = router({
       });
 
       return users
-        .filter((u) => u.name)
-        .map((u) => ({
-          id: u.id,
-          name: u.name,
-        }));
+        .filter(({ name }) => name && name.length > 0)
+        .map(({ id, name }) => ({
+          id,
+          name,
+        })) as [{ id: string; name: string }];
     }),
 
   getOrg: publicProcedure.query(async ({ ctx }) => {

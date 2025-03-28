@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { User } from "firebase/auth";
+import { Session } from "@/hooks/use-auth";
 
 export const signUpSchema = z.object({
   name: z.string().nonempty("Name is required"),
@@ -37,7 +37,7 @@ export function SignUpEmailForm({
   onSuccess,
   onClose,
 }: {
-  onSuccess: (user: User) => void;
+  onSuccess: (session: Session) => void;
   onClose?: () => void;
 }) {
   const [isPending, setIsPending] = useState(false);

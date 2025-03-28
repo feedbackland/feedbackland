@@ -11,67 +11,62 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
-  User,
+  User as firebaseUser,
 } from "firebase/auth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/providers/trpc-client";
+
+export interface Session {
+  uid: string;
+}
 
 type AuthContextType = {
-  session: User | null;
+  session: Session | null;
   signInWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<User>;
-  signInAnonymously: () => Promise<User>;
+  }) => Promise<Session>;
+  signInAnonymously: () => Promise<Session>;
   signUpWithEmail: ({
     email,
     password,
   }: {
     email: string;
     password: string;
-  }) => Promise<User>;
-  signOnWithGoogle: () => Promise<User>;
-  signOnWithMicrosoft: () => Promise<User>;
+  }) => Promise<Session>;
+  signOnWithGoogle: () => Promise<Session>;
+  signOnWithMicrosoft: () => Promise<Session>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
-  signInWithEmail: async () => ({}) as User,
-  signInAnonymously: async () => ({}) as User,
-  signUpWithEmail: async () => ({}) as User,
-  signOnWithGoogle: async () => ({}) as User,
-  signOnWithMicrosoft: async () => ({}) as User,
+  signInWithEmail: async () => ({}) as firebaseUser,
+  signInAnonymously: async () => ({}) as firebaseUser,
+  signUpWithEmail: async () => ({}) as firebaseUser,
+  signOnWithGoogle: async () => ({}) as firebaseUser,
+  signOnWithMicrosoft: async () => ({}) as firebaseUser,
   signOut: async () => {},
 });
 
-const upsertUser = async (user: User) => {
-  try {
-    const { uid, email, displayName, photoURL } = user;
-    const response = await fetch(`/api/user/upsert-user`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ uid, email, name: displayName, photoURL }),
-    });
-    const repsonse = await response.json();
-    return repsonse as User;
-  } catch (err) {
-    throw err;
-  }
-};
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [session, setSession] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+
+  const upserUser = useMutation(trpc.upsertUser.mutationOptions({}));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setSession(user);
+      if (user?.uid) {
+        setSession({ uid: user?.uid });
+      } else {
+        setSession(null);
+      }
     });
 
     return () => unsubscribe();
@@ -86,8 +81,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      setSession(user);
-      return user;
+      setSession({ uid: user.uid });
+      return { uid: user.uid } satisfies Session;
     } catch (err) {
       throw err;
     }
@@ -96,9 +91,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      await upsertUser(user);
-      setSession(user);
-      return user;
+      upserUser.mutate({
+        name: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+      });
+      setSession({ uid: user.uid });
+      return { uid: user.uid } satisfies Session;
     } catch (err) {
       throw err;
     }
@@ -117,9 +116,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      await upsertUser(user);
-      setSession(user);
-      return user;
+      upserUser.mutate({
+        name: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+      });
+      setSession({ uid: user.uid });
+      return { uid: user.uid } satisfies Session;
     } catch (err) {
       throw err;
     }
@@ -129,9 +132,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      await upsertUser(user);
-      setSession(user);
-      return user;
+      upserUser.mutate({
+        name: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+      });
+      setSession({ uid: user.uid });
+      return { uid: user.uid } satisfies Session;
     } catch (err) {
       throw err;
     }
@@ -141,9 +148,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      await upsertUser(user);
-      setSession(user);
-      return user;
+      upserUser.mutate({
+        name: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+      });
+      setSession({ uid: user.uid });
+      return { uid: user.uid } satisfies Session;
     } catch (err) {
       throw err;
     }
@@ -154,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await firebaseSignOut(auth);
       queryClient.invalidateQueries();
       setSession(null);
+      return;
     } catch (err) {
       throw err;
     }

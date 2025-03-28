@@ -528,7 +528,7 @@ export interface StorageS3MultipartUploadsParts {
 
 export interface User {
   createdAt: Generated<Timestamp>;
-  email: string;
+  email: string | null;
   id: string;
   name: string | null;
   photoURL: string | null;

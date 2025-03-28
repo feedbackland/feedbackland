@@ -3,13 +3,15 @@
 import { db } from "@/db/db";
 
 export const upsertUserQuery = async ({
-  id,
+  userId,
+  orgId,
   email,
   name,
   photoURL,
 }: {
-  id: string;
-  email: string;
+  userId: string;
+  orgId: string;
+  email: string | null;
   name: string | null;
   photoURL: string | null;
 }) => {
@@ -17,7 +19,7 @@ export const upsertUserQuery = async ({
     return await db.transaction().execute(async (trx) => {
       let user = await trx
         .selectFrom("user")
-        .where("user.id", "=", id)
+        .where("user.id", "=", userId)
         .selectAll()
         .executeTakeFirst();
 
@@ -25,10 +27,20 @@ export const upsertUserQuery = async ({
         user = await trx
           .insertInto("user")
           .values({
-            id,
+            id: userId,
             email,
             name,
             photoURL,
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
+
+        await trx
+          .insertInto("user_org")
+          .values({
+            userId,
+            orgId,
+            role: "user",
           })
           .returningAll()
           .executeTakeFirstOrThrow();
