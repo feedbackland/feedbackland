@@ -70,6 +70,29 @@
   }
 }
 
+/* Tiptap Mention Styles */
+.mention {
+  background-color: hsl(var(--secondary)); /* Use secondary background color */
+  color: hsl(var(--secondary-foreground)); /* Use secondary text color */
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Mention Suggestion List Styles (using classes from MentionList.tsx) */
+.mention-list {
+  /* Basic popup styling - adjust as needed */
+  z-index: 50; /* Ensure it appears above other content */
+}
+
+.mention-item {
+  /* Ensure button styles don't interfere */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
 @utility debug {
   @apply border-[1px]! border-solid! border-red-500!;
 }

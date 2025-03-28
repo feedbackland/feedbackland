@@ -10,8 +10,35 @@ import { createCommentQuery } from "@/queries/create-comment";
 import { getCommentsQuery } from "@/queries/get-comments";
 import { upvoteCommentQuery } from "@/queries/upvote-comment";
 import { getCommentQuery } from "@/queries/get-comment";
+import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
 
 export const appRouter = router({
+  getMentionableUsers: publicProcedure
+    .input(
+      z.object({
+        searchValue: z.string(),
+      }),
+    )
+    .query(async ({ input: { searchValue }, ctx }) => {
+      const orgId = ctx?.org?.id;
+
+      if (!orgId) {
+        throw new Error("No orgId provided");
+      }
+
+      const users = await getMentionableUsersQuery({
+        orgId,
+        searchValue,
+      });
+
+      return users
+        .filter((u) => u.name)
+        .map((u) => ({
+          id: u.id,
+          name: u.name,
+        }));
+    }),
+
   getOrg: publicProcedure.query(async ({ ctx }) => {
     return ctx?.org || null;
   }),

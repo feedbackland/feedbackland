@@ -7,6 +7,12 @@ import { Typography } from "@tiptap/extension-typography";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Underline } from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
+import { Mention } from "@tiptap/extension-mention";
+import { SuggestionProps, SuggestionKeyDownProps } from "@tiptap/suggestion";
+import { ReactRenderer } from "@tiptap/react"; // Import ReactRenderer
+import tippy, { Instance, Props as TippyProps } from "tippy.js"; // Import tippy
+import MentionList from "../components/mention-list"; // Import the MentionList component
+// Removed unused useTRPC import as fetching is handled in MentionList
 import {
   Link,
   Image,
@@ -157,6 +163,69 @@ const createExtensions = (placeholder: string) => [
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
+  Mention.configure({
+    HTMLAttributes: {
+      class: "mention", // Add a class for styling
+    },
+    // Provide suggestion options directly
+    suggestion: {
+      char: "@",
+      items: () => [],
+      render: () => {
+        let component: ReactRenderer<any>;
+        let popup: Instance<TippyProps>[];
+
+        return {
+          onStart: (props: SuggestionProps) => {
+            component = new ReactRenderer(MentionList, {
+              props,
+              editor: props.editor,
+            });
+
+            if (!props.clientRect) {
+              return;
+            }
+
+            popup = tippy("body", {
+              getReferenceClientRect: props.clientRect as any, // Cast needed for Tippy v6
+              appendTo: () => document.body,
+              content: component.element,
+              showOnCreate: true,
+              interactive: true,
+              trigger: "manual",
+              placement: "bottom-start",
+            });
+          },
+
+          onUpdate(props: SuggestionProps) {
+            component.updateProps(props);
+
+            if (!props.clientRect) {
+              return;
+            }
+
+            popup[0].setProps({
+              getReferenceClientRect: props.clientRect as any,
+            });
+          },
+
+          onKeyDown(props: SuggestionKeyDownProps) {
+            if (props.event.key === "Escape") {
+              popup[0].hide();
+              return true;
+            }
+            // Pass keydown events to the MentionList component
+            return component.ref?.onKeyDown(props);
+          },
+
+          onExit() {
+            popup?.[0]?.destroy();
+            component?.destroy();
+          },
+        };
+      },
+    },
+  }),
   Placeholder.configure({
     placeholder: ({ node }) => {
       if (node.type.name === "paragraph" && !node.firstChild) {
