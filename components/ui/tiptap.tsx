@@ -8,7 +8,6 @@ export const Tiptap = ({
   onChange,
   onFocus,
   onBlur,
-  onCreate,
   className,
   showToolbar = false,
   autofocus = false,
@@ -18,7 +17,6 @@ export const Tiptap = ({
   onChange: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
-  onCreate?: () => void;
   className?: React.ComponentProps<"div">["className"];
   showToolbar?: boolean;
   autofocus?: boolean;
@@ -30,7 +28,6 @@ export const Tiptap = ({
   return (
     <MinimalTiptapEditor
       value={value}
-      onChange={handleChange}
       className={cn("h-full rounded-lg shadow-xs", className)}
       editorContentClassName="text-sm leading-5 p-3"
       editorClassName="focus:outline-hidden min-h-[42px]"
@@ -39,9 +36,9 @@ export const Tiptap = ({
       autofocus={!!autofocus}
       editable={true}
       showToolbar={showToolbar}
+      onChange={handleChange}
       onFocus={onFocus}
       onBlur={onBlur}
-      onCreate={onCreate}
     />
   );
 };

@@ -4,6 +4,7 @@ import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CommentForm } from "../comment-form";
 import { CommentInner } from "./inner";
+import { type CommentReplyMeta } from "./inner";
 
 export interface Comment {
   id: string;
@@ -31,19 +32,11 @@ export const Comment = memo(function Comment({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const [showReply, setShowReply] = useState(false);
-  const [replyParentCommentId, setReplyParentCommentId] = useState<
-    string | null
-  >(null);
+  const [replyMeta, setReplyMeta] = useState<CommentReplyMeta | null>(null);
 
-  const handleReply = ({
-    commentId,
-    parentCommentId,
-  }: {
-    commentId: string;
-    parentCommentId: string | null;
-  }) => {
+  const handleReply = (replyMeta: CommentReplyMeta) => {
     setShowReply(true);
-    setReplyParentCommentId(parentCommentId);
+    setReplyMeta(replyMeta);
   };
 
   return (
@@ -66,15 +59,17 @@ export const Comment = memo(function Comment({
           ))}
         </div>
       )}
-      {isExpanded && showReply && (
+      {isExpanded && showReply && replyMeta && (
         <CommentForm
           postId={comment.postId}
-          parentCommentId={replyParentCommentId}
+          parentCommentId={replyMeta.commentId}
+          replyToAuthorId={replyMeta.authorId}
+          replyToAuthorName={replyMeta.authorName}
+          className="mt-1 ml-12"
           onClose={() => {
             setShowReply(false);
-            setReplyParentCommentId(null);
+            setReplyMeta(null);
           }}
-          className="mt-1 ml-12"
         />
       )}
     </div>

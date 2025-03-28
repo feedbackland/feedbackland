@@ -20,12 +20,16 @@ import { useFeedbackPost } from "@/hooks/use-feedback-post";
 export function CommentForm({
   postId,
   parentCommentId,
+  replyToAuthorId,
+  replyToAuthorName,
   onClose,
   onSuccess,
   className,
 }: {
   postId: string;
   parentCommentId: string | null;
+  replyToAuthorId?: string;
+  replyToAuthorName?: string | null;
   onClose?: () => void;
   onSuccess?: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -33,7 +37,12 @@ export function CommentForm({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const { session } = useAuth();
-  const [value, setValue] = useState("");
+
+  const initialContent = !!(replyToAuthorId && replyToAuthorName)
+    ? `<span class="mention" data-type="mention" data-id="${replyToAuthorId}" data-label="${replyToAuthorName}">@${replyToAuthorName}</span>&nbsp;`
+    : "";
+
+  const [value, setValue] = useState(initialContent);
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -100,11 +109,13 @@ export function CommentForm({
   };
 
   useKey("Escape", () => {
-    setValue("");
+    // Reset to initial state on Escape, not just empty
+    setValue(initialContent);
     onClose?.();
   });
 
-  const hasText = value?.length > 0;
+  // Check if text exists beyond the initial mention (if any)
+  const hasText = value?.replace(initialContent, "").trim().length > 0;
 
   return (
     <>

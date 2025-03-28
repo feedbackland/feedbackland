@@ -45,12 +45,6 @@ export const MinimalTiptapEditor = ({
     ...props,
   });
 
-  React.useEffect(() => {
-    if (value === "") {
-      editor?.commands.setContent("");
-    }
-  }, [value, editor]);
-
   if (!editor) {
     return null;
   }

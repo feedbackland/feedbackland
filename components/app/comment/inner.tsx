@@ -6,6 +6,13 @@ import { CommentContent } from "./content";
 import { CommentFooter } from "./footer";
 import { Comment } from "./";
 
+export type CommentReplyMeta = {
+  commentId: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorName: string | null;
+};
+
 export function CommentInner({
   comment,
   isExpanded = true,
@@ -18,10 +25,9 @@ export function CommentInner({
   onReply: ({
     commentId,
     parentCommentId,
-  }: {
-    commentId: string;
-    parentCommentId: string | null;
-  }) => void;
+    authorId,
+    authorName,
+  }: CommentReplyMeta) => void;
 }) {
   const {
     id,
@@ -49,7 +55,12 @@ export function CommentInner({
             upvotes={upvotes}
             hasUserUpvote={hasUserUpvote}
             onReplyClicked={() => {
-              onReply({ commentId: id, parentCommentId });
+              onReply({
+                commentId: id,
+                parentCommentId,
+                authorId: comment.authorId,
+                authorName: comment.authorName,
+              });
             }}
           />
         </div>
