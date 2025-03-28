@@ -209,18 +209,19 @@ const createExtensions = (placeholder: string) => [
 
           onKeyDown(props: SuggestionKeyDownProps) {
             if (props.event.key === "Escape") {
+              props.event?.preventDefault();
+              props.event?.stopPropagation();
               popup?.hide();
               return true;
             }
+
             // Pass keydown events to the MentionList component
             return component?.ref?.onKeyDown(props);
           },
 
           onExit() {
             popup?.destroy();
-            popup = null;
             component?.destroy();
-            component = null;
           },
         };
       },

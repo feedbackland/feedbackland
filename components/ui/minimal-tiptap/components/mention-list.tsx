@@ -11,6 +11,7 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
+import { Button } from "@/components/ui/button";
 
 interface MentionListRef {
   onKeyDown: ({ event }: { event: KeyboardEvent }) => boolean;
@@ -44,6 +45,7 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
     const selectItem = useCallback(
       (index: number) => {
         const item = items[index];
+
         if (item) {
           props.command({ id: item.id, label: item.name });
         }
@@ -58,7 +60,7 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
           return true;
         }
 
-        if (event.key === "ArrowDown") {
+        if (event.key === "ArrowDown" || event.key === "Tab") {
           setSelectedIndex((selectedIndex + 1) % items.length);
           return true;
         }
@@ -78,6 +80,7 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
         const selectedElement = listRef.current.children[
           selectedIndex
         ] as HTMLElement;
+
         if (selectedElement) {
           selectedElement.scrollIntoView?.({
             block: "nearest",
@@ -89,7 +92,7 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
 
     if (isLoading && items.length === 0) {
       return (
-        <div className="mention-list flex items-center justify-center p-2">
+        <div className="z-50 flex items-center justify-center p-2">
           <Spinner size="small" />
         </div>
       );
@@ -102,21 +105,18 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
     return (
       <div
         ref={listRef}
-        className="mention-list bg-background border-border max-h-60 overflow-y-auto rounded-md border p-1 shadow-lg"
+        className="bg-background border-border z-50 max-h-60 w-44 space-y-1 overflow-y-auto rounded-md border p-2 shadow-xs"
       >
         {items.map((item, index) => (
-          <button
+          <Button
             key={item.id}
-            className={cn(
-              "mention-item w-full rounded-sm p-2 text-left text-sm",
-              index === selectedIndex
-                ? "bg-accent text-accent-foreground"
-                : "hover:bg-accent/50",
-            )}
+            size="sm"
+            variant={index === selectedIndex ? "secondary" : "ghost"}
+            className={cn("w-full justify-start shadow-none")}
             onClick={() => selectItem(index)}
           >
             {item.name}
-          </button>
+          </Button>
         ))}
       </div>
     );
