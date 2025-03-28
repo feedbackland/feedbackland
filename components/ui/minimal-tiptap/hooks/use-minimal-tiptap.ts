@@ -1,4 +1,3 @@
-import * as React from "react";
 import type { Editor } from "@tiptap/react";
 import type { Content, UseEditorOptions } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
@@ -9,10 +8,9 @@ import { Underline } from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Mention } from "@tiptap/extension-mention";
 import { SuggestionProps, SuggestionKeyDownProps } from "@tiptap/suggestion";
-import { ReactRenderer } from "@tiptap/react"; // Import ReactRenderer
-import tippy, { Instance, Props as TippyProps } from "tippy.js"; // Import tippy
-import MentionList from "../components/mention-list"; // Import the MentionList component
-// Removed unused useTRPC import as fetching is handled in MentionList
+import { ReactRenderer } from "@tiptap/react";
+import tippy, { Instance, Props as TippyProps } from "tippy.js";
+import MentionList from "@/components/ui/minimal-tiptap/components/mention-list";
 import {
   Link,
   Image,
@@ -28,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { fileToBase64, getOutput, randomId } from "../utils";
 import { useThrottle } from "../hooks/use-throttle";
 import { toast } from "sonner";
+import { useCallback } from "react";
 
 export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   value?: Content;
@@ -165,15 +164,14 @@ const createExtensions = (placeholder: string) => [
   CodeBlockLowlight,
   Mention.configure({
     HTMLAttributes: {
-      class: "mention", // Add a class for styling
+      class: "mention",
     },
-    // Provide suggestion options directly
     suggestion: {
       char: "@",
       items: () => [],
       render: () => {
-        let component: ReactRenderer<any>;
-        let popup: Instance<TippyProps>[];
+        let component: ReactRenderer<any> | null = null;
+        let popup: Instance<TippyProps> | null = null;
 
         return {
           onStart: (props: SuggestionProps) => {
@@ -194,33 +192,35 @@ const createExtensions = (placeholder: string) => [
               interactive: true,
               trigger: "manual",
               placement: "bottom-start",
-            });
+            })[0];
           },
 
           onUpdate(props: SuggestionProps) {
-            component.updateProps(props);
+            component?.updateProps(props);
 
             if (!props.clientRect) {
               return;
             }
 
-            popup[0].setProps({
+            popup?.setProps({
               getReferenceClientRect: props.clientRect as any,
             });
           },
 
           onKeyDown(props: SuggestionKeyDownProps) {
             if (props.event.key === "Escape") {
-              popup[0].hide();
+              popup?.hide();
               return true;
             }
             // Pass keydown events to the MentionList component
-            return component.ref?.onKeyDown(props);
+            return component?.ref?.onKeyDown(props);
           },
 
           onExit() {
-            popup?.[0]?.destroy();
+            popup?.destroy();
+            popup = null;
             component?.destroy();
+            component = null;
           },
         };
       },
@@ -264,12 +264,12 @@ export const useMinimalTiptapEditor = ({
     throttleDelay,
   );
 
-  const handleUpdate = React.useCallback(
+  const handleUpdate = useCallback(
     (editor: Editor) => throttledSetValue(getOutput(editor, output)),
     [output, throttledSetValue],
   );
 
-  const handleCreate = React.useCallback(
+  const handleCreate = useCallback(
     (editor: Editor) => {
       if (value && editor.isEmpty) {
         editor.commands.setContent(value);
@@ -278,7 +278,7 @@ export const useMinimalTiptapEditor = ({
     [value],
   );
 
-  const handleBlur = React.useCallback(
+  const handleBlur = useCallback(
     (editor: Editor) => {
       // editor.commands.setTextSelection(editor.state.doc.content.size);
       onBlur?.(getOutput(editor, output));

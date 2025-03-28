@@ -70,6 +70,7 @@ export function SignUpEmailForm({
 
     try {
       const user = await signUpWithEmail({
+        name,
         email,
         password,
       });

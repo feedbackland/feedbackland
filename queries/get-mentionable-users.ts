@@ -10,9 +10,6 @@ export const getMentionableUsersQuery = async ({
   searchValue: string;
 }) => {
   try {
-    console.log("getMentionableUsersQuery orgId", orgId);
-    console.log("getMentionableUsersQuery searchValue", searchValue);
-
     if (!searchValue || searchValue.trim() === "") {
       return [];
     }
@@ -25,8 +22,6 @@ export const getMentionableUsersQuery = async ({
       .where("name", "ilike", `%${searchValue}%`)
       .limit(10)
       .execute();
-
-    console.log("getMentionableUsersQuery users", users);
 
     return users;
   } catch (error: any) {

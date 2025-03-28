@@ -31,9 +31,11 @@ type AuthContextType = {
   }) => Promise<Session>;
   signInAnonymously: () => Promise<Session>;
   signUpWithEmail: ({
+    name,
     email,
     password,
   }: {
+    name: string;
     email: string;
     password: string;
   }) => Promise<Session>;
@@ -58,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [session, setSession] = useState<Session | null>(null);
 
-  const upserUser = useMutation(trpc.upsertUser.mutationOptions({}));
+  const upsertUser = useMutation(trpc.upsertUser.mutationOptions({}));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -81,6 +83,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
+      await upsertUser.mutateAsync({
+        name: user.displayName,
+        photoURL: user.photoURL,
+        email: user.email,
+      });
       setSession({ uid: user.uid });
       return { uid: user.uid } satisfies Session;
     } catch (err) {
@@ -91,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      upserUser.mutate({
+      await upsertUser.mutateAsync({
         name: user.displayName,
         photoURL: user.photoURL,
         email: user.email,
@@ -104,9 +111,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUpWithEmail = async ({
+    name,
     email,
     password,
   }: {
+    name: string;
     email: string;
     password: string;
   }) => {
@@ -116,8 +125,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      upserUser.mutate({
-        name: user.displayName,
+      await upsertUser.mutateAsync({
+        name,
         photoURL: user.photoURL,
         email: user.email,
       });
@@ -132,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      upserUser.mutate({
+      await upsertUser.mutateAsync({
         name: user.displayName,
         photoURL: user.photoURL,
         email: user.email,
@@ -148,7 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      upserUser.mutate({
+      await upsertUser.mutateAsync({
         name: user.displayName,
         photoURL: user.photoURL,
         email: user.email,

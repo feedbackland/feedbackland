@@ -89,8 +89,8 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
 
     if (isLoading && items.length === 0) {
       return (
-        <div className="mention-list p-2">
-          <Spinner size="small" /> Loading... {/* Corrected size prop */}
+        <div className="mention-list flex items-center justify-center p-2">
+          <Spinner size="small" />
         </div>
       );
     }
