@@ -45,13 +45,13 @@ export const FeedbackPostsSearchInput = ({
         className,
       )}
     >
-      <SearchIcon className="absolute top-[0.58rem] left-2.5 size-4" />
+      <SearchIcon className="absolute top-[0.6rem] left-2.5 size-4" />
       <Input
         type="text"
         placeholder="Search..."
         value={inputValue}
         onChange={handleChange}
-        className={cn("px-9")}
+        className={cn("px-9 text-sm")}
         onFocus={() => {
           setIsFocused(true);
         }}

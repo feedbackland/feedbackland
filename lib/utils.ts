@@ -22,7 +22,7 @@ export const slugifySubdomain = (text: string) => {
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
 };
 
-const getUrlObject = (urlString?: string) => {
+const getUrlObject = (urlString?: string | null) => {
   if (urlString && urlString.length > 0) {
     return new URL(urlString);
   }
@@ -35,8 +35,6 @@ const getUrlObject = (urlString?: string) => {
 };
 
 export const getSubdomain = (urlString?: string | null) => {
-  if (!urlString || urlString.length === 0) return null;
-
   const url = getUrlObject(urlString);
 
   if (!url) return null;
@@ -85,12 +83,6 @@ export const getPlatformUrl = (urlString?: string) => {
 
     return `${url.protocol}//${url.hostname}:${url.port}`;
   }
-};
-
-export const getBaseUrl = () => {
-  if (typeof window !== "undefined") return ""; // browser should use relative url
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
-  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
 export const base64ToBlob = ({

@@ -2,12 +2,14 @@
 
 import { db } from "@/db/db";
 import { textEmbeddingModel } from "@/lib/gemini";
+import { FeedbackCategory } from "@/lib/typings";
+import pgvector from "pgvector/pg";
 
 const getTitleAndCategory = async (description: string) => {
   const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
     Given the following description, create a short title that sounds like it was written by a human.
-    Also categorize the description as either a 'feature request', 'bug report', 'improvement suggestion', or 'general feedback'.
+    Also categorize the description as either a 'feature request', 'bug report', 'improvement', or 'general feedback'.
 
     Description:
     ${description}
@@ -15,7 +17,7 @@ const getTitleAndCategory = async (description: string) => {
     Respond with a valid JSON object that follows this structure exactly:
     {
       "title": "brief human-like title here",
-      "category": "one of: feature request, bug report, improvement suggestion, general feedback"
+      "category": "one of: feature request, bug report, improvement, general feedback"
     }
   `;
 
@@ -49,11 +51,7 @@ const getTitleAndCategory = async (description: string) => {
 
   const parsedContent = JSON.parse(content) as {
     title: string;
-    category:
-      | "feature request"
-      | "bug report"
-      | "improvement suggestion"
-      | "general feedback";
+    category: FeedbackCategory;
   };
 
   const title = parsedContent.title || "Untitled";
@@ -83,7 +81,8 @@ export async function createFeedbackPostQuery({
     ]);
 
     const { title, category } = result[0];
-    const embedding = result[1];
+
+    const embedding = pgvector.toSql(result[1]);
 
     const feedbackPost = await db
       .insertInto("feedback")
@@ -93,7 +92,7 @@ export async function createFeedbackPostQuery({
         category,
         authorId,
         orgId,
-        embedding: JSON.stringify(embedding),
+        embedding,
       })
       .returningAll()
       .executeTakeFirstOrThrow();
