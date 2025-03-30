@@ -2,12 +2,12 @@
 
 import { db } from "@/db/db";
 
-export const getFeedbackPost = async ({
+export const getFeedbackPostQuery = async ({
   postId,
   userId,
 }: {
   postId: string;
-  userId: string | null;
+  userId?: string | null;
 }) => {
   try {
     return await db
@@ -18,7 +18,7 @@ export const getFeedbackPost = async ({
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("feedback.id", "=", "user_upvote.contentId")
-          .on("user_upvote.userId", "=", userId),
+          .on("user_upvote.userId", "=", userId || null),
       )
       .where("feedback.id", "=", postId)
       .select([
@@ -36,7 +36,7 @@ export const getFeedbackPost = async ({
         (eb) =>
           eb
             .case()
-            .when("user_upvote.userId", "=", userId)
+            .when("user_upvote.userId", "=", userId || null)
             .then(true)
             .else(false)
             .end()

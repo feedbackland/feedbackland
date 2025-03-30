@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OrderBy } from "@/lib/typings";
+import { FeedbackOrderBy } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 
 function convertToString(value: string | number | bigint | null): string {
@@ -27,7 +27,7 @@ function convertToString(value: string | number | bigint | null): string {
 
 export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
-  const [orderBy, setOrderBy] = useState<OrderBy>("newest");
+  const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
 
   const isSearchActive = !!(searchValue?.length > 0);
 
@@ -78,7 +78,7 @@ export function FeedbackPosts() {
         <Select
           defaultValue="newest"
           value={orderBy}
-          onValueChange={(value) => setOrderBy(value as OrderBy)}
+          onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
         >
           <SelectTrigger>
             <SelectValue />

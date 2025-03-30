@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { publicProcedure, userProcedure, router } from "./trpc";
+import { publicProcedure, userProcedure, adminProcedure, router } from "./trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
-import { getFeedbackPost } from "@/queries/get-feedback-post";
+import { getFeedbackPostQuery } from "@/queries/get-feedback-post";
 import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
 import { createCommentQuery } from "@/queries/create-comment";
 import { getCommentsQuery } from "@/queries/get-comments";
@@ -12,6 +12,9 @@ import { upvoteCommentQuery } from "@/queries/upvote-comment";
 import { getCommentQuery } from "@/queries/get-comment";
 import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
 import { upsertUserQuery } from "@/queries/upsert-user";
+import { feedbackStatusSchema } from "@/lib/schemas";
+import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
+import { feedbackOrderBySchema } from "../schemas";
 
 export const appRouter = router({
   upsertUser: userProcedure
@@ -22,96 +25,63 @@ export const appRouter = router({
         photoURL: z.string().min(1).nullable(),
       }),
     )
-    .mutation(async ({ input: { name, email, photoURL }, ctx }) => {
-      try {
-        const userId = ctx?.user?.uid;
-        const orgId = ctx?.org?.id;
-
-        if (!userId || !orgId) {
-          throw new Error("No userId or orgId");
+    .mutation(
+      async ({ input: { name, email, photoURL }, ctx: { userId, orgId } }) => {
+        try {
+          return await upsertUserQuery({
+            userId,
+            orgId,
+            email,
+            name,
+            photoURL,
+          });
+        } catch (error) {
+          throw error;
         }
-
-        const user = await upsertUserQuery({
-          userId,
-          orgId,
-          email,
-          name,
-          photoURL,
-        });
-
-        return user;
-      } catch (error) {
-        throw error;
-      }
-    }),
-  // getUser: publicProcedure
-  // .input(
-  //   z.object({
-  //     uid: z.string(),
-  //   }),
-  // )
-  // .query(async ({ input: { uid }, ctx }) => {
-  //   const orgId = ctx?.org?.id;
-
-  //   if (!orgId) {
-  //     throw new Error("No orgId provided");
-  //   }
-
-  //   const users = await getMentionableUsersQuery({
-  //     orgId,
-  //     searchValue,
-  //   });
-
-  //   return users
-  //     .filter(({ name }) => name && name.length > 0)
-  //     .map(({ id, name }) => ({
-  //       id,
-  //       name,
-  //     })) as [{ id: string; name: string }];
-  // }),
+      },
+    ),
   getMentionableUsers: publicProcedure
     .input(
       z.object({
         searchValue: z.string(),
       }),
     )
-    .query(async ({ input: { searchValue }, ctx }) => {
-      const orgId = ctx?.org?.id;
+    .query(async ({ input: { searchValue }, ctx: { orgId } }) => {
+      try {
+        const users = await getMentionableUsersQuery({
+          orgId,
+          searchValue,
+        });
 
-      if (!orgId) {
-        throw new Error("No orgId provided");
+        return users
+          .filter(({ name }) => name && name.length > 0)
+          .map(({ id, name }) => ({
+            id,
+            name,
+          })) as [{ id: string; name: string }];
+      } catch (error) {
+        throw error;
       }
-
-      const users = await getMentionableUsersQuery({
-        orgId,
-        searchValue,
-      });
-
-      return users
-        .filter(({ name }) => name && name.length > 0)
-        .map(({ id, name }) => ({
-          id,
-          name,
-        })) as [{ id: string; name: string }];
     }),
-  getOrg: publicProcedure.query(async ({ ctx }) => {
-    return ctx?.org || null;
-  }),
+  getOrg: publicProcedure.query(
+    async ({ ctx: { orgId, orgName, orgSubdomain, orgIsClaimed } }) => {
+      return {
+        orgId,
+        orgName,
+        orgSubdomain,
+        orgIsClaimed,
+      };
+    },
+  ),
   getUserUpvote: publicProcedure
     .input(
       z.object({
         contentId: z.string().uuid(),
       }),
     )
-    .query(async ({ input: { contentId }, ctx }) => {
+    .query(async ({ input: { contentId }, ctx: { userId } }) => {
       try {
-        const userId = ctx?.user?.uid;
-
-        if (userId && contentId) {
-          return await getUserUpvoteQuery({ userId, contentId });
-        }
-
-        return null;
+        return await getUserUpvoteQuery({ userId, contentId });
       } catch (error) {
         throw error;
       }
@@ -122,22 +92,13 @@ export const appRouter = router({
         description: z.string().trim().min(1),
       }),
     )
-    .mutation(async ({ input: { description }, ctx }) => {
+    .mutation(async ({ input: { description }, ctx: { userId, orgId } }) => {
       try {
-        const authorId = ctx?.user?.uid;
-        const orgId = ctx?.org?.id;
-
-        if (!authorId || !orgId) {
-          throw new Error("No authorId or orgId provided");
-        }
-
-        const feedbackPost = await createFeedbackPostQuery({
+        return await createFeedbackPostQuery({
           description,
-          authorId,
+          authorId: userId,
           orgId,
         });
-
-        return feedbackPost;
       } catch (error) {
         throw error;
       }
@@ -149,25 +110,13 @@ export const appRouter = router({
         allowUndo: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input: { postId, allowUndo }, ctx }) => {
+    .mutation(async ({ input: { postId, allowUndo }, ctx: { userId } }) => {
       try {
-        const userId = ctx?.user?.uid;
-
-        if (!userId) {
-          throw new Error("No userId");
-        }
-
-        if (!postId) {
-          throw new Error("No postId");
-        }
-
-        const feedbackPost = await upvoteFeedbackPostQuery({
+        return await upvoteFeedbackPostQuery({
           userId,
           postId,
           allowUndo,
         });
-
-        return feedbackPost;
       } catch (error) {
         throw error;
       }
@@ -178,21 +127,16 @@ export const appRouter = router({
         searchValue: z.string().trim(),
       }),
     )
-    .query(async ({ input: { searchValue }, ctx }) => {
-      const orgId = ctx?.org?.id;
-      const userId = ctx?.user?.uid || null;
-
-      if (!orgId) {
-        throw new Error("No orgId");
+    .query(async ({ input: { searchValue }, ctx: { userId, orgId } }) => {
+      try {
+        return await searchFeedbackPostsQuery({
+          orgId,
+          userId,
+          searchValue,
+        });
+      } catch (error) {
+        throw error;
       }
-
-      const result = await searchFeedbackPostsQuery({
-        orgId,
-        userId,
-        searchValue,
-      });
-
-      return result;
     }),
   getFeedbackPosts: publicProcedure
     .input(
@@ -204,43 +148,44 @@ export const appRouter = router({
             createdAt: z.string().datetime({ offset: true }),
           })
           .nullish(),
-        orderBy: z.enum(["newest", "upvotes", "comments"]),
+        orderBy: feedbackOrderBySchema,
       }),
     )
-    .query(async ({ input: { limit, cursor, orderBy }, ctx }) => {
-      const orgId = ctx?.org?.id;
-      const userId = ctx?.user?.uid || null;
+    .query(
+      async ({ input: { limit, cursor, orderBy }, ctx: { userId, orgId } }) => {
+        try {
+          const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
+            orgId,
+            userId,
+            limit,
+            cursor,
+            orderBy,
+          });
 
-      if (!orgId) {
-        throw new Error("No orgId");
-      }
-
-      const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
-        orgId,
-        userId,
-        limit,
-        cursor,
-        orderBy,
-      });
-
-      return {
-        feedbackPosts,
-        nextCursor,
-      };
-    }),
+          return {
+            feedbackPosts,
+            nextCursor,
+          };
+        } catch (error) {
+          throw error;
+        }
+      },
+    ),
   getFeedbackPost: publicProcedure
     .input(
       z.object({
         postId: z.string().uuid(),
       }),
     )
-    .query(async ({ input: { postId }, ctx }) => {
-      const userId = ctx?.user?.uid || null;
-
-      return await getFeedbackPost({
-        postId,
-        userId,
-      });
+    .query(async ({ input: { postId }, ctx: { userId } }) => {
+      try {
+        return await getFeedbackPostQuery({
+          postId,
+          userId,
+        });
+      } catch (error) {
+        throw error;
+      }
     }),
   createComment: userProcedure
     .input(
@@ -250,39 +195,38 @@ export const appRouter = router({
         content: z.string().trim().min(1),
       }),
     )
-    .mutation(async ({ input: { postId, parentCommentId, content }, ctx }) => {
-      try {
-        const authorId = ctx?.user?.uid;
-
-        if (!authorId) {
-          throw new Error("No authorId provided");
+    .mutation(
+      async ({
+        input: { postId, parentCommentId, content },
+        ctx: { userId },
+      }) => {
+        try {
+          return await createCommentQuery({
+            content,
+            authorId: userId,
+            postId,
+            parentCommentId,
+          });
+        } catch (error) {
+          throw error;
         }
-
-        const comment = await createCommentQuery({
-          content,
-          authorId,
-          postId,
-          parentCommentId,
-        });
-
-        return comment;
-      } catch (error) {
-        throw error;
-      }
-    }),
+      },
+    ),
   getComment: publicProcedure
     .input(
       z.object({
         commentId: z.string().uuid(),
       }),
     )
-    .query(async ({ input: { commentId }, ctx }) => {
-      const userId = ctx?.user?.uid || null;
-
-      return await getCommentQuery({
-        commentId,
-        userId,
-      });
+    .query(async ({ input: { commentId }, ctx: { userId } }) => {
+      try {
+        return await getCommentQuery({
+          commentId,
+          userId,
+        });
+      } catch (error) {
+        throw error;
+      }
     }),
   getComments: publicProcedure
     .input(
@@ -297,25 +241,22 @@ export const appRouter = router({
           .nullish(),
       }),
     )
-    .query(async ({ input: { postId, limit, cursor }, ctx }) => {
-      const orgId = ctx?.org?.id;
-      const userId = ctx?.user?.uid || null;
+    .query(async ({ input: { postId, limit, cursor }, ctx: { userId } }) => {
+      try {
+        const { comments, nextCursor } = await getCommentsQuery({
+          postId,
+          userId,
+          limit,
+          cursor,
+        });
 
-      if (!orgId) {
-        throw new Error("No orgId");
+        return {
+          comments,
+          nextCursor,
+        };
+      } catch (error) {
+        throw error;
       }
-
-      const { comments, nextCursor } = await getCommentsQuery({
-        postId,
-        userId,
-        limit,
-        cursor,
-      });
-
-      return {
-        comments,
-        nextCursor,
-      };
     }),
   upvoteComment: userProcedure
     .input(
@@ -324,25 +265,33 @@ export const appRouter = router({
         allowUndo: z.boolean().optional(),
       }),
     )
-    .mutation(async ({ input: { commentId, allowUndo }, ctx }) => {
+    .mutation(async ({ input: { commentId, allowUndo }, ctx: { userId } }) => {
       try {
-        const userId = ctx?.user?.uid;
-
-        if (!userId) {
-          throw new Error("No userId");
-        }
-
-        if (!commentId) {
-          throw new Error("No postId");
-        }
-
-        const comment = await upvoteCommentQuery({
+        return await upvoteCommentQuery({
           userId,
           commentId,
           allowUndo,
         });
+      } catch (error) {
+        throw error;
+      }
+    }),
+  updateFeedbackPostStatus: adminProcedure
+    .input(
+      z.object({
+        postId: z.string().uuid(),
+        status: feedbackStatusSchema,
+      }),
+    )
+    .mutation(async ({ input: { postId, status }, ctx: { orgId } }) => {
+      try {
+        const updatedPost = await updateFeedbackPostStatusQuery({
+          postId,
+          status,
+          orgId,
+        });
 
-        return comment;
+        return updatedPost;
       } catch (error) {
         throw error;
       }

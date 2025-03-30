@@ -10,7 +10,7 @@ export const searchFeedbackPostsQuery = async ({
   searchValue,
 }: {
   orgId: string;
-  userId: string | null;
+  userId?: string | null;
   searchValue: string;
 }) => {
   const {
@@ -24,7 +24,7 @@ export const searchFeedbackPostsQuery = async ({
     .leftJoin("user_upvote", (join) =>
       join
         .onRef("feedback.id", "=", "user_upvote.contentId")
-        .on("user_upvote.userId", "=", userId),
+        .on("user_upvote.userId", "=", userId || null),
     )
     .where("feedback.orgId", "=", orgId)
     .select([
@@ -40,7 +40,7 @@ export const searchFeedbackPostsQuery = async ({
       (eb) =>
         eb
           .case()
-          .when("user_upvote.userId", "=", userId)
+          .when("user_upvote.userId", "=", userId || null)
           .then(true)
           .else(false)
           .end()

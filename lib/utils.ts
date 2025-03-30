@@ -34,7 +34,9 @@ const getUrlObject = (urlString?: string) => {
   return null;
 };
 
-export const getSubdomain = (urlString?: string) => {
+export const getSubdomain = (urlString?: string | null) => {
+  if (!urlString || urlString.length === 0) return null;
+
   const url = getUrlObject(urlString);
 
   if (!url) return null;
@@ -48,7 +50,7 @@ export const getSubdomain = (urlString?: string) => {
 
   const parts = hostname.split(".");
 
-  return parts.length > 2 ? parts[0] : "";
+  return parts.length > 2 ? parts[0] : null;
 };
 
 export const getMaindomain = (urlString?: string) => {

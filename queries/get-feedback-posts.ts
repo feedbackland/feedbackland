@@ -1,7 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { OrderBy } from "@/lib/typings";
+import { FeedbackOrderBy } from "@/lib/typings";
 
 export const getFeedbackPostsQuery = async ({
   orgId,
@@ -11,10 +11,10 @@ export const getFeedbackPostsQuery = async ({
   orderBy,
 }: {
   orgId: string;
-  userId: string | null;
+  userId?: string | null;
   limit: number;
   cursor: { id: string; createdAt: string } | null | undefined;
-  orderBy: OrderBy;
+  orderBy: FeedbackOrderBy;
 }) => {
   try {
     let query = db
@@ -22,7 +22,7 @@ export const getFeedbackPostsQuery = async ({
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("feedback.id", "=", "user_upvote.contentId")
-          .on("user_upvote.userId", "=", userId),
+          .on("user_upvote.userId", "=", userId || null),
       )
       .where("feedback.orgId", "=", orgId)
       .select([
@@ -38,7 +38,7 @@ export const getFeedbackPostsQuery = async ({
         (eb) =>
           eb
             .case()
-            .when("user_upvote.userId", "=", userId)
+            .when("user_upvote.userId", "=", userId || null)
             .then(true)
             .else(false)
             .end()

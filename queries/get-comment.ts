@@ -7,7 +7,7 @@ export const getCommentQuery = async ({
   userId,
 }: {
   commentId: string;
-  userId: string | null;
+  userId?: string | null;
 }) => {
   try {
     return await db
@@ -18,7 +18,7 @@ export const getCommentQuery = async ({
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("comment.id", "=", "user_upvote.contentId")
-          .on("user_upvote.userId", "=", userId),
+          .on("user_upvote.userId", "=", userId || null),
       )
       .where("comment.id", "=", commentId)
       .select([
@@ -35,7 +35,7 @@ export const getCommentQuery = async ({
         (eb) =>
           eb
             .case()
-            .when("user_upvote.userId", "=", userId)
+            .when("user_upvote.userId", "=", userId || null)
             .then(true)
             .else(false)
             .end()

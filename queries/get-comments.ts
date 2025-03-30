@@ -9,7 +9,7 @@ export const getCommentsQuery = async ({
   cursor,
 }: {
   postId: string;
-  userId: string | null;
+  userId?: string | null;
   limit: number;
   cursor: { id: string; createdAt: string } | null | undefined;
 }) => {
@@ -22,7 +22,7 @@ export const getCommentsQuery = async ({
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("comment.id", "=", "user_upvote.contentId")
-          .on("user_upvote.userId", "=", userId),
+          .on("user_upvote.userId", "=", userId || null),
       )
       .where("comment.postId", "=", postId)
       .select([
@@ -39,7 +39,7 @@ export const getCommentsQuery = async ({
         (eb) =>
           eb
             .case()
-            .when("user_upvote.userId", "=", userId)
+            .when("user_upvote.userId", "=", userId || null)
             .then(true)
             .else(false)
             .end()
