@@ -21,8 +21,6 @@ export const createContext = async ({ req }: { req: Request }) => {
   let orgIsClaimed: boolean | null | undefined;
   let userRole: "user" | "admin" | null | undefined;
 
-  console.log("zolg");
-
   if (orgSubdomain) {
     if (!userId) {
       const org = await getOrgQuery({ orgSubdomain });

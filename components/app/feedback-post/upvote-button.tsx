@@ -110,9 +110,9 @@ export function FeedbackPostUpvoteButton({
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={(session) => {
+        onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          handleUpvote({ session, allowUndo: false });
+          handleUpvote({ session: newSession, allowUndo: false });
         }}
       />
     </>

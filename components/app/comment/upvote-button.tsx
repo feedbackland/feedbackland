@@ -5,7 +5,7 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowBigUp } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { Session, useAuth } from "@/hooks/use-auth";
 import { useComment } from "@/hooks/use-comment";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
@@ -38,19 +38,7 @@ export function CommentUpvoteButton({
     }),
   );
 
-  const handleUpvote = () => {
-    if (upvote.isPending) {
-      return;
-    }
-
-    if (session) {
-      upvote.mutate({
-        commentId,
-      });
-    } else {
-      setShowSignUpInDialog(true);
-    }
-  };
+  const isUpvotePending = upvote.isPending;
 
   let hasUserUpvote =
     comment?.query?.data?.hasUserUpvote !== undefined
@@ -62,10 +50,32 @@ export function CommentUpvoteButton({
     10,
   );
 
+  // optimistic update
   if (upvote.isPending) {
     hasUserUpvote = !hasUserUpvote;
     upvoteCount = hasUserUpvote ? upvoteCount + 1 : upvoteCount - 1;
   }
+
+  const handleUpvote = ({
+    session,
+    allowUndo = true,
+  }: {
+    session: Session | null;
+    allowUndo?: boolean;
+  }) => {
+    if (isUpvotePending) {
+      return;
+    }
+
+    if (session) {
+      upvote.mutate({
+        commentId,
+        allowUndo,
+      });
+    } else {
+      setShowSignUpInDialog(true);
+    }
+  };
 
   return (
     <>
@@ -80,7 +90,7 @@ export function CommentUpvoteButton({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          handleUpvote();
+          handleUpvote({ session });
         }}
       >
         <ArrowBigUp
@@ -95,9 +105,9 @@ export function CommentUpvoteButton({
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={() => {
+        onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          handleUpvote();
+          handleUpvote({ session: newSession, allowUndo: false });
         }}
       />
     </>

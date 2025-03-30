@@ -13,7 +13,7 @@ export const updateFeedbackPostStatusQuery = async ({
   try {
     const updatedPost = await db
       .updateTable("feedback")
-      .set({ status: status })
+      .set({ status })
       .where("id", "=", postId)
       .where("orgId", "=", orgId)
       .returningAll()
