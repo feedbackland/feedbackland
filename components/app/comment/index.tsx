@@ -48,24 +48,31 @@ export const Comment = memo(function Comment({
         isExpanded={isExpanded}
       />
       {isExpanded && childComments?.length > 0 && (
-        <div className="mt-3 ml-8 space-y-3">
-          {childComments.map((childComment) => (
-            <CommentInner
-              key={childComment.id}
-              comment={childComment}
-              onReply={handleReply}
-              className=""
-            />
-          ))}
+        <div className="mt-3 ml-8 space-y-4">
+          {childComments
+            .sort((a, b) => {
+              const dateA = new Date(a.createdAt).getTime();
+              const dateB = new Date(b.createdAt).getTime();
+              return dateA - dateB;
+            })
+            .map((childComment) => (
+              <CommentInner
+                key={childComment.id}
+                comment={childComment}
+                onReply={handleReply}
+                className=""
+              />
+            ))}
         </div>
       )}
       {isExpanded && showReply && replyMeta && (
         <CommentForm
           postId={comment.postId}
-          parentCommentId={replyMeta.commentId}
+          parentCommentId={comment.id}
           replyToAuthorId={replyMeta.authorId}
           replyToAuthorName={replyMeta.authorName}
-          className="mt-1 ml-12"
+          scrollIntoView={true}
+          className="mt-1 ml-8"
           onClose={() => {
             setShowReply(false);
             setReplyMeta(null);

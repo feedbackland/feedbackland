@@ -347,6 +347,7 @@ export interface Feedback {
   embedding: string | null;
   id: Generated<string>;
   orgId: string;
+  status: Generated<string | null>;
   title: string;
   updatedAt: Generated<Timestamp>;
   upvotes: Generated<Numeric>;

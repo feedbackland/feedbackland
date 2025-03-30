@@ -18,14 +18,19 @@ export function CommentFooter({
   onReplyClicked: () => void;
 }) {
   return (
-    <div className={cn("mt-1 flex items-center gap-0", className)}>
+    <div className={cn("mt-0.5 flex items-center gap-0", className)}>
       <CommentUpvoteButton
         commentId={commentId}
         upvoteCount={upvotes}
         hasUserUpvote={hasUserUpvote}
       />
-      {/* <span className="text-[8px]">•</span> */}
-      <Button variant="link" size="sm" onClick={onReplyClicked} className="">
+      <span className="text-[8px]">•</span>
+      <Button
+        variant="link"
+        size="sm"
+        onClick={onReplyClicked}
+        className="text-muted-foreground hover:text-primary"
+      >
         Reply
       </Button>
     </div>

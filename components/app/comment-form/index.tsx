@@ -6,7 +6,7 @@ import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
@@ -16,12 +16,14 @@ import { dequal } from "dequal";
 import { useKey } from "react-use";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function CommentForm({
   postId,
   parentCommentId,
   replyToAuthorId,
   replyToAuthorName,
+  scrollIntoView = false,
   onClose,
   onSuccess,
   className,
@@ -30,6 +32,7 @@ export function CommentForm({
   parentCommentId: string | null;
   replyToAuthorId?: string;
   replyToAuthorName?: string | null;
+  scrollIntoView?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -37,6 +40,28 @@ export function CommentForm({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const { session } = useAuth();
+  const elementRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false); // Ref to track if we've already scrolled once
+
+  useEffect(() => {
+    const element = elementRef.current;
+
+    if (!scrollIntoView || !element || hasScrolledRef.current) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting && !hasScrolledRef.current) {
+        element.scrollIntoView();
+        hasScrolledRef.current = true;
+      }
+      observer.disconnect();
+    });
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [scrollIntoView]);
 
   const initialContent = !!(replyToAuthorId && replyToAuthorName)
     ? `<span class="mention" data-type="mention" data-id="${replyToAuthorId}" data-label="${replyToAuthorName}">@${replyToAuthorName}</span>&nbsp;`
@@ -60,6 +85,12 @@ export function CommentForm({
     postId,
     enabled: false,
   });
+
+  // useEffect(() => {
+  //   if (scrollIntoView && ref.current) {
+  //     ref.current.scrollIntoView();
+  //   }
+  // }, [scrollIntoView]);
 
   const onChange = (value: string) => {
     setErrormessage("");
@@ -101,11 +132,13 @@ export function CommentForm({
 
     const content = await processImagesInHTML(value);
 
-    saveComment.mutate({
+    await saveComment.mutateAsync({
       postId,
       parentCommentId,
       content,
     });
+
+    onClose?.();
   };
 
   useKey("Escape", () => {
@@ -128,14 +161,17 @@ export function CommentForm({
           onSubmit(user);
         }}
       />
-      <div className={cn("flex min-h-[7.7rem] flex-col gap-3", className)}>
-        <div className="relative">
+      <div
+        ref={elementRef}
+        className={cn("flex min-h-[7.7rem] flex-col gap-3", className)}
+      >
+        <div className="relative flex items-start gap-2">
           <Tiptap
             placeholder={`Add a comment`}
             value={value}
             onChange={onChange}
             className={cn(
-              "min-h-[7.7rem] shadow-xs",
+              "min-h-[7.7rem] shadow-sm",
               isFocused && "ring-ring ring-1",
             )}
             showToolbar={true}

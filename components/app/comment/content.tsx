@@ -26,7 +26,7 @@ export function CommentContent({
   }, [content]);
 
   return (
-    <div className={cn("tiptap-output mt-0.5", className)}>
+    <div className={cn("tiptap-output mt-1", className)}>
       {parse(sanitizedContent)}
     </div>
   );

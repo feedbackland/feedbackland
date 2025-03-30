@@ -44,6 +44,31 @@ export const appRouter = router({
         throw error;
       }
     }),
+  // getUser: publicProcedure
+  // .input(
+  //   z.object({
+  //     uid: z.string(),
+  //   }),
+  // )
+  // .query(async ({ input: { uid }, ctx }) => {
+  //   const orgId = ctx?.org?.id;
+
+  //   if (!orgId) {
+  //     throw new Error("No orgId provided");
+  //   }
+
+  //   const users = await getMentionableUsersQuery({
+  //     orgId,
+  //     searchValue,
+  //   });
+
+  //   return users
+  //     .filter(({ name }) => name && name.length > 0)
+  //     .map(({ id, name }) => ({
+  //       id,
+  //       name,
+  //     })) as [{ id: string; name: string }];
+  // }),
   getMentionableUsers: publicProcedure
     .input(
       z.object({

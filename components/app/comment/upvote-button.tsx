@@ -70,10 +70,11 @@ export function CommentUpvoteButton({
   return (
     <>
       <Button
-        variant={hasUserUpvote ? "ghost" : "ghost"}
+        variant={hasUserUpvote ? "link" : "link"}
         size="sm"
         className={cn(
-          "-ml-1.5 flex h-fit items-center px-1 py-1 pr-2 [&>span]:gap-1",
+          "text-muted-foreground hover:text-primary -ml-1.5 flex h-fit items-center px-1 py-1 pr-2 hover:no-underline [&>span]:gap-1",
+          hasUserUpvote && "text-primary",
           className,
         )}
         onClick={(e) => {
@@ -83,9 +84,9 @@ export function CommentUpvoteButton({
         }}
       >
         <ArrowBigUp
-          className="size-5!"
+          className={cn("size-5!")}
           strokeWidth={1.5}
-          fill={hasUserUpvote ? "var(--foreground)" : "none"}
+          fill={hasUserUpvote ? "var(--primary)" : "none"}
         />
         <span className="text-xs">{upvoteCount}</span>
       </Button>

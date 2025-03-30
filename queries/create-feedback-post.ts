@@ -7,7 +7,7 @@ const getTitleAndCategory = async (description: string) => {
   const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
     Given the following description, create a short title that sounds like it was written by a human.
-    Also categorize the description as either 'feature request', 'bug report', or 'other'.
+    Also categorize the description as either a 'feature request', 'bug report', 'improvement suggestion', or 'general feedback'.
 
     Description:
     ${description}
@@ -15,7 +15,7 @@ const getTitleAndCategory = async (description: string) => {
     Respond with a valid JSON object that follows this structure exactly:
     {
       "title": "brief human-like title here",
-      "category": "one of: feature request, bug report, or other"
+      "category": "one of: feature request, bug report, improvement suggestion, general feedback"
     }
   `;
 
@@ -49,7 +49,11 @@ const getTitleAndCategory = async (description: string) => {
 
   const parsedContent = JSON.parse(content) as {
     title: string;
-    category: "feature request" | "bug report" | "other";
+    category:
+      | "feature request"
+      | "bug report"
+      | "improvement suggestion"
+      | "general feedback";
   };
 
   const title = parsedContent.title || "Untitled";
