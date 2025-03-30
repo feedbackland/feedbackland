@@ -73,19 +73,6 @@ export const appRouter = router({
       };
     },
   ),
-  getUserUpvote: publicProcedure
-    .input(
-      z.object({
-        contentId: z.string().uuid(),
-      }),
-    )
-    .query(async ({ input: { contentId }, ctx: { userId } }) => {
-      try {
-        return await getUserUpvoteQuery({ userId, contentId });
-      } catch (error) {
-        throw error;
-      }
-    }),
   createFeedbackPost: userProcedure
     .input(
       z.object({

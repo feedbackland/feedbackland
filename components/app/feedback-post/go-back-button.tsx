@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { previousPathnameAtom } from "@/lib/atoms";
-import { useSubdomain } from "@/hooks/useSubdomain";
+import { useSubdomain } from "@/hooks/use-subdomain";
 
 export const GoBackButton = ({
   className,

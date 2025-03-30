@@ -85,7 +85,7 @@ export function PlatformHeader() {
         <a
           href="https://feedbackland.com"
           target="_blank"
-          className="underline"
+          className="hover:text-primary underline"
         >
           Feedbackland
         </a>
