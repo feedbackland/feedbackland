@@ -17,9 +17,6 @@ export const GoBackButton = ({
   const subdomain = useSubdomain();
   const previousPathname = useAtomValue(previousPathnameAtom);
 
-  console.log("subdomain", subdomain);
-  console.log("previousPathname", previousPathname);
-
   const handleGoBack = () => {
     if (previousPathname) {
       router.back();

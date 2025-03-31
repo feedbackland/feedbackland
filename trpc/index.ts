@@ -1,45 +1,26 @@
 import { z } from "zod";
-import { publicProcedure, userProcedure, adminProcedure, router } from "./trpc";
+import {
+  publicProcedure,
+  userProcedure,
+  adminProcedure,
+  router,
+} from "@/lib/trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getFeedbackPostQuery } from "@/queries/get-feedback-post";
-import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
 import { createCommentQuery } from "@/queries/create-comment";
 import { getCommentsQuery } from "@/queries/get-comments";
 import { upvoteCommentQuery } from "@/queries/upvote-comment";
 import { getCommentQuery } from "@/queries/get-comment";
 import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
-import { upsertUserQuery } from "@/queries/upsert-user";
 import { feedbackStatusSchema } from "@/lib/schemas";
 import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
-import { feedbackOrderBySchema } from "../schemas";
+import { feedbackOrderBySchema } from "@/lib/schemas";
 import { claimOrgQuery } from "@/queries/claim-org";
+import { searchFeedbackPosts } from "./search-feedback-posts";
 
 export const appRouter = router({
-  upsertUser: userProcedure
-    .input(
-      z.object({
-        name: z.string().min(1).nullable(),
-        email: z.string().email().nullable(),
-        photoURL: z.string().min(1).nullable(),
-      }),
-    )
-    .mutation(
-      async ({ input: { name, email, photoURL }, ctx: { userId, orgId } }) => {
-        try {
-          return await upsertUserQuery({
-            userId,
-            orgId,
-            email,
-            name,
-            photoURL,
-          });
-        } catch (error) {
-          throw error;
-        }
-      },
-    ),
   getMentionableUsers: publicProcedure
     .input(
       z.object({
@@ -118,23 +99,7 @@ export const appRouter = router({
         throw error;
       }
     }),
-  searchFeedbackPosts: publicProcedure
-    .input(
-      z.object({
-        searchValue: z.string().trim(),
-      }),
-    )
-    .query(async ({ input: { searchValue }, ctx: { userId, orgId } }) => {
-      try {
-        return await searchFeedbackPostsQuery({
-          orgId,
-          userId,
-          searchValue,
-        });
-      } catch (error) {
-        throw error;
-      }
-    }),
+  searchFeedbackPosts,
   getFeedbackPosts: publicProcedure
     .input(
       z.object({

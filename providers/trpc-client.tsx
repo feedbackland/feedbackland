@@ -1,10 +1,10 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { useState } from "react";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
-import type { AppRouter } from "@/lib/trpc";
+import type { AppRouter } from "@/trpc";
 import { auth } from "@/lib/firebase/client";
 import { Auth, getIdToken } from "firebase/auth";
 import superjson from "superjson";
@@ -14,14 +14,22 @@ export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();
 
 function makeQueryClient() {
-  return new QueryClient();
-  // {
-  //   defaultOptions: {
-  //     queries: {
-  //       staleTime: 60 * 1000,
-  //     },
-  //   },
-  // }
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 minutes (reduces unnecessary network requests)
+        gcTime: 10 * 60 * 1000, // 10 minutes (keeps inactive queries in cache)
+        refetchOnWindowFocus: true, // Avoids unnecessary refetching when switching tabs
+        refetchOnReconnect: true, // Ensures fresh data when reconnecting
+        refetchOnMount: true, // Avoids refetching every mount
+        retry: 2, // Retries failed queries up to 2 times
+        retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff for retries
+      },
+      mutations: {
+        retry: 0,
+      },
+    },
+  });
 }
 
 let browserQueryClient: QueryClient | undefined = undefined;
@@ -67,17 +75,15 @@ export const TRPCClientProvider = ({
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        // loggerLink({
-        //   enabled: () => process.env.NODE_ENV === "development",
-        // }),
         httpBatchLink({
           transformer: superjson,
           url: `${getBaseUrl()}/api/trpc`,
           headers: async () => {
             const idToken = await getAuthIdToken(auth);
-            const subdomain = await getSubdomain();
+            const subdomain = getSubdomain();
+
             return {
-              ...(idToken && { Authorization: `Bearer ${idToken}` }),
+              ...(!!idToken && { Authorization: `Bearer ${idToken}` }),
               ...(!!subdomain && { subdomain: subdomain }),
             };
           },

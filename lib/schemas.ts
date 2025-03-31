@@ -21,3 +21,13 @@ export const feedbackCategorySchema = z.union([
   z.literal("general feedback"),
   z.null(),
 ]);
+
+export const upsertUserSchema = z.object({
+  orgSubdomain: z.string().min(1),
+  userId: z.string().min(1),
+  email: z.string().email().nullable(),
+  name: z.string().min(1).nullable(),
+  photoURL: z.string().min(1).nullable(),
+});
+
+export const userRoleSchema = z.union([z.literal("user"), z.literal("admin")]);

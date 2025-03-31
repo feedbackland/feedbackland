@@ -1,22 +1,29 @@
 "server-only";
 
 import { db } from "@/db/db";
+import { UpsertUser } from "@/lib/typings";
 
 export const upsertUserQuery = async ({
   userId,
-  orgId,
+  orgSubdomain,
   email,
   name,
   photoURL,
-}: {
-  userId: string;
-  orgId: string;
-  email: string | null;
-  name: string | null;
-  photoURL: string | null;
-}) => {
+}: UpsertUser) => {
   try {
     return await db.transaction().execute(async (trx) => {
+      const org = await trx
+        .selectFrom("org")
+        .where("org.subdomain", "=", orgSubdomain)
+        .selectAll()
+        .executeTakeFirst();
+
+      if (!org) {
+        throw new Error("Org not found");
+      }
+
+      const orgId = org.id;
+
       let user = await trx
         .selectFrom("user")
         .where("user.id", "=", userId)

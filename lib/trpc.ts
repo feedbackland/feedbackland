@@ -1,10 +1,10 @@
+import superjson from "superjson";
 import { adminAuth } from "@/lib/firebase/admin";
 import { initTRPC, TRPCError } from "@trpc/server";
-import superjson from "superjson";
 import { ZodError } from "zod";
-import { getSubdomain } from "@/lib/utils";
 import { getUserWithRoleAndOrgQuery } from "@/queries/get-user-with-role-and-org";
 import { getOrgQuery } from "@/queries/get-org";
+import { UserRole } from "@/lib/typings";
 
 const getUserID = async (req: Request) => {
   const authorization = req.headers.get("authorization");
@@ -14,20 +14,23 @@ const getUserID = async (req: Request) => {
 };
 
 export const createContext = async ({ req }: { req: Request }) => {
-  const orgSubdomain = getSubdomain(req?.headers?.get("referer"));
+  const orgSubdomain = req?.headers?.get("subdomain");
   const userId = await getUserID(req);
   let orgId: string | null | undefined;
   let orgName: string | null | undefined;
   let orgIsClaimed: boolean | null | undefined;
-  let userRole: "user" | "admin" | null | undefined;
+  let userRole: UserRole | null | undefined;
 
   if (orgSubdomain) {
+    // not signed in
     if (!userId) {
       const org = await getOrgQuery({ orgSubdomain });
       orgId = org?.id;
       orgIsClaimed = org?.isClaimed;
       orgName = org?.name;
-    } else {
+    }
+    // signed in
+    else {
       const userWithRoleAndOrg = await getUserWithRoleAndOrgQuery({
         userId,
         orgSubdomain,
@@ -72,7 +75,7 @@ const publicProcedureMiddleware = t.middleware((opts) => {
   if (!ctx?.orgId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "TRPC Error - No orgId was found",
+      message: "No orgId was found",
     });
   }
 
@@ -92,7 +95,7 @@ const userProcedureMiddleware = publicProcedureMiddleware.unstable_pipe(
     if (!ctx.userId) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "TRPC Error - No userId was found",
+        message: "No userId was found",
       });
     }
 
@@ -113,7 +116,7 @@ const adminProcedureMiddleware = userProcedureMiddleware.unstable_pipe(
     if (ctx.userRole !== "admin") {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "TRPC Error - User does not have admin role",
+        message: "User does not have admin role",
       });
     }
 

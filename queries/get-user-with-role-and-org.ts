@@ -8,7 +8,7 @@ export const getUserWithRoleAndOrgQuery = async ({
   orgSubdomain: string;
 }) => {
   try {
-    return await db
+    const result = await db
       .selectFrom("user")
       .innerJoin("user_org", "user.id", "user_org.userId")
       .innerJoin("org", "user_org.orgId", "org.id")
@@ -30,6 +30,8 @@ export const getUserWithRoleAndOrgQuery = async ({
       .where("user.id", "=", userId)
       .where("org.subdomain", "=", orgSubdomain)
       .executeTakeFirstOrThrow();
+
+    return result;
   } catch (error) {
     throw error;
   }
