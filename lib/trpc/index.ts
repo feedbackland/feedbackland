@@ -3,7 +3,6 @@ import { publicProcedure, userProcedure, adminProcedure, router } from "./trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
-import { getUserUpvoteQuery } from "@/queries/get-user-upvote";
 import { getFeedbackPostQuery } from "@/queries/get-feedback-post";
 import { searchFeedbackPostsQuery } from "@/queries/search-feedback-posts";
 import { createCommentQuery } from "@/queries/create-comment";
@@ -15,6 +14,7 @@ import { upsertUserQuery } from "@/queries/upsert-user";
 import { feedbackStatusSchema } from "@/lib/schemas";
 import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
 import { feedbackOrderBySchema } from "../schemas";
+import { claimOrgQuery } from "@/queries/claim-org";
 
 export const appRouter = router({
   upsertUser: userProcedure
@@ -73,6 +73,16 @@ export const appRouter = router({
       };
     },
   ),
+  claimOrg: userProcedure.mutation(async ({ ctx: { userId, orgId } }) => {
+    try {
+      return await claimOrgQuery({
+        userId,
+        orgId,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }),
   createFeedbackPost: userProcedure
     .input(
       z.object({

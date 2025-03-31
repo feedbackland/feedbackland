@@ -9,12 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Method, SignUpIn } from "@/components/app/sign-up-in";
 import { useState } from "react";
-import { useAction } from "next-safe-action/hooks";
-import { claimOrgAction } from "@/components/app/claim-org/actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PartyPopper } from "lucide-react";
-import { Session } from "@/hooks/use-auth";
+import { useMutation } from "@tanstack/react-query";
+import { useTRPC } from "@/providers/trpc-client";
 
 export function ClaimOrgDialog({
   orgId,
@@ -29,32 +28,24 @@ export function ClaimOrgDialog({
   onClaimed?: () => void;
   onClose?: () => void;
 }) {
+  const trpc = useTRPC();
+
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
   );
 
   const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
 
-  const { execute: claimOrg } = useAction(claimOrgAction, {
-    onSuccess: () => {
-      handleOnClaimed();
-    },
-    onError: (error) => {
-      console.log("claimOrg error", error);
-    },
-  });
+  const claimOrg = useMutation(trpc.claimOrg.mutationOptions());
 
-  const handleSignUpInSuccess = async (session: Session) => {
-    const userId = session.uid;
-
-    if (orgId && userId) {
-      claimOrg({ orgId, userId });
+  const handleSignUpInSuccess = async () => {
+    try {
+      await claimOrg.mutateAsync();
+      setSelectedStep("success");
+      onClaimed?.();
+    } catch {
+      console.log("error claiming org");
     }
-  };
-
-  const handleOnClaimed = () => {
-    setSelectedStep("success");
-    onClaimed?.();
   };
 
   const handleOnClose = () => {
