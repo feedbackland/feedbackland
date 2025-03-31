@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { auth } from "@/lib/firebase/client";
 import {
   onAuthStateChanged,
@@ -13,16 +19,18 @@ import {
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { User } from "@/db/schema";
+import { User, Org, UserOrg } from "@/db/schema";
 import { getSubdomain } from "@/lib/utils";
 import { UpsertUser } from "@/lib/typings";
 
-export interface Session {
-  userId: string;
-}
+export type Session = {
+  user: User;
+  userOrg: UserOrg;
+  org: Org;
+} | null;
 
 type AuthContextType = {
-  session: Session | null;
+  session: Session;
   signInWithEmail: ({
     email,
     password,
@@ -42,7 +50,7 @@ type AuthContextType = {
   }) => Promise<Session>;
   signOnWithGoogle: () => Promise<Session>;
   signOnWithMicrosoft: () => Promise<Session>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<null>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -52,7 +60,7 @@ const AuthContext = createContext<AuthContextType>({
   signUpWithEmail: async () => ({}) as Session,
   signOnWithGoogle: async () => ({}) as Session,
   signOnWithMicrosoft: async () => ({}) as Session,
-  signOut: async () => {},
+  signOut: async () => null,
 });
 
 const upsertUser = async ({
@@ -89,7 +97,12 @@ const upsertUser = async ({
       body: JSON.stringify(input),
     });
     const repsonse = await response.json();
-    return repsonse as User;
+
+    return {
+      user: repsonse.user as User,
+      userOrg: repsonse.userOrg as UserOrg,
+      org: repsonse.org as Org,
+    };
   } catch (err) {
     throw err;
   }
@@ -98,19 +111,66 @@ const upsertUser = async ({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
 
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session>(null);
+
+  const createSession = useCallback(
+    async ({
+      userId,
+      email,
+      name,
+      photoURL,
+    }: {
+      userId: string;
+      email: string | null;
+      name: string | null;
+      photoURL: string | null;
+    }) => {
+      let newSession: Session = null;
+
+      try {
+        const { user, userOrg, org } = await upsertUser({
+          userId,
+          email,
+          name,
+          photoURL,
+        });
+
+        newSession = {
+          user: user,
+          userOrg: userOrg,
+          org: org,
+        };
+
+        setSession(newSession);
+      } catch (err) {
+        destroySession();
+      }
+
+      return newSession;
+    },
+    [setSession],
+  );
+
+  const destroySession = () => {
+    setSession(null);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.uid) {
-        setSession({ userId: user.uid });
+        createSession({
+          userId: user.uid,
+          email: user.email,
+          name: user.displayName,
+          photoURL: user.photoURL,
+        });
       } else {
-        setSession(null);
+        destroySession();
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [createSession]);
 
   const signInWithEmail = async ({
     email,
@@ -121,14 +181,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      await upsertUser({
+      const session = await createSession({
         userId: user.uid,
         email: user.email,
         name: user.displayName,
         photoURL: user.photoURL,
       });
-      setSession({ userId: user.uid });
-      return { userId: user.uid } satisfies Session;
+      return session;
     } catch (err) {
       throw err;
     }
@@ -137,14 +196,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInAnonymously = async () => {
     try {
       const { user } = await firebaseSignInAnonymously(auth);
-      await upsertUser({
+      const session = await createSession({
         userId: user.uid,
         email: user.email,
         name: user.displayName,
         photoURL: user.photoURL,
       });
-      setSession({ userId: user.uid });
-      return { userId: user.uid } satisfies Session;
+      return session;
     } catch (err) {
       throw err;
     }
@@ -165,14 +223,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
-      await upsertUser({
+      const session = await createSession({
         userId: user.uid,
         email: user.email,
         name: name,
         photoURL: user.photoURL,
       });
-      setSession({ userId: user.uid });
-      return { userId: user.uid } satisfies Session;
+      return session;
     } catch (err) {
       throw err;
     }
@@ -182,14 +239,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
-      await upsertUser({
+      const session = await createSession({
         userId: user.uid,
         email: user.email,
         name: user.displayName,
         photoURL: user.photoURL,
       });
-      setSession({ userId: user.uid });
-      return { userId: user.uid } satisfies Session;
+      return session;
     } catch (err) {
       throw err;
     }
@@ -199,14 +255,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new OAuthProvider("microsoft.com");
       const { user } = await signInWithPopup(auth, provider);
-      await upsertUser({
+      const session = await createSession({
         userId: user.uid,
         email: user.email,
         name: user.displayName,
         photoURL: user.photoURL,
       });
-      setSession({ userId: user.uid });
-      return { userId: user.uid } satisfies Session;
+      return session;
     } catch (err) {
       throw err;
     }
@@ -216,8 +271,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await firebaseSignOut(auth);
       queryClient.invalidateQueries();
-      setSession(null);
-      return;
+      destroySession();
+      return null;
     } catch (err) {
       throw err;
     }

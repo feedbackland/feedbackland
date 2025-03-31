@@ -1,4 +1,3 @@
-import "@iframe-resizer/child";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";

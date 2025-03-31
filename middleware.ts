@@ -23,10 +23,10 @@ const isUUID = (uuid: string) => {
 
 const upsertOrg = async ({
   orgId,
-  baseUrl = "",
+  baseUrl,
 }: {
   orgId: string;
-  baseUrl?: string;
+  baseUrl: string;
 }) => {
   try {
     const response = await fetch(`${baseUrl}/api/org/upsert-org`, {
@@ -47,27 +47,29 @@ const upsertOrg = async ({
 
 export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
-  const url = req.nextUrl;
-  const { hostname, pathname, search, origin } = url;
-  const isLocalhost = hostname.includes("localhost");
+  const url = req.nextUrl.clone();
+  const host = req.headers.get("host");
+  const { pathname, search, origin, protocol } = url;
+  const isLocalhost = host?.includes("localhost");
   const urlString = url.toString();
-  let subdomain = getSubdomain(urlString);
-  const maindomain = getMaindomain(urlString);
-  let platformUrl = isLocalhost
-    ? `${origin}/${subdomain}`
-    : `https://${subdomain}.${maindomain}`;
+  const subdomain = getSubdomain(urlString);
+  const mainDomain = getMaindomain(urlString);
 
   if (subdomain && subdomain.length > 0) {
     if (isUUID(subdomain)) {
+      const orgId = subdomain;
+      const baseUrl = isLocalhost ? origin : `${protocol}//${mainDomain}`;
+
       const org = await upsertOrg({
-        orgId: subdomain,
-        baseUrl: platformUrl,
+        orgId,
+        baseUrl,
       });
-      subdomain = org.subdomain;
-      platformUrl = isLocalhost
-        ? `${origin}/${subdomain}`
-        : `https://${subdomain}.${maindomain}`;
-      response = NextResponse.redirect(platformUrl);
+
+      const redirectUrl = isLocalhost
+        ? `${origin}/${org.subdomain}`
+        : `${protocol}//${org.subdomain}.${mainDomain}`;
+
+      response = NextResponse.redirect(redirectUrl);
     } else if (!isLocalhost) {
       const newUrl = `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));

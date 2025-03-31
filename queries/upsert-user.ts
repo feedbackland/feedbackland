@@ -30,7 +30,7 @@ export const upsertUserQuery = async ({
         .selectAll()
         .executeTakeFirst();
 
-      const userOrg = await trx
+      let userOrg = await trx
         .selectFrom("user_org")
         .where("user_org.userId", "=", userId)
         .where("user_org.orgId", "=", orgId)
@@ -51,17 +51,18 @@ export const upsertUserQuery = async ({
       }
 
       if (!userOrg) {
-        await trx
+        userOrg = await trx
           .insertInto("user_org")
           .values({
             userId,
             orgId,
             role: "user",
           })
+          .returningAll()
           .executeTakeFirstOrThrow();
       }
 
-      return user;
+      return { user, userOrg, org };
     });
   } catch (error: any) {
     console.log("error", error);

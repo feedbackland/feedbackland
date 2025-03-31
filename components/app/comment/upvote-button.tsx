@@ -60,7 +60,7 @@ export function CommentUpvoteButton({
     session,
     allowUndo = true,
   }: {
-    session: Session | null;
+    session: Session;
     allowUndo?: boolean;
   }) => {
     if (isUpvotePending) {

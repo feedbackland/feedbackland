@@ -33,6 +33,8 @@ export function FeedbackForm({
   const [isFocused, setIsFocused] = useState(false);
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({});
 
+  console.log("session", session);
+
   const onChange = (value: string) => {
     setErrormessage("");
     setValue(value);
@@ -55,7 +57,7 @@ export function FeedbackForm({
     }),
   );
 
-  const onSubmit = async (session: Session | null) => {
+  const onSubmit = async (session: Session) => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter some feedback");
       return;

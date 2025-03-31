@@ -5,6 +5,7 @@ import {
   feedbackCategorySchema,
   upsertUserSchema,
   userRoleSchema,
+  upsertOrgSchema,
 } from "./schemas";
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
@@ -14,5 +15,7 @@ export type FeedbackOrderBy = z.infer<typeof feedbackOrderBySchema>;
 export type FeedbackCategory = z.infer<typeof feedbackCategorySchema>;
 
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
+
+export type UpsertOrg = z.infer<typeof upsertOrgSchema>;
 
 export type UserRole = z.infer<typeof userRoleSchema>;

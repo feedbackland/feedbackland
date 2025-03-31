@@ -30,4 +30,8 @@ export const upsertUserSchema = z.object({
   photoURL: z.string().min(1).nullable(),
 });
 
+export const upsertOrgSchema = z.object({
+  orgId: z.string().uuid(),
+});
+
 export const userRoleSchema = z.union([z.literal("user"), z.literal("admin")]);

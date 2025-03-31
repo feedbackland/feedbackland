@@ -69,12 +69,12 @@ export function SignUpEmailForm({
     setIsPending(true);
 
     try {
-      const user = await signUpWithEmail({
+      const session = await signUpWithEmail({
         name,
         email,
         password,
       });
-      onSuccess(user);
+      onSuccess(session);
     } catch (error: any) {
       setError("root.serverError", {
         message: error?.message || "An error occured. Please try again.",

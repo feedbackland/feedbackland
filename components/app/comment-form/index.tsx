@@ -119,7 +119,7 @@ export function CommentForm({
     }),
   );
 
-  const onSubmit = async (session: Session | null) => {
+  const onSubmit = async (session: Session) => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter a comment");
       return;

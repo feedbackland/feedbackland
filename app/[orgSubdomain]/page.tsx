@@ -1,6 +1,5 @@
 "use client";
 
-import "@iframe-resizer/child";
 import { FeedbackFormContainer } from "@/components/app/feedback-form/container";
 import { FeedbackPosts } from "@/components/app/feedback-posts";
 

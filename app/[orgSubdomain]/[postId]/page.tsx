@@ -1,6 +1,5 @@
 "use client";
 
-import "@iframe-resizer/child";
 import { useParams } from "next/navigation";
 import { FeedbackPostFull } from "@/components/app/feedback-post/full";
 import { CommentFormContainer } from "@/components/app/comment-form/container";
