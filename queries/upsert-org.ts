@@ -12,7 +12,6 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
     const orgSubdomain = uniqueNamesGenerator({
       dictionaries: [adjectives, animals],
       separator: "-",
-      length: 2,
     });
 
     const org = await db
