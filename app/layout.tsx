@@ -8,6 +8,7 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { RouteChangeListener } from "./route-change-listener";
 import { ThemeProvider } from "@/providers/theme";
+import { IframeResizerProvider } from "@/providers/iframe-resizer";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -49,8 +50,10 @@ export default async function RootLayout({
               <TooltipProvider>
                 <JotaiProvider>
                   <NuqsAdapter>
-                    <RouteChangeListener />
-                    {children}
+                    <IframeResizerProvider>
+                      <RouteChangeListener />
+                      {children}
+                    </IframeResizerProvider>
                   </NuqsAdapter>
                 </JotaiProvider>
               </TooltipProvider>

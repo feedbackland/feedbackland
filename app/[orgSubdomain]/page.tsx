@@ -5,9 +5,11 @@ import { FeedbackPosts } from "@/components/app/feedback-posts";
 
 export default function OrgPage() {
   return (
-    <div className="">
-      <FeedbackFormContainer />
-      <FeedbackPosts />
-    </div>
+    <>
+      <div className="">
+        <FeedbackFormContainer />
+        <FeedbackPosts />
+      </div>
+    </>
   );
 }
