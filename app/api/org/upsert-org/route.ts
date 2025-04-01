@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("upsertOrg route handler request", request);
+
     const bodyRaw = await request.json();
     const { orgId } = upsertOrgSchema.parse(bodyRaw);
 
