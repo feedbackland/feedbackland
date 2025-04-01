@@ -60,14 +60,21 @@ export async function middleware(req: NextRequest) {
       const orgId = subdomain;
       const baseUrl = isLocalhost ? origin : `${protocol}//${mainDomain}`;
 
+      console.log("baseUrl", baseUrl);
+      console.log("orgId", orgId);
+
       const org = await upsertOrg({
         orgId,
         baseUrl,
       });
 
+      console.log("org", org);
+
       const redirectUrl = isLocalhost
         ? `${origin}/${org.subdomain}`
         : `${protocol}//${org.subdomain}.${mainDomain}`;
+
+      console.log("redirectUrl", redirectUrl);
 
       response = NextResponse.redirect(redirectUrl);
     } else if (!isLocalhost) {
