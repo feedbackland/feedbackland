@@ -29,6 +29,10 @@ const upsertOrg = async ({
   baseUrl: string;
 }) => {
   try {
+    console.log("upsertOrg fetch baseUrl", baseUrl);
+    console.log("upsertOrg fetch orgId", orgId);
+    console.log("upsertOrg fetch fetchUrl", `${baseUrl}/api/org/upsert-org`);
+
     const response = await fetch(`${baseUrl}/api/org/upsert-org`, {
       method: "POST",
       headers: {
@@ -38,6 +42,9 @@ const upsertOrg = async ({
     });
 
     const org: Org = await response.json();
+
+    console.log("upsertOrg fetch org", org);
+
     return org;
   } catch (error) {
     console.error("Error upserting org:", error);
