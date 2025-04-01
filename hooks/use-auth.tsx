@@ -96,13 +96,14 @@ const upsertUser = async ({
       },
       body: JSON.stringify(input),
     });
-    const repsonse = await response.json();
 
-    return {
-      user: repsonse.user as User,
-      userOrg: repsonse.userOrg as UserOrg,
-      org: repsonse.org as Org,
-    };
+    const session: Session = await response.json();
+
+    if (session) {
+      return session;
+    } else {
+      throw new Error("upsertUser did not return anything");
+    }
   } catch (err) {
     throw err;
   }
@@ -142,7 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         setSession(newSession);
-      } catch (err) {
+      } catch {
         destroySession();
       }
 

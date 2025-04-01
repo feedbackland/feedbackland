@@ -9,31 +9,31 @@ import {
 
 export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
   try {
-    const existingOrg = await db
+    let org = await db
       .selectFrom("org")
       .selectAll()
       .where("id", "=", orgId)
       .executeTakeFirst();
 
-    if (existingOrg) {
-      return existingOrg;
+    if (!org) {
+      const orgSubdomain = uniqueNamesGenerator({
+        dictionaries: [adjectives, animals],
+        separator: "-",
+      });
+
+      org = await db
+        .insertInto("org")
+        .values({
+          id: orgId,
+          subdomain: orgSubdomain,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
     }
 
-    const orgSubdomain = uniqueNamesGenerator({
-      dictionaries: [adjectives, animals],
-      separator: "-",
-    });
+    console.log("upsertOrgQuery org", org);
 
-    const newOrg = await db
-      .insertInto("org")
-      .values({
-        id: orgId,
-        subdomain: orgSubdomain,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
-
-    return newOrg;
+    return org || null;
   } catch (error: any) {
     throw error;
   }
