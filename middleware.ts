@@ -69,7 +69,7 @@ export async function middleware(req: NextRequest) {
 
     if (isUUIDSubdomain) {
       const orgId = subdomain;
-      const baseUrl = isLocalhost ? origin : `${protocol}//${mainDomain}`;
+      const baseUrl = isLocalhost ? origin : `${protocol}//api.${mainDomain}`;
 
       console.log("baseUrl", baseUrl);
       console.log("orgId", orgId);
