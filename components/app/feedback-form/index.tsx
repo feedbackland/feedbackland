@@ -33,8 +33,6 @@ export function FeedbackForm({
   const [isFocused, setIsFocused] = useState(false);
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({});
 
-  console.log("session", session);
-
   const onChange = (value: string) => {
     setErrormessage("");
     setValue(value);

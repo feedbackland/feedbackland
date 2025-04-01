@@ -21,29 +21,20 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
-const upsertOrg = async ({
-  orgId,
-  baseUrl,
-}: {
-  orgId: string;
-  baseUrl: string;
-}) => {
+const upsertOrg = async ({ orgId }: { orgId: string }) => {
   try {
-    console.log("upsertOrg fetch baseUrl", baseUrl);
-    console.log("upsertOrg fetch orgId", orgId);
-    console.log("upsertOrg fetch fetchUrl", `${baseUrl}/api/org/upsert-org`);
-
-    const response = await fetch(`${baseUrl}/api/org/upsert-org`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${process.env.API_BASE_URL}/api/org/upsert-org`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orgId }),
       },
-      body: JSON.stringify({ orgId }),
-    });
+    );
 
     const org: Org = await response.json();
-
-    console.log("upsertOrg fetch org", org);
 
     return org;
   } catch (error) {
@@ -62,30 +53,19 @@ export async function middleware(req: NextRequest) {
   const subdomain = getSubdomain(urlString);
   const mainDomain = getMaindomain(urlString);
 
-  console.log("middleware subdomain", subdomain);
-
   if (subdomain && subdomain.length > 0) {
     const isUUIDSubdomain = isUUID(subdomain);
 
     if (isUUIDSubdomain) {
       const orgId = subdomain;
-      const baseUrl = isLocalhost ? origin : `${protocol}//api.${mainDomain}`;
-
-      console.log("baseUrl", baseUrl);
-      console.log("orgId", orgId);
 
       const org = await upsertOrg({
         orgId,
-        baseUrl,
       });
-
-      console.log("org", org);
 
       const redirectUrl = isLocalhost
         ? `${origin}/${org.subdomain}`
         : `${protocol}//${org.subdomain}.${mainDomain}`;
-
-      console.log("redirectUrl", redirectUrl);
 
       response = NextResponse.redirect(redirectUrl);
     }
