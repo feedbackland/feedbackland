@@ -62,8 +62,12 @@ export async function middleware(req: NextRequest) {
   const subdomain = getSubdomain(urlString);
   const mainDomain = getMaindomain(urlString);
 
+  console.log("middleware subdomain", subdomain);
+
   if (subdomain && subdomain.length > 0) {
-    if (isUUID(subdomain)) {
+    const isUUIDSubdomain = isUUID(subdomain);
+
+    if (isUUIDSubdomain) {
       const orgId = subdomain;
       const baseUrl = isLocalhost ? origin : `${protocol}//${mainDomain}`;
 
@@ -84,7 +88,9 @@ export async function middleware(req: NextRequest) {
       console.log("redirectUrl", redirectUrl);
 
       response = NextResponse.redirect(redirectUrl);
-    } else if (!isLocalhost) {
+    }
+
+    if (!isUUIDSubdomain && !isLocalhost) {
       const newUrl = `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
