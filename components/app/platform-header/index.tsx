@@ -80,7 +80,7 @@ export function PlatformHeader() {
           <ModeToggle /> */}
         </div>
       </div>
-      <p className="text-muted-foreground -mt-1 text-xs">
+      <p className="text-muted-foreground text-xs">
         Powered by{" "}
         <a
           href="https://feedbackland.com"

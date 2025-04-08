@@ -1,86 +1,28 @@
 import { z } from "zod";
-import {
-  publicProcedure,
-  userProcedure,
-  adminProcedure,
-  router,
-} from "@/lib/trpc";
-import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
+import { publicProcedure, userProcedure, router } from "@/lib/trpc";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";
 import { getFeedbackPostQuery } from "@/queries/get-feedback-post";
 import { createCommentQuery } from "@/queries/create-comment";
 import { getCommentsQuery } from "@/queries/get-comments";
-import { upvoteCommentQuery } from "@/queries/upvote-comment";
 import { getCommentQuery } from "@/queries/get-comment";
-import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
-import { feedbackStatusSchema } from "@/lib/schemas";
-import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
 import { feedbackOrderBySchema } from "@/lib/schemas";
-import { claimOrgQuery } from "@/queries/claim-org";
 import { searchFeedbackPosts } from "./search-feedback-posts";
+import { updateFeedbackPostStatus } from "./update-feedback-post-status";
+import { upvoteComment } from "./upvote-comment";
+import { getMentionableUsers } from "./get-mentionable-users";
+import { getOrg } from "./get-org";
+import { claimOrg } from "./claim-org";
+import { createFeedbackPost } from "./create-feedback-post";
 
 export const appRouter = router({
-  getMentionableUsers: publicProcedure
-    .input(
-      z.object({
-        searchValue: z.string(),
-      }),
-    )
-    .query(async ({ input: { searchValue }, ctx: { orgId } }) => {
-      try {
-        const users = await getMentionableUsersQuery({
-          orgId,
-          searchValue,
-        });
-
-        return users
-          .filter(({ name }) => name && name.length > 0)
-          .map(({ id, name }) => ({
-            id,
-            name,
-          })) as [{ id: string; name: string }];
-      } catch (error) {
-        throw error;
-      }
-    }),
-  getOrg: publicProcedure.query(
-    async ({ ctx: { orgId, orgName, orgSubdomain, orgIsClaimed } }) => {
-      return {
-        orgId,
-        orgName,
-        orgSubdomain,
-        orgIsClaimed,
-      };
-    },
-  ),
-  claimOrg: userProcedure.mutation(async ({ ctx: { userId, orgId } }) => {
-    try {
-      return await claimOrgQuery({
-        userId,
-        orgId,
-      });
-    } catch (error) {
-      throw error;
-    }
-  }),
-  createFeedbackPost: userProcedure
-    .input(
-      z.object({
-        description: z.string().trim().min(1),
-      }),
-    )
-    .mutation(async ({ input: { description }, ctx: { userId, orgId } }) => {
-      try {
-        return await createFeedbackPostQuery({
-          description,
-          authorId: userId,
-          orgId,
-        });
-      } catch (error) {
-        throw error;
-      }
-    }),
+  searchFeedbackPosts,
+  updateFeedbackPostStatus,
+  upvoteComment,
+  getMentionableUsers,
+  getOrg,
+  claimOrg,
+  createFeedbackPost,
   upvoteFeedbackPost: userProcedure
     .input(
       z.object({
@@ -99,7 +41,6 @@ export const appRouter = router({
         throw error;
       }
     }),
-  searchFeedbackPosts,
   getFeedbackPosts: publicProcedure
     .input(
       z.object({
@@ -216,44 +157,6 @@ export const appRouter = router({
           comments,
           nextCursor,
         };
-      } catch (error) {
-        throw error;
-      }
-    }),
-  upvoteComment: userProcedure
-    .input(
-      z.object({
-        commentId: z.string().uuid(),
-        allowUndo: z.boolean().optional(),
-      }),
-    )
-    .mutation(async ({ input: { commentId, allowUndo }, ctx: { userId } }) => {
-      try {
-        return await upvoteCommentQuery({
-          userId,
-          commentId,
-          allowUndo,
-        });
-      } catch (error) {
-        throw error;
-      }
-    }),
-  updateFeedbackPostStatus: adminProcedure
-    .input(
-      z.object({
-        postId: z.string().uuid(),
-        status: feedbackStatusSchema,
-      }),
-    )
-    .mutation(async ({ input: { postId, status }, ctx: { orgId } }) => {
-      try {
-        const updatedPost = await updateFeedbackPostStatusQuery({
-          postId,
-          status,
-          orgId,
-        });
-
-        return updatedPost;
       } catch (error) {
         throw error;
       }
