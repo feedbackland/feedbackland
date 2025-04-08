@@ -37,14 +37,14 @@ export function PlatformHeader() {
           <h1 className="h3 font-extrabold">Feedback</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="default" asChild>
+          {/* <Button variant="ghost" size="default" asChild>
             <Link href={`${platformUrl}/admin`}>
               <span className="flex items-center gap-2">
                 <Shield className="size-3.5!" />
                 <span>Admin panel</span>
               </span>
             </Link>
-          </Button>
+          </Button> */}
           {/* {isAdmin && (
             <Button variant="link" size="default" asChild>
               <Link href={`${platformUrl}/admin`}>
@@ -53,7 +53,7 @@ export function PlatformHeader() {
               </Link>
             </Button>
           )} */}
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="ghost" className="">
                 <MoreHorizontal className="size-4" />
@@ -77,7 +77,7 @@ export function PlatformHeader() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <ModeToggle />
+          <ModeToggle /> */}
         </div>
       </div>
       <p className="text-muted-foreground -mt-1 text-xs">

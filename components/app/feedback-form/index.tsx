@@ -92,18 +92,14 @@ export function FeedbackForm({
         }}
       />
       <div className="flex flex-col gap-3">
-        <div className="relative min-h-[7.7rem] w-full">
+        <div className="relative w-full">
           <Tiptap
-            placeholder={`Share your feedback`}
-            // placeholder="Any feedback? We’d love to hear from you!"
+            placeholder={`Share your feedback...`}
             value={value}
             onChange={onChange}
-            className={cn(
-              "min-h-[7.7rem] shadow-sm",
-              isFocused && "ring-ring ring-1",
-            )}
+            className={cn("shadow-sm", isFocused && "ring-ring ring-1")}
             showToolbar={true}
-            autofocus={true}
+            autofocus={false}
             onCreate={() => {
               setIsEditorLoaded(true);
             }}
@@ -126,6 +122,7 @@ export function FeedbackForm({
                 <SendIcon className="size-3" />
                 Submit feedback
               </Button> */}
+
               {/* <Button
                 variant="secondary"
                 size="default"
@@ -136,9 +133,11 @@ export function FeedbackForm({
               {/* <Button variant="ghost" size="icon" onClick={() => onClose?.()}>
                 <XIcon className="size-3" />
               </Button> */}
+
               <Button
                 type="submit"
                 size="icon"
+                variant="ghost"
                 loading={saveFeedback.isPending}
                 onClick={() => onSubmit(session)}
                 disabled={!hasText || saveFeedback.isPending}

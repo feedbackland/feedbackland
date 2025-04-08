@@ -30,9 +30,9 @@ export const Tiptap = ({
   return (
     <MinimalTiptapEditor
       value={value}
-      className={cn("h-full rounded-lg shadow-xs", className)}
+      className={cn("rounded-lg shadow-xs", className)}
       editorContentClassName="text-sm leading-5 p-3"
-      editorClassName="focus:outline-hidden min-h-[42px]"
+      editorClassName="focus:outline-hidden"
       output="html"
       placeholder={placeholder}
       autofocus={!!autofocus}

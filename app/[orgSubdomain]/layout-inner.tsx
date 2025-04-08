@@ -21,8 +21,8 @@ export default function OrgLayoutInner({
       <ClaimOrgBanner />
       <div
         className={cn(
-          "m-auto flex w-full max-w-full grow flex-col",
-          inIframe === false && "mt-10",
+          "m-auto flex w-full max-w-full grow flex-col px-10 py-5",
+          inIframe === false && "mt-10 p-0",
         )}
       >
         <PlatformHeader />

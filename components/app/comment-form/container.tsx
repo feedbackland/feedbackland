@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
+// import { CommentFormBanner } from "@/components/app/comment-form/banner";
 import { CommentForm } from "@/components/app/comment-form";
-import { CommentFormBanner } from "@/components/app/comment-form/banner";
 
 export function CommentFormContainer({
   postId,
@@ -11,20 +11,22 @@ export function CommentFormContainer({
   postId: string;
   parentCommentId: string | null;
 }) {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  return <CommentForm postId={postId} parentCommentId={parentCommentId} />;
 
-  return (
-    <>
-      {!isFormOpen ? (
-        <CommentFormBanner onClick={() => setIsFormOpen(true)} />
-      ) : (
-        <CommentForm
-          postId={postId}
-          parentCommentId={parentCommentId}
-          onClose={() => setIsFormOpen(false)}
-          onSuccess={() => setIsFormOpen(false)}
-        />
-      )}
-    </>
-  );
+  // const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // return (
+  //   <>
+  //     {!isFormOpen ? (
+  //       <CommentFormBanner onClick={() => setIsFormOpen(true)} />
+  //     ) : (
+  //       <CommentForm
+  //         postId={postId}
+  //         parentCommentId={parentCommentId}
+  //         onClose={() => setIsFormOpen(false)}
+  //         onSuccess={() => setIsFormOpen(false)}
+  //       />
+  //     )}
+  //   </>
+  // );
 }
