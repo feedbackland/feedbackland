@@ -12,6 +12,7 @@ import { GoBackButton } from "./go-back-button";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FeedbackPostDeleteButton } from "./delete-button";
 // import { usePlatformUrl } from "@/hooks/use-platform-url";
 // import { useSubdomain } from "@/hooks/useSubdomain";
 
@@ -115,6 +116,12 @@ export function FeedbackPostFull({
               <MessageSquare className="size-3!" />
               <span className="text-xs">{commentCount}</span>
             </Button>
+          </div>
+          <div>
+            <FeedbackPostDeleteButton
+              postId={postId}
+              authorId={data.authorId}
+            />
           </div>
         </div>
       </div>

@@ -31,7 +31,9 @@ export function FeedbackForm({
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({});
+  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
+    enabled: false,
+  });
 
   const onChange = (value: string) => {
     setErrormessage("");

@@ -20,13 +20,14 @@ import {
 } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { User, Org, UserOrg } from "@/db/schema";
+import { Selectable } from "kysely";
 import { getSubdomain } from "@/lib/utils";
 import { UpsertUser } from "@/lib/typings";
 
 export type Session = {
-  user: User;
-  userOrg: UserOrg;
-  org: Org;
+  user: Selectable<User>;
+  userOrg: Selectable<UserOrg>;
+  org: Selectable<Org>;
 } | null;
 
 type AuthContextType = {

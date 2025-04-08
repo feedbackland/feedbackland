@@ -3,10 +3,10 @@ import { useTRPC } from "@/providers/trpc-client";
 import { FeedbackOrderBy } from "@/lib/typings";
 
 export function useFeedbackPosts({
-  enabled = false,
+  enabled,
   orderBy = "newest",
 }: {
-  enabled?: boolean;
+  enabled: boolean;
   orderBy?: FeedbackOrderBy;
 }) {
   const trpc = useTRPC();
