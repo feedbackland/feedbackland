@@ -2,9 +2,9 @@
 
 import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { CommentForm } from "../comment-form";
 import { CommentInner } from "./inner";
 import { type CommentReplyMeta } from "./inner";
+import { CommentForm } from "@/components/app/comment-form";
 
 export interface Comment {
   id: string;
