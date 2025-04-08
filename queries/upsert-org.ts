@@ -5,6 +5,7 @@ import {
   uniqueNamesGenerator,
   adjectives,
   animals,
+  NumberDictionary,
 } from "unique-names-generator";
 
 export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
@@ -16,8 +17,13 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
       .executeTakeFirst();
 
     if (!org) {
+      const numberDictionary = NumberDictionary.generate({
+        min: 100,
+        max: 999,
+      });
       const orgSubdomain = uniqueNamesGenerator({
-        dictionaries: [adjectives, animals],
+        dictionaries: [adjectives, animals, numberDictionary],
+        length: 3,
         separator: "-",
       });
 

@@ -64,8 +64,8 @@ export async function middleware(req: NextRequest) {
       });
 
       const redirectUrl = isLocalhost
-        ? `${origin}/${org.subdomain}`
-        : `${protocol}//${org.subdomain}.${mainDomain}`;
+        ? `${origin}/${org.subdomain}${search}`
+        : `${protocol}//${org.subdomain}.${mainDomain}${search}`;
 
       response = NextResponse.redirect(redirectUrl);
     }

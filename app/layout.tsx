@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
-import { RouteChangeListener } from "./route-change-listener";
+import { GlobalActionsProvider } from "@/providers/global-actions";
 import { ThemeProvider } from "@/providers/theme";
 import { IframeResizerProvider } from "@/providers/iframe-resizer";
 
@@ -51,7 +51,7 @@ export default async function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeResizerProvider>
-                      <RouteChangeListener />
+                      <GlobalActionsProvider />
                       {children}
                     </IframeResizerProvider>
                   </NuqsAdapter>

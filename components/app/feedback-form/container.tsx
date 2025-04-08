@@ -2,29 +2,31 @@
 
 import { FeedbackForm } from "@/components/app/feedback-form";
 import { FeedbackFormBanner } from "@/components/app/feedback-form/banner";
-import { isFeedbackFormOpenAtom } from "@/lib/atoms";
-import { useAtom } from "jotai";
+import { useQueryState } from "nuqs";
+import { useEffect, useState } from "react";
 
 export function FeedbackFormContainer() {
-  const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useAtom(
-    isFeedbackFormOpenAtom,
+  const [isOpen, setIsOpen] = useState(false);
+
+  const [isFeedbackFormOpened, setIsFeedbackFormOpened] = useQueryState(
+    "feedback-form-opened",
   );
 
-  // return (
-  //   <FeedbackForm
-  //     onClose={() => setIsFeedbackFormOpen(false)}
-  //     onSuccess={() => setIsFeedbackFormOpen(false)}
-  //   />
-  // );
+  useEffect(() => {
+    if (isFeedbackFormOpened) {
+      setIsFeedbackFormOpened(null);
+      setIsOpen(true);
+    }
+  }, [isFeedbackFormOpened, setIsFeedbackFormOpened]);
 
   return (
     <>
-      {!isFeedbackFormOpen ? (
-        <FeedbackFormBanner onClick={() => setIsFeedbackFormOpen(true)} />
+      {!isOpen ? (
+        <FeedbackFormBanner onClick={() => setIsOpen(true)} />
       ) : (
         <FeedbackForm
-          onClose={() => setIsFeedbackFormOpen(false)}
-          onSuccess={() => setIsFeedbackFormOpen(false)}
+          onClose={() => setIsOpen(false)}
+          onSuccess={() => setIsOpen(false)}
         />
       )}
     </>
