@@ -166,8 +166,6 @@ export function CommentForm({
             placeholder={`Add a comment...`}
             value={value}
             onChange={onChange}
-            showToolbar={true}
-            autofocus={false}
           />
           <div className="absolute right-3 bottom-3 flex flex-row-reverse justify-end gap-2.5">
             {/* <Button

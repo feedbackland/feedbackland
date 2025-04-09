@@ -98,8 +98,6 @@ export function FeedbackForm({
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
-            showToolbar={true}
-            autofocus={false}
             onCreate={() => {
               setIsEditorLoaded(true);
             }}

@@ -1,19 +1,20 @@
 import { db } from "@/db/db";
-import { FeedbackStatus } from "@/lib/typings";
 
-export const updateFeedbackPostStatusQuery = async ({
+export const updateFeedbackPostQuery = async ({
   postId,
-  status,
   orgId,
+  title,
+  description,
 }: {
   postId: string;
-  status: FeedbackStatus;
   orgId: string;
+  title: string;
+  description: string;
 }) => {
   try {
     const updatedPost = await db
       .updateTable("feedback")
-      .set({ status })
+      .set({ title, description })
       .where("id", "=", postId)
       .where("orgId", "=", orgId)
       .returningAll()

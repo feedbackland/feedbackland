@@ -11,11 +11,11 @@ export const Tiptap = ({
   onBlur,
   onCreate,
   className,
-  showToolbar = false,
+  showToolbar = true,
   autofocus = false,
 }: {
   value: Content;
-  placeholder: string;
+  placeholder?: string;
   onChange: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
