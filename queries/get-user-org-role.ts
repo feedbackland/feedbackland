@@ -1,3 +1,5 @@
+"server-only";
+
 import { db } from "@/db/db";
 
 export const getUserOrgRoleQuery = async ({
