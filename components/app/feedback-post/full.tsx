@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { GoBackButton } from "./go-back-button";
 import { useEffect } from "react";
-import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FeedbackPostDeleteButton } from "./delete-button";
+import { FeedbackPostOptionsMenu } from "./options-menu";
+// import Link from "next/link";
 // import { usePlatformUrl } from "@/hooks/use-platform-url";
 // import { useSubdomain } from "@/hooks/useSubdomain";
 
@@ -53,19 +53,26 @@ export function FeedbackPostFull({
 
     return (
       <div className="mt-3">
-        <div className="mb-3 -ml-11 flex items-center gap-2">
-          <GoBackButton className="" />
-          <Avatar className="">
-            <AvatarImage src={authorPhotoURL || undefined} />
-            <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col space-y-0">
-            <div className="text-primary text-xs font-normal">{authorName}</div>
-            <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
-              <span>{timeAgo.format(createdAt)}</span>
-              <span className="text-[8px]">•</span>
-              <span className="capitalize">{category}</span>
+        <div className="mb-3 flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <GoBackButton className="" />
+            <Avatar className="">
+              <AvatarImage src={authorPhotoURL || undefined} />
+              <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col space-y-0">
+              <div className="text-primary text-xs font-normal">
+                {authorName}
+              </div>
+              <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
+                <span>{timeAgo.format(createdAt)}</span>
+                <span className="text-[8px]">•</span>
+                <span className="capitalize">{category}</span>
+              </div>
             </div>
+          </div>
+          <div>
+            <FeedbackPostOptionsMenu postId={postId} authorId={data.authorId} />
           </div>
         </div>
 
@@ -116,12 +123,6 @@ export function FeedbackPostFull({
               <MessageSquare className="size-3!" />
               <span className="text-xs">{commentCount}</span>
             </Button>
-          </div>
-          <div>
-            <FeedbackPostDeleteButton
-              postId={postId}
-              authorId={data.authorId}
-            />
           </div>
         </div>
       </div>

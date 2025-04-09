@@ -6,9 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
-import { GlobalActionsProvider } from "@/providers/global-actions";
+import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
 import { IframeResizerProvider } from "@/providers/iframe-resizer";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -51,8 +52,9 @@ export default async function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeResizerProvider>
-                      <GlobalActionsProvider />
+                      <GlobalState />
                       {children}
+                      <Toaster />
                     </IframeResizerProvider>
                   </NuqsAdapter>
                 </JotaiProvider>

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { cn, processImagesInHTML } from "@/lib/utils";
+import { processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
@@ -30,7 +30,6 @@ export function FeedbackForm({
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
     enabled: false,
   });
@@ -99,17 +98,10 @@ export function FeedbackForm({
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
-            className={cn("shadow-sm", isFocused && "ring-ring ring-1")}
             showToolbar={true}
             autofocus={false}
             onCreate={() => {
               setIsEditorLoaded(true);
-            }}
-            onFocus={() => {
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
             }}
           />
           {isEditorLoaded && (

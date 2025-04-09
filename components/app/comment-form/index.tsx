@@ -70,7 +70,6 @@ export function CommentForm({
   const [value, setValue] = useState(initialContent);
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
 
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
     enabled: false,
@@ -167,11 +166,8 @@ export function CommentForm({
             placeholder={`Add a comment...`}
             value={value}
             onChange={onChange}
-            className={cn("shadow-sm", isFocused && "ring-ring ring-1")}
             showToolbar={true}
             autofocus={false}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
           />
           <div className="absolute right-3 bottom-3 flex flex-row-reverse justify-end gap-2.5">
             {/* <Button
