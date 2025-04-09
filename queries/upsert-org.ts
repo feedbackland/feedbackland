@@ -10,34 +10,37 @@ import {
 
 export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
   try {
-    let org = await db
-      .selectFrom("org")
-      .selectAll()
-      .where("id", "=", orgId)
-      .executeTakeFirst();
+    return await db.transaction().execute(async (trx) => {
+      let org = await trx
+        .selectFrom("org")
+        .selectAll()
+        .where("id", "=", orgId)
+        .executeTakeFirst();
 
-    if (!org) {
-      const numberDictionary = NumberDictionary.generate({
-        min: 100,
-        max: 999,
-      });
-      const orgSubdomain = uniqueNamesGenerator({
-        dictionaries: [adjectives, animals, numberDictionary],
-        length: 3,
-        separator: "-",
-      });
+      if (!org) {
+        const numberDictionary = NumberDictionary.generate({
+          min: 100,
+          max: 999,
+        });
 
-      org = await db
-        .insertInto("org")
-        .values({
-          id: orgId,
-          subdomain: orgSubdomain,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
-    }
+        const orgSubdomain = uniqueNamesGenerator({
+          dictionaries: [adjectives, animals, numberDictionary],
+          length: 3,
+          separator: "-",
+        });
 
-    return org || null;
+        org = await trx
+          .insertInto("org")
+          .values({
+            id: orgId,
+            subdomain: orgSubdomain,
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
+      }
+
+      return org;
+    });
   } catch (error: any) {
     throw error;
   }

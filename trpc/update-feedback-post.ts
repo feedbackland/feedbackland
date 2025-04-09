@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { adminProcedure } from "@/lib/trpc";
+import { userProcedure } from "@/lib/trpc";
 import { updateFeedbackPostQuery } from "@/queries/update-feedback-post";
 
-export const updateFeedbackPost = adminProcedure
+export const updateFeedbackPost = userProcedure
   .input(
     z.object({
       postId: z.string().uuid(),
@@ -11,11 +11,15 @@ export const updateFeedbackPost = adminProcedure
     }),
   )
   .mutation(
-    async ({ input: { postId, title, description }, ctx: { orgId } }) => {
+    async ({
+      input: { postId, title, description },
+      ctx: { orgId, userId },
+    }) => {
       try {
         const updatedPost = await updateFeedbackPostQuery({
           postId,
           orgId,
+          userId,
           title,
           description,
         });

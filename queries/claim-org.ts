@@ -10,7 +10,7 @@ export async function claimOrgQuery({
   orgId: string;
 }) {
   try {
-    await db.transaction().execute(async (trx) => {
+    return await db.transaction().execute(async (trx) => {
       await trx
         .insertInto("user_org")
         .values({
@@ -27,14 +27,13 @@ export async function claimOrgQuery({
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      await trx
+      return await trx
         .updateTable("org")
         .set({ isClaimed: true })
         .where("id", "=", orgId)
+        .returningAll()
         .executeTakeFirstOrThrow();
     });
-
-    return true;
   } catch (error: any) {
     throw error;
   }

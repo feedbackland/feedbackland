@@ -12,7 +12,7 @@ export async function deleteFeedbackPostQuery({
   orgId: string;
 }) {
   try {
-    await db.transaction().execute(async (trx) => {
+    return await db.transaction().execute(async (trx) => {
       const { role } = await trx
         .selectFrom("user_org")
         .select("role")
@@ -30,6 +30,7 @@ export async function deleteFeedbackPostQuery({
         return await trx
           .deleteFrom("feedback")
           .where("id", "=", postId)
+          .returningAll()
           .executeTakeFirstOrThrow();
       } else {
         throw new Error("Not authorized to delete this post");

@@ -11,7 +11,7 @@ export async function upvoteFeedbackPostQuery({
 }) {
   try {
     return await db.transaction().execute(async (trx) => {
-      const userUpvote = await db
+      const userUpvote = await trx
         .selectFrom("user_upvote")
         .where("user_upvote.userId", "=", userId)
         .where("user_upvote.contentId", "=", postId)
