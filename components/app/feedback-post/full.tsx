@@ -1,7 +1,7 @@
 "use client";
 
 import DOMPurify from "dompurify";
-import parse from "html-react-parser";
+import parse, { Element, attributesToProps } from "html-react-parser";
 import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
 import { FeedbackPostUpvoteButton } from "./upvote-button";
@@ -104,7 +104,30 @@ export function FeedbackPostFull({
           <h2 className="text-xl font-semibold">{title}</h2>
 
           <div className="tiptap-output">
-            {parse(DOMPurify.sanitize(description))}
+            {parse(DOMPurify.sanitize(description), {
+              replace: (domNode) => {
+                if (
+                  domNode instanceof Element &&
+                  domNode.name === "img" &&
+                  domNode.attribs
+                ) {
+                  const imgProps = attributesToProps(domNode.attribs);
+                  const imgElement = <img {...imgProps} />;
+
+                  return (
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={domNode.attribs.src}
+                    >
+                      {imgElement}
+                    </a>
+                  );
+                }
+
+                return undefined;
+              },
+            })}
           </div>
 
           <div className="flex items-center gap-2.5 pt-2">

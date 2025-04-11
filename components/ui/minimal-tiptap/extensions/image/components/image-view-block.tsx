@@ -225,7 +225,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
       <div
         className="group/node-image relative rounded-md object-contain"
         style={{
-          maxWidth: `min(${maxWidth}px, 90%)`,
+          maxWidth: `min(${maxWidth}px, 100%)`,
           width: currentWidth,
           maxHeight: MAX_HEIGHT,
           aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,

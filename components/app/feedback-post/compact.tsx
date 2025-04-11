@@ -6,21 +6,14 @@ import { FeedbackPostUpvoteButton } from "./upvote-button";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { timeAgo } from "@/lib/time-ago";
-import DOMPurify from "dompurify";
 import parse from "html-react-parser";
 import Link from "next/link";
-import sanitizeHtml, {
-  defaults as sanitizeHtmlDefaults,
-  IOptions as SanitizeHtmlOptions,
-} from "sanitize-html";
+import sanitizeHtml, { defaults as sanitizeHtmlDefaults } from "sanitize-html";
 
 function Inner({
   postId,
   title,
   description,
-  createdAt,
-  category,
   upvoteCount,
   commentCount,
   hasUserUpvote,
@@ -62,13 +55,11 @@ function Inner({
 
             <div className="tiptap-output text-primary/70! mt-[-1] line-clamp-4">
               {parse(
-                DOMPurify.sanitize(
-                  sanitizeHtml(description, {
-                    allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
-                      (tag) => tag !== "a" && tag !== "code",
-                    ),
-                  }),
-                ),
+                sanitizeHtml(description, {
+                  allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
+                    (tag) => tag !== "a" && tag !== "code",
+                  ),
+                }),
               )}
             </div>
           </div>
