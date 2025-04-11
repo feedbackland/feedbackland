@@ -32,6 +32,7 @@ export type Session = {
 
 type AuthContextType = {
   session: Session;
+  isLoaded: boolean;
   signInWithEmail: ({
     email,
     password,
@@ -56,6 +57,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
+  isLoaded: false,
   signInWithEmail: async () => ({}) as Session,
   signInAnonymously: async () => ({}) as Session,
   signUpWithEmail: async () => ({}) as Session,
@@ -114,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
 
   const [session, setSession] = useState<Session>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const createSession = useCallback(
     async ({
@@ -144,6 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         setSession(newSession);
+        setIsLoaded(true);
       } catch {
         destroySession();
       }
@@ -155,6 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const destroySession = () => {
     setSession(null);
+    setIsLoaded(true);
   };
 
   useEffect(() => {
@@ -284,6 +289,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     <AuthContext.Provider
       value={{
         session,
+        isLoaded,
         signInWithEmail,
         signInAnonymously,
         signUpWithEmail,

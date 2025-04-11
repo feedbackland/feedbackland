@@ -22,7 +22,7 @@ export default function OrgLayoutInner({
       <div
         className={cn(
           "m-auto flex w-full max-w-full grow flex-col px-10 py-5",
-          inIframe === false && "mt-10 p-0",
+          inIframe === false && "mt-10 mb-10 max-w-[800px] p-0",
         )}
       >
         <PlatformHeader />

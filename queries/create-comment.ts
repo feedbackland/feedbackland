@@ -20,7 +20,7 @@ export async function createCommentQuery({
         content,
         authorId,
         postId,
-        parentCommentId: parentCommentId,
+        parentCommentId,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

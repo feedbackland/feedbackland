@@ -12,22 +12,10 @@ export function Info({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <Alert
-      variant="default"
-      className={cn(
-        "w-full border-blue-800 bg-blue-50 dark:border-blue-900 dark:bg-blue-950",
-        className,
-      )}
-    >
-      <BadgeInfo className="!dark:text-blue-400 size-4 text-blue-800!" />
-      <AlertTitle className="mt-1 text-blue-800 dark:text-blue-400">
-        {title}
-      </AlertTitle>
-      {description && (
-        <AlertDescription className="text-blue-800 dark:text-blue-400">
-          {description}
-        </AlertDescription>
-      )}
+    <Alert variant="destructive" className={cn("", className)}>
+      <BadgeInfo className="size-4" />
+      <AlertTitle>{title}</AlertTitle>
+      {description && <AlertDescription>{description}</AlertDescription>}
     </Alert>
   );
 }

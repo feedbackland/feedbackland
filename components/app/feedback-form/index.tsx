@@ -95,7 +95,7 @@ export function FeedbackForm({
       <div className="flex flex-col gap-3">
         <div className="relative w-full">
           <Tiptap
-            placeholder={`Share your feature request, bug report, or any other feedback...`}
+            placeholder={`Share your idea, suggestion, issue, or any other feedback...`}
             value={value}
             onChange={onChange}
             onCreate={() => {

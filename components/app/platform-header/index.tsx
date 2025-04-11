@@ -18,6 +18,7 @@ import { ModeToggle } from "@/components/app/mode-toggle";
 export function PlatformHeader() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const { session, signOut } = useAuth();
+  const isAdmin = session?.userOrg?.role === "admin";
   const platformUrl = usePlatformUrl();
   const isSignedIn = !!session;
 
@@ -37,23 +38,17 @@ export function PlatformHeader() {
           <h1 className="h3 font-extrabold">Feedback</h1>
         </div>
         <div className="flex items-center gap-3">
-          {/* <Button variant="ghost" size="default" asChild>
-            <Link href={`${platformUrl}/admin`}>
-              <span className="flex items-center gap-2">
-                <Shield className="size-3.5!" />
-                <span>Admin panel</span>
-              </span>
-            </Link>
-          </Button> */}
-          {/* {isAdmin && (
-            <Button variant="link" size="default" asChild>
+          {isAdmin && (
+            <Button variant="ghost" size="default" asChild>
               <Link href={`${platformUrl}/admin`}>
-                <Shield className="size-4" />
-                Admin panel
+                <span className="flex items-center gap-2">
+                  <Shield className="size-3.5!" />
+                  <span>Admin panel</span>
+                </span>
               </Link>
             </Button>
-          )} */}
-          {/* <DropdownMenu>
+          )}
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="ghost" className="">
                 <MoreHorizontal className="size-4" />
@@ -77,7 +72,7 @@ export function PlatformHeader() {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <ModeToggle /> */}
+          <ModeToggle />
         </div>
       </div>
       <p className="text-muted-foreground text-xs">
