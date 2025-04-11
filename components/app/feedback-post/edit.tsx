@@ -137,6 +137,7 @@ export function FeedbackPostEdit({
                     value={field?.value}
                     onChange={(value) => field.onChange(value)}
                     showToolbar={false}
+                    className="min-h-[100px]"
                   />
                 </FormControl>
                 <FormMessage>{errors.title?.message}</FormMessage>

@@ -45,6 +45,12 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --color-under-consideration: var(--under-consideration);
+  --color-planned: var(--planned);
+  --color-in-progress: var(--in-progress);
+  --color-done: var(--done);
+  --color-declined: var(--declined);
 }
 
 /*
@@ -113,6 +119,11 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --under-consideration: hsl(270 95.2% 75.3%);
+  --planned: hsl(27 96% 61%);
+  --in-progress: hsl(213.1 93.9% 67.8%);
+  --done: hsl(141.9 69.2% 58%);
+  --declined: hsl(0 90.6% 70.8%);
 }
 
 .dark {
@@ -148,6 +159,11 @@
   --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --under-consideration: hsl(270 95.2% 75.3%);
+  --planned: hsl(27 96% 61%);
+  --in-progress: hsl(213.1 93.9% 67.8%);
+  --done: hsl(141.9 69.2% 58%);
+  --declined: hsl(0 90.6% 70.8%);
 }
 
 .h1,

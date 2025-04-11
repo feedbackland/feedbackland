@@ -14,12 +14,17 @@ import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useRouter } from "next/navigation";
 
-export function FeedbackForm({ onSuccess }: { onSuccess?: () => void }) {
+export function FeedbackForm() {
   const trpc = useTRPC();
+  const platformUrl = usePlatformUrl();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const [value, setValue] = useState("");
+  const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
@@ -33,17 +38,20 @@ export function FeedbackForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
-      onSuccess: () => {
+      onSuccess: ({ id }) => {
         queryClient.invalidateQueries({
           predicate: (query) => {
             return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
           },
         });
         setValue("");
-        onSuccess?.();
+        router.push(`${platformUrl}/${id}`);
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");
+      },
+      onSettled: () => {
+        setIsPending(false);
       },
     }),
   );
@@ -58,6 +66,8 @@ export function FeedbackForm({ onSuccess }: { onSuccess?: () => void }) {
       setShowSignUpInDialog(true);
       return;
     }
+
+    setIsPending(true);
 
     const description = await processImagesInHTML(value);
 
@@ -91,9 +101,9 @@ export function FeedbackForm({ onSuccess }: { onSuccess?: () => void }) {
               type="submit"
               size="icon"
               variant="ghost"
-              loading={saveFeedback.isPending}
+              loading={isPending}
               onClick={() => onSubmit(session)}
-              disabled={!hasText || saveFeedback.isPending}
+              disabled={!hasText || isPending}
               className="size-8!"
             >
               <SendIcon className="size-4!" />

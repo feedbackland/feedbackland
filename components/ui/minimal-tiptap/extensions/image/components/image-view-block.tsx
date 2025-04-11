@@ -13,6 +13,7 @@ import { ImageOverlay } from "./image-overlay";
 import { Spinner } from "../../../components/spinner";
 import type { UploadReturnType } from "../image";
 
+const MAX_WIDTH = 700;
 const MAX_HEIGHT = 600;
 const MIN_HEIGHT = 120;
 const MIN_WIDTH = 120;
@@ -226,7 +227,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
         className="group/node-image relative rounded-md object-contain"
         style={{
           maxWidth: `min(${maxWidth}px, 100%)`,
-          // width: currentWidth,
+          width: currentWidth <= MAX_WIDTH ? currentWidth : undefined,
           maxHeight: MAX_HEIGHT,
           aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
         }}

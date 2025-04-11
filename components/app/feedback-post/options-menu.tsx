@@ -8,7 +8,11 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -31,6 +35,8 @@ import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FeedbackStatus } from "@/lib/typings";
+import { useFeedbackPost } from "@/hooks/use-feedback-post";
 
 export function FeedbackPostOptionsMenu({
   postId,
@@ -46,6 +52,12 @@ export function FeedbackPostOptionsMenu({
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
+    postId,
+    enabled: false,
+  });
+
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
     enabled: false,
   });
@@ -66,19 +78,48 @@ export function FeedbackPostOptionsMenu({
           router.push(platformUrl);
           toast.success("Feedback post deleted", {
             position: "top-right",
-            duration: 4000,
           });
         }
+      },
+      onSettled: () => {
+        setIsDeleteConfirmationOpen(false);
+      },
+    }),
+  );
+
+  const updateStatus = useMutation(
+    trpc.updateFeedbackPostStatus.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: feedbackPostQueryKey,
+        });
+
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
+          },
+        });
+
+        toast.success("Status successfully updated", {
+          position: "top-right",
+        });
       },
     }),
   );
 
   const handleDelete = async () => {
-    await deletePost.mutateAsync({
+    deletePost.mutate({
       postId,
     });
+  };
 
-    setIsDeleteConfirmationOpen(false);
+  const handleStatusChange: (status: FeedbackStatus) => void = async (
+    status,
+  ) => {
+    updateStatus.mutate({
+      postId,
+      status,
+    });
   };
 
   const isAuthor = session?.user?.id === authorId;
@@ -95,15 +136,58 @@ export function FeedbackPostOptionsMenu({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => onEdit()} className="">
-              Edit post
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setIsDeleteConfirmationOpen(true)}
-              className="text-red-500 hover:bg-red-500/10! hover:text-red-500!"
-            >
-              Delete post
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => onEdit()} className="">
+                Edit post
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>No status</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("under consideration")}
+                      className="text-under-consideration hover:text-under-consideration!"
+                    >
+                      Under consideration
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("planned")}
+                      className="text-planned hover:text-planned!"
+                    >
+                      Planned
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("in progress")}
+                      className="text-in-progress hover:text-in-progress!"
+                    >
+                      In Progress
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("done")}
+                      className="text-done hover:text-done!"
+                    >
+                      Done
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange("declined")}
+                      className="text-declined hover:text-declined!"
+                    >
+                      Declined
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={() => setIsDeleteConfirmationOpen(true)}
+                className="text-red-500 hover:bg-red-500/10! hover:text-red-500!"
+              >
+                Delete post
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const feedbackStatusSchema = z.union([
   z.literal("under consideration"),
+  z.literal("planned"),
   z.literal("in progress"),
   z.literal("done"),
   z.literal("declined"),

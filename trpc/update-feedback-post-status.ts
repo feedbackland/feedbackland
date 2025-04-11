@@ -10,10 +10,11 @@ export const updateFeedbackPostStatus = adminProcedure
       status: feedbackStatusSchema,
     }),
   )
-  .mutation(async ({ input: { postId, status }, ctx: { orgId } }) => {
+  .mutation(async ({ input: { postId, status }, ctx: { orgId, userId } }) => {
     try {
       const updatedPost = await updateFeedbackPostStatusQuery({
         postId,
+        userId,
         status,
         orgId,
       });
