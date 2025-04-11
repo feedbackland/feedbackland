@@ -16,7 +16,7 @@ import { dequal } from "dequal";
 import { useKey } from "react-use";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function CommentForm({
   postId,
@@ -85,12 +85,6 @@ export function CommentForm({
     enabled: false,
   });
 
-  // useEffect(() => {
-  //   if (scrollIntoView && ref.current) {
-  //     ref.current.scrollIntoView();
-  //   }
-  // }, [scrollIntoView]);
-
   const onChange = (value: string) => {
     setErrormessage("");
     setValue(value);
@@ -155,9 +149,9 @@ export function CommentForm({
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={(user) => {
+        onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          onSubmit(user);
+          onSubmit(newSession);
         }}
       />
       <div ref={elementRef} className={cn("flex flex-col gap-3", className)}>

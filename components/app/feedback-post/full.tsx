@@ -9,12 +9,10 @@ import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { GoBackButton } from "./go-back-button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FeedbackPostOptionsMenu } from "./options-menu";
-// import Link from "next/link";
-// import { usePlatformUrl } from "@/hooks/use-platform-url";
-// import { useSubdomain } from "@/hooks/useSubdomain";
+import { FeedbackPostEdit } from "./edit";
 
 export function FeedbackPostFull({
   postId,
@@ -25,8 +23,7 @@ export function FeedbackPostFull({
   className?: React.ComponentProps<"div">["className"];
   onLoaded?: () => void;
 }) {
-  // const platformUrl = usePlatformUrl();
-  // const subdomain = useSubdomain();
+  const [isEditing, setIsEditing] = useState(false);
 
   const {
     query: { data },
@@ -72,82 +69,73 @@ export function FeedbackPostFull({
             </div>
           </div>
           <div>
-            <FeedbackPostOptionsMenu postId={postId} authorId={data.authorId} />
-          </div>
-        </div>
-
-        <div className={cn("flex flex-col items-stretch space-y-3", className)}>
-          {/* <div className="flex flex-col items-stretch">
-            <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-              <span>{timeAgo.format(createdAt)}</span>
-              <span className="text-[8px]">•</span>
-              <span className="capitalize">{category}</span>
-              <span className="text-[8px]">•</span>
-              <span className="capitalize">
-                by{" "}
-                {authorName ? (
-                  <Link
-                    prefetch={false}
-                    href="#"
-                    className="hover:text-primary underline hover:underline"
-                  >
-                    {authorName}
-                  </Link>
-                ) : (
-                  "unknown author"
-                )}
-              </span>
-            </div>
-            <h2 className="text-xl font-semibold">{title}</h2>
-          </div> */}
-
-          <h2 className="text-xl font-semibold">{title}</h2>
-
-          <div className="tiptap-output">
-            {parse(DOMPurify.sanitize(description), {
-              replace: (domNode) => {
-                if (
-                  domNode instanceof Element &&
-                  domNode.name === "img" &&
-                  domNode.attribs
-                ) {
-                  const imgProps = attributesToProps(domNode.attribs);
-                  const imgElement = <img {...imgProps} />;
-
-                  return (
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={domNode.attribs.src}
-                    >
-                      {imgElement}
-                    </a>
-                  );
-                }
-
-                return undefined;
-              },
-            })}
-          </div>
-
-          <div className="flex items-center gap-2.5 pt-2">
-            <FeedbackPostUpvoteButton
+            <FeedbackPostOptionsMenu
               postId={postId}
-              variant="secondary"
-              upvoteCount={upvotes}
-              hasUserUpvote={hasUserUpvote}
-              className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
+              authorId={data.authorId}
+              onEdit={() => setIsEditing(true)}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
-            >
-              <MessageSquare className="size-3!" />
-              <span className="text-xs">{commentCount}</span>
-            </Button>
           </div>
         </div>
+
+        {isEditing ? (
+          <FeedbackPostEdit
+            postId={postId}
+            title={title}
+            description={description}
+            onClose={() => setIsEditing(false)}
+          />
+        ) : (
+          <div
+            className={cn("flex flex-col items-stretch space-y-3", className)}
+          >
+            <h2 className="text-xl font-semibold">{title}</h2>
+
+            <div className="tiptap-output">
+              {parse(DOMPurify.sanitize(description), {
+                replace: (domNode) => {
+                  if (
+                    domNode instanceof Element &&
+                    domNode.name === "img" &&
+                    domNode.attribs
+                  ) {
+                    const imgProps = attributesToProps(domNode.attribs);
+                    const imgElement = <img {...imgProps} />;
+
+                    return (
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={domNode.attribs.src}
+                      >
+                        {imgElement}
+                      </a>
+                    );
+                  }
+
+                  return undefined;
+                },
+              })}
+            </div>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              <FeedbackPostUpvoteButton
+                postId={postId}
+                variant="secondary"
+                upvoteCount={upvotes}
+                hasUserUpvote={hasUserUpvote}
+                className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
+              >
+                <MessageSquare className="size-3!" />
+                <span className="text-xs">{commentCount}</span>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -9,6 +9,7 @@ import { ImageSelectBlock } from "./components/image/image-select-block";
 import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu";
 import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap";
 import { MeasuredContainer } from "../minimal-tiptap/components/measured-container";
+import { useEffect } from "react";
 
 export interface MinimalTiptapProps
   extends Omit<UseMinimalTiptapEditorProps, "onUpdate"> {
@@ -44,6 +45,12 @@ export const MinimalTiptapEditor = ({
     onUpdate: onChange,
     ...props,
   });
+
+  useEffect(() => {
+    if (value === "" || !value) {
+      editor?.commands?.clearContent();
+    }
+  }, [value, editor]);
 
   if (!editor) {
     return null;

@@ -1,5 +1,4 @@
-// src/components/OptionsMenu.tsx
-"use client"; // Needed for DropdownMenu interactions in Next.js App Router
+"use client";
 
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
@@ -36,9 +35,11 @@ import { toast } from "sonner";
 export function FeedbackPostOptionsMenu({
   postId,
   authorId,
+  onEdit,
 }: {
   postId: string;
   authorId: string;
+  onEdit: () => void;
 }) {
   const platformUrl = usePlatformUrl();
   const router = useRouter();
@@ -65,7 +66,7 @@ export function FeedbackPostOptionsMenu({
           router.push(platformUrl);
           toast.success("Feedback post deleted", {
             position: "top-right",
-            duration: 3000,
+            duration: 4000,
           });
         }
       },
@@ -76,6 +77,7 @@ export function FeedbackPostOptionsMenu({
     await deletePost.mutateAsync({
       postId,
     });
+
     setIsDeleteConfirmationOpen(false);
   };
 
@@ -93,7 +95,7 @@ export function FeedbackPostOptionsMenu({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => {}} className="">
+            <DropdownMenuItem onClick={() => onEdit()} className="">
               Edit post
             </DropdownMenuItem>
             <DropdownMenuItem

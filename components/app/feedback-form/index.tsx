@@ -14,19 +14,11 @@ import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
-import { useKey } from "react-use";
 
-export function FeedbackForm({
-  onClose,
-  onSuccess,
-}: {
-  onClose?: () => void;
-  onSuccess?: () => void;
-}) {
+export function FeedbackForm({ onSuccess }: { onSuccess?: () => void }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { session } = useAuth();
-  const [isEditorLoaded, setIsEditorLoaded] = useState(false);
   const [value, setValue] = useState("");
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
@@ -74,11 +66,6 @@ export function FeedbackForm({
     });
   };
 
-  useKey("Escape", () => {
-    setValue("");
-    onClose?.();
-  });
-
   const hasText = value?.length > 0;
 
   return (
@@ -87,9 +74,9 @@ export function FeedbackForm({
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={(user) => {
+        onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          onSubmit(user);
+          onSubmit(newSession);
         }}
       />
       <div className="flex flex-col gap-3">
@@ -98,47 +85,20 @@ export function FeedbackForm({
             placeholder={`Share your idea, suggestion, issue, or any other feedback...`}
             value={value}
             onChange={onChange}
-            onCreate={() => {
-              setIsEditorLoaded(true);
-            }}
           />
-          {isEditorLoaded && (
-            <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-              {/* <Button
-                type="submit"
-                size="default"
-                loading={saveFeedback.isPending}
-                onClick={() => onSubmit(session)}
-                disabled={!hasText || saveFeedback.isPending}
-              >
-                <SendIcon className="size-3" />
-                Submit feedback
-              </Button> */}
-
-              {/* <Button
-                variant="secondary"
-                size="default"
-                onClick={() => onClose?.()}
-              >
-                Cancel
-              </Button> */}
-              {/* <Button variant="ghost" size="icon" onClick={() => onClose?.()}>
-                <XIcon className="size-3" />
-              </Button> */}
-
-              <Button
-                type="submit"
-                size="icon"
-                variant="ghost"
-                loading={saveFeedback.isPending}
-                onClick={() => onSubmit(session)}
-                disabled={!hasText || saveFeedback.isPending}
-                className="size-8!"
-              >
-                <SendIcon className="size-4!" />
-              </Button>
-            </div>
-          )}
+          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+            <Button
+              type="submit"
+              size="icon"
+              variant="ghost"
+              loading={saveFeedback.isPending}
+              onClick={() => onSubmit(session)}
+              disabled={!hasText || saveFeedback.isPending}
+              className="size-8!"
+            >
+              <SendIcon className="size-4!" />
+            </Button>
+          </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}
       </div>

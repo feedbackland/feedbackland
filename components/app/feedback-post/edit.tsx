@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/form";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/providers/trpc-client";
+import { cn } from "@/lib/utils";
+import { Error } from "@/components/ui/error";
+import { dequal } from "dequal";
+import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
+import { useFeedbackPost } from "@/hooks/use-feedback-post";
 
 const formSchema = z.object({
   title: z.string().min(1),
@@ -36,10 +43,21 @@ export function FeedbackPostEdit({
   onClose: () => void;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const [formState, setFormState] = useState<{
-    type: "idle" | "pending" | "success" | "error";
-    message?: string;
-  }>({ type: "idle" });
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+
+  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
+    enabled: false,
+  });
+
+  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
+    postId,
+    enabled: false,
+  });
+
+  const [formState, setFormState] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -52,89 +70,98 @@ export function FeedbackPostEdit({
   const {
     handleSubmit,
     control,
-    reset,
     formState: { errors },
   } = form;
 
+  const updatePost = useMutation(
+    trpc.updateFeedbackPost.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: feedbackPostQueryKey,
+        });
+
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            dequal(query.queryKey[0], feedbackPostsQueryKey[0]),
+        });
+
+        onClose();
+      },
+      onError: () => {
+        setFormState("error");
+      },
+    }),
+  );
+
   const onSubmit: SubmitHandler<FormData> = async ({ title, description }) => {
-    setFormState({ type: "pending" });
+    setFormState("pending");
 
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setFormState({ type: "success" });
-      reset();
-    } catch (error: any) {
-      let errorMessage = "An error occurred. Please try again.";
-
-      // Handle common Firebase auth errors
-      if (error.code === "auth/user-not-found") {
-        errorMessage = "No user found with this email address.";
-      } else if (error.code === "auth/invalid-email") {
-        errorMessage = "Invalid email address format.";
-      } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "Too many attempts. Please try again later.";
-      }
-
-      setFormState({ type: "error", message: errorMessage });
-    }
+    updatePost.mutate({
+      postId,
+      title,
+      description,
+    });
   };
 
   return (
-    <div className="">
-      <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <FormItem>
-            <FormLabel>Title</FormLabel>
-            <FormField
-              control={control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      autoFocus
-                      type="text"
-                      placeholder="Title"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage>{errors.title?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
-          </FormItem>
+    <Form {...form}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={cn("w-full space-y-6", className)}
+      >
+        <FormItem>
+          <FormLabel>Title</FormLabel>
+          <FormField
+            control={control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input autoFocus type="text" placeholder="Title" {...field} />
+                </FormControl>
+                <FormMessage>{errors.title?.message}</FormMessage>
+              </FormItem>
+            )}
+          />
+        </FormItem>
 
-          <FormItem>
-            <FormLabel>Description</FormLabel>
-            <FormField
-              control={control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Tiptap
-                      value={field?.value}
-                      onChange={(value) => field.onChange(value)}
-                    />
-                  </FormControl>
-                  <FormMessage>{errors.title?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
-          </FormItem>
+        <FormItem>
+          <FormLabel>Description</FormLabel>
+          <FormField
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Tiptap
+                    value={field?.value}
+                    onChange={(value) => field.onChange(value)}
+                    showToolbar={false}
+                  />
+                </FormControl>
+                <FormMessage>{errors.title?.message}</FormMessage>
+              </FormItem>
+            )}
+          />
+        </FormItem>
 
-          <div className="flex items-center space-x-2">
-            <Button onClick={onClose}>Cancel</Button>
-            <Button
-              type="submit"
-              className="w-full"
-              loading={formState.type === "pending"}
-            >
-              Save changes
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+        <div className="flex items-center space-x-2">
+          <Button type="submit" loading={formState === "pending"}>
+            Save
+          </Button>
+
+          <Button onClick={onClose} variant="outline">
+            Cancel
+          </Button>
+        </div>
+
+        {formState === "error" && (
+          <Error
+            title="Could not save changes"
+            description="An error occured while trying to save your changes. Please try again."
+          />
+        )}
+      </form>
+    </Form>
   );
 }
