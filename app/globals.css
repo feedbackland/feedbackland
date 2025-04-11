@@ -150,21 +150,6 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-.tiptap,
-.tiptap-output {
-  .mention {
-    @apply bg-secondary rounded-sm box-decoration-clone px-1.5 py-1;
-  }
-}
-
-.tiptap,
-.tiptap-output,
-.tiptap-output p,
-.tiptap-output .text-node,
-.tiptap-output .text-node span {
-  @apply text-primary;
-}
-
 .h1,
 .tiptap-output h1 {
   @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
@@ -190,24 +175,35 @@
   @apply scroll-m-20 text-lg font-semibold tracking-tight;
 }
 
+.tiptap,
 .tiptap-output {
-  @apply text-sm leading-relaxed;
+  .mention {
+    @apply bg-secondary rounded-sm box-decoration-clone px-1.5 py-1;
+  }
 }
 
-.tiptap-output p {
-  @apply leading-5 [&:not(:first-child)]:mt-3;
-}
+.tiptap-output {
+  @apply text-primary text-sm leading-relaxed font-normal;
 
-.tiptap-output ul {
-  @apply my-3 ml-5 list-disc [&>li]:mt-1;
-}
+  p {
+    @apply [&:not(:first-child)]:mt-3;
+  }
 
-.tiptap-output ol {
-  @apply my-3 ml-5 list-decimal [&>li]:mt-1;
-}
+  ul {
+    @apply my-3 ml-5 list-disc [&>li]:mt-1;
+  }
 
-.tiptap-output a {
-  @apply underline;
+  ol {
+    @apply my-3 ml-5 list-decimal [&>li]:mt-1;
+  }
+
+  a {
+    @apply underline;
+  }
+
+  code {
+    @apply bg-muted/40 block rounded-sm p-3;
+  }
 }
 
 @theme inline {

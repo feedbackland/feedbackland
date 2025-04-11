@@ -10,6 +10,10 @@ import { timeAgo } from "@/lib/time-ago";
 import DOMPurify from "dompurify";
 import parse from "html-react-parser";
 import Link from "next/link";
+import sanitizeHtml, {
+  defaults as sanitizeHtmlDefaults,
+  IOptions as SanitizeHtmlOptions,
+} from "sanitize-html";
 
 function Inner({
   postId,
@@ -56,8 +60,16 @@ function Inner({
               </h3>
             </div>
 
-            <div className="tiptap-output mt-[-1] line-clamp-4">
-              {parse(DOMPurify.sanitize(description))}
+            <div className="tiptap-output text-primary/70! mt-[-1] line-clamp-4">
+              {parse(
+                DOMPurify.sanitize(
+                  sanitizeHtml(description, {
+                    allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
+                      (tag) => tag !== "a" && tag !== "code",
+                    ),
+                  }),
+                ),
+              )}
             </div>
           </div>
         </>

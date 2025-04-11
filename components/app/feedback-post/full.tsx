@@ -76,7 +76,7 @@ export function FeedbackPostFull({
           </div>
         </div>
 
-        <div className={cn("flex flex-col items-stretch space-y-2", className)}>
+        <div className={cn("flex flex-col items-stretch space-y-3", className)}>
           {/* <div className="flex flex-col items-stretch">
             <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
               <span>{timeAgo.format(createdAt)}</span>
