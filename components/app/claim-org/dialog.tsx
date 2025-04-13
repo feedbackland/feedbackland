@@ -36,16 +36,17 @@ export function ClaimOrgDialog({
 
   const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
 
-  const claimOrg = useMutation(trpc.claimOrg.mutationOptions());
+  const claimOrg = useMutation(
+    trpc.claimOrg.mutationOptions({
+      onSuccess: () => {
+        setSelectedStep("success");
+        onClaimed?.();
+      },
+    }),
+  );
 
   const handleSignUpInSuccess = async () => {
-    try {
-      await claimOrg.mutateAsync();
-      setSelectedStep("success");
-      onClaimed?.();
-    } catch {
-      console.log("error claiming org");
-    }
+    claimOrg.mutate();
   };
 
   const handleOnClose = () => {
