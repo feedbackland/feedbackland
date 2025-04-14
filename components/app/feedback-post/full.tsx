@@ -46,6 +46,7 @@ export function FeedbackPostFull({
       authorName,
       authorPhotoURL,
       commentCount,
+      status,
     } = data;
 
     return (
@@ -61,10 +62,23 @@ export function FeedbackPostFull({
               <div className="text-primary text-xs font-normal">
                 {authorName}
               </div>
-              <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
+              <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-normal">
                 <span>{timeAgo.format(createdAt)}</span>
                 <span className="text-[8px]">•</span>
                 <span className="capitalize">{category}</span>
+                {status && (
+                  <>
+                    <span className="text-[8px]">•</span>
+                    <span
+                      className={cn(
+                        "capitalize",
+                        `text-${status.replace(" ", "-")}`,
+                      )}
+                    >
+                      {status}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>

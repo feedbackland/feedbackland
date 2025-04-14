@@ -40,7 +40,7 @@ export const FeedbackPostsSearchInput = ({
   return (
     <div
       className={cn(
-        "bg-background relative w-full max-w-48 transition-none",
+        "bg-background relative w-full max-w-52 transition-none",
         isActive && "absolute top-0 right-0 left-0 z-10 max-w-full",
         className,
       )}
