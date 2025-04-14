@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { FeedbackOrderBy } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
-import { Skeleton } from "@/components/ui/skeleton";
 import { FeedbackPostsLoading } from "./loading";
 
 function convertToString(value: string | number | bigint | null): string {
@@ -111,19 +110,23 @@ export function FeedbackPosts() {
         <div className="py-4 text-center text-red-500">Error loading posts</div>
       )}
 
-      {!!(
-        !isPending &&
-        !isError &&
-        searchValue === "" &&
-        posts.length === 0
-      ) && (
-        <div className="text-muted-foreground py-8 text-center">
-          <div className="mb-1 text-base font-semibold">
-            Be the first to share feedback
-          </div>
-          <span className="text-sm">
-            Have a feature request, a suggestion, or spotted a bug? Let us know!
-          </span>
+      {!!(!isPending && !isError && posts.length === 0) && (
+        <div className="text-muted-foreground space-y-1 py-6 text-center">
+          {!isSearchActive ? (
+            <>
+              <div className="text-base font-semibold">
+                Be the first to share feedback
+              </div>
+              <span className="text-sm">
+                Have a feature request, a suggestion, or spotted a bug? Let us
+                know!
+              </span>
+            </>
+          ) : (
+            <div className="text-base font-semibold">
+              No feedback matched your search
+            </div>
+          )}
         </div>
       )}
 

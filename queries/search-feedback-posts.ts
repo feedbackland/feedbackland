@@ -53,7 +53,7 @@ export const searchFeedbackPostsQuery = async ({
           .as("commentCount"),
       distance.as("distance"),
     ])
-    .where(distance, "<", 0.5)
+    .where(distance, "<", 0.4)
     .orderBy(distance)
     .limit(10)
     .execute();
