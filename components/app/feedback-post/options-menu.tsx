@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { CheckIcon, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,9 +53,9 @@ export function FeedbackPostOptionsMenu({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
+  const { query, queryKey: feedbackPostQueryKey } = useFeedbackPost({
     postId,
-    enabled: false,
+    enabled: true,
   });
 
   const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
@@ -125,6 +125,7 @@ export function FeedbackPostOptionsMenu({
   const isAuthor = session?.user?.id === authorId;
   const isAdmin = session?.userOrg?.role === "admin";
   const isVisible = !!(isAuthor || isAdmin);
+  const status = query?.data?.status;
 
   if (isVisible) {
     return (
@@ -144,36 +145,55 @@ export function FeedbackPostOptionsMenu({
                 <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
-                    <DropdownMenuItem>No status</DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center justify-between"
+                      onClick={() => handleStatusChange(null)}
+                    >
+                      <span>No status</span>
+                      {status === null && <CheckIcon />}
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("under consideration")}
-                      className="text-under-consideration hover:text-under-consideration!"
+                      className="text-under-consideration hover:text-under-consideration! flex items-center justify-between"
                     >
-                      Under consideration
+                      <span>Under consideration</span>
+                      {status === "under consideration" && (
+                        <CheckIcon className="text-under-consideration" />
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("planned")}
-                      className="text-planned hover:text-planned!"
+                      className="text-planned hover:text-planned! flex items-center justify-between"
                     >
-                      Planned
+                      <span>Planned</span>
+                      {status === "planned" && (
+                        <CheckIcon className="text-planned" />
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("in progress")}
-                      className="text-in-progress hover:text-in-progress!"
+                      className="text-in-progress hover:text-in-progress! flex items-center justify-between"
                     >
-                      In Progress
+                      <span>In Progress</span>
+                      {status === "in progress" && (
+                        <CheckIcon className="text-in-progress" />
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("done")}
-                      className="text-done hover:text-done!"
+                      className="text-done hover:text-done! flex items-center justify-between"
                     >
-                      Done
+                      <span>Done</span>
+                      {status === "done" && <CheckIcon className="text-done" />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("declined")}
-                      className="text-declined hover:text-declined!"
+                      className="text-declined hover:text-declined! flex items-center justify-between"
                     >
-                      Declined
+                      <span>Declined</span>
+                      {status === "declined" && (
+                        <CheckIcon className="text-declined" />
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>

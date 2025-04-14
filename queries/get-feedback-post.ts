@@ -10,7 +10,7 @@ export const getFeedbackPostQuery = async ({
   userId?: string | null;
 }) => {
   try {
-    return await db
+    const result = await db
       .selectFrom("feedback")
       .leftJoin("user", (join) =>
         join.onRef("feedback.authorId", "=", "user.id"),
@@ -31,6 +31,7 @@ export const getFeedbackPostQuery = async ({
         "feedback.title",
         "feedback.description",
         "feedback.upvotes",
+        "feedback.status",
         "user.name as authorName",
         "user.photoURL as authorPhotoURL",
         (eb) =>
@@ -49,6 +50,10 @@ export const getFeedbackPostQuery = async ({
             .as("commentCount"),
       ])
       .executeTakeFirst();
+
+    console.log("result", result);
+
+    return result;
   } catch (error: any) {
     throw error;
   }

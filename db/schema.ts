@@ -15,6 +15,10 @@ export type AuthFactorType = "phone" | "totp" | "webauthn";
 
 export type AuthOneTimeTokenType = "confirmation_token" | "email_change_token_current" | "email_change_token_new" | "phone_change_token" | "reauthentication_token" | "recovery_token";
 
+export type FeedbackCategory = "bug report" | "feature request" | "general feedback";
+
+export type FeedbackStatus = "declined" | "done" | "in progress" | "planned" | "under consideration";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -341,13 +345,13 @@ export interface ExtensionsWrappersFdwStats {
 
 export interface Feedback {
   authorId: string;
-  category: string | null;
+  category: FeedbackCategory | null;
   createdAt: Generated<Timestamp>;
   description: string;
   embedding: string | null;
   id: Generated<string>;
   orgId: string;
-  status: Generated<string | null>;
+  status: FeedbackStatus | null;
   title: string;
   updatedAt: Generated<Timestamp>;
   upvotes: Generated<Numeric>;

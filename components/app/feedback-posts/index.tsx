@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/select";
 import { FeedbackOrderBy } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FeedbackPostsLoading } from "./loading";
 
 function convertToString(value: string | number | bigint | null): string {
   if (value === null) {
@@ -94,22 +96,34 @@ export function FeedbackPosts() {
         <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
       </div>
 
-      {isPending && (
+      {isPending && <FeedbackPostsLoading />}
+
+      {/* {isPending && (
         <div className="mt-10 flex flex-col items-center justify-center space-y-2">
           <Spinner size="small" />
           <span className="text-sm">
             {isSearchActive ? "Searching..." : "Loading feedback..."}
           </span>
         </div>
-      )}
+      )} */}
 
       {isError && (
         <div className="py-4 text-center text-red-500">Error loading posts</div>
       )}
 
-      {!!(!isPending && !isError && posts.length === 0) && (
-        <div className="text-muted-foreground py-4 text-center">
-          No posts found
+      {!!(
+        !isPending &&
+        !isError &&
+        searchValue === "" &&
+        posts.length === 0
+      ) && (
+        <div className="text-muted-foreground py-8 text-center">
+          <div className="mb-1 text-base font-semibold">
+            Be the first to share feedback
+          </div>
+          <span className="text-sm">
+            Have a feature request, a suggestion, or spotted a bug? Let us know!
+          </span>
         </div>
       )}
 
