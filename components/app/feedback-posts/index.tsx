@@ -30,6 +30,8 @@ import { FeedbackPostsLoading } from "./loading";
 import { Button } from "@/components/ui/button";
 import { DoubleArrowDownIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronsUpDownIcon } from "lucide-react";
+import { FeedbackStatus } from "@/db/schema";
+import { cn } from "@/lib/utils";
 
 function convertToString(value: string | number | bigint | null): string {
   if (value === null) {
@@ -42,6 +44,9 @@ function convertToString(value: string | number | bigint | null): string {
 export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
+  const [filterByStatus, setFilterByStatus] = useState<FeedbackStatus | "all">(
+    "all",
+  );
 
   const isSearchActive = !!(searchValue?.length > 0);
 
@@ -86,26 +91,59 @@ export function FeedbackPosts() {
     setSearchValue(value);
   };
 
+  const getDropdownName = () => {
+    let orderByName = "Newest";
+
+    if (orderBy === "upvotes") {
+      orderByName = "Most upvoted";
+    } else if (orderBy === "comments") {
+      orderByName = "Most commented";
+    }
+
+    let filterStatusName = "";
+
+    if (filterByStatus === "under consideration") {
+      filterStatusName = "Under consideration";
+    } else if (filterByStatus === "planned") {
+      filterStatusName = "Planned";
+    } else if (filterByStatus === "in progress") {
+      filterStatusName = "In progress";
+    } else if (filterByStatus === "done") {
+      filterStatusName = "Done";
+    } else if (filterByStatus === "declined") {
+      filterStatusName = "Declined";
+    }
+
+    return (
+      <>
+        {orderByName}
+        {filterStatusName.length > 0 ? ", " : ""}
+        {filterStatusName.length > 0 && (
+          <div className={cn(`text-${filterByStatus.replace(" ", "-")}`)}>
+            {filterStatusName}
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="mt-10">
-      <div className="relative mb-5 flex items-center justify-between">
+      <div className="relative mb-3 flex items-center justify-between gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="">
-              {orderBy === "newest" && "Newest"}
-              {orderBy === "upvotes" && "Most upvoted"}
-              {orderBy === "comments" && "Most commented"}
-              <ChevronDown className="size-4!" />
+            <Button
+              variant="link"
+              className="text-muted-foreground hover:text-primary w-fit p-0 text-sm hover:no-underline"
+            >
+              {getDropdownName()}
+              <ChevronDown className="size-3.5!" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {/* <DropdownMenuLabel>Sort by</DropdownMenuLabel> */}
             <DropdownMenuRadioGroup
-              // defaultValue="newest"
               value={orderBy}
               onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
-              // value="newest"
-              // onValueChange={setPosition}
             >
               <DropdownMenuRadioItem value="newest">
                 Newest
@@ -120,10 +158,11 @@ export function FeedbackPosts() {
 
             <DropdownMenuSeparator />
 
-            {/* <DropdownMenuLabel>Filter by status</DropdownMenuLabel> */}
             <DropdownMenuRadioGroup
-              value="all"
-              // onValueChange={setPosition}
+              value={filterByStatus}
+              onValueChange={(value) =>
+                setFilterByStatus(value as FeedbackStatus)
+              }
             >
               <DropdownMenuRadioItem value="all">
                 All statuses
@@ -153,52 +192,6 @@ export function FeedbackPosts() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* <div className="flex items-center gap-1.5">
-          <Select
-            defaultValue="newest"
-            value={orderBy}
-            onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              <SelectGroup>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="upvotes">Most upvoted</SelectItem>
-                <SelectItem value="comments">Most commented</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              <SelectGroup>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem
-                  value="under consideration"
-                  className="text-under-consideration"
-                >
-                  Under consideration
-                </SelectItem>
-                <SelectItem value="planned" className="text-planned">
-                  Planned
-                </SelectItem>
-                <SelectItem value="in progress" className="text-in-progress">
-                  In progress
-                </SelectItem>
-                <SelectItem value="done" className="text-done">
-                  Done
-                </SelectItem>
-                <SelectItem value="declined" className="text-declined">
-                  Declined
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div> */}
         <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
       </div>
 

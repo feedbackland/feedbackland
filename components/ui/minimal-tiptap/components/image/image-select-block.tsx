@@ -49,9 +49,7 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
             <ImageIcon className="size-3.5!" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
-          <p className="text-xs!">Upload images</p>
-        </TooltipContent>
+        <TooltipContent>Upload images</TooltipContent>
       </Tooltip>
 
       {/* <ToolbarButton

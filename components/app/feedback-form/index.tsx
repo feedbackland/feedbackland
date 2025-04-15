@@ -16,6 +16,11 @@ import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -97,17 +102,22 @@ export function FeedbackForm() {
             onChange={onChange}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            <Button
-              type="submit"
-              size="icon"
-              variant="ghost"
-              loading={isPending}
-              onClick={() => onSubmit(session)}
-              disabled={!hasText || isPending}
-              className="size-8!"
-            >
-              <SendIcon className="size-4!" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  loading={isPending}
+                  onClick={() => onSubmit(session)}
+                  disabled={!hasText || isPending}
+                  className="size-8!"
+                >
+                  <SendIcon className="size-4!" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Submit feedback</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}

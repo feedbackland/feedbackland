@@ -1,11 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDebounce, useKey } from "react-use";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const FeedbackPostsSearchInput = ({
   onDebouncedChange,
@@ -41,7 +46,35 @@ export const FeedbackPostsSearchInput = ({
     inputRef.current?.blur();
   });
 
+  useEffect(() => {
+    if (isFocused) {
+      inputRef?.current?.focus();
+    } else {
+      inputRef?.current?.blur();
+    }
+  }, [isFocused]);
+
   const isActive = !!(isFocused || inputValue?.length > 0);
+
+  if (!isActive) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="link"
+            className="text-muted-foreground hover:text-primary w-fit p-0 hover:no-underline"
+            onClick={() => {
+              setIsFocused(true);
+            }}
+          >
+            <SearchIcon className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Search feedback</TooltipContent>
+      </Tooltip>
+    );
+  }
 
   return (
     <div
