@@ -61,6 +61,7 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+/* For standard browsers */
 @layer base {
   *,
   ::after,
@@ -68,6 +69,10 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
+  }
+
+  ::selection {
+    @apply bg-[#0062D1]! text-white!;
   }
 
   button:not([disabled]),
