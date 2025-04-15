@@ -91,7 +91,7 @@ export function FeedbackPosts() {
       <div className="relative mb-5 flex items-center justify-between">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className="">
               {orderBy === "newest" && "Newest"}
               {orderBy === "upvotes" && "Most upvoted"}
               {orderBy === "comments" && "Most commented"}
