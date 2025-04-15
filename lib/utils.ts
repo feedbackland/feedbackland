@@ -22,6 +22,10 @@ export const slugifySubdomain = (text: string) => {
     .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
 };
 
+export function capitalizeFirstLetter(val: string) {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
 const getUrlObject = (urlString?: string | null) => {
   if (urlString && urlString.length > 0) {
     return new URL(urlString);

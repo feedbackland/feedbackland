@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicProcedure } from "@/lib/trpc";
-import { feedbackOrderBySchema } from "@/lib/schemas";
+import { feedbackOrderBySchema, feedbackStatusSchema } from "@/lib/schemas";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
 
 export const getFeedbackPosts = publicProcedure
@@ -14,10 +14,14 @@ export const getFeedbackPosts = publicProcedure
         })
         .nullish(),
       orderBy: feedbackOrderBySchema,
+      status: feedbackStatusSchema,
     }),
   )
   .query(
-    async ({ input: { limit, cursor, orderBy }, ctx: { userId, orgId } }) => {
+    async ({
+      input: { limit, cursor, orderBy, status },
+      ctx: { userId, orgId },
+    }) => {
       try {
         const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
           orgId,
@@ -25,6 +29,7 @@ export const getFeedbackPosts = publicProcedure
           limit,
           cursor,
           orderBy,
+          status,
         });
 
         return {

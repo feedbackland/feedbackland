@@ -7,31 +7,19 @@ import { Spinner } from "@/components/ui/spinner";
 import { FeedbackPostsSearchInput } from "./search-input";
 import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { FeedbackOrderBy } from "@/lib/typings";
+import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 import { FeedbackPostsLoading } from "./loading";
 import { Button } from "@/components/ui/button";
-import { DoubleArrowDownIcon } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronsUpDownIcon } from "lucide-react";
-import { FeedbackStatus } from "@/db/schema";
-import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 function convertToString(value: string | number | bigint | null): string {
   if (value === null) {
@@ -44,9 +32,7 @@ function convertToString(value: string | number | bigint | null): string {
 export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
-  const [filterByStatus, setFilterByStatus] = useState<FeedbackStatus | "all">(
-    "all",
-  );
+  const [status, setStatus] = useState<FeedbackStatus>(null);
 
   const isSearchActive = !!(searchValue?.length > 0);
 
@@ -59,7 +45,7 @@ export function FeedbackPosts() {
       isPending: isPostsPending,
       isError: isPostsError,
     },
-  } = useFeedbackPosts({ enabled: !isSearchActive, orderBy });
+  } = useFeedbackPosts({ enabled: !isSearchActive, orderBy, status });
 
   const {
     query: {
@@ -78,6 +64,16 @@ export function FeedbackPosts() {
       : postsData?.pages.flatMap((page) => page.feedbackPosts)) || [];
   const isPending = isSearchActive ? isSearchPending : isPostsPending;
   const isError = isSearchActive ? isSearchError : isPostsError;
+
+  const isPlatformEmpty =
+    !isPending &&
+    !isSearchActive &&
+    !isError &&
+    status === null &&
+    posts.length === 0;
+
+  const isSearchEmpty =
+    !isPending && isSearchActive && !isError && posts.length === 0;
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -100,135 +96,133 @@ export function FeedbackPosts() {
       orderByName = "Most commented";
     }
 
-    let filterStatusName = "";
-
-    if (filterByStatus === "under consideration") {
-      filterStatusName = "Under consideration";
-    } else if (filterByStatus === "planned") {
-      filterStatusName = "Planned";
-    } else if (filterByStatus === "in progress") {
-      filterStatusName = "In progress";
-    } else if (filterByStatus === "done") {
-      filterStatusName = "Done";
-    } else if (filterByStatus === "declined") {
-      filterStatusName = "Declined";
-    }
-
     return (
       <>
         {orderByName}
-        {filterStatusName.length > 0 ? ", " : ""}
-        {filterStatusName.length > 0 && (
-          <div className={cn(`text-${filterByStatus.replace(" ", "-")}`)}>
-            {filterStatusName}
+        {status && ", "}
+        {status && (
+          <div className={cn(`text-${status.replace(" ", "-")}`)}>
+            {capitalizeFirstLetter(status)}
           </div>
         )}
       </>
     );
   };
 
+  const handleSelectStatus = (value: FeedbackStatus | "all") => {
+    if (value === "all") {
+      setStatus(null);
+    } else {
+      setStatus(value);
+    }
+  };
+
   return (
     <div className="mt-10">
-      <div className="relative mb-3 flex items-center justify-between gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="link"
-              className="text-muted-foreground hover:text-primary w-fit p-0 text-sm hover:no-underline"
-            >
-              {getDropdownName()}
-              <ChevronDown className="size-3.5!" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuRadioGroup
-              value={orderBy}
-              onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
-            >
-              <DropdownMenuRadioItem value="newest">
-                Newest
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="upvotes">
-                Most upvotes
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="comments">
-                Most comments
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuRadioGroup
-              value={filterByStatus}
-              onValueChange={(value) =>
-                setFilterByStatus(value as FeedbackStatus)
-              }
-            >
-              <DropdownMenuRadioItem value="all">
-                All statuses
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem
-                value="under consideration"
-                className="text-under-consideration"
+      {!isPlatformEmpty && (
+        <div className="relative mb-3 flex h-[40px] items-center justify-between gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="link"
+                className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
               >
-                Under consideration
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="planned" className="text-planned">
-                Planned
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem
-                value="in progress"
-                className="text-in-progress"
+                {getDropdownName()}
+                <ChevronDown className="size-3.5!" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuRadioGroup
+                value={orderBy}
+                onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
               >
-                In progress
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="done" className="text-done">
-                Done
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="declined" className="text-declined">
-                Declined
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <DropdownMenuRadioItem value="newest">
+                  Newest
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="upvotes">
+                  Most upvotes
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="comments">
+                  Most comments
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
 
-        <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
-      </div>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuRadioGroup
+                value={status || "all"}
+                onValueChange={(value) =>
+                  handleSelectStatus(value as FeedbackStatus | "all")
+                }
+              >
+                <DropdownMenuRadioItem value="all">
+                  All statuses
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="under consideration"
+                  className="text-under-consideration"
+                >
+                  Under consideration
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="planned" className="text-planned">
+                  Planned
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="in progress"
+                  className="text-in-progress"
+                >
+                  In progress
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="done" className="text-done">
+                  Done
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="declined"
+                  className="text-declined"
+                >
+                  Declined
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
+        </div>
+      )}
 
       {isPending && <FeedbackPostsLoading />}
-
-      {/* {isPending && (
-        <div className="mt-10 flex flex-col items-center justify-center space-y-2">
-          <Spinner size="small" />
-          <span className="text-sm">
-            {isSearchActive ? "Searching..." : "Loading feedback..."}
-          </span>
-        </div>
-      )} */}
 
       {isError && (
         <div className="py-4 text-center text-red-500">Error loading posts</div>
       )}
 
-      {!!(!isPending && !isError && posts.length === 0) && (
-        <div className="text-muted-foreground space-y-1 py-6 text-center">
-          {!isSearchActive ? (
-            <>
-              <div className="text-base font-semibold">
-                Be the first to share feedback
-              </div>
-              <span className="text-sm">
-                Have a feature request, a suggestion, or spotted a bug? Let us
-                know!
-              </span>
-            </>
-          ) : (
-            <div className="text-base font-semibold">
-              No feedback matched your search
-            </div>
-          )}
+      {isPlatformEmpty && (
+        <div className="text-muted-foreground space-y-1 py-5 text-center">
+          <div className="text-base font-semibold">
+            Be the first to share feedback
+          </div>
+          <span className="text-sm">
+            Have a feature request, a suggestion, or spotted a bug? Let us know!
+          </span>
         </div>
       )}
+
+      {isSearchEmpty && (
+        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+          No feedback found that matches your search
+        </div>
+      )}
+
+      {!isPending &&
+        !isError &&
+        !isPlatformEmpty &&
+        !isSearchEmpty &&
+        status !== null &&
+        posts.length === 0 && (
+          <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+            No feedback found that is marked as {status}
+          </div>
+        )}
 
       {!!(!isPending && !isError && posts.length > 0) && (
         <div className="space-y-8">

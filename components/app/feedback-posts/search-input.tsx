@@ -63,7 +63,7 @@ export const FeedbackPostsSearchInput = ({
           <Button
             size="icon"
             variant="link"
-            className="text-muted-foreground hover:text-primary w-fit p-0 hover:no-underline"
+            className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
             onClick={() => {
               setIsFocused(true);
             }}

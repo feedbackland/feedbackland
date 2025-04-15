@@ -1,7 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { FeedbackOrderBy } from "@/lib/typings";
+import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
 export const getFeedbackPostsQuery = async ({
   orgId,
@@ -9,12 +9,14 @@ export const getFeedbackPostsQuery = async ({
   limit,
   cursor,
   orderBy,
+  status,
 }: {
   orgId: string;
   userId?: string | null;
   limit: number;
   cursor: { id: string; createdAt: string } | null | undefined;
   orderBy: FeedbackOrderBy;
+  status: FeedbackStatus;
 }) => {
   try {
     let query = db
@@ -51,6 +53,10 @@ export const getFeedbackPostsQuery = async ({
             .as("commentCount"),
       ])
       .limit(limit + 1);
+
+    if (status) {
+      query = query.where("feedback.status", "=", status);
+    }
 
     if (orderBy === "newest") {
       query = query.orderBy("feedback.createdAt", "desc");
