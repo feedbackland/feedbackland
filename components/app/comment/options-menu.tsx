@@ -29,7 +29,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useComments } from "@/hooks/use-comments";
 
-export function FeedbackPostOptionsMenu({
+export function CommentsOptionsMenu({
   postId,
   commentId,
   authorId,
