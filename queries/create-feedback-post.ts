@@ -9,7 +9,7 @@ const getTitleAndCategory = async (description: string) => {
   const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
     Given the following description, create a short title that sounds like it was written by a human.
-    Also categorize the description as either a 'feature request', 'bug report', 'improvement', or 'general feedback'.
+    Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
 
     Description:
     ${description}
@@ -17,7 +17,7 @@ const getTitleAndCategory = async (description: string) => {
     Respond with a valid JSON object that follows this structure exactly:
     {
       "title": "brief human-like title here",
-      "category": "one of: feature request, bug report, improvement, general feedback"
+      "category": "one of: feature request, bug report, general feedback"
     }
   `;
 
@@ -54,8 +54,7 @@ const getTitleAndCategory = async (description: string) => {
     category: FeedbackCategory;
   };
 
-  const title = parsedContent.title || "Untitled";
-  const category = parsedContent.category || "other";
+  const { title, category } = parsedContent;
 
   return { title, category };
 };
@@ -75,14 +74,11 @@ export async function createFeedbackPostQuery({
   orgId: string;
 }) {
   try {
-    const result = await Promise.all([
-      await getTitleAndCategory(description),
-      await getEmbedding(description),
-    ]);
+    const { title, category } = await getTitleAndCategory(description);
 
-    const { title, category } = result[0];
-
-    const embedding = pgvector.toSql(result[1]);
+    const embedding = pgvector.toSql(
+      await getEmbedding(`${title}: ${description}`),
+    );
 
     const feedbackPost = await db
       .insertInto("feedback")

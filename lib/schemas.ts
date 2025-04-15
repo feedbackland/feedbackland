@@ -18,7 +18,6 @@ export const feedbackOrderBySchema = z.union([
 export const feedbackCategorySchema = z.union([
   z.literal("feature request"),
   z.literal("bug report"),
-  z.literal("improvement"),
   z.literal("general feedback"),
   z.null(),
 ]);
