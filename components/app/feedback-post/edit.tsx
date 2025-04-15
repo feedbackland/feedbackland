@@ -22,6 +22,7 @@ import { Error } from "@/components/ui/error";
 import { dequal } from "dequal";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   title: z.string().min(1),
@@ -83,6 +84,10 @@ export function FeedbackPostEdit({
         queryClient.invalidateQueries({
           predicate: (query) =>
             dequal(query.queryKey[0], feedbackPostsQueryKey[0]),
+        });
+
+        toast.success("Feedback updated", {
+          position: "top-right",
         });
 
         onClose();

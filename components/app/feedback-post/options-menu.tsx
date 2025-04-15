@@ -76,7 +76,7 @@ export function FeedbackPostOptionsMenu({
 
         if (platformUrl) {
           router.push(platformUrl);
-          toast.success("Feedback post deleted", {
+          toast.success("Feedback deleted", {
             position: "top-right",
           });
         }
@@ -100,7 +100,7 @@ export function FeedbackPostOptionsMenu({
           },
         });
 
-        toast.success("Status successfully updated", {
+        toast.success("Status updated", {
           position: "top-right",
         });
       },
