@@ -2,19 +2,15 @@
 
 import { db } from "@/db/db";
 
-export const updateFeedbackPostQuery = async ({
-  postId,
-  orgId,
+export async function deleteCommentQuery({
+  commentId,
   userId,
-  title,
-  description,
+  orgId,
 }: {
-  postId: string;
-  orgId: string;
+  commentId: string;
   userId: string;
-  title: string;
-  description: string;
-}) => {
+  orgId: string;
+}) {
   try {
     return await db.transaction().execute(async (trx) => {
       const { role } = await trx
@@ -25,25 +21,22 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       const { authorId } = await trx
-        .selectFrom("feedback")
-        .where("id", "=", postId)
-        .where("orgId", "=", orgId)
+        .selectFrom("comment")
+        .where("id", "=", commentId)
         .select(["authorId"])
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
         return await trx
-          .updateTable("feedback")
-          .set({ title, description })
-          .where("id", "=", postId)
-          .where("orgId", "=", orgId)
+          .deleteFrom("comment")
+          .where("id", "=", commentId)
           .returningAll()
           .executeTakeFirstOrThrow();
       } else {
-        throw new Error("Not authorized to update this post");
+        throw new Error("Not authorized to delete this comment");
       }
     });
   } catch (error) {
     throw error;
   }
-};
+}

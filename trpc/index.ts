@@ -14,6 +14,8 @@ import { getComment } from "./get-comment";
 import { getComments } from "./get-comments";
 import { deleteFeedbackPost } from "./delete-feedback-post";
 import { updateFeedbackPost } from "./update-feedback-post";
+import { updateComment } from "./update-comment";
+import { deleteComment } from "./delete-comment";
 
 export const appRouter = router({
   searchFeedbackPosts,
@@ -31,6 +33,8 @@ export const appRouter = router({
   getComments,
   deleteFeedbackPost,
   updateFeedbackPost,
+  updateComment,
+  deleteComment,
 });
 
 export type AppRouter = typeof appRouter;

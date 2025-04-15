@@ -3,8 +3,10 @@ import { useTRPC } from "@/providers/trpc-client";
 
 export function useComment({
   commentId,
+  enabled = true,
 }: {
   commentId: string | null | undefined;
+  enabled?: boolean;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getComment.queryOptions(
@@ -12,7 +14,7 @@ export function useComment({
       commentId: commentId as string,
     },
     {
-      enabled: !!commentId,
+      enabled: !!(enabled && commentId),
     },
   );
   const queryKey = trpcQuery.queryKey;

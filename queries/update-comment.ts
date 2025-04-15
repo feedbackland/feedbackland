@@ -2,18 +2,16 @@
 
 import { db } from "@/db/db";
 
-export const updateFeedbackPostQuery = async ({
-  postId,
+export const updateCommentQuery = async ({
+  commentId,
   orgId,
   userId,
-  title,
-  description,
+  content,
 }: {
-  postId: string;
+  commentId: string;
   orgId: string;
   userId: string;
-  title: string;
-  description: string;
+  content: string;
 }) => {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -25,22 +23,20 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       const { authorId } = await trx
-        .selectFrom("feedback")
-        .where("id", "=", postId)
-        .where("orgId", "=", orgId)
+        .selectFrom("comment")
+        .where("id", "=", commentId)
         .select(["authorId"])
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
         return await trx
-          .updateTable("feedback")
-          .set({ title, description })
-          .where("id", "=", postId)
-          .where("orgId", "=", orgId)
+          .updateTable("comment")
+          .set({ content })
+          .where("id", "=", commentId)
           .returningAll()
           .executeTakeFirstOrThrow();
       } else {
-        throw new Error("Not authorized to update this post");
+        throw new Error("Not authorized to update this comment");
       }
     });
   } catch (error) {

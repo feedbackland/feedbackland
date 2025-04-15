@@ -9,7 +9,7 @@ export function useFeedbackPosts({
 }: {
   enabled: boolean;
   orderBy?: FeedbackOrderBy;
-  status: FeedbackStatus;
+  status?: FeedbackStatus;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getFeedbackPosts.infiniteQueryOptions(
