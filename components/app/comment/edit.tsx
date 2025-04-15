@@ -106,7 +106,7 @@ export function CommentEdit({
         className={cn("w-full space-y-6", className)}
       >
         <FormItem>
-          <FormLabel>Comment</FormLabel>
+          <FormLabel className="sr-only">Edit comment</FormLabel>
           <FormField
             control={control}
             name="content"
