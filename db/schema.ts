@@ -255,6 +255,7 @@ export interface Comment {
   authorId: string;
   content: string;
   createdAt: Generated<Timestamp>;
+  embedding: string | null;
   id: Generated<string>;
   parentCommentId: string | null;
   postId: string;

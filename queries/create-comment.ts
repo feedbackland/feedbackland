@@ -1,6 +1,8 @@
 "server-only";
 
 import { db } from "@/db/db";
+import pgvector from "pgvector/pg";
+import { textEmbeddingModel } from "@/lib/gemini";
 
 export async function createCommentQuery({
   content,
@@ -14,6 +16,10 @@ export async function createCommentQuery({
   parentCommentId: string | null;
 }) {
   try {
+    const embedding = pgvector.toSql(
+      (await textEmbeddingModel.embedContent(content)).embedding.values,
+    );
+
     const comment = await db
       .insertInto("comment")
       .values({
@@ -21,6 +27,7 @@ export async function createCommentQuery({
         authorId,
         postId,
         parentCommentId,
+        embedding,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

@@ -1,6 +1,8 @@
 "server-only";
 
 import { db } from "@/db/db";
+import pgvector from "pgvector/pg";
+import { textEmbeddingModel } from "@/lib/gemini";
 
 export const updateFeedbackPostQuery = async ({
   postId,
@@ -32,9 +34,14 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
+        const embedding = pgvector.toSql(
+          (await textEmbeddingModel.embedContent(`${title}: ${description}`))
+            .embedding.values,
+        );
+
         return await trx
           .updateTable("feedback")
-          .set({ title, description })
+          .set({ title, description, embedding })
           .where("id", "=", postId)
           .where("orgId", "=", orgId)
           .returningAll()
