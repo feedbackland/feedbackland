@@ -1,5 +1,6 @@
 "use client";
 
+import { ActivityFeed } from "@/components/app/activity-feed";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,12 @@ export default function AdminPage() {
   }
 
   if (isAdmin) {
-    return <div>Admin panel root page</div>;
+    return (
+      <div>
+        <h1>Admin panel root page</h1>
+        <ActivityFeed />
+      </div>
+    );
   }
 
   return null;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Shield } from "lucide-react";
+import { LogOutIcon, MoonIcon, MoreHorizontal, Shield } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +61,7 @@ export function PlatformHeader() {
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-40" side="bottom" align="end">
+              <DropdownMenuContent className="w-48" side="bottom" align="end">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault();
@@ -70,7 +70,10 @@ export function PlatformHeader() {
                   }}
                   className="flex cursor-pointer items-center justify-between"
                 >
-                  <span>Dark mode</span>
+                  <span className="flex items-center gap-2">
+                    <MoonIcon className="size-4" />
+                    Dark mode
+                  </span>
                   <Switch checked={theme === "dark"} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -78,6 +81,7 @@ export function PlatformHeader() {
                   onClick={handleSignOut}
                   className="cursor-pointer"
                 >
+                  <LogOutIcon className="size-4" />
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -89,7 +93,7 @@ export function PlatformHeader() {
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" side="bottom" align="end">
+              <DropdownMenuContent className="w-48" side="bottom" align="end">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault();
