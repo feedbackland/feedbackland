@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedQuery } from "@/queries/get-activity-feed";
+import { feedbackOrderBySchema, feedbackStatusSchema } from "@/lib/schemas";
 
 export const getActivityFeed = adminProcedure
   .input(
@@ -12,21 +13,27 @@ export const getActivityFeed = adminProcedure
           createdAt: z.string().datetime({ offset: true }),
         })
         .nullish(),
+      orderBy: feedbackOrderBySchema,
+      status: feedbackStatusSchema,
     }),
   )
-  .query(async ({ input: { limit, cursor }, ctx: { orgId } }) => {
-    try {
-      const { data, nextCursor } = await getActivityFeedQuery({
-        orgId,
-        limit,
-        cursor,
-      });
+  .query(
+    async ({ input: { limit, cursor, orderBy, status }, ctx: { orgId } }) => {
+      try {
+        const { data, nextCursor } = await getActivityFeedQuery({
+          orgId,
+          limit,
+          cursor,
+          orderBy,
+          status,
+        });
 
-      return {
-        data,
-        nextCursor,
-      };
-    } catch (error) {
-      throw error;
-    }
-  });
+        return {
+          data,
+          nextCursor,
+        };
+      } catch (error) {
+        throw error;
+      }
+    },
+  );

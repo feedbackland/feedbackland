@@ -1,120 +1,95 @@
 import { db } from "@/db/db";
-import { DB } from "@/db/schema";
-import { ExpressionBuilder, sql } from "kysely";
-
-interface ActivityFeedCursor {
-  createdAt: string;
-  id: string;
-}
+import { sql } from "kysely";
+import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
 export async function getActivityFeedQuery({
   orgId,
   limit,
   cursor,
+  orderBy,
+  status,
 }: {
   orgId: string;
   limit: number;
-  cursor?: ActivityFeedCursor | null;
+  cursor?: {
+    createdAt: string;
+    id: string;
+  } | null;
+  orderBy: FeedbackOrderBy;
+  status: FeedbackStatus;
 }) {
-  // Changed from const feedbackItems to let feedbackItemsQuery
-  let feedbackItemsQuery = db
+  const feedbackQuery = db
     .selectFrom("feedback")
     .select([
       "feedback.id",
+      "feedback.id as postId",
+      sql<any>`null`.as("commentId"),
       "feedback.createdAt",
-      "feedback.updatedAt",
-      "feedback.orgId",
-      "feedback.authorId",
-      "feedback.category",
       "feedback.title",
-      "feedback.description",
+      "feedback.description as content",
       "feedback.upvotes",
-      sql<string>`'post'`.as("itemType"),
+      "feedback.category",
+      "feedback.status",
+      sql<string>`'post'`.as("type"),
     ])
     .where("feedback.orgId", "=", orgId);
 
-  let commentItemsQuery = db
+  const commentQuery = db
     .selectFrom("comment")
     .innerJoin("feedback", "comment.postId", "feedback.id")
     .select([
       "comment.id",
-      "comment.parentCommentId",
       "comment.postId",
+      "comment.id as commentId",
       "comment.createdAt",
-      "comment.updatedAt",
-      "comment.authorId",
+      sql<any>`null`.as("title"),
       "comment.content",
       "comment.upvotes",
-      sql<string>`'comment'`.as("itemType"),
+      sql<any>`null`.as("category"),
+      sql<any>`null`.as("status"),
+      sql<string>`'comment'`.as("type"),
     ])
     .where("feedback.orgId", "=", orgId);
 
-  // Apply cursor logic to both queries
-  if (cursor) {
-    const cursorCreatedAt =
-      typeof cursor.createdAt === "string"
-        ? new Date(cursor.createdAt)
-        : cursor.createdAt;
+  let query = feedbackQuery.unionAll(commentQuery).limit(limit + 1);
 
-    // Define a reusable filter function for cursor logic
-    const cursorFilter = (eb: ExpressionBuilder<DB, "feedback">) =>
-      eb.or([
-        eb("createdAt", "<", cursorCreatedAt),
-        eb.and([
-          eb("createdAt", "=", cursorCreatedAt),
-          eb("id", "<", cursor.id),
-        ]),
-      ]);
-
-    feedbackItemsQuery = feedbackItemsQuery.where(cursorFilter);
-    commentItemsQuery = commentItemsQuery.where(cursorFilter);
+  if (status) {
+    query = query.where("status", "=", status);
   }
 
-  // Fetch results from both queries
-  // We fetch limit + 1 from *each* initially to ensure we have enough data
-  // to determine the correct combined order and next cursor after merging.
-  const [feedbackResults, commentResults] = await Promise.all([
-    feedbackItemsQuery
-      .orderBy("createdAt", "desc")
-      .orderBy("id", "desc")
-      .limit(limit + 1)
-      .execute(),
-    commentItemsQuery
-      .orderBy("createdAt", "desc")
-      .orderBy("id", "desc")
-      .limit(limit + 1)
-      .execute(),
-  ]);
+  if (orderBy === "newest") {
+    query = query.orderBy("createdAt", "desc");
 
-  // Combine and sort results in TypeScript
-  const combinedResults = [...feedbackResults, ...commentResults];
-
-  combinedResults.sort((a, b) => {
-    // Ensure createdAt is treated as Date objects for comparison
-    const dateA =
-      typeof a.createdAt === "string" ? new Date(a.createdAt) : a.createdAt;
-    const dateB =
-      typeof b.createdAt === "string" ? new Date(b.createdAt) : b.createdAt;
-
-    if (dateB.getTime() !== dateA.getTime()) {
-      return dateB.getTime() - dateA.getTime(); // Sort by date descending
+    if (cursor) {
+      query = query.where((eb) =>
+        eb.or([
+          eb("createdAt", "<", new Date(cursor.createdAt)),
+          eb.and([
+            eb("createdAt", "=", new Date(cursor.createdAt)),
+            eb("id", "<", cursor.id),
+          ]),
+        ]),
+      );
     }
-    // If dates are equal, sort by ID descending for stable order
-    return b.id.localeCompare(a.id);
-  });
+  } else if (orderBy === "upvotes") {
+    query = query.orderBy("upvotes", "desc");
 
-  // Apply limit and determine next cursor
-  const items = combinedResults.slice(0, limit);
+    if (cursor) {
+      query = query.where("id", ">", cursor.id);
+    }
+  }
 
-  let nextCursor: ActivityFeedCursor | null = null;
+  const items = await query.execute();
 
-  if (combinedResults.length > limit) {
-    const nextItem = combinedResults[limit]; // The item right after the last one we return
+  let nextCursor: typeof cursor | undefined = undefined;
+
+  if (items.length > limit) {
+    const nextItem = items.pop();
 
     if (nextItem) {
       nextCursor = {
+        id: nextItem?.id,
         createdAt: nextItem.createdAt.toISOString(),
-        id: nextItem.id,
       };
     }
   }

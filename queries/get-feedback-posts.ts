@@ -71,12 +71,6 @@ export const getFeedbackPostsQuery = async ({
             ]),
           ]),
         );
-
-        // query = query.where(
-        //   "feedback.createdAt",
-        //   "<",
-        //   new Date(cursor.createdAt),
-        // );
       }
     } else if (orderBy === "upvotes") {
       query = query.orderBy("feedback.upvotes", "desc");
