@@ -18,9 +18,10 @@ export async function getActivityFeedQuery({
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
 }) {
-  const feedbackQuery = db
+  let query = db
     .selectFrom("feedback")
     .select([
+      "feedback.orgId",
       "feedback.id",
       "feedback.id as postId",
       sql<any>`null`.as("commentId"),
@@ -32,26 +33,26 @@ export async function getActivityFeedQuery({
       "feedback.status",
       sql<string>`'post'`.as("type"),
     ])
-    .where("feedback.orgId", "=", orgId);
-
-  const commentQuery = db
-    .selectFrom("comment")
-    .innerJoin("feedback", "comment.postId", "feedback.id")
-    .select([
-      "comment.id",
-      "comment.postId",
-      "comment.id as commentId",
-      "comment.createdAt",
-      sql<any>`null`.as("title"),
-      "comment.content",
-      "comment.upvotes",
-      sql<any>`null`.as("category"),
-      sql<any>`null`.as("status"),
-      sql<string>`'comment'`.as("type"),
-    ])
-    .where("feedback.orgId", "=", orgId);
-
-  let query = feedbackQuery.unionAll(commentQuery).limit(limit + 1);
+    .unionAll(
+      db
+        .selectFrom("comment")
+        .innerJoin("feedback", "comment.postId", "feedback.id")
+        .select([
+          "feedback.orgId",
+          "comment.id",
+          "comment.postId",
+          "comment.id as commentId",
+          "comment.createdAt",
+          sql<any>`null`.as("title"),
+          "comment.content",
+          "comment.upvotes",
+          sql<any>`null`.as("category"),
+          sql<any>`null`.as("status"),
+          sql<string>`'comment'`.as("type"),
+        ]),
+    )
+    .where("orgId", "=", orgId)
+    .limit(limit + 1);
 
   if (status) {
     query = query.where("status", "=", status);
