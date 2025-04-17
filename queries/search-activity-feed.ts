@@ -63,20 +63,24 @@ export const searchActivityFeedQuery = async ({
     .where(distance, "<", 0.4)
     .orderBy(distance);
 
-  const items = await baseQuery.limit(pageSize).offset(offset).execute();
+  try {
+    const items = await baseQuery.limit(pageSize).offset(offset).execute();
 
-  const [{ count }] = await baseQuery
-    .select((eb) => eb.fn.count<string>("id").as("count"))
-    .execute();
+    const [{ count }] = await baseQuery
+      .select((eb) => eb.fn.count<string>("id").as("count"))
+      .execute();
 
-  const totalItems = Number(count);
+    const totalItems = Number(count);
 
-  const totalPages = Math.ceil(totalItems / pageSize);
+    const totalPages = Math.ceil(totalItems / pageSize);
 
-  return {
-    items,
-    count,
-    totalPages,
-    currentPage: page,
-  };
+    return {
+      items,
+      count,
+      totalPages,
+      currentPage: page,
+    };
+  } catch (error) {
+    throw error;
+  }
 };
