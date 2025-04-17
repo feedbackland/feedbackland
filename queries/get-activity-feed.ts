@@ -4,21 +4,20 @@ import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
 export async function getActivityFeedQuery({
   orgId,
-  limit,
-  cursor,
+  page,
+  pageSize,
   orderBy,
   status,
 }: {
   orgId: string;
-  limit: number;
-  cursor?: {
-    createdAt: string;
-    id: string;
-  } | null;
+  page: number;
+  pageSize: number;
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
 }) {
-  let query = db
+  const offset = (page - 1) * pageSize;
+
+  const baseQuery = db
     .selectFrom("feedback")
     .select([
       "feedback.orgId",
@@ -32,6 +31,12 @@ export async function getActivityFeedQuery({
       "feedback.category",
       "feedback.status",
       sql<string>`'post'`.as("type"),
+      (eb) =>
+        eb
+          .selectFrom("comment")
+          .select(eb.fn.countAll().as("commentCount"))
+          .whereRef("comment.postId", "=", "feedback.id")
+          .as("commentCount"),
     ])
     .unionAll(
       db
@@ -49,10 +54,12 @@ export async function getActivityFeedQuery({
           sql<any>`null`.as("category"),
           sql<any>`null`.as("status"),
           sql<string>`'comment'`.as("type"),
+          sql<any>`null`.as("commentCount"),
         ]),
     )
-    .where("orgId", "=", orgId)
-    .limit(limit + 1);
+    .where("orgId", "=", orgId);
+
+  let query = baseQuery;
 
   if (status) {
     query = query.where("status", "=", status);
@@ -60,43 +67,26 @@ export async function getActivityFeedQuery({
 
   if (orderBy === "newest") {
     query = query.orderBy("createdAt", "desc");
-
-    if (cursor) {
-      query = query.where((eb) =>
-        eb.or([
-          eb("createdAt", "<", new Date(cursor.createdAt)),
-          eb.and([
-            eb("createdAt", "=", new Date(cursor.createdAt)),
-            eb("id", "<", cursor.id),
-          ]),
-        ]),
-      );
-    }
   } else if (orderBy === "upvotes") {
     query = query.orderBy("upvotes", "desc");
-
-    if (cursor) {
-      query = query.where("id", ">", cursor.id);
-    }
+  } else if (orderBy === "comments") {
+    query = query.orderBy("commentCount", "desc");
   }
 
-  const items = await query.execute();
+  const items = await query.limit(pageSize).offset(offset).execute();
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  const [{ count }] = await baseQuery
+    .select((eb) => eb.fn.count<string>("id").as("count"))
+    .execute();
 
-  if (items.length > limit) {
-    const nextItem = items.pop();
+  const totalItems = Number(count);
 
-    if (nextItem) {
-      nextCursor = {
-        id: nextItem?.id,
-        createdAt: nextItem.createdAt.toISOString(),
-      };
-    }
-  }
+  const totalPages = Math.ceil(totalItems / pageSize);
 
   return {
-    data: items,
-    nextCursor,
+    items,
+    count,
+    totalPages,
+    currentPage: page,
   };
 }

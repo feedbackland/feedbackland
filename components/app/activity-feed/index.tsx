@@ -11,30 +11,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { useSearchActivityFeed } from "@/hooks/use-search-activity-feed";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedSearchInput } from "./search-input";
 import { ActivityFeedLoading } from "./loading";
 
+const PAGE_SIZE = 10;
+
 export function ActivityFeed() {
   const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
   const [status, setStatus] = useState<FeedbackStatus>(null);
 
   const isSearchActive = !!(searchValue?.length > 0);
 
   const {
-    query: {
-      data: postsData,
-      fetchNextPage,
-      hasNextPage,
-      isFetchingNextPage,
-      isPending: isPostsPending,
-      isError: isPostsError,
-    },
-  } = useActivityFeed({ enabled: !isSearchActive, orderBy, status });
+    query: { data, isPending: isPostsPending, isError: isPostsError },
+  } = useActivityFeed({
+    enabled: !isSearchActive,
+    page,
+    pageSize: PAGE_SIZE,
+    orderBy,
+    status,
+  });
 
   const {
     query: {
@@ -45,26 +47,22 @@ export function ActivityFeed() {
   } = useSearchActivityFeed({
     searchValue,
     enabled: isSearchActive,
+    page,
+    pageSize: PAGE_SIZE,
   });
 
-  const posts =
-    (isSearchActive
-      ? searchData
-      : postsData?.pages.flatMap((page) => page.data)) || [];
+  const items = isSearchActive ? searchData?.items : data?.items;
   const isPending = isSearchActive ? isSearchPending : isPostsPending;
   const isError = isSearchActive ? isSearchError : isPostsError;
-
+  const isLoaded = !isPending && !isError;
+  const hasNoItems = !!(items && items.length === 0);
+  const hasStatusFilter = status !== null;
   const isPlatformEmpty =
-    !isPending &&
-    !isSearchActive &&
-    !isError &&
-    status === null &&
-    posts.length === 0;
-
-  const isSearchEmpty =
-    !isPending && isSearchActive && !isError && posts.length === 0;
+    isLoaded && !isSearchActive && !hasStatusFilter && hasNoItems;
+  const isSearchEmpty = isLoaded && isSearchActive && hasNoItems;
 
   const handleSearch = (value: string) => {
+    setPage(1);
     setSearchValue(value);
   };
 
@@ -98,6 +96,17 @@ export function ActivityFeed() {
     }
   };
 
+  const goToPrevPage = () => {
+    setPage((page) => page - 1);
+  };
+
+  const goToNextPage = () => {
+    setPage((page) => page + 1);
+  };
+
+  const startItem = (page - 1) * PAGE_SIZE + 1;
+  const endItem = page * PAGE_SIZE;
+
   return (
     <div className="mt-10">
       {!isPlatformEmpty && (
@@ -121,10 +130,10 @@ export function ActivityFeed() {
                   Newest
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="upvotes">
-                  Most upvotes
+                  Most upvoted
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="comments">
-                  Most comments
+                  Most commented
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
 
@@ -174,7 +183,7 @@ export function ActivityFeed() {
       {isPending && <ActivityFeedLoading />}
 
       {isError && (
-        <div className="py-4 text-center text-red-500">Error loading posts</div>
+        <div className="py-4 text-center text-red-500">Error loading inbox</div>
       )}
 
       {isPlatformEmpty && (
@@ -189,23 +198,45 @@ export function ActivityFeed() {
         </div>
       )}
 
-      {!isPending &&
-        !isError &&
+      {isLoaded &&
+        !isSearchActive &&
         !isPlatformEmpty &&
-        !isSearchEmpty &&
-        status !== null &&
-        posts.length === 0 && (
+        hasStatusFilter &&
+        hasNoItems && (
           <div className="text-muted-foreground py-5 text-center text-sm font-normal">
             No feedback found that is marked as {status}
           </div>
         )}
 
-      {!!(!isPending && !isError && posts.length > 0) && (
-        <div className="space-y-8">
-          {posts.map((post) => (
-            <div key={post.id}>{post.content}</div>
-          ))}
-        </div>
+      {isLoaded && !!items && items?.length > 0 && (
+        <>
+          {!isSearchActive && data && (
+            <div className="flex items-center justify-between">
+              <div>
+                {startItem}-{endItem} of {data.count}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  onClick={goToPrevPage}
+                  disabled={page === 1}
+                >
+                  <ChevronLeftIcon className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  onClick={goToNextPage}
+                  disabled={page === data.totalPages}
+                >
+                  <ChevronRightIcon className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+          <div className="space-y-8">
+            {items?.map(({ id, content }) => <div key={id}>{content}</div>)}
+          </div>
+        </>
       )}
     </div>
   );

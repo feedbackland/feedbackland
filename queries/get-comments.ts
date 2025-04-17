@@ -58,12 +58,6 @@ export const getCommentsQuery = async ({
           ]),
         ]),
       );
-
-      // query = query.where(
-      //   "comment.createdAt",
-      //   "<",
-      //   new Date(cursor.createdAt),
-      // );
     }
 
     const comments = await query.execute();

@@ -78,6 +78,12 @@ export const getFeedbackPostsQuery = async ({
       if (cursor) {
         query = query.where("feedback.id", ">", cursor.id);
       }
+    } else if (orderBy === "comments") {
+      query = query.orderBy("commentCount", "desc");
+
+      if (cursor) {
+        query = query.where("feedback.id", ">", cursor.id);
+      }
     }
 
     const feedbackPosts = await query.execute();

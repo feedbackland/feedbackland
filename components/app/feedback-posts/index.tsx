@@ -140,10 +140,10 @@ export function FeedbackPosts() {
                   Newest
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="upvotes">
-                  Most upvotes
+                  Most upvoted
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="comments">
-                  Most comments
+                  Most commented
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
 

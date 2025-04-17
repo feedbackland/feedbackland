@@ -19,7 +19,7 @@ export const searchFeedbackPostsQuery = async ({
 
   const distance = cosineDistance("embedding", values);
 
-  const results = db
+  const results = await db
     .selectFrom("feedback")
     .leftJoin("user_upvote", (join) =>
       join
@@ -55,8 +55,8 @@ export const searchFeedbackPostsQuery = async ({
     ])
     .where(distance, "<", 0.4)
     .orderBy(distance)
-    .limit(10)
-    .execute();
+    .limit(50)
+    .executeTakeFirstOrThrow();
 
   return results;
 };

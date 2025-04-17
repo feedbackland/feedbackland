@@ -8,17 +8,23 @@ import { cosineDistance } from "pgvector/kysely";
 export const searchActivityFeedQuery = async ({
   orgId,
   searchValue,
+  page,
+  pageSize,
 }: {
   orgId: string;
   searchValue: string;
+  page: number;
+  pageSize: number;
 }) => {
   const {
     embedding: { values },
   } = await textEmbeddingModel.embedContent(searchValue);
 
+  const offset = (page - 1) * pageSize;
+
   const distance = cosineDistance("embedding", values);
 
-  const results = db
+  const baseQuery = db
     .selectFrom("feedback")
     .select([
       "feedback.orgId",
@@ -55,9 +61,22 @@ export const searchActivityFeedQuery = async ({
     )
     .where("orgId", "=", orgId)
     .where(distance, "<", 0.4)
-    .orderBy(distance)
-    .limit(10)
+    .orderBy(distance);
+
+  const items = await baseQuery.limit(pageSize).offset(offset).execute();
+
+  const [{ count }] = await baseQuery
+    .select((eb) => eb.fn.count<string>("id").as("count"))
     .execute();
 
-  return results;
+  const totalItems = Number(count);
+
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  return {
+    items,
+    count,
+    totalPages,
+    currentPage: page,
+  };
 };

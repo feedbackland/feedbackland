@@ -6,13 +6,17 @@ export const searchActivityFeed = adminProcedure
   .input(
     z.object({
       searchValue: z.string().trim(),
+      page: z.number().min(1),
+      pageSize: z.number().min(1).max(100),
     }),
   )
-  .query(async ({ input: { searchValue }, ctx: { orgId } }) => {
+  .query(async ({ input: { searchValue, page, pageSize }, ctx: { orgId } }) => {
     try {
       return await searchActivityFeedQuery({
         orgId,
         searchValue,
+        page,
+        pageSize,
       });
     } catch (error) {
       throw error;

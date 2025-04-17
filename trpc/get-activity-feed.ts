@@ -6,31 +6,29 @@ import { feedbackOrderBySchema, feedbackStatusSchema } from "@/lib/schemas";
 export const getActivityFeed = adminProcedure
   .input(
     z.object({
-      limit: z.number().min(1).max(100),
-      cursor: z
-        .object({
-          id: z.string(),
-          createdAt: z.string().datetime({ offset: true }),
-        })
-        .nullish(),
+      page: z.number().min(1),
+      pageSize: z.number().min(1).max(100),
       orderBy: feedbackOrderBySchema,
       status: feedbackStatusSchema,
     }),
   )
   .query(
-    async ({ input: { limit, cursor, orderBy, status }, ctx: { orgId } }) => {
+    async ({ input: { page, pageSize, orderBy, status }, ctx: { orgId } }) => {
       try {
-        const { data, nextCursor } = await getActivityFeedQuery({
-          orgId,
-          limit,
-          cursor,
-          orderBy,
-          status,
-        });
+        const { items, count, totalPages, currentPage } =
+          await getActivityFeedQuery({
+            orgId,
+            page,
+            pageSize,
+            orderBy,
+            status,
+          });
 
         return {
-          data,
-          nextCursor,
+          items,
+          count,
+          totalPages,
+          currentPage,
         };
       } catch (error) {
         throw error;

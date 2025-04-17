@@ -4,16 +4,20 @@ import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
 export function useActivityFeed({
   enabled,
+  page,
+  pageSize,
   orderBy = "newest",
   status = null,
 }: {
   enabled: boolean;
+  page: number;
+  pageSize: number;
   orderBy?: FeedbackOrderBy;
   status?: FeedbackStatus;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getActivityFeed.queryOptions(
-    { limit: 10, orderBy, status },
+    { page, pageSize, orderBy, status },
     {
       enabled,
     },
