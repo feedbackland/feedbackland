@@ -79,16 +79,21 @@ export async function getActivityFeedQuery({
     itemsQuery = itemsQuery.orderBy("union.commentCount", "desc");
   }
 
-  itemsQuery = itemsQuery.selectAll("union").limit(pageSize).offset(offset);
-
   const countQuery = baseQuery.select((eb) =>
     eb.fn.countAll<string>().as("count"),
   );
 
   try {
-    const items = await itemsQuery.execute();
+    const items = await itemsQuery
+      .selectAll("union")
+      .limit(pageSize)
+      .offset(offset)
+      .execute();
+
     const [{ count }] = await countQuery.execute();
+
     const totalItems = Number(count);
+
     const totalPages = Math.ceil(totalItems / pageSize);
 
     return {
