@@ -76,7 +76,6 @@ export const searchActivityFeedQuery = async ({
         "union.category",
         "union.status",
         "union.type",
-        "union.distance",
       ])
       .orderBy("union.distance")
       .limit(pageSize)

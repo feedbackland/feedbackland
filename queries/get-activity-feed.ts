@@ -85,7 +85,19 @@ export async function getActivityFeedQuery({
 
   try {
     const items = await itemsQuery
-      .selectAll("union")
+      .select([
+        "union.orgId",
+        "union.id",
+        "union.postId",
+        "union.commentId",
+        "union.createdAt",
+        "union.title",
+        "union.content",
+        "union.upvotes",
+        "union.category",
+        "union.status",
+        "union.type",
+      ])
       .limit(pageSize)
       .offset(offset)
       .execute();
