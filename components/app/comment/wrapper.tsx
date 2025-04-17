@@ -23,7 +23,7 @@ export function CommentWrapper({
         <Button
           size="icon"
           variant="outline"
-          className="bg-background! absolute! top-0.5 -left-0.5 z-10 size-7! rounded-full border-none! shadow-none!"
+          className="bg-background! absolute! top-0.5 -left-0.5 z-10 size-7.5! rounded-full border-none! shadow-none!"
           onClick={() => setIsExpanded(true)}
         >
           <PlusCircleIcon className="size-4!" />

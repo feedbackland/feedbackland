@@ -222,8 +222,12 @@
     @apply underline;
   }
 
-  code {
-    @apply bg-muted/40 block rounded-sm p-3;
+  pre {
+    @apply bg-muted block rounded-sm p-3 text-sm break-words whitespace-pre-wrap;
+  }
+
+  code.inline {
+    @apply bg-muted rounded-sm px-1.5 py-0.5;
   }
 }
 

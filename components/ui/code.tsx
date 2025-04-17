@@ -9,21 +9,19 @@ import rehypeStringify from "rehype-stringify";
 import { CopyButton } from "./copy-button";
 import { cn } from "@/lib/utils";
 
-interface CodeProps {
-  code: string;
-  language: string;
-  showLineNumbers: boolean;
-  title?: string;
-  className?: React.ComponentProps<"div">["className"];
-}
-
 export function Code({
   code,
-  language,
-  showLineNumbers,
+  language = "ts",
+  showLineNumbers = false,
   title,
   className,
-}: CodeProps) {
+}: {
+  code: string;
+  language?: string;
+  showLineNumbers?: boolean;
+  title?: string;
+  className?: React.ComponentProps<"div">["className"];
+}) {
   const [highlightedCode, setHighlightedCode] = useState("");
 
   useEffect(() => {
@@ -48,7 +46,7 @@ export function Code({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg bg-primary text-gray-100",
+        "bg-primary relative flex flex-col overflow-hidden rounded-lg text-gray-100",
         className,
       )}
     >
@@ -57,7 +55,7 @@ export function Code({
         text={code}
       />
       {title && (
-        <div className="flex items-center justify-between border-b border-border/20 bg-primary px-4 py-2.5">
+        <div className="border-border/20 bg-primary flex items-center justify-between border-b px-4 py-2.5">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-gray-200">{title}</span>
           </div>

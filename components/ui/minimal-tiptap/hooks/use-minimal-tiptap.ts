@@ -27,7 +27,7 @@ import { fileToBase64, getOutput, randomId } from "../utils";
 import { useThrottle } from "../hooks/use-throttle";
 import { toast } from "sonner";
 import { useCallback } from "react";
-import sanitizeHtml from "sanitize-html";
+import DOMPurify from "dompurify";
 
 export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   value?: Content;
@@ -314,8 +314,10 @@ export const useMinimalTiptapEditor = ({
     immediatelyRender: false,
     extensions: createExtensions(placeholder),
     editorProps: {
-      transformPastedHTML(html) {
-        return sanitizeHtml(html).trim();
+      transformPastedHTML(dirtyHtml) {
+        return DOMPurify.sanitize(dirtyHtml, {
+          FORBID_ATTR: ["class", "style"],
+        }).trim();
       },
       attributes: {
         autocomplete: "off",

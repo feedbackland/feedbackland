@@ -81,8 +81,8 @@ export function ActivityFeedPagination({
   // --- End Pagination Logic ---
 
   return (
-    <div className="debug mt-6 flex items-center justify-between">
-      <Pagination className="debug">
+    <div className="mt-6 flex items-center justify-between">
+      <Pagination className="">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious

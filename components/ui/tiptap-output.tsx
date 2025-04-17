@@ -1,41 +1,33 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-// import DOMPurify from "dompurify";
+import DOMPurify from "dompurify";
 import parse, { Element, attributesToProps } from "html-react-parser";
-import sanitizeHtml, { defaults as sanitizeHtmlDefaults } from "sanitize-html";
 import { memo } from "react"; // Import hooks
 
 export const TiptapOutput = memo(function TiptapOutput({
   content,
   className,
-  disallowedTags = [],
+  forbiddenTags = [],
+  forbiddenAttr = [],
 }: {
   content: string;
-  disallowedTags?: string[];
+  forbiddenTags?: string[];
+  forbiddenAttr?: string[];
   className?: React.ComponentProps<"div">["className"];
 }) {
-  // DOMPurify.sanitize(content)
+  const cleanedHtml = DOMPurify.sanitize(content, {
+    FORBID_TAGS: forbiddenTags,
+    FORBID_ATTR: forbiddenAttr,
+  });
 
   return (
     <div className={cn("tiptap-output", className)}>
-      {parse(
-        sanitizeHtml(content, {
-          allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
-            (tag) => !disallowedTags.includes(tag),
-          ),
-          allowedAttributes: {
-            ...sanitizeHtmlDefaults.allowedAttributes,
-            span: ["data-id", "data-label", "data-type"],
-          },
-          allowedClasses: {
-            span: ["mention"],
-          },
-        }),
-        {
-          replace: (domNode) => {
+      {parse(cleanedHtml, {
+        replace: (domNode) => {
+          if (domNode instanceof Element) {
             if (
-              domNode instanceof Element &&
+              !forbiddenTags.includes("a") &&
               domNode.name === "img" &&
               domNode.attribs
             ) {
@@ -52,11 +44,11 @@ export const TiptapOutput = memo(function TiptapOutput({
                 </a>
               );
             }
+          }
 
-            return undefined;
-          },
+          return undefined;
         },
-      )}
+      })}
     </div>
   );
 });
