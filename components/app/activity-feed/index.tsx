@@ -26,6 +26,8 @@ import { useSearchActivityFeed } from "@/hooks/use-search-activity-feed";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedSearchInput } from "./search-input";
 import { ActivityFeedLoading } from "./loading";
+import parse from "html-react-parser";
+import sanitizeHtml, { defaults as sanitizeHtmlDefaults } from "sanitize-html";
 
 const PAGE_SIZE = 2;
 
@@ -223,14 +225,27 @@ export function ActivityFeed() {
 
       {isLoaded && hasItems && (
         <div className="space-y-8">
-          {items?.map(({ id, content }) => <div key={id}>{content}</div>)}
+          {items?.map(({ id, content }) => (
+            <div key={id}>
+              {" "}
+              <div className="tiptap-output text-primary">
+                {parse(
+                  sanitizeHtml(content, {
+                    allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
+                      (tag) => tag !== "a" && tag !== "code",
+                    ),
+                  }),
+                )}
+              </div>
+            </div>
+          ))}
 
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-muted-foreground text-sm">
-                Showing {startItem}-{endItem} of {count} items
-              </div>
-              <Pagination>
+            <div className="debug mt-6 flex items-center justify-between">
+              {/* <div className="text-muted-foreground debug flex text-sm">
+                {startItem}-{endItem} of {count}
+              </div> */}
+              <Pagination className="debug">
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
