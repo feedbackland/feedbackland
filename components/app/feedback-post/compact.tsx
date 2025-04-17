@@ -6,9 +6,8 @@ import { FeedbackPostUpvoteButton } from "./upvote-button";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import parse from "html-react-parser";
 import Link from "next/link";
-import sanitizeHtml, { defaults as sanitizeHtmlDefaults } from "sanitize-html";
+import { TiptapOutput } from "@/components/ui/tiptap-output";
 
 function Inner({
   postId,
@@ -53,15 +52,10 @@ function Inner({
               </h3>
             </div>
 
-            <div className="tiptap-output text-primary/70! mt-[-1] line-clamp-4">
-              {parse(
-                sanitizeHtml(description, {
-                  allowedTags: sanitizeHtmlDefaults.allowedTags.filter(
-                    (tag) => tag !== "a" && tag !== "code",
-                  ),
-                }),
-              )}
-            </div>
+            <TiptapOutput
+              content={description}
+              className="text-primary/70! mt-[-1] line-clamp-4"
+            />
           </div>
         </>
       </Link>

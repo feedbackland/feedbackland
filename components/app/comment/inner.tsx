@@ -2,12 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import { CommentHeader } from "./header";
-import { CommentContent } from "./content";
 import { CommentFooter } from "./footer";
 import { Comment } from "./";
 import { CommentsOptionsMenu } from "./options-menu";
 import { useState } from "react";
 import { CommentEdit } from "./edit";
+import { TiptapOutput } from "@/components/ui/tiptap-output";
 
 export type CommentReplyMeta = {
   commentId: string;
@@ -68,7 +68,7 @@ export function CommentInner({
         <div className="pl-8">
           {!isEditing ? (
             <>
-              <CommentContent content={content} key={id} />
+              <TiptapOutput key={id} content={content} />
               <CommentFooter
                 commentId={id}
                 upvotes={upvotes}
