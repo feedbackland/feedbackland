@@ -22,28 +22,28 @@ export const searchActivityFeedQuery = async ({
 
   const offset = (page - 1) * pageSize;
 
-  // Define the search query for feedback
-  const feedbackSearch = db.selectFrom("feedback").select([
-    "feedback.orgId",
-    "feedback.id",
-    "feedback.id as postId",
-    sql<any>`null`.as("commentId"),
-    "feedback.createdAt",
-    "feedback.title",
-    "feedback.description as content",
-    "feedback.upvotes",
-    "feedback.category",
-    "feedback.status",
-    sql<string>`'post'`.as("type"),
-    cosineDistance("feedback.embedding", values).as("distance"), // Specify table
-  ]);
-
-  // Define the search query for comments
-  const commentSearch = db
-    .selectFrom("comment")
-    .innerJoin("feedback", "comment.postId", "feedback.id") // Join needed for orgId
+  const feedback = db
+    .selectFrom("feedback")
     .select([
-      "feedback.orgId", // Select orgId from the joined feedback table
+      "feedback.orgId",
+      "feedback.id",
+      "feedback.id as postId",
+      sql<any>`null`.as("commentId"),
+      "feedback.createdAt",
+      "feedback.title",
+      "feedback.description as content",
+      "feedback.upvotes",
+      "feedback.category",
+      "feedback.status",
+      sql<string>`'post'`.as("type"),
+      cosineDistance("feedback.embedding", values).as("distance"),
+    ]);
+
+  const comments = db
+    .selectFrom("comment")
+    .innerJoin("feedback", "comment.postId", "feedback.id")
+    .select([
+      "feedback.orgId",
       "comment.id",
       "comment.postId",
       "comment.id as commentId",
@@ -54,34 +54,38 @@ export const searchActivityFeedQuery = async ({
       sql<any>`null`.as("category"),
       sql<any>`null`.as("status"),
       sql<string>`'comment'`.as("type"),
-      cosineDistance("comment.embedding", values).as("distance"), // Specify table
+      cosineDistance("comment.embedding", values).as("distance"),
     ]);
 
-  // Combine the searches using UNION ALL
-  const activitySearchUnion = feedbackSearch.unionAll(commentSearch);
-
-  // Base query for filtering (items and count)
-  const filteredQueryBase = db
-    .selectFrom(activitySearchUnion.as("activity_search")) // Use the union as a subquery
-    .where("activity_search.orgId", "=", orgId)
-    .where("activity_search.distance", "<", 0.5); // Filter on the alias
-
-  // Query for fetching items with ordering and pagination
-  const itemsQuery = filteredQueryBase
-    .selectAll("activity_search") // Select all columns from the subquery
-    .orderBy("activity_search.distance") // Order by the alias
-    .limit(pageSize)
-    .offset(offset);
-
-  // Query for counting total items with the same filters
-  const countQuery = filteredQueryBase.select((eb) =>
-    eb.fn.countAll<string>().as("count"),
-  );
+  const baseQuery = db
+    .selectFrom(feedback.unionAll(comments).as("union"))
+    .where("union.orgId", "=", orgId)
+    .where("union.distance", "<", 0.5);
 
   try {
-    // Execute both queries
-    const items = await itemsQuery.execute();
-    const [{ count }] = await countQuery.execute();
+    const items = await baseQuery
+      .select([
+        "union.orgId",
+        "union.id",
+        "union.postId",
+        "union.commentId",
+        "union.createdAt",
+        "union.title",
+        "union.content",
+        "union.upvotes",
+        "union.category",
+        "union.status",
+        "union.type",
+        "union.distance",
+      ])
+      .orderBy("union.distance")
+      .limit(pageSize)
+      .offset(offset)
+      .execute();
+
+    const [{ count }] = await baseQuery
+      .select((eb) => eb.fn.countAll<string>().as("count"))
+      .execute();
 
     const totalItems = Number(count);
 
