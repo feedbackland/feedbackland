@@ -6,20 +6,10 @@ import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
 import { FeedbackPostsSearchInput } from "./search-input";
 import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 import { FeedbackPostsLoading } from "./loading";
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
 
 function convertToString(value: string | number | bigint | null): string {
   if (value === null) {
@@ -38,7 +28,7 @@ export function FeedbackPosts() {
 
   const {
     query: {
-      data: postsData,
+      data,
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
@@ -61,7 +51,7 @@ export function FeedbackPosts() {
   const posts =
     (isSearchActive
       ? searchData
-      : postsData?.pages.flatMap((page) => page.feedbackPosts)) || [];
+      : data?.pages.flatMap((page) => page.feedbackPosts)) || [];
   const isPending = isSearchActive ? isSearchPending : isPostsPending;
   const isError = isSearchActive ? isSearchError : isPostsError;
 
@@ -70,10 +60,15 @@ export function FeedbackPosts() {
     !isSearchActive &&
     !isError &&
     status === null &&
-    posts.length === 0;
+    Array.isArray(posts) &&
+    posts?.length === 0;
 
   const isSearchEmpty =
-    !isPending && isSearchActive && !isError && posts.length === 0;
+    !isPending &&
+    isSearchActive &&
+    !isError &&
+    Array.isArray(posts) &&
+    posts.length === 0;
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -87,104 +82,18 @@ export function FeedbackPosts() {
     setSearchValue(value);
   };
 
-  const getDropdownName = () => {
-    let orderByName = "Newest";
-
-    if (orderBy === "upvotes") {
-      orderByName = "Most upvoted";
-    } else if (orderBy === "comments") {
-      orderByName = "Most commented";
-    }
-
-    return (
-      <>
-        {orderByName}
-        {status && ", "}
-        {status && (
-          <div className={cn(`text-${status.replace(" ", "-")}`)}>
-            {capitalizeFirstLetter(status)}
-          </div>
-        )}
-      </>
-    );
-  };
-
-  const handleSelectStatus = (value: FeedbackStatus | "all") => {
-    if (value === "all") {
-      setStatus(null);
-    } else {
-      setStatus(value);
-    }
-  };
-
   return (
     <div className="mt-10">
       {!isPlatformEmpty && (
         <div className="relative mb-3 flex h-[40px] items-center justify-between gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="link"
-                className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
-              >
-                {getDropdownName()}
-                <ChevronDown className="size-3.5!" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuRadioGroup
-                value={orderBy}
-                onValueChange={(value) => setOrderBy(value as FeedbackOrderBy)}
-              >
-                <DropdownMenuRadioItem value="newest">
-                  Newest
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="upvotes">
-                  Most upvoted
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="comments">
-                  Most commented
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuRadioGroup
-                value={status || "all"}
-                onValueChange={(value) =>
-                  handleSelectStatus(value as FeedbackStatus | "all")
-                }
-              >
-                <DropdownMenuRadioItem value="all">
-                  All statuses
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem
-                  value="under consideration"
-                  className="text-under-consideration"
-                >
-                  Under consideration
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="planned" className="text-planned">
-                  Planned
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem
-                  value="in progress"
-                  className="text-in-progress"
-                >
-                  In progress
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="done" className="text-done">
-                  Done
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem
-                  value="declined"
-                  className="text-declined"
-                >
-                  Declined
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SortingFilteringDropdown
+            orderBy={orderBy}
+            status={status}
+            onChange={({ orderBy, status }) => {
+              setOrderBy(orderBy);
+              setStatus(status);
+            }}
+          />
 
           <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
         </div>
@@ -218,13 +127,19 @@ export function FeedbackPosts() {
         !isPlatformEmpty &&
         !isSearchEmpty &&
         status !== null &&
+        Array.isArray(posts) &&
         posts.length === 0 && (
           <div className="text-muted-foreground py-5 text-center text-sm font-normal">
             No feedback found that is marked as {status}
           </div>
         )}
 
-      {!!(!isPending && !isError && posts.length > 0) && (
+      {!!(
+        !isPending &&
+        !isError &&
+        Array.isArray(posts) &&
+        posts.length > 0
+      ) && (
         <div className="space-y-8">
           {posts.map((post) => (
             <FeedbackPostCompact

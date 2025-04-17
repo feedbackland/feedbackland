@@ -9,7 +9,7 @@ import { ActivityFeedLoading } from "./loading";
 import parse from "html-react-parser";
 import sanitizeHtml, { defaults as sanitizeHtmlDefaults } from "sanitize-html";
 import { ActivityFeedPagination } from "./pagination";
-import { ActivityFeedSortingFilteringDropdown } from "./sorting-filtering-dropdown";
+import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
 
 const PAGE_SIZE = 1;
 
@@ -22,7 +22,11 @@ export function ActivityFeed() {
   const isSearchActive = !!(searchValue?.length > 0);
 
   const {
-    query: { data, isPending: isItemsPending, isError: isItemsError },
+    query: {
+      data: itemsData,
+      isPending: isItemsPending,
+      isError: isItemsError,
+    },
   } = useActivityFeed({
     enabled: !isSearchActive,
     page,
@@ -43,7 +47,8 @@ export function ActivityFeed() {
     page,
     pageSize: PAGE_SIZE,
   });
-  const activeData = isSearchActive ? searchData : data;
+
+  const activeData = isSearchActive ? searchData : itemsData;
   const items = activeData?.items;
   const totalPages = activeData?.totalPages ?? 1;
   const currentPage = activeData?.currentPage ?? 1;
@@ -73,7 +78,7 @@ export function ActivityFeed() {
     <div className="mt-10">
       {!isPlatformEmpty && (
         <div className="relative mb-3 flex h-[40px] items-center justify-between gap-2">
-          <ActivityFeedSortingFilteringDropdown
+          <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}
             onChange={({ orderBy, status }) => {

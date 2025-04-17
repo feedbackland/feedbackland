@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
-export function ActivityFeedSortingFilteringDropdown({
+export function SortingFilteringDropdown({
   orderBy,
   status,
   onChange,

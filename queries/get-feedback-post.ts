@@ -49,9 +49,7 @@ export const getFeedbackPostQuery = async ({
             .whereRef("comment.postId", "=", "feedback.id")
             .as("commentCount"),
       ])
-      .executeTakeFirst();
-
-    console.log("result", result);
+      .executeTakeFirstOrThrow();
 
     return result;
   } catch (error: any) {

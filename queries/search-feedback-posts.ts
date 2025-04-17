@@ -13,50 +13,53 @@ export const searchFeedbackPostsQuery = async ({
   userId?: string | null;
   searchValue: string;
 }) => {
-  const {
-    embedding: { values },
-  } = await textEmbeddingModel.embedContent(searchValue);
+  try {
+    const {
+      embedding: { values },
+    } = await textEmbeddingModel.embedContent(searchValue);
 
-  const distance = cosineDistance("embedding", values);
+    const distance = cosineDistance("embedding", values);
 
-  const results = await db
-    .selectFrom("feedback")
-    .leftJoin("user_upvote", (join) =>
-      join
-        .onRef("feedback.id", "=", "user_upvote.contentId")
-        .on("user_upvote.userId", "=", userId || null),
-    )
-    .where("feedback.orgId", "=", orgId)
-    .select([
-      "feedback.id",
-      "feedback.createdAt",
-      "feedback.updatedAt",
-      "feedback.orgId",
-      "feedback.authorId",
-      "feedback.category",
-      "feedback.title",
-      "feedback.description",
-      "feedback.upvotes",
-      (eb) =>
-        eb
-          .case()
-          .when("user_upvote.userId", "=", userId || null)
-          .then(true)
-          .else(false)
-          .end()
-          .as("hasUserUpvote"),
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll().as("commentCount"))
-          .whereRef("comment.postId", "=", "feedback.id")
-          .as("commentCount"),
-      distance.as("distance"),
-    ])
-    .where(distance, "<", 0.4)
-    .orderBy(distance)
-    .limit(50)
-    .executeTakeFirstOrThrow();
+    const results = await db
+      .selectFrom("feedback")
+      .leftJoin("user_upvote", (join) =>
+        join
+          .onRef("feedback.id", "=", "user_upvote.contentId")
+          .on("user_upvote.userId", "=", userId || null),
+      )
+      .where("feedback.orgId", "=", orgId)
+      .select([
+        "feedback.id",
+        "feedback.createdAt",
+        "feedback.updatedAt",
+        "feedback.orgId",
+        "feedback.authorId",
+        "feedback.category",
+        "feedback.title",
+        "feedback.description",
+        "feedback.upvotes",
+        (eb) =>
+          eb
+            .case()
+            .when("user_upvote.userId", "=", userId || null)
+            .then(true)
+            .else(false)
+            .end()
+            .as("hasUserUpvote"),
+        (eb) =>
+          eb
+            .selectFrom("comment")
+            .select(eb.fn.countAll().as("commentCount"))
+            .whereRef("comment.postId", "=", "feedback.id")
+            .as("commentCount"),
+      ])
+      .where(distance, "<", 0.4)
+      .orderBy(distance)
+      .limit(50)
+      .executeTakeFirstOrThrow();
 
-  return results;
+    return results;
+  } catch (error) {
+    throw error;
+  }
 };
