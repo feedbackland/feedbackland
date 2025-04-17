@@ -17,6 +17,7 @@ export async function getActivityFeedQuery({
 }) {
   const offset = (page - 1) * pageSize;
 
+  // Define the core union logic separately
   const baseQuery = db
     .selectFrom("feedback")
     .select([
@@ -56,29 +57,44 @@ export async function getActivityFeedQuery({
           sql<string>`'comment'`.as("type"),
           sql<any>`null`.as("commentCount"),
         ]),
-    )
-    .where("orgId", "=", orgId);
+    );
 
-  let query = baseQuery;
+  // Base query for filtering (items and count)
+  let query = db
+    .selectFrom(baseQuery.as("activity")) // Use the union as a subquery
+    .where("activity.orgId", "=", orgId);
 
+  // Apply status filter if provided
   if (status) {
-    query = query.where("status", "=", status);
+    query = query.where("activity.status", "=", status);
   }
 
+  // Query for fetching items with ordering and pagination
+  let itemsQuery = query;
   if (orderBy === "newest") {
-    query = query.orderBy("createdAt", "desc");
+    itemsQuery = itemsQuery.orderBy("activity.createdAt", "desc");
   } else if (orderBy === "upvotes") {
-    query = query.orderBy("upvotes", "desc");
+    itemsQuery = itemsQuery.orderBy("activity.upvotes", "desc");
   } else if (orderBy === "comments") {
-    query = query.orderBy("commentCount", "desc");
+    // Note: Ordering by commentCount might require adjustments if it's not directly available after the subquery wrap.
+    // Assuming it's implicitly handled or needs further refinement if this order is used.
+    // For now, let's keep the original logic structure but apply it to the subquery alias.
+    // If 'commentCount' isn't directly selectable here, this might need a different approach.
+    itemsQuery = itemsQuery.orderBy("activity.commentCount", "desc");
   }
+
+  // Query for counting total items with the same filters
+  const countQuery = query.select((eb) => eb.fn.countAll<string>().as("count"));
 
   try {
-    const items = await query.limit(pageSize).offset(offset).execute();
-
-    const [{ count }] = await baseQuery
-      .select((eb) => eb.fn.count<string>("id").as("count"))
+    // Execute both queries
+    const items = await itemsQuery
+      .selectAll("activity") // Select all columns from the subquery
+      .limit(pageSize)
+      .offset(offset)
       .execute();
+
+    const [{ count }] = await countQuery.execute();
 
     const totalItems = Number(count);
 

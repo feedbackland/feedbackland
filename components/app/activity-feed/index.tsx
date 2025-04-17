@@ -9,16 +9,25 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { useSearchActivityFeed } from "@/hooks/use-search-activity-feed";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedSearchInput } from "./search-input";
 import { ActivityFeedLoading } from "./loading";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 2;
 
 export function ActivityFeed() {
   const [searchValue, setSearchValue] = useState("");
@@ -29,7 +38,7 @@ export function ActivityFeed() {
   const isSearchActive = !!(searchValue?.length > 0);
 
   const {
-    query: { data, isPending: isPostsPending, isError: isPostsError },
+    query: { data, isPending: isItemsPending, isError: isItemsError },
   } = useActivityFeed({
     enabled: !isSearchActive,
     page,
@@ -50,12 +59,17 @@ export function ActivityFeed() {
     page,
     pageSize: PAGE_SIZE,
   });
+  const activeData = isSearchActive ? searchData : data;
+  const items = activeData?.items;
+  const totalPages = activeData?.totalPages ?? 1;
+  const count = Number(activeData?.count ?? 0); // Ensure count is a number
+  const currentPage = activeData?.currentPage ?? 1;
 
-  const items = isSearchActive ? searchData?.items : data?.items;
-  const isPending = isSearchActive ? isSearchPending : isPostsPending;
-  const isError = isSearchActive ? isSearchError : isPostsError;
+  const isPending = isSearchActive ? isSearchPending : isItemsPending;
+  const isError = isSearchActive ? isSearchError : isItemsError;
   const isLoaded = !isPending && !isError;
-  const hasNoItems = !!(items && items.length === 0);
+  const hasItems = !!(items && items.length > 0);
+  const hasNoItems = isLoaded && !hasItems;
   const hasStatusFilter = status !== null;
   const isPlatformEmpty =
     isLoaded && !isSearchActive && !hasStatusFilter && hasNoItems;
@@ -64,6 +78,13 @@ export function ActivityFeed() {
   const handleSearch = (value: string) => {
     setPage(1);
     setSearchValue(value);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+      window.scrollTo(0, 0); // Scroll to top when page changes
+    }
   };
 
   const getDropdownName = () => {
@@ -96,16 +117,8 @@ export function ActivityFeed() {
     }
   };
 
-  const goToPrevPage = () => {
-    setPage((page) => page - 1);
-  };
-
-  const goToNextPage = () => {
-    setPage((page) => page + 1);
-  };
-
-  const startItem = (page - 1) * PAGE_SIZE + 1;
-  const endItem = page * PAGE_SIZE;
+  const startItem = count > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+  const endItem = Math.min(currentPage * PAGE_SIZE, count);
 
   return (
     <div className="mt-10">
@@ -208,35 +221,101 @@ export function ActivityFeed() {
           </div>
         )}
 
-      {isLoaded && !!items && items?.length > 0 && (
-        <>
-          {!isSearchActive && data && (
-            <div className="flex items-center justify-between">
-              <div>
-                {startItem}-{endItem} of {data.count}
+      {isLoaded && hasItems && (
+        <div className="space-y-8">
+          {items?.map(({ id, content }) => <div key={id}>{content}</div>)}
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between">
+              <div className="text-muted-foreground text-sm">
+                Showing {startItem}-{endItem} of {count} items
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="icon"
-                  onClick={goToPrevPage}
-                  disabled={page === 1}
-                >
-                  <ChevronLeftIcon className="size-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  onClick={goToNextPage}
-                  disabled={page === data.totalPages}
-                >
-                  <ChevronRightIcon className="size-4" />
-                </Button>
-              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(currentPage - 1);
+                      }}
+                      aria-disabled={currentPage === 1}
+                      tabIndex={currentPage === 1 ? -1 : undefined}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : undefined
+                      }
+                    />
+                  </PaginationItem>
+
+                  {/* Simplified pagination links for brevity - consider adding ellipsis logic if needed */}
+                  {[...Array(totalPages)].map((_, i) => {
+                    const pageNum = i + 1;
+                    // Basic logic to show first, last, current, and adjacent pages
+                    const showPage =
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      (pageNum >= currentPage - 1 &&
+                        pageNum <= currentPage + 1);
+
+                    if (!showPage) {
+                      // Add ellipsis logic here if desired
+                      // Render ellipsis only once between gaps
+                      if (
+                        (pageNum === 2 && currentPage > 3) ||
+                        (pageNum === totalPages - 1 &&
+                          currentPage < totalPages - 2)
+                      ) {
+                        return (
+                          <PaginationItem key={`ellipsis-${pageNum}`}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(pageNum);
+                          }}
+                          isActive={currentPage === pageNum}
+                          aria-current={
+                            currentPage === pageNum ? "page" : undefined
+                          }
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(currentPage + 1);
+                      }}
+                      aria-disabled={currentPage === totalPages}
+                      tabIndex={currentPage === totalPages ? -1 : undefined}
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : undefined
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
-          <div className="space-y-8">
-            {items?.map(({ id, content }) => <div key={id}>{content}</div>)}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
