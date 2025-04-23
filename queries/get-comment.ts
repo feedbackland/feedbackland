@@ -20,7 +20,6 @@ export const getCommentQuery = async ({
           .onRef("comment.id", "=", "user_upvote.contentId")
           .on("user_upvote.userId", "=", userId || null),
       )
-      .where("comment.id", "=", commentId)
       .select([
         "comment.id",
         "comment.parentCommentId",
@@ -41,6 +40,7 @@ export const getCommentQuery = async ({
             .end()
             .as("hasUserUpvote"),
       ])
+      .where("comment.id", "=", commentId)
       .executeTakeFirstOrThrow();
   } catch (error: any) {
     throw error;

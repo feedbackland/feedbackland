@@ -59,28 +59,26 @@ export const searchActivityFeedQuery = async ({
 
   const baseQuery = db
     .selectFrom(feedback.unionAll(comments).as("union"))
+    .select([
+      "union.orgId",
+      "union.id",
+      "union.postId",
+      "union.commentId",
+      "union.createdAt",
+      "union.title",
+      "union.content",
+      "union.upvotes",
+      "union.category",
+      "union.status",
+      "union.type",
+      "union.distance",
+    ])
     .where("union.orgId", "=", orgId)
-    .where("union.distance", "<", 0.5);
+    .where("union.distance", "<", 0.5)
+    .orderBy("union.distance");
 
   try {
-    const items = await baseQuery
-      .select([
-        "union.orgId",
-        "union.id",
-        "union.postId",
-        "union.commentId",
-        "union.createdAt",
-        "union.title",
-        "union.content",
-        "union.upvotes",
-        "union.category",
-        "union.status",
-        "union.type",
-      ])
-      .orderBy("union.distance")
-      .limit(pageSize)
-      .offset(offset)
-      .execute();
+    const items = await baseQuery.limit(pageSize).offset(offset).execute();
 
     const [{ count }] = await baseQuery
       .select((eb) => eb.fn.countAll<string>().as("count"))

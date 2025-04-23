@@ -27,7 +27,6 @@ export const searchFeedbackPostsQuery = async ({
           .onRef("feedback.id", "=", "user_upvote.contentId")
           .on("user_upvote.userId", "=", userId || null),
       )
-      .where("feedback.orgId", "=", orgId)
       .select([
         "feedback.id",
         "feedback.createdAt",
@@ -49,14 +48,16 @@ export const searchFeedbackPostsQuery = async ({
         (eb) =>
           eb
             .selectFrom("comment")
-            .select(eb.fn.countAll().as("commentCount"))
+            .select(eb.fn.countAll().as("count"))
             .whereRef("comment.postId", "=", "feedback.id")
             .as("commentCount"),
+        distance.as("distance"),
       ])
+      .where("feedback.orgId", "=", orgId)
       .where(distance, "<", 0.4)
       .orderBy(distance)
       .limit(50)
-      .executeTakeFirstOrThrow();
+      .execute();
 
     return results;
   } catch (error) {

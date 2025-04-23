@@ -24,7 +24,6 @@ export const getCommentsQuery = async ({
           .onRef("comment.id", "=", "user_upvote.contentId")
           .on("user_upvote.userId", "=", userId || null),
       )
-      .where("comment.postId", "=", postId)
       .select([
         "comment.id",
         "comment.parentCommentId",
@@ -45,20 +44,13 @@ export const getCommentsQuery = async ({
             .end()
             .as("hasUserUpvote"),
       ])
-      .orderBy("comment.createdAt", "desc")
-      .limit(limit + 1);
+      .where("comment.postId", "=", postId);
 
     if (cursor) {
-      query = query.where((eb) =>
-        eb.or([
-          eb("comment.createdAt", "<", new Date(cursor.createdAt)),
-          eb.and([
-            eb("comment.createdAt", "=", new Date(cursor.createdAt)),
-            eb("id", "<", cursor.id),
-          ]),
-        ]),
-      );
+      query = query.where("comment.createdAt", "<", new Date(cursor.createdAt));
     }
+
+    query = query.orderBy("comment.createdAt", "desc").limit(limit + 1);
 
     const comments = await query.execute();
 

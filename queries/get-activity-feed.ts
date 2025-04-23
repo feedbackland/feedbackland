@@ -59,50 +59,31 @@ export async function getActivityFeedQuery({
 
   let baseQuery = db
     .selectFrom(feedback.unionAll(comments).as("union"))
+    .selectAll()
     .where("union.orgId", "=", orgId);
 
   if (status) {
     baseQuery = baseQuery.where("union.status", "=", status);
   }
 
-  let itemsQuery = baseQuery;
-
   if (orderBy === "newest") {
-    itemsQuery = itemsQuery.orderBy("union.createdAt", "desc");
-  } else if (orderBy === "upvotes") {
-    itemsQuery = itemsQuery.orderBy("union.upvotes", "desc");
-  } else if (orderBy === "comments") {
-    // Note: Ordering by commentCount might require adjustments if it's not directly available after the subquery wrap.
-    // Assuming it's implicitly handled or needs further refinement if this order is used.
-    // For now, let's keep the original logic structure but apply it to the subquery alias.
-    // If 'commentCount' isn't directly selectable here, this might need a different approach.
-    itemsQuery = itemsQuery.orderBy("union.commentCount", "desc");
+    baseQuery = baseQuery.orderBy("union.createdAt", "desc");
   }
 
-  const countQuery = baseQuery.select((eb) =>
-    eb.fn.countAll<string>().as("count"),
-  );
+  if (orderBy === "upvotes") {
+    baseQuery = baseQuery.orderBy("union.upvotes", "desc");
+  }
+
+  if (orderBy === "comments") {
+    baseQuery = baseQuery.orderBy("union.commentCount", "desc");
+  }
 
   try {
-    const items = await itemsQuery
-      .select([
-        "union.orgId",
-        "union.id",
-        "union.postId",
-        "union.commentId",
-        "union.createdAt",
-        "union.title",
-        "union.content",
-        "union.upvotes",
-        "union.category",
-        "union.status",
-        "union.type",
-      ])
-      .limit(pageSize)
-      .offset(offset)
-      .execute();
+    const items = await baseQuery.limit(pageSize).offset(offset).execute();
 
-    const [{ count }] = await countQuery.execute();
+    const [{ count }] = await baseQuery
+      .select((eb) => eb.fn.countAll<string>().as("count"))
+      .execute();
 
     const totalItems = Number(count);
 

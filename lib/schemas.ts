@@ -35,3 +35,12 @@ export const upsertOrgSchema = z.object({
 });
 
 export const userRoleSchema = z.union([z.literal("user"), z.literal("admin")]);
+
+export const feedbackPostsCursorSchema = z
+  .object({
+    id: z.string(),
+    createdAt: z.string().datetime({ offset: true }),
+    commentCount: z.number().min(0),
+    upvotes: z.number().min(0),
+  })
+  .nullish();

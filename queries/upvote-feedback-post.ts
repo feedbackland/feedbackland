@@ -29,13 +29,13 @@ export async function upvoteFeedbackPostQuery({
             upvotes: (eb) => eb("upvotes", "-", "1"),
           })
           .where("id", "=", postId)
-          .executeTakeFirstOrThrow();
+          .execute();
 
         await trx
           .deleteFrom("user_upvote")
           .where("userId", "=", userId)
           .where("contentId", "=", postId)
-          .executeTakeFirstOrThrow();
+          .execute();
       }
 
       if (!hasUpvote) {
@@ -45,7 +45,7 @@ export async function upvoteFeedbackPostQuery({
             upvotes: (eb) => eb("upvotes", "+", "1"),
           })
           .where("id", "=", postId)
-          .executeTakeFirstOrThrow();
+          .execute();
 
         await trx
           .insertInto("user_upvote")
@@ -53,7 +53,7 @@ export async function upvoteFeedbackPostQuery({
             userId,
             contentId: postId,
           })
-          .executeTakeFirstOrThrow();
+          .execute();
       }
 
       return { success: true };

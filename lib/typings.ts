@@ -6,6 +6,7 @@ import {
   upsertUserSchema,
   userRoleSchema,
   upsertOrgSchema,
+  feedbackPostsCursorSchema,
 } from "./schemas";
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
@@ -19,3 +20,5 @@ export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type UpsertOrg = z.infer<typeof upsertOrgSchema>;
 
 export type UserRole = z.infer<typeof userRoleSchema>;
+
+export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;

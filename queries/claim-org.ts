@@ -32,7 +32,7 @@ export async function claimOrgQuery({
                 .doUpdateSet({ role: "admin" }), // Update the role if conflict occurs
           )
           .returningAll()
-          .executeTakeFirstOrThrow();
+          .execute();
 
         return await trx
           .updateTable("org")
