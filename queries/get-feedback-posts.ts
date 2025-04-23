@@ -145,22 +145,20 @@ export const getFeedbackPostsQuery = async ({
       if (cursor) {
         // Keyset pagination logic for DESC primary / DESC secondary
         // Since commentCount is never null, we only need the logic for numeric comparison
-        const cursorCommentCount =
-          cursor.commentCount === null ? 0 : Number(cursor.commentCount); // Ensure cursor value is number (though it shouldn't be null now)
         query = query.where((eb) =>
           eb.or([
             // Rows with count < cursor.commentCount (these come after cursor in DESC order)
             eb(
               "feedback_with_comment_count.commentCount",
               "<",
-              cursorCommentCount,
+              cursor.commentCount,
             ),
             // Rows with count = cursor.commentCount and id < cursor.id (tie-breaker for DESC secondary sort)
             eb.and([
               eb(
                 "feedback_with_comment_count.commentCount",
                 "=",
-                cursorCommentCount,
+                cursor.commentCount,
               ),
               eb("feedback_with_comment_count.id", "<", cursor.id),
             ]),
