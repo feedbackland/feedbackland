@@ -65,7 +65,6 @@ export const upsertUserQuery = async ({
       return { user, userOrg, org };
     });
   } catch (error: any) {
-    console.log("error", error);
     throw error;
   }
 };

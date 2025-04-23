@@ -4,15 +4,16 @@ import { db } from "@/db/db";
 import pgvector from "pgvector/pg";
 import { textEmbeddingModel } from "@/lib/gemini";
 import { FeedbackCategory } from "@/lib/typings";
+import { sanitize, stripHtml } from "@/lib/utils";
 
-const getTitleAndCategory = async (description: string) => {
+const getTitleAndCategory = async (plainTextDescription: string) => {
   const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
     Given the following description, create a short title that sounds like it was written by a human.
     Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
 
     Description:
-    ${description}
+    ${plainTextDescription}
 
     Respond with a valid JSON object that follows this structure exactly:
     {
@@ -69,18 +70,18 @@ export async function createFeedbackPostQuery({
   orgId: string;
 }) {
   try {
-    const { title, category } = await getTitleAndCategory(description);
-
-    const embedding = pgvector.toSql(
-      (await textEmbeddingModel.embedContent(`${title}: ${description}`))
-        .embedding.values,
-    );
+    const plainTextDescription = stripHtml(description);
+    const { title, category } = await getTitleAndCategory(plainTextDescription);
+    const content = `${title}: ${plainTextDescription}`;
+    const embeddedContent = await textEmbeddingModel.embedContent(content);
+    const vector = embeddedContent.embedding.values;
+    const embedding = pgvector.toSql(vector);
 
     const feedbackPost = await db
       .insertInto("feedback")
       .values({
         title,
-        description,
+        description: sanitize(description),
         category,
         authorId,
         orgId,
@@ -91,7 +92,6 @@ export async function createFeedbackPostQuery({
 
     return feedbackPost;
   } catch (error: any) {
-    console.log(error);
     throw error;
   }
 }

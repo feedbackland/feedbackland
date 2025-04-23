@@ -3,6 +3,7 @@
 import { db } from "@/db/db";
 import pgvector from "pgvector/pg";
 import { textEmbeddingModel } from "@/lib/gemini";
+import { sanitize, stripHtml } from "@/lib/utils";
 
 export const updateFeedbackPostQuery = async ({
   postId,
@@ -34,14 +35,19 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const embedding = pgvector.toSql(
-          (await textEmbeddingModel.embedContent(`${title}: ${description}`))
-            .embedding.values,
-        );
+        const plainTextDescription = stripHtml(description);
+        const content = `${title}: ${plainTextDescription}`;
+        const embeddedContent = await textEmbeddingModel.embedContent(content);
+        const vector = embeddedContent.embedding.values;
+        const embedding = pgvector.toSql(vector);
 
         return await trx
           .updateTable("feedback")
-          .set({ title, description, embedding })
+          .set({
+            title,
+            description: sanitize(description),
+            embedding,
+          })
           .where("id", "=", postId)
           .where("orgId", "=", orgId)
           .returningAll()

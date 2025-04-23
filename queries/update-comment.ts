@@ -3,6 +3,8 @@
 import { db } from "@/db/db";
 import pgvector from "pgvector/pg";
 import { textEmbeddingModel } from "@/lib/gemini";
+import { stripHtml } from "@/lib/utils";
+import sanitize from "sanitize-html";
 
 export const updateCommentQuery = async ({
   commentId,
@@ -31,13 +33,15 @@ export const updateCommentQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const embedding = pgvector.toSql(
-          (await textEmbeddingModel.embedContent(content)).embedding.values,
-        );
+        const plainTextContent = stripHtml(content);
+        const embeddedContent =
+          await textEmbeddingModel.embedContent(plainTextContent);
+        const vector = embeddedContent.embedding.values;
+        const embedding = pgvector.toSql(vector);
 
         return await trx
           .updateTable("comment")
-          .set({ content, embedding })
+          .set({ content: sanitize(content), embedding })
           .where("id", "=", commentId)
           .returningAll()
           .executeTakeFirstOrThrow();

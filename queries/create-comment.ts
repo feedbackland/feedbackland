@@ -3,6 +3,8 @@
 import { db } from "@/db/db";
 import pgvector from "pgvector/pg";
 import { textEmbeddingModel } from "@/lib/gemini";
+import sanitize from "sanitize-html";
+import { stripHtml } from "@/lib/utils";
 
 export async function createCommentQuery({
   content,
@@ -16,14 +18,16 @@ export async function createCommentQuery({
   parentCommentId: string | null;
 }) {
   try {
-    const embedding = pgvector.toSql(
-      (await textEmbeddingModel.embedContent(content)).embedding.values,
-    );
+    const plainTextContent = stripHtml(content);
+    const embeddedContent =
+      await textEmbeddingModel.embedContent(plainTextContent);
+    const vector = embeddedContent.embedding.values;
+    const embedding = pgvector.toSql(vector);
 
     const comment = await db
       .insertInto("comment")
       .values({
-        content,
+        content: sanitize(content),
         authorId,
         postId,
         parentCommentId,

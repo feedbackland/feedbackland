@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
+import { convert } from "html-to-text";
+import sanitizeHtml from "sanitize-html";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -154,4 +156,25 @@ export const processImagesInHTML = async (html: string) => {
   }
 
   return modifiedHTML;
+};
+
+export const sanitize = (htmlString: string) => {
+  return sanitizeHtml(htmlString);
+};
+
+export const stripHtml = (htmlString: string) => {
+  const plainText = convert(sanitizeHtml(htmlString), {
+    wordwrap: false,
+    selectors: [
+      { selector: "a", options: { hideLinkHrefIfSameAsText: true } },
+      { selector: "table", format: "inline" },
+    ],
+  })
+    .replace(/\s+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .trim();
+
+  console.log("plainText: ", plainText);
+
+  return plainText;
 };
