@@ -227,7 +227,11 @@
   }
 
   code.inline {
-    @apply bg-muted rounded-sm px-1.5 py-0.5;
+    @apply bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+  }
+
+  blockquote {
+    @apply mt-6 border-l-2 pl-6 italic;
   }
 }
 
