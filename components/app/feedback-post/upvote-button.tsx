@@ -33,7 +33,9 @@ export function FeedbackPostUpvoteButton({
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const feedbackPost = useFeedbackPost({ postId });
+  const {
+    query: { data },
+  } = useFeedbackPost({ postId });
 
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
 
@@ -41,7 +43,7 @@ export function FeedbackPostUpvoteButton({
     trpc.upvoteFeedbackPost.mutationOptions({
       onSettled: async () => {
         return await queryClient.invalidateQueries({
-          queryKey: feedbackPost.queryKey,
+          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
         });
       },
     }),
@@ -50,14 +52,11 @@ export function FeedbackPostUpvoteButton({
   const isUpvotePending = upvote.isPending;
 
   let hasUserUpvote =
-    feedbackPost?.query?.data?.hasUserUpvote !== undefined
-      ? feedbackPost?.query?.data?.hasUserUpvote
+    data?.hasUserUpvote !== undefined
+      ? data?.hasUserUpvote
       : props.hasUserUpvote;
 
-  let upvoteCount = parseInt(
-    feedbackPost?.query?.data?.upvotes || props.upvoteCount,
-    10,
-  );
+  let upvoteCount = parseInt(data?.upvotes || props.upvoteCount, 10);
 
   // optimistic update
   if (isUpvotePending) {

@@ -20,7 +20,6 @@ import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 import { Error } from "@/components/ui/error";
 import { dequal } from "dequal";
-import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { toast } from "sonner";
 
@@ -47,15 +46,6 @@ export function FeedbackPostEdit({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
-    enabled: false,
-  });
-
-  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
-    postId,
-    enabled: false,
-  });
-
   const [formState, setFormState] = useState<
     "idle" | "pending" | "success" | "error"
   >("idle");
@@ -78,12 +68,12 @@ export function FeedbackPostEdit({
     trpc.updateFeedbackPost.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: feedbackPostQueryKey,
+          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
         });
 
         queryClient.invalidateQueries({
           predicate: (query) =>
-            dequal(query.queryKey[0], feedbackPostsQueryKey[0]),
+            dequal(query.queryKey[0], trpc.getFeedbackPosts.queryKey()[0]),
         });
 
         toast.success("Feedback updated", {

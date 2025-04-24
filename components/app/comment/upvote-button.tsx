@@ -24,7 +24,10 @@ export function CommentUpvoteButton({
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const comment = useComment({ commentId });
+
+  const {
+    query: { data },
+  } = useComment({ commentId });
 
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
 
@@ -32,7 +35,7 @@ export function CommentUpvoteButton({
     trpc.upvoteComment.mutationOptions({
       onSettled: async () => {
         return await queryClient.invalidateQueries({
-          queryKey: comment.queryKey,
+          queryKey: trpc.getComment.queryKey({ commentId }),
         });
       },
     }),
@@ -41,14 +44,11 @@ export function CommentUpvoteButton({
   const isUpvotePending = upvote.isPending;
 
   let hasUserUpvote =
-    comment?.query?.data?.hasUserUpvote !== undefined
-      ? comment?.query?.data?.hasUserUpvote
+    data?.hasUserUpvote !== undefined
+      ? data?.hasUserUpvote
       : props.hasUserUpvote;
 
-  let upvoteCount = parseInt(
-    comment?.query?.data?.upvotes || props.upvoteCount,
-    10,
-  );
+  let upvoteCount = parseInt(data?.upvotes || props.upvoteCount, 10);
 
   // optimistic update
   if (upvote.isPending) {

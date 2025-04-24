@@ -12,7 +12,6 @@ import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
@@ -32,9 +31,6 @@ export function FeedbackForm() {
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
-    enabled: false,
-  });
 
   const onChange = (value: string) => {
     setErrormessage("");
@@ -46,7 +42,10 @@ export function FeedbackForm() {
       onSuccess: ({ id }) => {
         queryClient.invalidateQueries({
           predicate: (query) => {
-            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
+            return dequal(
+              query.queryKey?.[0],
+              trpc.getFeedbackPosts.queryKey()[0],
+            );
           },
         });
         setValue("");

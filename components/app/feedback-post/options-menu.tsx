@@ -7,7 +7,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuSub,
@@ -24,13 +23,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
@@ -53,13 +50,11 @@ export function FeedbackPostOptionsMenu({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { query, queryKey: feedbackPostQueryKey } = useFeedbackPost({
+  const {
+    query: { data },
+  } = useFeedbackPost({
     postId,
     enabled: true,
-  });
-
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
-    enabled: false,
   });
 
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
@@ -70,7 +65,10 @@ export function FeedbackPostOptionsMenu({
       onSuccess: () => {
         queryClient.invalidateQueries({
           predicate: (query) => {
-            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
+            return dequal(
+              query.queryKey?.[0],
+              trpc.getFeedbackPosts.queryKey()[0],
+            );
           },
         });
 
@@ -91,12 +89,15 @@ export function FeedbackPostOptionsMenu({
     trpc.updateFeedbackPostStatus.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: feedbackPostQueryKey,
+          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
         });
 
         queryClient.invalidateQueries({
           predicate: (query) => {
-            return dequal(query.queryKey?.[0], feedbackPostsQueryKey?.[0]);
+            return dequal(
+              query.queryKey?.[0],
+              trpc.getFeedbackPosts.queryKey()[0],
+            );
           },
         });
 
@@ -125,7 +126,7 @@ export function FeedbackPostOptionsMenu({
   const isAuthor = session?.user?.id === authorId;
   const isAdmin = session?.userOrg?.role === "admin";
   const isVisible = !!(isAuthor || isAdmin);
-  const status = query?.data?.status;
+  const status = data?.status;
 
   if (isVisible) {
     return (

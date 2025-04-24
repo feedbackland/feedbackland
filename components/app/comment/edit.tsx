@@ -19,8 +19,6 @@ import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 import { Error } from "@/components/ui/error";
 import { dequal } from "dequal";
-import { useComments } from "@/hooks/use-comments";
-import { useComment } from "@/hooks/use-comment";
 
 const formSchema = z.object({
   content: z.string().min(1),
@@ -29,7 +27,6 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function CommentEdit({
-  postId,
   commentId,
   content,
   onClose,
@@ -43,16 +40,6 @@ export function CommentEdit({
 }) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-
-  const { queryKey: commentsQueryKey } = useComments({
-    postId,
-    enabled: false,
-  });
-
-  const { queryKey: commentQueryKey } = useComment({
-    commentId,
-    enabled: false,
-  });
 
   const [formState, setFormState] = useState<
     "idle" | "pending" | "success" | "error"
@@ -75,11 +62,12 @@ export function CommentEdit({
     trpc.updateComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: commentQueryKey,
+          queryKey: trpc.getComment.queryKey({ commentId }),
         });
 
         queryClient.invalidateQueries({
-          predicate: (query) => dequal(query.queryKey[0], commentsQueryKey[0]),
+          predicate: (query) =>
+            dequal(query.queryKey[0], trpc.getComments.queryKey()?.[0]),
         });
 
         onClose();

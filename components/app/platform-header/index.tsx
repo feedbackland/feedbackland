@@ -38,7 +38,9 @@ export function PlatformHeader() {
       />
       <div className="flex justify-between">
         <div className="flex flex-col">
-          <h1 className="h3 font-extrabold">Feedback</h1>
+          <h1 className="h3 font-extrabold">
+            <Link href={`${platformUrl}`}>Feedback</Link>
+          </h1>
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (

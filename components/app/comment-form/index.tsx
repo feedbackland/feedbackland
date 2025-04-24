@@ -11,11 +11,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
-import { useComments } from "@/hooks/use-comments";
 import { dequal } from "dequal";
 import { useKey } from "react-use";
-import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
-import { useFeedbackPost } from "@/hooks/use-feedback-post";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function CommentForm({
@@ -71,20 +68,6 @@ export function CommentForm({
   const [errorMessage, setErrormessage] = useState("");
   const [showSignUpInDialog, setShowSignUpInDialog] = useState(false);
 
-  const { queryKey: feedbackPostsQueryKey } = useFeedbackPosts({
-    enabled: false,
-  });
-
-  const { queryKey: feedbackPostQueryKey } = useFeedbackPost({
-    enabled: false,
-    postId,
-  });
-
-  const { queryKey: commentsQueryKey } = useComments({
-    postId,
-    enabled: false,
-  });
-
   const onChange = (value: string) => {
     setErrormessage("");
     setValue(value);
@@ -94,14 +77,14 @@ export function CommentForm({
     trpc.createComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: commentsQueryKey,
+          queryKey: trpc.getComments.queryKey({ postId }),
         });
         queryClient.invalidateQueries({
           predicate: (query) =>
-            dequal(query.queryKey[0], feedbackPostsQueryKey[0]),
+            dequal(query.queryKey[0], trpc.getFeedbackPosts.queryKey()[0]),
         });
         queryClient.invalidateQueries({
-          queryKey: feedbackPostQueryKey,
+          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
         });
         setValue("");
         onSuccess?.();

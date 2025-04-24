@@ -27,7 +27,6 @@ import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useComments } from "@/hooks/use-comments";
 
 export function CommentsOptionsMenu({
   postId,
@@ -46,11 +45,6 @@ export function CommentsOptionsMenu({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { queryKey: commentsQueryKey } = useComments({
-    postId,
-    enabled: false,
-  });
-
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
 
@@ -58,9 +52,7 @@ export function CommentsOptionsMenu({
     trpc.deleteComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(query.queryKey?.[0], commentsQueryKey?.[0]);
-          },
+          queryKey: trpc.getComments.queryKey({ postId }),
         });
 
         if (platformUrl) {
