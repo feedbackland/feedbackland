@@ -13,8 +13,6 @@ import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { dequal } from "dequal";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useRouter } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -23,8 +21,6 @@ import {
 
 export function FeedbackForm() {
   const trpc = useTRPC();
-  const platformUrl = usePlatformUrl();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const [value, setValue] = useState("");
@@ -39,7 +35,9 @@ export function FeedbackForm() {
 
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
-      onSuccess: ({ id }) => {
+      onSuccess: () => {
+        setValue("");
+
         queryClient.invalidateQueries({
           predicate: (query) => {
             return dequal(
@@ -48,8 +46,6 @@ export function FeedbackForm() {
             );
           },
         });
-        setValue("");
-        router.push(`${platformUrl}/${id}`);
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");

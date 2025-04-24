@@ -20,7 +20,6 @@ import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 import { Error } from "@/components/ui/error";
 import { dequal } from "dequal";
-import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { toast } from "sonner";
 
 const formSchema = z.object({

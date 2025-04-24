@@ -23,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { dequal } from "dequal";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
