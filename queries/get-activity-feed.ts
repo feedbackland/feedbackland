@@ -57,31 +57,31 @@ export async function getActivityFeedQuery({
       sql<any>`null`.as("commentCount"),
     ]);
 
-  let baseQuery = db
+  let query = db
     .selectFrom(feedback.unionAll(comments).as("union"))
     .selectAll()
     .where("union.orgId", "=", orgId);
 
   if (status) {
-    baseQuery = baseQuery.where("union.status", "=", status);
+    query = query.where("union.status", "=", status);
   }
 
   if (orderBy === "newest") {
-    baseQuery = baseQuery.orderBy("union.createdAt", "desc");
+    query = query.orderBy("union.createdAt", "desc");
   }
 
   if (orderBy === "upvotes") {
-    baseQuery = baseQuery.orderBy("union.upvotes", "desc");
+    query = query.orderBy("union.upvotes", "desc");
   }
 
   if (orderBy === "comments") {
-    baseQuery = baseQuery.orderBy("union.commentCount", "desc");
+    query = query.orderBy("union.commentCount", "desc");
   }
 
   try {
-    const items = await baseQuery.limit(pageSize).offset(offset).execute();
+    const items = await query.limit(pageSize).offset(offset).execute();
 
-    const [{ count }] = await baseQuery
+    const [{ count }] = await query
       .select((eb) => eb.fn.countAll<string>().as("count"))
       .execute();
 
