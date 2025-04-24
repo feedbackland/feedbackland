@@ -19,14 +19,6 @@ function makeQueryClient() {
       queries: {
         staleTime: 5 * 60 * 1000, // 5 minutes (reduces unnecessary network requests)
         gcTime: 10 * 60 * 1000, // 10 minutes (keeps inactive queries in cache)
-        refetchOnWindowFocus: true, // Avoids unnecessary refetching when switching tabs
-        refetchOnReconnect: true, // Ensures fresh data when reconnecting
-        refetchOnMount: true, // Avoids refetching every mount
-        retry: 2, // Retries failed queries up to 2 times
-        retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff for retries
-      },
-      mutations: {
-        retry: 0,
       },
     },
   });

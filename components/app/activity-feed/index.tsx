@@ -10,7 +10,7 @@ import { ActivityFeedPagination } from "./pagination";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 
-const PAGE_SIZE = 1;
+const PAGE_SIZE = 10;
 
 export function ActivityFeed() {
   const [searchValue, setSearchValue] = useState("");

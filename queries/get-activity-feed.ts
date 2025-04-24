@@ -13,37 +13,48 @@ export async function getActivityFeedQuery({
   page: number;
   pageSize: number;
   orderBy: FeedbackOrderBy;
-  status: FeedbackStatus;
+  status?: FeedbackStatus; // Make status optional if it can be undefined/null
 }) {
   const offset = (page - 1) * pageSize;
 
-  const feedback = db
+  // CTE for Feedback Posts
+  let feedbackQuery = db
     .selectFrom("feedback")
-    .select([
-      "feedback.orgId",
-      "feedback.id",
-      "feedback.id as postId",
-      sql<any>`null`.as("commentId"),
-      "feedback.createdAt",
-      "feedback.title",
-      "feedback.description as content",
-      "feedback.upvotes",
-      "feedback.category",
-      "feedback.status",
-      sql<string>`'post'`.as("type"),
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll().as("commentCount"))
-          .whereRef("comment.postId", "=", "feedback.id")
-          .as("commentCount"),
-    ]);
+    .where("feedback.orgId", "=", orgId); // Filter by orgId early
 
-  const comments = db
+  // Apply status filter if provided
+  if (status) {
+    feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
+  }
+
+  const feedbackCTE = feedbackQuery.select([
+    "feedback.orgId",
+    "feedback.id",
+    "feedback.id as postId",
+    sql<any>`null`.as("commentId"),
+    "feedback.createdAt",
+    "feedback.title",
+    "feedback.description as content",
+    "feedback.upvotes",
+    "feedback.category",
+    "feedback.status",
+    sql<string>`'post'`.as("type"),
+    // Subquery for comment count - relies on index on comment.postId
+    (eb) =>
+      eb
+        .selectFrom("comment")
+        .select(eb.fn.countAll<string>().as("commentCount")) // Use <string> for count
+        .whereRef("comment.postId", "=", "feedback.id")
+        .as("commentCount"),
+  ]);
+
+  // CTE for Comments
+  const commentsCTE = db
     .selectFrom("comment")
     .innerJoin("feedback", "comment.postId", "feedback.id")
+    .where("feedback.orgId", "=", orgId) // Filter by orgId early
     .select([
-      "feedback.orgId",
+      "feedback.orgId", // Selected from the joined feedback table
       "comment.id",
       "comment.postId",
       "comment.id as commentId",
@@ -52,46 +63,63 @@ export async function getActivityFeedQuery({
       "comment.content",
       "comment.upvotes",
       sql<any>`null`.as("category"),
-      sql<any>`null`.as("status"),
+      sql<any>`null`.as("status"), // Comments don't have status
       sql<string>`'comment'`.as("type"),
-      sql<any>`null`.as("commentCount"),
+      sql<string>`'0'`.as("commentCount"), // Match type 'string' from feedbackCTE count
     ]);
 
-  let query = db
-    .selectFrom(feedback.unionAll(comments).as("union"))
-    .selectAll()
-    .where("union.orgId", "=", orgId);
+  // Combine CTEs using UNION ALL
+  const unionQuery = db.selectFrom(
+    feedbackCTE.unionAll(commentsCTE).as("union"),
+  );
 
-  if (status) {
-    query = query.where("union.status", "=", status);
-  }
+  // Apply ordering
+  let orderedQuery = unionQuery.selectAll("union"); // Select all columns from the union
 
   if (orderBy === "newest") {
-    query = query.orderBy("union.createdAt", "desc");
+    orderedQuery = orderedQuery.orderBy("union.createdAt", "desc");
+  } else if (orderBy === "upvotes") {
+    // Ensure upvotes are treated numerically for sorting if they are numeric strings
+    orderedQuery = orderedQuery.orderBy("union.upvotes", "desc");
+    // If upvotes is already a numeric type, just use:
+    // orderedQuery = orderedQuery.orderBy('union.upvotes', 'desc');
+  } else if (orderBy === "comments") {
+    // sql`CAST(union.commentCount AS INTEGER)`
+    orderedQuery = orderedQuery.orderBy("union.commentCount", "desc");
+  } else {
+    // Default order if needed
+    orderedQuery = orderedQuery.orderBy("union.createdAt", "desc");
   }
 
-  if (orderBy === "upvotes") {
-    query = query.orderBy("union.upvotes", "desc");
-  }
-
-  if (orderBy === "comments") {
-    query = query.orderBy("union.commentCount", "desc");
-  }
+  // Add window function for total count and apply pagination
+  // orderedQuery already has all columns from the union via selectAll('union')
+  const finalQuery = orderedQuery
+    .select((eb) => [
+      // Add the totalCount column
+      sql<string>`count(*) OVER()`.as("totalCount"),
+      // Kysely automatically includes columns from the 'from' source (orderedQuery)
+      // when using the function form of select like this, unless explicitly excluded.
+      // So, no need for ...eb.selection.columns here.
+    ])
+    .limit(pageSize)
+    .offset(offset);
 
   try {
-    const items = await query.limit(pageSize).offset(offset).execute();
+    const results = await finalQuery.execute();
 
-    const [{ count }] = await query
-      .select((eb) => eb.fn.countAll<string>().as("count"))
-      .execute();
+    // Extract items and total count from the first result (if any)
+    const items = results;
+    const totalItems = results.length > 0 ? Number(results[0].totalCount) : 0;
+    const count = totalItems.toString(); // Keep original count format if needed
 
-    const totalItems = Number(count);
+    // Remove totalCount from individual items before returning
+    const itemsWithoutTotalCount = items.map(({ totalCount, ...rest }) => rest);
 
     const totalPages = Math.ceil(totalItems / pageSize);
 
     return {
-      items,
-      count,
+      items: itemsWithoutTotalCount,
+      count, // Return the total count as a string
       totalPages,
       currentPage: page,
     };
