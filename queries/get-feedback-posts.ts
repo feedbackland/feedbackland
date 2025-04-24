@@ -24,7 +24,6 @@ export const getFeedbackPostsQuery = async ({
   status: FeedbackStatus;
 }) => {
   try {
-    // Define the base query using a CTE to calculate commentCount
     let query = db
       .with("feedback_with_comment_count", (db) =>
         db
@@ -39,14 +38,13 @@ export const getFeedbackPostsQuery = async ({
             "feedback.title",
             "feedback.description",
             "feedback.upvotes",
-            "feedback.status", // Include status for filtering
+            "feedback.status",
             (eb) =>
               eb.fn
                 .coalesce(
-                  // Coalesce to ensure 0 instead of null
                   eb
                     .selectFrom("comment")
-                    .select(eb.fn.countAll<string>().as("count")) // Kysely needs string count here
+                    .select(eb.fn.countAll<string>().as("count"))
                     .whereRef("comment.postId", "=", "feedback.id"),
                   sql<number>`0`, // Fallback value 0
                 )
@@ -54,7 +52,6 @@ export const getFeedbackPostsQuery = async ({
           ])
           .where("feedback.orgId", "=", orgId),
       )
-      // Select from the CTE and join user_upvote
       .selectFrom("feedback_with_comment_count")
       .leftJoin("user_upvote", (join) =>
         join
@@ -71,8 +68,8 @@ export const getFeedbackPostsQuery = async ({
         "feedback_with_comment_count.title",
         "feedback_with_comment_count.description",
         "feedback_with_comment_count.upvotes",
-        "feedback_with_comment_count.commentCount", // Select from CTE
-        "feedback_with_comment_count.status", // Select status from CTE
+        "feedback_with_comment_count.commentCount",
+        "feedback_with_comment_count.status",
         (eb) =>
           eb
             .case()
@@ -83,16 +80,15 @@ export const getFeedbackPostsQuery = async ({
             .as("hasUserUpvote"),
       ]);
 
-    // Apply status filter to the CTE results
     if (status) {
       query = query.where("feedback_with_comment_count.status", "=", status);
     }
 
-    // Apply ordering and cursor logic using CTE columns
     if (orderBy === "newest") {
       query = query
         .orderBy("feedback_with_comment_count.createdAt", "desc")
-        .orderBy("feedback_with_comment_count.id", "desc"); // Secondary sort key
+        .orderBy("feedback_with_comment_count.id", "desc");
+
       if (cursor) {
         query = query.where((eb) =>
           eb.or([
@@ -107,7 +103,7 @@ export const getFeedbackPostsQuery = async ({
                 "=",
                 new Date(cursor.createdAt),
               ),
-              eb("feedback_with_comment_count.id", "<", cursor.id), // Use secondary key
+              eb("feedback_with_comment_count.id", "<", cursor.id),
             ]),
           ]),
         );
@@ -115,9 +111,9 @@ export const getFeedbackPostsQuery = async ({
     } else if (orderBy === "upvotes") {
       query = query
         .orderBy("feedback_with_comment_count.upvotes", "desc")
-        .orderBy("feedback_with_comment_count.id", "desc"); // Secondary sort key
+        .orderBy("feedback_with_comment_count.id", "desc");
+
       if (cursor) {
-        // Assuming upvotes is numeric or comparable string
         query = query.where((eb) =>
           eb.or([
             eb(
@@ -131,29 +127,24 @@ export const getFeedbackPostsQuery = async ({
                 "=",
                 String(cursor.upvotes),
               ),
-              eb("feedback_with_comment_count.id", "<", cursor.id), // Use secondary key
+              eb("feedback_with_comment_count.id", "<", cursor.id),
             ]),
           ]),
         );
       }
     } else if (orderBy === "comments") {
-      // Order by count DESC, then ID DESC as tie-breaker
       query = query
-        .orderBy("feedback_with_comment_count.commentCount", "desc") // No longer need nulls last
+        .orderBy("feedback_with_comment_count.commentCount", "desc")
         .orderBy("feedback_with_comment_count.id", "desc");
 
       if (cursor) {
-        // Keyset pagination logic for DESC primary / DESC secondary
-        // Since commentCount is never null, we only need the logic for numeric comparison
         query = query.where((eb) =>
           eb.or([
-            // Rows with count < cursor.commentCount (these come after cursor in DESC order)
             eb(
               "feedback_with_comment_count.commentCount",
               "<",
               cursor.commentCount,
             ),
-            // Rows with count = cursor.commentCount and id < cursor.id (tie-breaker for DESC secondary sort)
             eb.and([
               eb(
                 "feedback_with_comment_count.commentCount",
@@ -167,13 +158,12 @@ export const getFeedbackPostsQuery = async ({
       }
     }
 
-    // Execute the final query
     const feedbackPosts = await query.limit(limit + 1).execute();
 
     let nextCursor: typeof cursor | undefined = undefined;
 
     if (feedbackPosts.length > limit) {
-      const nextItem = feedbackPosts.pop(); // Remove the extra item
+      const nextItem = feedbackPosts.pop();
 
       if (nextItem) {
         nextCursor = {
@@ -190,7 +180,6 @@ export const getFeedbackPostsQuery = async ({
       nextCursor,
     };
   } catch (error: any) {
-    console.error("Error in getFeedbackPostsQuery:", error); // Add logging
     throw error;
   }
 };
