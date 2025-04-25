@@ -4,6 +4,11 @@ import { db } from "@/db/db";
 import { sql } from "kysely";
 import { textEmbeddingModel } from "@/lib/gemini";
 import { cosineDistance } from "pgvector/kysely";
+import {
+  ActivityFeedItem,
+  FeedbackCategory,
+  FeedbackStatus,
+} from "@/lib/typings";
 
 export const searchActivityFeedQuery = async ({
   orgId,
@@ -26,13 +31,14 @@ export const searchActivityFeedQuery = async ({
   // CTE for Feedback Posts with early filtering
   const feedbackCTE = db
     .selectFrom("feedback")
+    .leftJoin("user", "feedback.authorId", "user.id") // Join with user table
     .where("feedback.orgId", "=", orgId) // Filter by orgId early
     .where(cosineDistance("feedback.embedding", values), "<", distanceThreshold) // Filter by distance early
     .select([
       "feedback.orgId",
       "feedback.id",
       "feedback.id as postId",
-      sql<any>`null`.as("commentId"),
+      sql<string | null>`null`.as("commentId"),
       "feedback.createdAt",
       "feedback.title",
       "feedback.description as content",
@@ -47,6 +53,9 @@ export const searchActivityFeedQuery = async ({
           .select(eb.fn.countAll<string>().as("commentCount")) // Use <string> for count
           .whereRef("comment.postId", "=", "feedback.id")
           .as("commentCount"),
+      "user.id as authorId", // Select author's id
+      "user.name as authorName", // Select author's name
+      "feedback.title as postTitle", // Select parent post's title
       cosineDistance("feedback.embedding", values).as("distance"), // Calculate distance
     ]);
 
@@ -54,6 +63,7 @@ export const searchActivityFeedQuery = async ({
   const commentsCTE = db
     .selectFrom("comment")
     .innerJoin("feedback", "comment.postId", "feedback.id")
+    .leftJoin("user", "comment.authorId", "user.id") // Join with user table
     .where("feedback.orgId", "=", orgId) // Filter by orgId early (via join)
     .where(cosineDistance("comment.embedding", values), "<", distanceThreshold) // Filter by distance early
     .select([
@@ -62,13 +72,16 @@ export const searchActivityFeedQuery = async ({
       "comment.postId",
       "comment.id as commentId",
       "comment.createdAt",
-      sql<any>`null`.as("title"),
+      sql<string>`null`.as("title"), // Comments don't have their own title
       "comment.content",
       "comment.upvotes",
-      sql<any>`null`.as("category"),
-      sql<any>`null`.as("status"), // Comments don't have status
+      sql<FeedbackCategory | null>`null`.as("category"),
+      sql<FeedbackStatus | null>`null`.as("status"), // Comments don't have status
       sql<string>`'comment'`.as("type"),
       sql<string>`'0'`.as("commentCount"), // Match type 'string' from feedbackCTE count
+      "user.id as authorId", // Select author's id
+      "user.name as authorName", // Select author's name
+      "feedback.title as postTitle", // Select parent post's title
       cosineDistance("comment.embedding", values).as("distance"), // Calculate distance
     ]);
 
@@ -81,7 +94,7 @@ export const searchActivityFeedQuery = async ({
   const finalQuery = unionQuery
     .selectAll("union") // Select all columns from the union
     .orderBy("union.distance") // Order by relevance (distance)
-    .select((eb) => [
+    .select(() => [
       // Add the totalCount column
       sql<string>`count(*) OVER()`.as("totalCount"),
       // Kysely automatically includes columns from the 'from' source (unionQuery)
@@ -99,7 +112,7 @@ export const searchActivityFeedQuery = async ({
 
     // Remove totalCount from individual items before returning
     // Also remove distance if it's not needed in the final result set
-    const itemsWithoutExtras = items.map(
+    const itemsWithoutExtras: ActivityFeedItem[] = items.map(
       ({ totalCount, distance, ...rest }) => rest,
     );
 

@@ -24,16 +24,19 @@ export type UserRole = z.infer<typeof userRoleSchema>;
 export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;
 
 export type ActivityFeedItem = {
+  orgId: string;
+  id: string;
+  postId: string;
+  commentId: string | null;
+  createdAt: Date;
+  title: string;
+  content: string;
+  upvotes: string;
+  category: FeedbackCategory | null;
   status: FeedbackStatus | null;
   type: string;
-  upvotes: string;
-  createdAt: Date;
-  id: string;
-  orgId: string;
-  content: string;
-  postId: string;
-  category: FeedbackCategory | null;
-  title: string;
   commentCount: string | null;
-  commentId: any;
+  authorId: string | null;
+  authorName: string | null;
+  postTitle: string;
 };

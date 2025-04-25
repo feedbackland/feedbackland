@@ -1,6 +1,7 @@
 import { db } from "@/db/db";
 import { sql } from "kysely";
 import {
+  ActivityFeedItem,
   FeedbackCategory,
   FeedbackOrderBy,
   FeedbackStatus,
@@ -24,6 +25,7 @@ export async function getActivityFeedQuery({
   // CTE for Feedback Posts
   let feedbackQuery = db
     .selectFrom("feedback")
+    .leftJoin("user", "feedback.authorId", "user.id") // Join with user table
     .where("feedback.orgId", "=", orgId); // Filter by orgId early
 
   // Apply status filter if provided
@@ -50,12 +52,16 @@ export async function getActivityFeedQuery({
         .select(eb.fn.countAll<string>().as("commentCount")) // Use <string> for count
         .whereRef("comment.postId", "=", "feedback.id")
         .as("commentCount"),
+    "user.id as authorId", // Select author's id
+    "user.name as authorName", // Select author's name
+    "feedback.title as postTitle", // Select parent post's title
   ]);
 
   // CTE for Comments
   const commentsCTE = db
     .selectFrom("comment")
     .innerJoin("feedback", "comment.postId", "feedback.id")
+    .leftJoin("user", "comment.authorId", "user.id") // Join with user table
     .where("feedback.orgId", "=", orgId) // Filter by orgId early
     .select([
       "feedback.orgId", // Selected from the joined feedback table
@@ -63,13 +69,16 @@ export async function getActivityFeedQuery({
       "comment.postId",
       "comment.id as commentId",
       "comment.createdAt",
-      sql<string>`null`.as("title"),
+      sql<string>`null`.as("title"), // Comments don't have their own title
       "comment.content",
       "comment.upvotes",
       sql<FeedbackCategory | null>`null`.as("category"),
       sql<FeedbackStatus | null>`null`.as("status"), // Comments don't have status
       sql<string>`'comment'`.as("type"),
       sql<string>`'0'`.as("commentCount"), // Match type 'string' from feedbackCTE count
+      "user.id as authorId", // Select author's id
+      "user.name as authorName", // Select author's name
+      "feedback.title as postTitle", // Select parent post's title
     ]);
 
   // Combine CTEs using UNION ALL
@@ -98,7 +107,7 @@ export async function getActivityFeedQuery({
   // Add window function for total count and apply pagination
   // orderedQuery already has all columns from the union via selectAll('union')
   const finalQuery = orderedQuery
-    .select((eb) => [
+    .select(() => [
       // Add the totalCount column
       sql<string>`count(*) OVER()`.as("totalCount"),
       // Kysely automatically includes columns from the 'from' source (orderedQuery)
@@ -117,7 +126,9 @@ export async function getActivityFeedQuery({
     const count = totalItems.toString(); // Keep original count format if needed
 
     // Remove totalCount from individual items before returning
-    const itemsWithoutTotalCount = items.map(({ totalCount, ...rest }) => rest);
+    const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
+      ({ totalCount, ...rest }) => rest,
+    );
 
     const totalPages = Math.ceil(totalItems / pageSize);
 

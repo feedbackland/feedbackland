@@ -92,8 +92,8 @@ export function ActivityFeedList({
           }}
         />
 
-        <div className="border-border rounded-b-md border">
-          {showItems && <ActivityFeedListItems items={items || []} />}
+        <div className="border-border flex flex-col items-stretch rounded-b-md border">
+          {showItems && <ActivityFeedListItems items={items} />}
 
           {isPending && <ActivityFeedLoading />}
 
