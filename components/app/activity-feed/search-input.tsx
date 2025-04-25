@@ -39,12 +39,7 @@ export const ActivityFeedSearchInput = ({
   });
 
   return (
-    <div
-      className={cn(
-        "bg-background relative w-full max-w-52 transition-none",
-        className,
-      )}
-    >
+    <div className={cn("relative w-full max-w-52 transition-none", className)}>
       <SearchIcon className="absolute top-[0.6rem] left-2.5 size-4" />
       <Input
         type="text"

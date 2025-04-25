@@ -4,7 +4,7 @@ import { ActivityFeedItem } from "@/lib/typings";
 import { cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
-import { ArrowBigUpIcon, MessageSquare, MessageSquareIcon } from "lucide-react";
+import { ArrowBigUpIcon } from "lucide-react";
 
 export function ActivityFeedComment({
   item,
@@ -15,28 +15,29 @@ export function ActivityFeedComment({
 }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div>
-        <div className="flex items-center">
-          <MessageSquareIcon className="size-4" />
+      {/* <div>
+        <div className="flex items-center pr-3 pl-2">
+          <MessageSquareIcon className="text-muted-foreground size-4.5" />
         </div>
-      </div>
-      <div className="flex-1 space-y-2">
+      </div> */}
+      <div className="flex-1 space-y-1">
         <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-          <span className="text-primary">Comment</span>
-          <span className="text-[8px]">•</span>
-          <span className="text-primary">{item.postTitle}</span>
+          <span className="">Comment posted in {item.postTitle}</span>
           <span className="text-[8px]">•</span>
           <span className="">
             {timeAgo.format(item.createdAt)} by{" "}
             {item.authorName || "unknown user"}
           </span>
         </div>
-        <TiptapOutput content={item.content} />
+        <TiptapOutput
+          content={item.content}
+          forbiddenTags={["a", "pre", "img"]}
+        />
       </div>
       <div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <ArrowBigUpIcon className="size-4" />
-          <span className="text-primary">{item.upvotes || 0}</span>
+          <span className="text-primary text-xs">{item.upvotes || 0}</span>
         </div>
       </div>
     </div>

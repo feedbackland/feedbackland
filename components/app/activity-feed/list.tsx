@@ -81,9 +81,9 @@ export function ActivityFeedList({
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="">
         <ActivityFeedListHeader
-          className="border-border rounded-t-md border"
+          className="border-border bg-muted/50 rounded-t-md border px-4 py-2"
           onChange={({ searchValue, orderBy, status }) => {
             setPage(1);
             setSearchValue(searchValue);
