@@ -12,7 +12,6 @@ import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
-import { dequal } from "dequal";
 import {
   Tooltip,
   TooltipContent,

@@ -11,7 +11,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
-import { dequal } from "dequal";
 import { useKey } from "react-use";
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 

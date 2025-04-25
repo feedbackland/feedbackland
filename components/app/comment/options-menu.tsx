@@ -24,7 +24,6 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { dequal } from "dequal";
 
 export function CommentsOptionsMenu({
   postId,

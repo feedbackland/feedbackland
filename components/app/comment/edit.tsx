@@ -18,7 +18,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 import { Error } from "@/components/ui/error";
-import { dequal } from "dequal";
 
 const formSchema = z.object({
   content: z.string().min(1),

@@ -19,7 +19,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 import { Error } from "@/components/ui/error";
-import { dequal } from "dequal";
 import { toast } from "sonner";
 
 const formSchema = z.object({
