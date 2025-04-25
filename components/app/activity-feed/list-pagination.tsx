@@ -13,7 +13,7 @@ import { useMemo } from "react"; // Import useMemo
 
 const PAGINATION_SIBLING_COUNT = 1; // How many pages to show on each side of the current page
 
-export function ActivityFeedPagination({
+export function ActivityFeedListPagination({
   totalPages,
   currentPage,
   onPageChange,
@@ -80,73 +80,84 @@ export function ActivityFeedPagination({
   }, [currentPage, totalPages]);
   // --- End Pagination Logic ---
 
-  return (
-    <div className="mt-6 flex items-center justify-between">
-      <Pagination className="">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(currentPage - 1);
-              }}
-              aria-disabled={currentPage === 1}
-              tabIndex={currentPage === 1 ? -1 : undefined}
-              className={
-                currentPage === 1 ? "pointer-events-none opacity-50" : undefined
-              }
-            />
-          </PaginationItem>
+  if (totalPages > 1) {
+    return (
+      <div className="mt-6 flex items-center justify-between">
+        <Pagination className="">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(currentPage - 1);
+                }}
+                aria-disabled={currentPage === 1}
+                tabIndex={currentPage === 1 ? -1 : undefined}
+                size="sm"
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
+              />
+            </PaginationItem>
 
-          {/* Render pagination items based on calculated range */}
-          {paginationRange.map((pageNumber, index) => {
-            // If the pageItem is a DOTS character, render the PaginationEllipsis component
-            if (pageNumber === "...") {
+            {/* Render pagination items based on calculated range */}
+            {paginationRange.map((pageNumber, index) => {
+              // If the pageItem is a DOTS character, render the PaginationEllipsis component
+              if (pageNumber === "...") {
+                return (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+
+              // Render a PaginationLink component
               return (
-                <PaginationItem key={`ellipsis-${index}`}>
-                  <PaginationEllipsis />
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handlePageChange(pageNumber as number);
+                    }}
+                    isActive={currentPage === pageNumber}
+                    aria-current={
+                      currentPage === pageNumber ? "page" : undefined
+                    }
+                    size="sm"
+                  >
+                    {pageNumber}
+                  </PaginationLink>
                 </PaginationItem>
               );
-            }
+            })}
+            {/* End Render pagination items */}
 
-            // Render a PaginationLink component
-            return (
-              <PaginationItem key={pageNumber}>
-                <PaginationLink
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(pageNumber as number);
-                  }}
-                  isActive={currentPage === pageNumber}
-                  aria-current={currentPage === pageNumber ? "page" : undefined}
-                >
-                  {pageNumber}
-                </PaginationLink>
-              </PaginationItem>
-            );
-          })}
-          {/* End Render pagination items */}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(currentPage + 1);
+                }}
+                aria-disabled={currentPage === totalPages}
+                tabIndex={currentPage === totalPages ? -1 : undefined}
+                size="sm"
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    );
+  }
 
-          <PaginationItem>
-            <PaginationNext
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(currentPage + 1);
-              }}
-              aria-disabled={currentPage === totalPages}
-              tabIndex={currentPage === totalPages ? -1 : undefined}
-              className={
-                currentPage === totalPages
-                  ? "pointer-events-none opacity-50"
-                  : undefined
-              }
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    </div>
-  );
+  return null;
 }

@@ -22,3 +22,18 @@ export type UpsertOrg = z.infer<typeof upsertOrgSchema>;
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;
+
+export type ActivityFeedItem = {
+  status: FeedbackStatus | null;
+  type: string;
+  upvotes: string;
+  createdAt: Date;
+  id: string;
+  orgId: string;
+  content: string;
+  postId: string;
+  category: FeedbackCategory | null;
+  title: string;
+  commentCount: string | null;
+  commentId: any;
+};

@@ -6,13 +6,16 @@ import { useSearchActivityFeed } from "@/hooks/use-search-activity-feed";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedLoading } from "./loading";
 import { ActivityFeedListPagination } from "./list-pagination";
-import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { ActivityFeedListHeader } from "./list-header";
 import { ActivityFeedListItems } from "./list-items";
 
 const PAGE_SIZE = 10;
 
-export function ActivityFeed() {
+export function ActivityFeedList({
+  className,
+}: {
+  className?: React.ComponentProps<"div">["className"];
+}) {
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
@@ -66,6 +69,8 @@ export function ActivityFeed() {
     !isPlatformEmpty &&
     hasStatusFilter &&
     hasNoItems;
+  const showItems =
+    !isError && !isPlatformEmpty && !isSearchEmpty && !isStatusEmpty;
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -75,9 +80,10 @@ export function ActivityFeed() {
   };
 
   return (
-    <div className="mt-10">
-      {!isPlatformEmpty && (
+    <>
+      <div className="space-y-8">
         <ActivityFeedListHeader
+          className="border-border rounded-t-md border"
           onChange={({ searchValue, orderBy, status }) => {
             setPage(1);
             setSearchValue(searchValue);
@@ -85,45 +91,45 @@ export function ActivityFeed() {
             setStatus(status);
           }}
         />
-      )}
 
-      {isError && (
-        <div className="py-4 text-center text-red-500">Error loading inbox</div>
-      )}
+        <div className="border-border rounded-b-md border">
+          {showItems && <ActivityFeedListItems items={items || []} />}
 
-      {isPlatformEmpty && (
-        <div className="text-muted-foreground space-y-1 py-5 text-center">
-          <div className="text-base font-semibold">No content found</div>
-        </div>
-      )}
-
-      {isSearchEmpty && (
-        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-          No matches found for your search
-        </div>
-      )}
-
-      {isStatusEmpty && (
-        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-          No feedback found that is marked as {status}
-        </div>
-      )}
-
-      {!isError && !isPlatformEmpty && !isSearchEmpty && !isStatusEmpty && (
-        <div className="space-y-8">
           {isPending && <ActivityFeedLoading />}
 
-          {items && items?.length > 0 && (
-            <ActivityFeedListItems items={items} />
+          {isError && (
+            <div className="py-4 text-center text-red-500">
+              Error loading inbox
+            </div>
           )}
 
-          <ActivityFeedListPagination
-            totalPages={totalPages}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-          />
+          {isPlatformEmpty && (
+            <div className="text-muted-foreground space-y-1 py-5 text-center">
+              <div className="text-base font-semibold">No content found</div>
+            </div>
+          )}
+
+          {isSearchEmpty && (
+            <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+              No matches found for your search
+            </div>
+          )}
+
+          {isStatusEmpty && (
+            <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+              No feedback found that is marked as {status}
+            </div>
+          )}
         </div>
+      </div>
+
+      {showItems && (
+        <ActivityFeedListPagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
       )}
-    </div>
+    </>
   );
 }

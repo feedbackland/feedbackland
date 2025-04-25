@@ -1,6 +1,10 @@
 import { db } from "@/db/db";
 import { sql } from "kysely";
-import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
+import {
+  FeedbackCategory,
+  FeedbackOrderBy,
+  FeedbackStatus,
+} from "@/lib/typings";
 
 export async function getActivityFeedQuery({
   orgId,
@@ -31,7 +35,7 @@ export async function getActivityFeedQuery({
     "feedback.orgId",
     "feedback.id",
     "feedback.id as postId",
-    sql<any>`null`.as("commentId"),
+    sql<string | null>`null`.as("commentId"),
     "feedback.createdAt",
     "feedback.title",
     "feedback.description as content",
@@ -59,11 +63,11 @@ export async function getActivityFeedQuery({
       "comment.postId",
       "comment.id as commentId",
       "comment.createdAt",
-      sql<any>`null`.as("title"),
+      sql<string>`null`.as("title"),
       "comment.content",
       "comment.upvotes",
-      sql<any>`null`.as("category"),
-      sql<any>`null`.as("status"), // Comments don't have status
+      sql<FeedbackCategory | null>`null`.as("category"),
+      sql<FeedbackStatus | null>`null`.as("status"), // Comments don't have status
       sql<string>`'comment'`.as("type"),
       sql<string>`'0'`.as("commentCount"), // Match type 'string' from feedbackCTE count
     ]);
