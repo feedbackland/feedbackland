@@ -39,12 +39,7 @@ export function FeedbackForm() {
         setValue("");
 
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(
-              query.queryKey?.[0],
-              trpc.getFeedbackPosts.queryKey()[0],
-            );
-          },
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
       },
       onError: () => {

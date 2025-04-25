@@ -66,8 +66,7 @@ export function CommentEdit({
         });
 
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            dequal(query.queryKey[0], trpc.getComments.queryKey()?.[0]),
+          queryKey: trpc.getComments.queryKey().slice(0, 1),
         });
 
         onClose();

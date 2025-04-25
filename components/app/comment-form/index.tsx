@@ -77,15 +77,17 @@ export function CommentForm({
     trpc.createComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.getComments.queryKey({ postId }),
+          queryKey: trpc.getComments.queryKey().slice(0, 1),
         });
+
         queryClient.invalidateQueries({
-          predicate: (query) =>
-            dequal(query.queryKey[0], trpc.getFeedbackPosts.queryKey()[0]),
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
+
         queryClient.invalidateQueries({
           queryKey: trpc.getFeedbackPost.queryKey({ postId }),
         });
+
         setValue("");
         onSuccess?.();
       },

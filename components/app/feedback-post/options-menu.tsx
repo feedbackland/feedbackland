@@ -64,12 +64,7 @@ export function FeedbackPostOptionsMenu({
     trpc.deleteFeedbackPost.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(
-              query.queryKey?.[0],
-              trpc.getFeedbackPosts.queryKey()[0],
-            );
-          },
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
 
         if (platformUrl) {
@@ -93,12 +88,7 @@ export function FeedbackPostOptionsMenu({
         });
 
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            return dequal(
-              query.queryKey?.[0],
-              trpc.getFeedbackPosts.queryKey()[0],
-            );
-          },
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
 
         toast.success("Status updated", {

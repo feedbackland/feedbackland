@@ -23,9 +23,8 @@ import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { dequal } from "dequal";
 
 export function CommentsOptionsMenu({
   postId,
@@ -38,8 +37,6 @@ export function CommentsOptionsMenu({
   authorId: string;
   onEdit: () => void;
 }) {
-  const platformUrl = usePlatformUrl();
-  const router = useRouter();
   const { session } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -51,15 +48,20 @@ export function CommentsOptionsMenu({
     trpc.deleteComment.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.getComments.queryKey({ postId }),
+          queryKey: trpc.getComments.queryKey().slice(0, 1),
         });
 
-        if (platformUrl) {
-          router.push(platformUrl);
-          toast.success("Comment deleted", {
-            position: "top-right",
-          });
-        }
+        queryClient.invalidateQueries({
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
+        });
+
+        toast.success("Comment deleted", {
+          position: "top-right",
+        });
       },
       onSettled: () => {
         setIsDeleteConfirmationOpen(false);
