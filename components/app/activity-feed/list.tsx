@@ -8,8 +8,6 @@ import { ActivityFeedLoading } from "./loading";
 import { ActivityFeedListPagination } from "./list-pagination";
 import { ActivityFeedListHeader } from "./list-header";
 import { ActivityFeedListItems } from "./list-items";
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@/providers/trpc-client";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
@@ -19,8 +17,6 @@ export function ActivityFeedList({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const trpc = useTRPC();
-
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
@@ -55,8 +51,6 @@ export function ActivityFeedList({
     pageSize: PAGE_SIZE,
   });
 
-  const setActivitySeen = useMutation(trpc.setActivitiesSeen.mutationOptions());
-
   const activeData = isSearchActive ? searchData : itemsData;
   const items = activeData?.items;
   const totalPages = activeData?.totalPages ?? 1;
@@ -81,12 +75,6 @@ export function ActivityFeedList({
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setActivitySeen?.mutate({
-        itemIds:
-          itemsData?.items
-            ?.filter((item) => !item.isSeen)
-            ?.map((item) => item.id) || [],
-      });
       setPage(newPage);
       window.scrollTo(0, 0); // Scroll to top when page changes
     }
