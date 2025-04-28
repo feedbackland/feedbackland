@@ -47,9 +47,8 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export type UserOrgRole = "admin" | "user";
 
-export interface ActivitySeenStatus {
+export interface ActivitySeen {
   itemId: string;
-  itemType: string;
   seenAt: Generated<Timestamp>;
   userId: string;
 }
@@ -584,7 +583,7 @@ export interface VaultSecrets {
 }
 
 export interface DB {
-  activity_seen_status: ActivitySeenStatus;
+  activity_seen: ActivitySeen;
   "auth.audit_log_entries": AuthAuditLogEntries;
   "auth.flow_state": AuthFlowState;
   "auth.identities": AuthIdentities;

@@ -2,7 +2,7 @@ import { Kysely, sql } from "kysely";
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
-    .createTable("activity_seen_status")
+    .createTable("activity_seen")
     .addColumn("userId", "text", (col) =>
       col.notNull().references("user.id").onDelete("cascade"),
     )
@@ -12,7 +12,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.notNull().defaultTo(sql`now()`),
     )
     // Composite primary key to ensure uniqueness per user/item/type
-    .addPrimaryKeyConstraint("activity_seen_status_pkey", [
+    .addPrimaryKeyConstraint("activity_seen_pkey", [
       "userId",
       "itemId",
       "itemType",
@@ -21,13 +21,13 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   // Index for efficient lookups in the activity feed query
   await db.schema
-    .createIndex("idx_activity_seen_status_user_item")
-    .on("activity_seen_status")
+    .createIndex("idx_activity_seen_user_item")
+    .on("activity_seen")
     .columns(["userId", "itemType", "itemId"])
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex("idx_activity_seen_status_user_item").execute();
-  await db.schema.dropTable("activity_seen_status").execute();
+  await db.schema.dropIndex("idx_activity_seen_user_item").execute();
+  await db.schema.dropTable("activity_seen").execute();
 }

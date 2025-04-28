@@ -18,6 +18,7 @@ import { updateComment } from "./update-comment";
 import { deleteComment } from "./delete-comment";
 import { getActivityFeed } from "./get-activity-feed";
 import { searchActivityFeed } from "./search-activity-feed";
+import { setActivitiesSeen } from "./set-activities-seen";
 
 export const appRouter = router({
   searchFeedbackPosts,
@@ -39,6 +40,7 @@ export const appRouter = router({
   deleteComment,
   getActivityFeed,
   searchActivityFeed,
+  setActivitiesSeen,
 });
 
 export type AppRouter = typeof appRouter;

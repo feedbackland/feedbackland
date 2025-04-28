@@ -83,45 +83,44 @@ export async function getActivityFeedQuery({
       "feedback.title as postTitle", // Select parent post's title
     ]);
 
-  // Combine CTEs using UNION ALL
-  const unionQuery = db.selectFrom(
-    feedbackCTE.unionAll(commentsCTE).as("union"),
+  // Combine CTEs using activity ALL
+  const activityQuery = db.selectFrom(
+    feedbackCTE.unionAll(commentsCTE).as("activity"),
   );
 
   // Apply ordering
-  let orderedQuery = unionQuery.selectAll("union"); // Select all columns from the union
+  let orderedQuery = activityQuery.selectAll("activity"); // Select all columns from the activity
 
   if (orderBy === "newest") {
-    orderedQuery = orderedQuery.orderBy("union.createdAt", "desc");
+    orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
   } else if (orderBy === "upvotes") {
     // Ensure upvotes are treated numerically for sorting if they are numeric strings
-    orderedQuery = orderedQuery.orderBy("union.upvotes", "desc");
+    orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
     // If upvotes is already a numeric type, just use:
-    // orderedQuery = orderedQuery.orderBy('union.upvotes', 'desc');
+    // orderedQuery = orderedQuery.orderBy('activity.upvotes', 'desc');
   } else if (orderBy === "comments") {
-    // sql`CAST(union.commentCount AS INTEGER)`
-    orderedQuery = orderedQuery.orderBy("union.commentCount", "desc");
+    // sql`CAST(activity.commentCount AS INTEGER)`
+    orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
   } else {
     // Default order if needed
-    orderedQuery = orderedQuery.orderBy("union.createdAt", "desc");
+    orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
   }
 
   // Add LEFT JOIN for seen status and window function for total count
   const finalQuery = orderedQuery
     .leftJoin(
-      "activity_seen_status",
+      "activity_seen",
       (join) =>
         join
-          .onRef("union.id", "=", "activity_seen_status.itemId")
-          .onRef("union.type", "=", "activity_seen_status.itemType")
-          .on("activity_seen_status.userId", "=", userId), // Join based on the current user
+          .onRef("activity.id", "=", "activity_seen.itemId")
+          .on("activity_seen.userId", "=", userId), // Join based on the current user
     )
-    // Select all columns from the orderedQuery (union) and the joined activity_seen_status
+    // Select all columns from the orderedQuery (activity) and the joined activity_seen
     .selectAll()
     // Now add the calculated columns
     .select((eb) => [
       sql<string>`count(*) OVER()`.as("totalCount"), // Add the totalCount column
-      sql<boolean>`activity_seen_status.user_id IS NOT NULL`.as("isSeen"), // Add the isSeen flag
+      sql<boolean>`activity_seen.user_id IS NOT NULL`.as("isSeen"), // Add the isSeen flag
     ])
     .limit(pageSize)
     .offset(offset);
