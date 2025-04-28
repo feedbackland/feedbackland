@@ -5,7 +5,7 @@ import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
-import { ArrowBigUpIcon, LightbulbIcon } from "lucide-react";
+import { ArrowBigUpIcon } from "lucide-react";
 
 export function ActivityFeedPost({
   item,
@@ -38,29 +38,50 @@ export function ActivityFeedPost({
         <TiptapOutput
           content={item.content}
           forbiddenTags={["a", "pre", "img"]}
+          className={cn("", !item?.isSeen && "font-bold!")}
         />
         <div className="flex items-center gap-2 text-xs">
           {/* <span className="text-muted-foreground">Status:</span> */}
-          <Button size="sm" variant="outline" className="h-fit px-2 py-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-under-consideration h-fit px-2 py-1 text-xs shadow-none"
+          >
             Under consideration
           </Button>
-          <Button size="sm" variant="outline" className="h-fit px-2 py-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-planned h-fit px-2 py-1 text-xs shadow-none"
+          >
             Planned
           </Button>
-          <Button size="sm" variant="outline" className="h-fit px-2 py-1">
-            In porgress
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-in-progress h-fit px-2 py-1 text-xs shadow-none"
+          >
+            In progress
           </Button>
-          <Button size="sm" variant="outline" className="h-fit px-2 py-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-done h-fit px-2 py-1 text-xs shadow-none"
+          >
             Done
           </Button>
-          <Button size="sm" variant="outline" className="h-fit px-2 py-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-declined h-fit px-2 py-1 text-xs shadow-none"
+          >
             Declined
           </Button>
         </div>
       </div>
       <div>
         <div className="flex items-center gap-1">
-          <ArrowBigUpIcon className="size-4" />
+          <ArrowBigUpIcon className="size-4" strokeWidth={1.5} />
           <span className="text-primary text-xs">{item.upvotes || 0}</span>
         </div>
       </div>

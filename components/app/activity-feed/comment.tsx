@@ -32,11 +32,12 @@ export function ActivityFeedComment({
         <TiptapOutput
           content={item.content}
           forbiddenTags={["a", "pre", "img"]}
+          className={cn("", !item?.isSeen && "font-bold!")}
         />
       </div>
       <div>
         <div className="flex items-center gap-1">
-          <ArrowBigUpIcon className="size-4" />
+          <ArrowBigUpIcon className="size-4" strokeWidth={1.5} />
           <span className="text-primary text-xs">{item.upvotes || 0}</span>
         </div>
       </div>

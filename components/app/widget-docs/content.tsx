@@ -25,7 +25,7 @@ function App() {
   return (
     <div className="flex flex-col">
       <Tabs defaultValue="overlay" className="">
-        <TabsList className="space-x-5">
+        <TabsList>
           <TabsTrigger value="overlay" className="text-sm">
             Overlay widget
           </TabsTrigger>
@@ -35,19 +35,19 @@ function App() {
         </TabsList>
         <TabsContent value="overlay" className="pt-2">
           <>
-            <h3 className="text-sm font-medium text-muted-foreground">
+            <h3 className="text-muted-foreground text-sm font-medium">
               Adds a button to your app that slides in the platform as an
               overlay when clicked
             </h3>
             <div className="mt-6 flex flex-col space-y-6">
               <div>
-                <h3 className="mb-2 text-sm font-medium text-primary">
+                <h3 className="text-primary mb-2 text-sm font-medium">
                   Step 1 - Install the feedbackland package
                 </h3>
                 <CodeInstall packageName="feedbackland/react" />
               </div>
               <div>
-                <h3 className="mb-2 text-sm font-medium text-primary">
+                <h3 className="text-primary mb-2 text-sm font-medium">
                   Step 2 - Add the widget component to your app
                 </h3>
                 <Code

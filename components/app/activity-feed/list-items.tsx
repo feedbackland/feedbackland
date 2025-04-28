@@ -39,6 +39,11 @@ export function ActivityFeedListItems({
   return (
     <div className={cn("flex flex-col items-stretch", className)}>
       {items?.map((item) => {
+        const itemClassName = cn(
+          "border-border flex-1 border-b p-4",
+          item.isSeen && "bg-muted/70 dark:bg-muted/40",
+        );
+
         if (item.type === "post") {
           return (
             <Link
@@ -46,13 +51,7 @@ export function ActivityFeedListItems({
               href={`${platformUrl}/${item.postId}`}
               onClick={() => handleOnClick(item.id)}
             >
-              <ActivityFeedPost
-                item={item}
-                className={cn(
-                  "border-border flex-1 border-b p-4",
-                  item.isSeen && "bg-muted!",
-                )}
-              />
+              <ActivityFeedPost item={item} className={itemClassName} />
             </Link>
           );
         }
@@ -67,10 +66,7 @@ export function ActivityFeedListItems({
               <ActivityFeedComment
                 key={item.id}
                 item={item}
-                className={cn(
-                  "border-border flex-1 border-b p-4",
-                  item.isSeen && "bg-muted!",
-                )}
+                className={itemClassName}
               />
             </Link>
           );

@@ -4,7 +4,7 @@ import { ActivityFeedList } from "./list";
 
 export function ActivityFeed() {
   return (
-    <div className="mt-10">
+    <div className="">
       <ActivityFeedList className="" />
     </div>
   );
