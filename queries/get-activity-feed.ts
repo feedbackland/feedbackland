@@ -107,21 +107,49 @@ export async function getActivityFeedQuery({
   }
 
   // Add LEFT JOIN for seen status and window function for total count
-  const finalQuery = orderedQuery
+  // const finalQuery = orderedQuery
+  //   .leftJoin(
+  //     "activity_seen",
+  //     (join) =>
+  //       join
+  //         .onRef("activity.id", "=", "activity_seen.itemId")
+  //         .on("activity_seen.userId", "=", userId), // Join based on the current user
+  //   )
+  //   // Select all columns from the orderedQuery (activity) and the joined activity_seen
+  //   .selectAll()
+  //   // Now add the calculated columns
+  //   .select((eb) => [
+  //     sql<string>`count(*) OVER()`.as("totalCount"), // Add the totalCount column
+  //     sql<string>`count(*) FILTER (WHERE activity_seen.userId IS NULL) OVER()`.as(
+  //       "unseenCount",
+  //     ),
+  //     sql<boolean>`activity_seen.userId IS NOT NULL`.as("isSeen"), // Add the isSeen flag
+  //   ])
+  //   .limit(pageSize)
+  //   .offset(offset);
+
+  const finalQuery = orderedQuery // This should be your base query builder instance selecting from 'activity'
+    // Alias the joined table for clarity
     .leftJoin(
-      "activity_seen",
+      "activity_seen", // Use an alias 'seen'
       (join) =>
         join
+          // Reference the base table's ID (ensure 'activity.id' is correct)
           .onRef("activity.id", "=", "activity_seen.itemId")
-          .on("activity_seen.userId", "=", userId), // Join based on the current user
+          // Filter the join for the specific user *within* the ON clause
+          .on("activity_seen.userId", "=", userId),
     )
-    // Select all columns from the orderedQuery (activity) and the joined activity_seen
     .selectAll()
-    // Now add the calculated columns
     .select((eb) => [
-      sql<string>`count(*) OVER()`.as("totalCount"), // Add the totalCount column
-      sql<boolean>`activity_seen.user_id IS NOT NULL`.as("isSeen"), // Add the isSeen flag
+      eb("activity_seen.userId", "is not", null).as("isSeen"),
+      eb.fn.count("activity.id").over().as("totalCount"),
+      eb.fn
+        .count("activity.id") // Count the activity if...
+        .filterWhere("activity_seen.userId", "is", null) // ...it wasn't seen by the user
+        .over() // Apply as a window function over the whole set
+        .as("unseenCount"),
     ])
+    // Apply pagination *after* selections and window functions
     .limit(pageSize)
     .offset(offset);
 
@@ -132,10 +160,14 @@ export async function getActivityFeedQuery({
     const items = results;
     const totalItems = results.length > 0 ? Number(results[0].totalCount) : 0;
     const count = totalItems.toString(); // Keep original count format if needed
+    const unseenItemsCount =
+      results.length > 0 ? Number(results[0].unseenCount) : 0; // Get unseen count
 
     // Remove totalCount from individual items before returning
     const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
-      ({ totalCount, ...rest }) => rest,
+      ({ totalCount, unseenCount, isSeen, ...rest }) => {
+        return { ...rest, isSeen: Boolean(isSeen) };
+      },
     );
 
     const totalPages = Math.ceil(totalItems / pageSize);
@@ -143,6 +175,7 @@ export async function getActivityFeedQuery({
     return {
       items: itemsWithoutTotalCount,
       count, // Return the total count as a string
+      unseenItemsCount,
       totalPages,
       currentPage: page,
     };
