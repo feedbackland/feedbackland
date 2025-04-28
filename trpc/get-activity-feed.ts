@@ -13,20 +13,30 @@ export const getActivityFeed = adminProcedure
     }),
   )
   .query(
-    async ({ input: { page, pageSize, orderBy, status }, ctx: { orgId } }) => {
+    async ({
+      input: { page, pageSize, orderBy, status },
+      ctx: { orgId, userId },
+    }) => {
       try {
-        const { items, count, totalPages, currentPage } =
-          await getActivityFeedQuery({
-            orgId,
-            page,
-            pageSize,
-            orderBy,
-            status,
-          });
+        const {
+          items,
+          totalItemsCount,
+          unseenItemsCount,
+          totalPages,
+          currentPage,
+        } = await getActivityFeedQuery({
+          orgId,
+          page,
+          pageSize,
+          orderBy,
+          status,
+          userId,
+        });
 
         return {
           items,
-          count,
+          totalItemsCount,
+          unseenItemsCount,
           totalPages,
           currentPage,
         };

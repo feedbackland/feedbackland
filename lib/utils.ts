@@ -174,7 +174,5 @@ export const stripHtml = (htmlString: string) => {
     .replace(/ *\n */g, "\n")
     .trim();
 
-  console.log("plainText: ", plainText);
-
   return plainText;
 };

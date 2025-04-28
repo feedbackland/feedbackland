@@ -4,6 +4,7 @@ import { ActivityFeed } from "@/components/app/activity-feed";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminPage() {
   const { session, isLoaded } = useAuth();
@@ -18,8 +19,16 @@ export default function AdminPage() {
   if (isAdmin) {
     return (
       <div>
-        <h1>Admin panel root page</h1>
-        <ActivityFeed />
+        <Tabs defaultValue="inbox" className="">
+          <TabsList>
+            <TabsTrigger value="inbox">Inbox</TabsTrigger>
+            <TabsTrigger value="insights">AI Insights</TabsTrigger>
+          </TabsList>
+          <TabsContent value="inbox">
+            <ActivityFeed />
+          </TabsContent>
+          <TabsContent value="insights">AI Insights</TabsContent>
+        </Tabs>
       </div>
     );
   }

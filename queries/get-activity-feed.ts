@@ -106,28 +106,6 @@ export async function getActivityFeedQuery({
     orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
   }
 
-  // Add LEFT JOIN for seen status and window function for total count
-  // const finalQuery = orderedQuery
-  //   .leftJoin(
-  //     "activity_seen",
-  //     (join) =>
-  //       join
-  //         .onRef("activity.id", "=", "activity_seen.itemId")
-  //         .on("activity_seen.userId", "=", userId), // Join based on the current user
-  //   )
-  //   // Select all columns from the orderedQuery (activity) and the joined activity_seen
-  //   .selectAll()
-  //   // Now add the calculated columns
-  //   .select((eb) => [
-  //     sql<string>`count(*) OVER()`.as("totalCount"), // Add the totalCount column
-  //     sql<string>`count(*) FILTER (WHERE activity_seen.userId IS NULL) OVER()`.as(
-  //       "unseenCount",
-  //     ),
-  //     sql<boolean>`activity_seen.userId IS NOT NULL`.as("isSeen"), // Add the isSeen flag
-  //   ])
-  //   .limit(pageSize)
-  //   .offset(offset);
-
   const finalQuery = orderedQuery // This should be your base query builder instance selecting from 'activity'
     // Alias the joined table for clarity
     .leftJoin(
@@ -142,12 +120,12 @@ export async function getActivityFeedQuery({
     .selectAll()
     .select((eb) => [
       eb("activity_seen.userId", "is not", null).as("isSeen"),
-      eb.fn.count("activity.id").over().as("totalCount"),
+      eb.fn.count("activity.id").over().as("totalItemsCount"),
       eb.fn
         .count("activity.id") // Count the activity if...
         .filterWhere("activity_seen.userId", "is", null) // ...it wasn't seen by the user
         .over() // Apply as a window function over the whole set
-        .as("unseenCount"),
+        .as("unseenItemsCount"),
     ])
     // Apply pagination *after* selections and window functions
     .limit(pageSize)
@@ -156,25 +134,23 @@ export async function getActivityFeedQuery({
   try {
     const results = await finalQuery.execute();
 
-    // Extract items and total count from the first result (if any)
     const items = results;
-    const totalItems = results.length > 0 ? Number(results[0].totalCount) : 0;
-    const count = totalItems.toString(); // Keep original count format if needed
+    const totalItemsCount =
+      results.length > 0 ? Number(results[0].totalItemsCount) : 0;
     const unseenItemsCount =
-      results.length > 0 ? Number(results[0].unseenCount) : 0; // Get unseen count
+      results.length > 0 ? Number(results[0].unseenItemsCount) : 0;
 
-    // Remove totalCount from individual items before returning
     const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
-      ({ totalCount, unseenCount, isSeen, ...rest }) => {
+      ({ totalItemsCount, unseenItemsCount, isSeen, ...rest }) => {
         return { ...rest, isSeen: Boolean(isSeen) };
       },
     );
 
-    const totalPages = Math.ceil(totalItems / pageSize);
+    const totalPages = Math.ceil(totalItemsCount / pageSize);
 
     return {
       items: itemsWithoutTotalCount,
-      count, // Return the total count as a string
+      totalItemsCount,
       unseenItemsCount,
       totalPages,
       currentPage: page,

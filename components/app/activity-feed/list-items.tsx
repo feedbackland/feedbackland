@@ -6,7 +6,7 @@ import { ActivityFeedPost } from "./post";
 import { ActivityFeedComment } from "./comment";
 import Link from "next/link";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 
 export function ActivityFeedListItems({
@@ -16,9 +16,25 @@ export function ActivityFeedListItems({
   items: ActivityFeedItem[] | undefined;
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
   const platformUrl = usePlatformUrl();
-  const setActivitySeen = useMutation(trpc.setActivitiesSeen.mutationOptions());
+  const setActivitySeen = useMutation(
+    trpc.setActivitiesSeen.mutationOptions({
+      onSuccess: () => {
+        console.log("zolg");
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
+      },
+    }),
+  );
+
+  const handleOnClick = (itemId: string) => {
+    setActivitySeen?.mutate({
+      itemIds: [itemId],
+    });
+  };
 
   return (
     <div className={cn("flex flex-col items-stretch", className)}>
@@ -28,15 +44,14 @@ export function ActivityFeedListItems({
             <Link
               key={item.id}
               href={`${platformUrl}/${item.postId}`}
-              onClick={() => {
-                setActivitySeen?.mutate({
-                  itemIds: [item.id],
-                });
-              }}
+              onClick={() => handleOnClick(item.id)}
             >
               <ActivityFeedPost
                 item={item}
-                className="border-border flex-1 border-b p-4"
+                className={cn(
+                  "border-border flex-1 border-b p-4",
+                  item.isSeen && "bg-muted!",
+                )}
               />
             </Link>
           );
@@ -47,16 +62,15 @@ export function ActivityFeedListItems({
             <Link
               key={item.id}
               href={`${platformUrl}/${item.postId}`}
-              onClick={() => {
-                setActivitySeen?.mutate({
-                  itemIds: [item.id],
-                });
-              }}
+              onClick={() => handleOnClick(item.id)}
             >
               <ActivityFeedComment
                 key={item.id}
                 item={item}
-                className="border-border flex-1 border-b p-4"
+                className={cn(
+                  "border-border flex-1 border-b p-4",
+                  item.isSeen && "bg-muted!",
+                )}
               />
             </Link>
           );
