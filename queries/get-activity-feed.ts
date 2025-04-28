@@ -13,12 +13,14 @@ export async function getActivityFeedQuery({
   pageSize,
   orderBy,
   status,
+  userId, // Add userId parameter
 }: {
   orgId: string;
   page: number;
   pageSize: number;
   orderBy: FeedbackOrderBy;
   status?: FeedbackStatus; // Make status optional if it can be undefined/null
+  userId: string; // Add userId parameter type
 }) {
   const offset = (page - 1) * pageSize;
 
@@ -104,15 +106,22 @@ export async function getActivityFeedQuery({
     orderedQuery = orderedQuery.orderBy("union.createdAt", "desc");
   }
 
-  // Add window function for total count and apply pagination
-  // orderedQuery already has all columns from the union via selectAll('union')
+  // Add LEFT JOIN for seen status and window function for total count
   const finalQuery = orderedQuery
-    .select(() => [
-      // Add the totalCount column
-      sql<string>`count(*) OVER()`.as("totalCount"),
-      // Kysely automatically includes columns from the 'from' source (orderedQuery)
-      // when using the function form of select like this, unless explicitly excluded.
-      // So, no need for ...eb.selection.columns here.
+    .leftJoin(
+      "activity_seen_status",
+      (join) =>
+        join
+          .onRef("union.id", "=", "activity_seen_status.itemId")
+          .onRef("union.type", "=", "activity_seen_status.itemType")
+          .on("activity_seen_status.userId", "=", userId), // Join based on the current user
+    )
+    // Select all columns from the orderedQuery (union) and the joined activity_seen_status
+    .selectAll()
+    // Now add the calculated columns
+    .select((eb) => [
+      sql<string>`count(*) OVER()`.as("totalCount"), // Add the totalCount column
+      sql<boolean>`activity_seen_status.user_id IS NOT NULL`.as("isSeen"), // Add the isSeen flag
     ])
     .limit(pageSize)
     .offset(offset);

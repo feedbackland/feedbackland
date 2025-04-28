@@ -29,7 +29,7 @@ export type ActivityFeedItem = {
   postId: string;
   commentId: string | null;
   createdAt: Date;
-  title: string;
+  title: string | null; // Should be nullable as it's null for comments
   content: string;
   upvotes: string;
   category: FeedbackCategory | null;
@@ -37,6 +37,7 @@ export type ActivityFeedItem = {
   type: string;
   commentCount: string | null;
   authorId: string | null;
-  authorName: string | null;
-  postTitle: string;
+  authorName?: string | null; // Optional as it's null for posts
+  postTitle?: string | null; // Optional as it's null for comments (or redundant for posts)
+  isSeen?: boolean; // Add the new seen status flag
 };
