@@ -18,25 +18,19 @@ export const getActivityFeed = adminProcedure
       ctx: { orgId, userId },
     }) => {
       try {
-        const {
-          items,
-          totalItemsCount,
-          unseenItemsCount,
-          totalPages,
-          currentPage,
-        } = await getActivityFeedQuery({
-          orgId,
-          page,
-          pageSize,
-          orderBy,
-          status,
-          userId,
-        });
+        const { items, totalItemsCount, totalPages, currentPage } =
+          await getActivityFeedQuery({
+            orgId,
+            page,
+            pageSize,
+            orderBy,
+            status,
+            userId,
+          });
 
         return {
           items,
           totalItemsCount,
-          unseenItemsCount,
           totalPages,
           currentPage,
         };
