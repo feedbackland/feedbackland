@@ -117,13 +117,11 @@ export async function getActivityFeedQuery({
     const items = results;
     const totalItemsCount =
       results.length > 0 ? Number(results[0].totalItemsCount) : 0;
-
     const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
       ({ totalItemsCount, isSeen, ...rest }) => {
         return { ...rest, isSeen: Boolean(isSeen) };
       },
     );
-
     const totalPages = Math.ceil(totalItemsCount / pageSize);
 
     return {
