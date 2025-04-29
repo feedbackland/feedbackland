@@ -1,26 +1,23 @@
 import { z } from "zod";
 
-export const feedbackStatusSchema = z.union([
-  z.literal("under consideration"),
-  z.literal("planned"),
-  z.literal("in progress"),
-  z.literal("done"),
-  z.literal("declined"),
-  z.null(),
-]);
+export const feedbackStatusSchema = z
+  .enum(["under consideration", "planned", "in progress", "done", "declined"])
+  .nullable();
 
-export const feedbackOrderBySchema = z.union([
-  z.literal("newest"),
-  z.literal("upvotes"),
-  z.literal("comments"),
-]);
+export const feedbackOrderBySchema = z
+  .enum(["newest", "upvotes", "comments"])
+  .nullable();
 
-export const feedbackCategorySchema = z.union([
-  z.literal("feature request"),
-  z.literal("bug report"),
-  z.literal("general feedback"),
-  z.null(),
-]);
+export const feedbackCategorySchema = z
+  .enum(["feature request", "bug report", "general feedback"])
+  .nullable();
+
+export const feedbackCategoriesSchema = z
+  .array(z.enum(["feature request", "bug report", "general feedback"]))
+  .nonempty()
+  .nullable();
+
+export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
 
 export const upsertUserSchema = z.object({
   orgSubdomain: z.string().min(1),
@@ -34,7 +31,7 @@ export const upsertOrgSchema = z.object({
   orgId: z.string().uuid(),
 });
 
-export const userRoleSchema = z.union([z.literal("user"), z.literal("admin")]);
+export const userRoleSchema = z.enum(["user", "admin"]);
 
 export const feedbackPostsCursorSchema = z
   .object({

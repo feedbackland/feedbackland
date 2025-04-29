@@ -4,6 +4,7 @@ import { db } from "@/db/db";
 import { sql } from "kysely";
 import {
   ActivityFeedItem,
+  FeedbackCategories,
   FeedbackCategory,
   FeedbackOrderBy,
   FeedbackStatus,
@@ -11,18 +12,24 @@ import {
 
 export async function getActivityFeedQuery({
   orgId,
+  userId,
   page,
   pageSize,
   orderBy,
   status,
-  userId,
+  categories,
+  excludeFeedback = false,
+  excludeComments = false,
 }: {
   orgId: string;
+  userId: string;
   page: number;
   pageSize: number;
   orderBy: FeedbackOrderBy;
   status?: FeedbackStatus;
-  userId: string;
+  categories?: FeedbackCategories;
+  excludeFeedback?: boolean;
+  excludeComments?: boolean;
 }) {
   const offset = (page - 1) * pageSize;
 
@@ -33,6 +40,10 @@ export async function getActivityFeedQuery({
 
   if (status) {
     feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
+  }
+
+  if (categories && categories.length > 0) {
+    feedbackQuery = feedbackQuery.where("feedback.category", "in", categories);
   }
 
   const feedbackCTE = feedbackQuery.select([
@@ -81,9 +92,15 @@ export async function getActivityFeedQuery({
       "feedback.title as postTitle",
     ]);
 
-  const activityQuery = db.selectFrom(
+  let activityQuery = db.selectFrom(
     feedbackCTE.unionAll(commentsCTE).as("activity"),
   );
+
+  if (excludeFeedback) {
+    activityQuery = db.selectFrom(commentsCTE.as("activity"));
+  } else if (excludeComments) {
+    activityQuery = db.selectFrom(feedbackCTE.as("activity"));
+  }
 
   let orderedQuery = activityQuery.selectAll("activity");
 
