@@ -13,7 +13,6 @@ import { ImageOverlay } from "./image-overlay";
 import { Spinner } from "../../../components/spinner";
 import type { UploadReturnType } from "../image";
 
-const MAX_WIDTH = 700;
 const MAX_HEIGHT = 600;
 const MIN_HEIGHT = 120;
 const MIN_WIDTH = 120;
@@ -227,16 +226,16 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
         className="group/node-image relative rounded-md object-contain"
         style={{
           maxWidth: `min(${maxWidth}px, 100%)`,
-          width: currentWidth <= MAX_WIDTH ? currentWidth : undefined,
+          width: currentWidth,
           maxHeight: MAX_HEIGHT,
           aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
         }}
       >
         <div
           className={cn(
-            "relative flex h-full cursor-default flex-col items-center gap-2 rounded-md",
+            "relative flex h-full cursor-default flex-col items-center gap-2 rounded",
             {
-              "outline-primary outline outline-2 outline-offset-1":
+              "outline-muted-foreground outline outline-offset-1":
                 selected || isResizing,
             },
           )}
@@ -266,7 +265,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
               >
                 <img
                   className={cn(
-                    "h-auto rounded-md object-contain transition-shadow",
+                    "h-auto rounded object-contain transition-shadow",
                     {
                       "opacity-0": !imageState.imageLoaded || imageState.error,
                     },
@@ -290,7 +289,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
 
             {imageState.isServerUploading && <ImageOverlay />}
 
-            {editor.isEditable &&
+            {/* {editor.isEditable &&
               imageState.imageLoaded &&
               !imageState.error &&
               !imageState.isServerUploading && (
@@ -310,7 +309,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
                     isResizing={isResizing && activeResizeHandle === "right"}
                   />
                 </>
-              )}
+              )} */}
           </div>
 
           {imageState.error && (
