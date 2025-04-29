@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 
-export function Stats() {
+export function ActivityFeedStats() {
   const {
     query: { data: metaData },
   } = useActivityFeedMetaData({ enabled: true });
@@ -9,25 +9,27 @@ export function Stats() {
   const statsData = [
     {
       title: "Feature requests",
-      value: metaData?.totalFeatureRequestPostCount,
-      newValue: metaData?.unseenFeatureRequestPostCount,
+      totalCount: metaData?.totalFeatureRequestPostCount,
+      newCount: metaData?.unseenFeatureRequestPostCount,
     },
     {
       title: "Bug reports",
-      value: metaData?.totalBugReportPostCount,
-      newValue: metaData?.unseenBugReportPostCount,
+      totalCount: metaData?.totalBugReportPostCount,
+      newCount: metaData?.unseenBugReportPostCount,
     },
     {
       title: "General feedback",
-      value: metaData?.totalGeneralFeedbackPostCount,
-      newValue: metaData?.unseenGeneralFeedbackPostCount,
+      totalCount: metaData?.totalGeneralFeedbackPostCount,
+      newCount: metaData?.unseenGeneralFeedbackPostCount,
     },
     {
       title: "Comments",
-      value: metaData?.totalCommentCount,
-      newValue: metaData?.unseenCommentCount,
+      totalCount: metaData?.totalCommentCount,
+      newCount: metaData?.unseenCommentCount,
     },
   ];
+
+  const handleOnClick = (title: string) => {};
 
   return (
     <div className="mt-3 mb-3 grid grid-cols-4 gap-3">
@@ -35,15 +37,18 @@ export function Stats() {
         <Card
           key={index}
           className="border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded p-3 shadow-none"
+          onClick={() => {
+            handleOnClick(stat.title);
+          }}
         >
           <CardHeader className="text-muted-foreground p-0 text-sm font-medium">
             {stat.title}
           </CardHeader>
           <CardContent className="flex items-baseline gap-1 p-0">
-            <span className="text-xl font-bold">{stat.value}</span>
-            {stat.newValue !== undefined && stat.newValue > 0 && (
+            <span className="text-xl font-bold">{stat.totalCount}</span>
+            {stat.newCount !== undefined && stat.newCount > 0 && (
               <span className="text-muted-foreground text-xs">
-                ({stat.newValue} new)
+                ({stat.newCount} new)
               </span>
             )}
           </CardContent>

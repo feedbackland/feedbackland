@@ -9,7 +9,7 @@ import { ActivityFeedListPagination } from "./list-pagination";
 import { ActivityFeedListHeader } from "./list-header";
 import { ActivityFeedListItems } from "./list-items";
 import { cn } from "@/lib/utils";
-import { Stats } from "./stats";
+import { ActivityFeedStats } from "./stats";
 
 const PAGE_SIZE = 10;
 
@@ -84,7 +84,8 @@ export function ActivityFeedList({
   return (
     <>
       <div className={cn("", className)}>
-        <Stats />
+        <ActivityFeedStats />
+
         <ActivityFeedListHeader
           className="border-border bg-muted/50 rounded-t-md border px-4 py-2"
           onChange={({ searchValue, orderBy, status }) => {
