@@ -6,6 +6,7 @@ import { textEmbeddingModel } from "@/lib/gemini";
 import { cosineDistance } from "pgvector/kysely";
 import {
   ActivityFeedItem,
+  FeedbackCategories,
   FeedbackCategory,
   FeedbackStatus,
 } from "@/lib/typings";
@@ -15,90 +16,102 @@ export const searchActivityFeedQuery = async ({
   searchValue,
   page,
   pageSize,
+  categories,
+  excludeFeedback = false,
+  excludeComments = false,
 }: {
   orgId: string;
   searchValue: string;
   page: number;
   pageSize: number;
+  categories?: FeedbackCategories;
+  excludeFeedback?: boolean;
+  excludeComments?: boolean;
 }) => {
   const {
     embedding: { values },
   } = await textEmbeddingModel.embedContent(searchValue);
 
   const offset = (page - 1) * pageSize;
-  const distanceThreshold = 0.5; // Define threshold for clarity
+  const distanceThreshold = 0.5;
 
-  // CTE for Feedback Posts with early filtering
-  const feedbackCTE = db
+  let feedbackQuery = db
     .selectFrom("feedback")
-    .leftJoin("user", "feedback.authorId", "user.id") // Join with user table
-    .where("feedback.orgId", "=", orgId) // Filter by orgId early
-    .where(cosineDistance("feedback.embedding", values), "<", distanceThreshold) // Filter by distance early
-    .select([
-      "feedback.orgId",
-      "feedback.id",
-      "feedback.id as postId",
-      sql<string | null>`null`.as("commentId"),
-      "feedback.createdAt",
-      "feedback.title",
-      "feedback.description as content",
-      "feedback.upvotes",
-      "feedback.category",
-      "feedback.status",
-      sql<string>`'post'`.as("type"),
-      // Subquery for comment count - relies on index on comment.postId
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll<string>().as("commentCount")) // Use <string> for count
-          .whereRef("comment.postId", "=", "feedback.id")
-          .as("commentCount"),
-      "user.id as authorId", // Select author's id
-      "user.name as authorName", // Select author's name
-      "feedback.title as postTitle", // Select parent post's title
-      cosineDistance("feedback.embedding", values).as("distance"), // Calculate distance
-    ]);
+    .leftJoin("user", "feedback.authorId", "user.id")
+    .where("feedback.orgId", "=", orgId)
+    .where(
+      cosineDistance("feedback.embedding", values),
+      "<",
+      distanceThreshold,
+    );
 
-  // CTE for Comments with early filtering
+  if (categories && categories.length > 0) {
+    feedbackQuery = feedbackQuery.where("feedback.category", "in", categories);
+  }
+
+  const feedbackCTE = feedbackQuery.select([
+    "feedback.orgId",
+    "feedback.id",
+    "feedback.id as postId",
+    sql<string | null>`null`.as("commentId"),
+    "feedback.createdAt",
+    "feedback.title",
+    "feedback.description as content",
+    "feedback.upvotes",
+    "feedback.category",
+    "feedback.status",
+    sql<string>`'post'`.as("type"),
+    (eb) =>
+      eb
+        .selectFrom("comment")
+        .select(eb.fn.countAll<string>().as("commentCount"))
+        .whereRef("comment.postId", "=", "feedback.id")
+        .as("commentCount"),
+    "user.id as authorId",
+    "user.name as authorName",
+    "feedback.title as postTitle",
+    cosineDistance("feedback.embedding", values).as("distance"),
+  ]);
+
   const commentsCTE = db
     .selectFrom("comment")
     .innerJoin("feedback", "comment.postId", "feedback.id")
-    .leftJoin("user", "comment.authorId", "user.id") // Join with user table
-    .where("feedback.orgId", "=", orgId) // Filter by orgId early (via join)
-    .where(cosineDistance("comment.embedding", values), "<", distanceThreshold) // Filter by distance early
+    .leftJoin("user", "comment.authorId", "user.id")
+    .where("feedback.orgId", "=", orgId)
+    .where(cosineDistance("comment.embedding", values), "<", distanceThreshold)
     .select([
-      "feedback.orgId", // Selected from the joined feedback table
+      "feedback.orgId",
       "comment.id",
       "comment.postId",
       "comment.id as commentId",
       "comment.createdAt",
-      sql<string>`null`.as("title"), // Comments don't have their own title
+      sql<string>`null`.as("title"),
       "comment.content",
       "comment.upvotes",
       sql<FeedbackCategory | null>`null`.as("category"),
-      sql<FeedbackStatus | null>`null`.as("status"), // Comments don't have status
+      sql<FeedbackStatus | null>`null`.as("status"),
       sql<string>`'comment'`.as("type"),
-      sql<string>`'0'`.as("commentCount"), // Match type 'string' from feedbackCTE count
-      "user.id as authorId", // Select author's id
-      "user.name as authorName", // Select author's name
-      "feedback.title as postTitle", // Select parent post's title
-      cosineDistance("comment.embedding", values).as("distance"), // Calculate distance
+      sql<string>`'0'`.as("commentCount"),
+      "user.id as authorId",
+      "user.name as authorName",
+      "feedback.title as postTitle",
+      cosineDistance("comment.embedding", values).as("distance"),
     ]);
 
-  // Combine filtered CTEs using UNION ALL
-  const unionQuery = db.selectFrom(
-    feedbackCTE.unionAll(commentsCTE).as("union"),
+  let activityQuery = db.selectFrom(
+    feedbackCTE.unionAll(commentsCTE).as("activity"),
   );
 
-  // Order by distance and add window function for total count
-  const finalQuery = unionQuery
-    .selectAll("union") // Select all columns from the union
-    .orderBy("union.distance") // Order by relevance (distance)
-    .select(() => [
-      // Add the totalCount column
-      sql<string>`count(*) OVER()`.as("totalCount"),
-      // Kysely automatically includes columns from the 'from' source (unionQuery)
-    ])
+  if (excludeFeedback) {
+    activityQuery = db.selectFrom(commentsCTE.as("activity"));
+  } else if (excludeComments) {
+    activityQuery = db.selectFrom(feedbackCTE.as("activity"));
+  }
+
+  const finalQuery = activityQuery
+    .selectAll("activity")
+    .orderBy("activity.distance")
+    .select((eb) => [eb.fn.count("activity.id").over().as("totalItemsCount")])
     .limit(pageSize)
     .offset(offset);
 
@@ -107,13 +120,14 @@ export const searchActivityFeedQuery = async ({
 
     // Extract items and total count from the first result (if any)
     const items = results;
-    const totalItems = results.length > 0 ? Number(results[0].totalCount) : 0;
+    const totalItems =
+      results.length > 0 ? Number(results[0].totalItemsCount) : 0;
     const count = totalItems.toString(); // Keep original count format if needed
 
     // Remove totalCount from individual items before returning
     // Also remove distance if it's not needed in the final result set
     const itemsWithoutExtras: ActivityFeedItem[] = items.map(
-      ({ totalCount, distance, ...rest }) => rest,
+      ({ totalItemsCount, distance, ...rest }) => rest,
     );
 
     const totalPages = Math.ceil(totalItems / pageSize);

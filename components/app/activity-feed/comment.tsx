@@ -14,13 +14,8 @@ export function ActivityFeedComment({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      {/* <div>
-        <div className="flex items-center pr-3 pl-2">
-          <MessageSquareIcon className="text-muted-foreground size-4.5" />
-        </div>
-      </div> */}
-      <div className="flex-1 space-y-1">
+    <div className={cn("", className)}>
+      <div className="flex-1 space-y-1.5">
         <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
           <span className="">Comment posted in {item.postTitle}</span>
           <span className="text-[8px]">•</span>

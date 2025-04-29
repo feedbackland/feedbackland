@@ -85,6 +85,9 @@ export function ActivityFeedList({
     enabled: isSearchActive,
     page,
     pageSize: PAGE_SIZE,
+    categories,
+    excludeComments,
+    excludeFeedback,
   });
 
   const activeData = isSearchActive ? searchData : itemsData;
@@ -119,7 +122,7 @@ export function ActivityFeedList({
   return (
     <>
       <div className={cn("", className)}>
-        <div className="mt-3 mb-3 grid grid-cols-4 gap-3">
+        <div className="mt-2 mb-4 grid grid-cols-4 gap-3">
           {[
             {
               title: "Feature requests",
@@ -145,19 +148,19 @@ export function ActivityFeedList({
             <Card
               key={index}
               className={cn(
-                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded p-3 shadow-none",
+                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded-md p-3 shadow-xs",
                 stat.title === "Feature requests" &&
                   featureRequestsSelected &&
-                  "border-primary",
+                  "border-primary ring-ring bg-muted/50 ring-1",
                 stat.title === "Bug reports" &&
                   bugReportsSelected &&
-                  "border-primary",
+                  "border-primary ring-ring bg-muted/50 ring-1",
                 stat.title === "General feedback" &&
                   generalFeedbackSelected &&
-                  "border-primary",
+                  "border-primary ring-ring bg-muted/50 ring-1",
                 stat.title === "Comments" &&
                   commentsSelected &&
-                  "border-primary",
+                  "border-primary ring-ring bg-muted/50 ring-1",
               )}
               onClick={() => {
                 if (stat.title === "Feature requests") {
@@ -171,13 +174,13 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <CardHeader className="text-muted-foreground p-0 text-sm font-medium">
+              <CardHeader className="text-primary font-base p-0 text-sm">
                 {stat.title}
               </CardHeader>
-              <CardContent className="flex items-baseline gap-1 p-0">
+              <CardContent className="flex items-baseline gap-1.5 p-0">
                 <span className="text-xl font-bold">{stat.totalCount}</span>
                 {stat.newCount !== undefined && stat.newCount > 0 && (
-                  <span className="text-muted-foreground text-xs">
+                  <span className="font-base text-xs">
                     ({stat.newCount} new)
                   </span>
                 )}
@@ -187,7 +190,7 @@ export function ActivityFeedList({
         </div>
 
         <ActivityFeedListHeader
-          className="border-border bg-muted/50 rounded-t-md border px-4 py-2"
+          className="border-border bg-muted rounded-t-md border py-2 pr-3 pl-4"
           onChange={({ searchValue, orderBy, status }) => {
             setPage(1);
             setSearchValue(searchValue);
@@ -196,7 +199,7 @@ export function ActivityFeedList({
           }}
         />
 
-        <div className="border-border flex flex-col items-stretch rounded-b-md border">
+        <div className="border-border flex flex-col items-stretch rounded-b-md border border-t-0">
           {showItems && <ActivityFeedListItems items={items} />}
 
           {isPending && <ActivityFeedLoading />}

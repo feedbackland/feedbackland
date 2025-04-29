@@ -42,8 +42,8 @@ export function ActivityFeedListItems({
     <div className={cn("flex flex-col items-stretch", className)}>
       {items?.map((item) => {
         const itemClassName = cn(
-          "border-border flex-1 border-b p-4",
-          item.isSeen && "bg-muted/70 dark:bg-muted/40",
+          "border-border flex-1 border-b p-4 flex w-full items-center gap-2",
+          item.isSeen && "bg-muted/50 dark:bg-muted/40",
         );
 
         if (item.type === "post") {
