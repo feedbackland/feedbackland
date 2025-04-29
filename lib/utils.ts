@@ -159,7 +159,9 @@ export const processImagesInHTML = async (html: string) => {
 };
 
 export const sanitize = (htmlString: string) => {
-  return sanitizeHtml(htmlString);
+  return sanitizeHtml(htmlString, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "a"]),
+  });
 };
 
 export const stripHtml = (htmlString: string) => {
