@@ -22,9 +22,11 @@ export function ActivityFeedListItems({
   const setActivitySeen = useMutation(
     trpc.setActivitiesSeen.mutationOptions({
       onSuccess: () => {
-        console.log("zolg");
         queryClient.invalidateQueries({
           queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
       },
     }),
