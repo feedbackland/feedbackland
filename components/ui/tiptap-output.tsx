@@ -2,8 +2,31 @@
 
 import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
-import parse, { Element, attributesToProps } from "html-react-parser";
+import parse, { Element } from "html-react-parser";
 import { memo } from "react";
+import Image from "next/image";
+
+function getImageDimensions(
+  imageUrl: string,
+): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+    };
+
+    img.onerror = (err: any) => {
+      console.error("Failed to load image client-side:", err);
+      reject(new Error("Failed to load image to get dimensions"));
+    };
+
+    img.src = imageUrl;
+  });
+}
 
 export const TiptapOutput = memo(function TiptapOutput({
   content,
@@ -23,23 +46,26 @@ export const TiptapOutput = memo(function TiptapOutput({
   });
 
   const parsedHtml = parse(sanitizedHtml, {
-    replace: (domNode) => {
+    replace: async (domNode) => {
       if (domNode instanceof Element) {
         if (
           !forbiddenTags.includes("a") &&
           domNode.name === "img" &&
           domNode.attribs
         ) {
-          const imgProps = attributesToProps(domNode.attribs);
-          const imgElement = <img {...imgProps} />;
+          const imageUrl = domNode.attribs.src;
+          const { width, height } = await getImageDimensions(imageUrl);
 
           return (
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href={domNode.attribs.src}
-            >
-              {imgElement}
+            <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
+              <Image
+                src={imageUrl}
+                alt="Uploaded user image"
+                width={width}
+                height={height}
+                sizes="100px"
+                quality={5}
+              />
             </a>
           );
         }
