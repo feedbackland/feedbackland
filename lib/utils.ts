@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
+import imageSize from "image-size"; // Import image-size
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -118,44 +119,78 @@ export const base64ToBlob = ({
 
 export const processImagesInHTML = async (html: string) => {
   const base64Regex = /<img.*?src="(data:image\/(.*?);base64,([^"]*))"[^>]*>/g;
-  let modifiedHTML = html;
+  let modifiedHTML = html; // Start with original HTML
 
   const matches = Array.from(html.matchAll(base64Regex));
 
-  for (const match of matches) {
+  // Create an array of promises, one for each image processing task
+  const processingPromises = matches.map(async (match) => {
     const fullMatch = match[0];
-    // const dataURL = match[1];
     const imageType = match[2];
     const base64Data = match[3];
 
     try {
+      // Decode base64 to buffer for image-size
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
+      const { width, height } = imageSize(imageBuffer); // Get dimensions
+
       const blob = base64ToBlob({
         base64: base64Data,
         contentType: `image/${imageType}`,
       });
+
       const filename = `image-${uuidv4()}.${imageType}`;
-      const { error } = await supabase.storage
+
+      // Upload to Supabase
+      const { error: uploadError } = await supabase.storage
         .from("images")
         .upload(filename, blob);
 
-      if (error) {
-        throw error;
+      if (uploadError) {
+        throw uploadError; // Propagate upload error
       }
 
+      // Get public URL
+      // Using 'as any' as a workaround for persistent TS error where 'error' property is not recognized on the type.
       const {
         data: { publicUrl },
       } = supabase.storage.from("images").getPublicUrl(filename);
 
-      modifiedHTML = modifiedHTML.replace(
-        fullMatch,
-        `<img src="${publicUrl}" alt="Uploaded Image">`,
-      );
-    } catch (uploadError) {
-      console.error("Error uploading image:", uploadError);
-    }
-  }
+      if (!publicUrl) {
+        throw new Error("Failed to get public URL for uploaded image.");
+      }
 
-  return modifiedHTML;
+      // Return the original match and the replacement string
+      return {
+        original: fullMatch,
+        replacement: `<img src="${publicUrl}" alt="Uploaded Image" width="${width}" height="${height}">`,
+      };
+    } catch (error) {
+      console.error(
+        "Error processing image:",
+        error,
+        "Original match:",
+        fullMatch,
+      );
+
+      // Return null or the original match if processing fails for this image
+      return { original: fullMatch, replacement: fullMatch }; // Keep original if error
+    }
+  });
+
+  // Wait for all image processing tasks to complete
+  const results = await Promise.all(processingPromises);
+
+  // Perform replacements after all promises are resolved
+  results.forEach((result) => {
+    if (result) {
+      // Ensure result is not null/undefined from potential errors handled above
+      modifiedHTML = modifiedHTML.replace(result.original, result.replacement);
+    }
+  });
+
+  return modifiedHTML; // Return the final modified HTML
 };
 
 export const sanitize = (htmlString: string) => {

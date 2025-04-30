@@ -6,28 +6,6 @@ import parse, { Element } from "html-react-parser";
 import { memo } from "react";
 import Image from "next/image";
 
-function getImageDimensions(
-  imageUrl: string,
-): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-
-    img.onload = () => {
-      resolve({
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
-    };
-
-    img.onerror = (err: any) => {
-      console.error("Failed to load image client-side:", err);
-      reject(new Error("Failed to load image to get dimensions"));
-    };
-
-    img.src = imageUrl;
-  });
-}
-
 export const TiptapOutput = memo(function TiptapOutput({
   content,
   className,
@@ -46,7 +24,7 @@ export const TiptapOutput = memo(function TiptapOutput({
   });
 
   const parsedHtml = parse(sanitizedHtml, {
-    replace: async (domNode) => {
+    replace: (domNode) => {
       if (domNode instanceof Element) {
         if (
           !forbiddenTags.includes("a") &&
@@ -54,7 +32,8 @@ export const TiptapOutput = memo(function TiptapOutput({
           domNode.attribs
         ) {
           const imageUrl = domNode.attribs.src;
-          const { width, height } = await getImageDimensions(imageUrl);
+          const width = Number(domNode.attribs.width);
+          const height = Number(domNode.attribs.height);
 
           return (
             <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
@@ -63,11 +42,17 @@ export const TiptapOutput = memo(function TiptapOutput({
                 alt="Uploaded user image"
                 width={width}
                 height={height}
-                sizes="100px"
-                quality={5}
+                quality={60}
+                className="w-full"
               />
             </a>
           );
+
+          // return (
+          //   <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
+          //     <img src={imageUrl} alt="User-uploaded image" />
+          //   </a>
+          // );
         }
       }
 
