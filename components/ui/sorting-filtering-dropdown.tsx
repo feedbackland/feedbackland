@@ -71,7 +71,7 @@ export function SortingFilteringDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuRadioGroup
-          value={orderBy}
+          value={String(orderBy)}
           onValueChange={(value) =>
             handleSelectOrderBy(value as FeedbackOrderBy)
           }
