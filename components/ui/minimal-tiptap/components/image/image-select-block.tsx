@@ -32,6 +32,14 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
       };
 
       await insertImages();
+
+      editor
+        .chain()
+        .focus()
+        .enter() // Add the new paragraph
+        .focus() // Re-focus might be needed
+        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
+        .run();
     },
     [editor],
   );

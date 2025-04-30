@@ -90,6 +90,7 @@ const createExtensions = (placeholder: string) => [
     //   return { id: randomId(), src };
     // },
     onToggle(editor, files, pos) {
+      console.log("bleh");
       editor.commands.insertContentAt(
         pos,
         files.map((image) => {
@@ -147,23 +148,47 @@ const createExtensions = (placeholder: string) => [
     allowBase64: true,
     allowedMimeTypes: ["image/*"],
     maxFileSize: 5 * 1024 * 1024,
-    onDrop: (editor, files, pos) => {
-      files.forEach(async (file) => {
+    onDrop: async (editor, files, pos) => {
+      const insertionPromises = files.map(async (file) => {
         const src = await fileToBase64(file);
+        // Insert content at the original drop position for all files
         editor.commands.insertContentAt(pos, {
           type: "image",
           attrs: { src },
         });
       });
+
+      await Promise.all(insertionPromises);
+
+      // After all images are inserted, focus, add a new line, and move cursor to the end
+      editor
+        .chain()
+        .focus()
+        .enter() // Add the new paragraph
+        .focus() // Re-focus might be needed
+        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
+        .run();
     },
-    onPaste: (editor, files) => {
-      files.forEach(async (file) => {
+    onPaste: async (editor, files) => {
+      const insertionPromises = files.map(async (file) => {
         const src = await fileToBase64(file);
+        // Insert content at the current cursor position
         editor.commands.insertContent({
           type: "image",
           attrs: { src },
         });
       });
+
+      await Promise.all(insertionPromises);
+
+      // After all images are inserted, focus, add a new line, and move cursor to the end
+      editor
+        .chain()
+        .focus()
+        .enter() // Add the new paragraph
+        .focus() // Re-focus might be needed
+        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
+        .run();
     },
     onValidationError: (errors) => {
       errors.forEach((error) => {
