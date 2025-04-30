@@ -61,13 +61,19 @@ export const MinimalTiptapEditor = ({
       as="div"
       name="editor"
       className={cn(
-        "border-input dark:bg-input/30 flex w-full flex-col rounded-md border shadow-xs",
+        "border-input dark:bg-input/30 flex w-full cursor-text flex-col rounded-md border shadow-xs",
         className,
       )}
+      onClick={() => {
+        editor.commands.focus();
+      }}
     >
       <EditorContent
         editor={editor}
         className={cn("minimal-tiptap-editor", editorContentClassName)}
+        onClick={() => {
+          editor.commands.focus();
+        }}
       />
       <Toolbar editor={editor} hide={!showToolbar} />
       <LinkBubbleMenu editor={editor} />
