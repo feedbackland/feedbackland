@@ -8,11 +8,14 @@ import { cn } from "@/lib/utils";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
+import { timeAgo } from "@/lib/time-ago";
 
 function Inner({
   postId,
   title,
   description,
+  createdAt,
+  category,
   upvoteCount,
   commentCount,
   hasUserUpvote,

@@ -69,12 +69,13 @@ export function SortingFilteringDropdown({
           <ChevronDown className="size-3.5!" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" className="flex w-full flex-row">
         <DropdownMenuRadioGroup
           value={String(orderBy)}
           onValueChange={(value) =>
             handleSelectOrderBy(value as FeedbackOrderBy)
           }
+          className="border-border border-r pr-1"
         >
           <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="upvotes">
@@ -85,7 +86,7 @@ export function SortingFilteringDropdown({
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
 
-        <DropdownMenuSeparator />
+        {/* <DropdownMenuSeparator /> */}
 
         <DropdownMenuRadioGroup
           value={status ? status : "all"}
@@ -94,6 +95,7 @@ export function SortingFilteringDropdown({
               (value !== "all" ? value : null) as FeedbackStatus,
             );
           }}
+          className="pr-1 pl-1"
         >
           <DropdownMenuRadioItem value="all">
             All statuses

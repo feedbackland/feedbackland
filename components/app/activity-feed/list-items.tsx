@@ -22,10 +22,10 @@ export function ActivityFeedListItems({
   const setActivitySeen = useMutation(
     trpc.setActivitiesSeen.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
+        queryClient.refetchQueries({
           queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
         });
-        queryClient.invalidateQueries({
+        queryClient.refetchQueries({
           queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
       },
