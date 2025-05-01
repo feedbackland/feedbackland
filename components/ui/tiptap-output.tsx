@@ -42,7 +42,7 @@ export const TiptapOutput = memo(function TiptapOutput({
                 alt="Uploaded user image"
                 width={width}
                 height={height}
-                quality={60}
+                quality={1}
                 className="w-full"
               />
             </a>
