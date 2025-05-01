@@ -17,10 +17,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const platformUrl = usePlatformUrl();
   const { session } = useAuth();
   const [value, setValue] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -34,8 +39,16 @@ export function FeedbackForm() {
 
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
-      onSuccess: () => {
+      onSuccess: ({ id }) => {
         setValue("");
+
+        toast.success("Feedback submitted", {
+          position: "top-right",
+          action: {
+            label: "View your feedback",
+            onClick: () => router.push(`${platformUrl}/${id}`),
+          },
+        });
 
         queryClient.invalidateQueries({
           queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),

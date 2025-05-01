@@ -212,7 +212,7 @@ export function ActivityFeedList({
 
           {isPlatformEmpty && (
             <div className="text-muted-foreground space-y-1 py-5 text-center">
-              <div className="text-base font-semibold">No content found</div>
+              <div className="text-base font-normal">No content found</div>
             </div>
           )}
 

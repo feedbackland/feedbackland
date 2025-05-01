@@ -24,17 +24,17 @@ export default function AdminPage() {
   if (isAdmin) {
     return (
       <div>
-        <Tabs defaultValue="inbox" className="">
+        <Tabs defaultValue="activity" className="">
           <TabsList>
-            <TabsTrigger value="inbox">
-              Inbox
+            <TabsTrigger value="activity">
+              Activity
               {metaData &&
                 metaData?.totalUnseenCount > 0 &&
                 ` (${metaData?.totalUnseenCount})`}
             </TabsTrigger>
             <TabsTrigger value="insights">AI Insights</TabsTrigger>
           </TabsList>
-          <TabsContent value="inbox">
+          <TabsContent value="activity">
             <ActivityFeed />
           </TabsContent>
           <TabsContent value="insights">AI Insights</TabsContent>

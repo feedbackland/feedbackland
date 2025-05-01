@@ -20,7 +20,7 @@ export function ActivityFeedComment({
           <span className="">Comment posted in {item.postTitle}</span>
           <span className="text-[8px]">•</span>
           <span className="">
-            {timeAgo.format(item.createdAt)} by{" "}
+            {timeAgo.format(item.createdAt, "mini")} ago by{" "}
             {item.authorName || "unknown user"}
           </span>
         </div>

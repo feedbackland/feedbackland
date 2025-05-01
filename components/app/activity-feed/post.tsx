@@ -5,7 +5,7 @@ import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
-import { ArrowBigUpIcon } from "lucide-react";
+import { ArrowBigUpIcon, MessageSquare } from "lucide-react";
 
 export function ActivityFeedPost({
   item,
@@ -23,7 +23,7 @@ export function ActivityFeedPost({
           </span>
           <span className="text-[8px]">•</span>
           <span className="">
-            {timeAgo.format(item.createdAt)} by{" "}
+            {timeAgo.format(item.createdAt, "mini")} ago by{" "}
             {item.authorName || "unknown user"}
           </span>
         </div>
@@ -64,10 +64,14 @@ export function ActivityFeedPost({
           })}
         </div> */}
       </div>
-      <div>
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-1">
-          <ArrowBigUpIcon className="size-4" strokeWidth={1.5} />
+          <ArrowBigUpIcon className="size-4!" strokeWidth={1.5} />
           <span className="text-primary text-xs">{item.upvotes || 0}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <MessageSquare className="mr-0.5 ml-0.5 size-3!" />
+          <span className="text-primary text-xs">0</span>
         </div>
       </div>
     </div>

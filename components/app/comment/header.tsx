@@ -24,7 +24,7 @@ export function CommentHeader({
       <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
         <div className="text-primary">{authorName}</div>
         <span className="text-[8px]">•</span>
-        <div className="">{timeAgo.format(createdAt)}</div>
+        <div className="">{timeAgo.format(createdAt, "round")}</div>
       </div>
     </div>
   );
