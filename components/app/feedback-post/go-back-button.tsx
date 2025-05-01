@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { previousPathnameAtom } from "@/lib/atoms";
-import { useSubdomain } from "@/hooks/use-subdomain";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 export const GoBackButton = ({
   className,
@@ -14,14 +14,14 @@ export const GoBackButton = ({
   className?: React.ComponentProps<"div">["className"];
 }) => {
   const router = useRouter();
-  const subdomain = useSubdomain();
   const previousPathname = useAtomValue(previousPathnameAtom);
+  const platfromUrl = usePlatformUrl();
 
   const handleGoBack = () => {
     if (previousPathname) {
       router.back();
     } else {
-      router.push(`/${subdomain}`);
+      router.push(platfromUrl as string);
     }
   };
 
