@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LogOutIcon, MoonIcon, MoreHorizontal, Shield } from "lucide-react";
+import {
+  HomeIcon,
+  LogOutIcon,
+  MoonIcon,
+  MoreHorizontal,
+  Shield,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +23,14 @@ import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
+import { usePathname } from "next/navigation";
 
 export function PlatformHeader() {
+  const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const { session, signOut } = useAuth();
   const isAdmin = session?.userOrg?.role === "admin";
+  const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
   const { theme, setTheme } = useTheme();
 
@@ -45,10 +54,14 @@ export function PlatformHeader() {
         <div className="flex items-center gap-3">
           {isAdmin && (
             <Button variant="link" size="default" asChild>
-              <Link href={`${platformUrl}/admin`}>
+              <Link href={isAdminPage ? platformUrl : `${platformUrl}/admin`}>
                 <span className="flex items-center gap-2">
-                  <Shield className="size-3.5!" />
-                  <span>Admin panel</span>
+                  {isAdminPage ? (
+                    <HomeIcon className="size-3.5!" />
+                  ) : (
+                    <Shield className="size-3.5!" />
+                  )}
+                  <span>{isAdminPage ? "Home" : "Admin panel"}</span>
                 </span>
               </Link>
             </Button>

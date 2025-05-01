@@ -140,7 +140,7 @@ export function FeedbackPosts() {
         Array.isArray(posts) &&
         posts.length > 0
       ) && (
-        <div className="space-y-8">
+        <div className="space-y-9">
           {posts.map((post) => (
             <FeedbackPostCompact
               key={post.id}

@@ -53,6 +53,10 @@ export function FeedbackForm() {
         queryClient.invalidateQueries({
           queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");

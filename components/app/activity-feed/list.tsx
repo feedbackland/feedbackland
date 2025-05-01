@@ -189,44 +189,46 @@ export function ActivityFeedList({
           ))}
         </div>
 
-        <ActivityFeedListHeader
-          className="border-border bg-muted rounded-t-md border py-2 pr-3 pl-4"
-          onChange={({ searchValue, orderBy, status }) => {
-            setPage(1);
-            setSearchValue(searchValue);
-            setOrderBy(orderBy);
-            setStatus(status);
-          }}
-        />
+        <div className="border-border overflow-hidden rounded-md border">
+          <ActivityFeedListHeader
+            className="bg-background border-border border-b py-2 pr-3 pl-4"
+            onChange={({ searchValue, orderBy, status }) => {
+              setPage(1);
+              setSearchValue(searchValue);
+              setOrderBy(orderBy);
+              setStatus(status);
+            }}
+          />
 
-        <div className="border-border flex flex-col items-stretch rounded-b-md border border-t-0">
-          {showItems && <ActivityFeedListItems items={items} />}
+          <div className="flex flex-col items-stretch">
+            {showItems && <ActivityFeedListItems items={items} />}
 
-          {isPending && <ActivityFeedLoading />}
+            {isPending && <ActivityFeedLoading />}
 
-          {isError && (
-            <div className="py-4 text-center text-red-500">
-              Error loading inbox
-            </div>
-          )}
+            {isError && (
+              <div className="py-4 text-center text-red-500">
+                Error loading inbox
+              </div>
+            )}
 
-          {isPlatformEmpty && (
-            <div className="text-muted-foreground space-y-1 py-5 text-center">
-              <div className="text-base font-normal">No content found</div>
-            </div>
-          )}
+            {isPlatformEmpty && (
+              <div className="text-muted-foreground space-y-1 py-5 text-center">
+                <div className="text-sm font-normal">No content found</div>
+              </div>
+            )}
 
-          {isSearchEmpty && (
-            <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-              No matches found for your search
-            </div>
-          )}
+            {isSearchEmpty && (
+              <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+                No matches found for your search
+              </div>
+            )}
 
-          {isStatusEmpty && (
-            <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-              No feedback found that is marked as {status}
-            </div>
-          )}
+            {isStatusEmpty && (
+              <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+                No feedback found that is marked as {status}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

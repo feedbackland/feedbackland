@@ -34,36 +34,30 @@ function Inner({
   const platformUrl = usePlatformUrl();
 
   return (
-    <div className="group relative">
+    <div className={cn("", className)}>
       <Link
         href={`${platformUrl}/${postId}`}
-        // className="group-hover:border-primary/40 border-border flex flex-col items-stretch space-y-2 rounded-lg border p-3.5 pb-12"
-        className="group-hover:border-primary/40 border-border flex flex-col items-stretch space-y-2 pb-8"
+        className="group flex flex-col items-stretch space-y-1.5"
       >
-        <>
-          <div
-            className={cn("flex flex-col items-stretch space-y-1.5", className)}
-          >
-            <div className="flex flex-col items-stretch">
-              {/* <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-                <span>{timeAgo.format(createdAt)}</span>
-                <span className="text-[8px]">•</span>
-                <span className="capitalize">{category}</span>
-              </div> */}
-              <h3 className="text-[16px] leading-5.5 font-semibold group-hover:underline">
-                {title}
-              </h3>
-            </div>
+        <div className="flex flex-col items-stretch">
+          {/* <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
+            <span>{timeAgo.format(createdAt)}</span>
+            <span className="text-[8px]">•</span>
+            <span className="capitalize">{category}</span>
+          </div> */}
+          <h3 className="text-[16px] leading-5.5 font-semibold group-hover:underline">
+            {title}
+          </h3>
+        </div>
 
-            <TiptapOutput
-              content={description}
-              forbiddenTags={["a", "pre", "img"]}
-              className="text-primary/70! mt-[-1] line-clamp-4"
-            />
-          </div>
-        </>
+        <TiptapOutput
+          content={description}
+          forbiddenTags={["a", "pre", "img"]}
+          className="text-primary/70! mt-[-1] line-clamp-4 group-hover:underline"
+        />
       </Link>
-      <div className="absolute bottom-0 left-0 z-10 flex items-center gap-2.5">
+
+      <div className="mt-2 flex items-center gap-2.5">
         <FeedbackPostUpvoteButton
           postId={postId}
           variant="secondary"
