@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import * as React from "react";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import type { ElementDimensions } from "../hooks/use-drag-resize";
@@ -225,10 +226,9 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
       <div
         className="group/node-image relative rounded-md object-contain"
         style={{
-          // maxWidth: `min(${maxWidth}px, 100%)`,
-          width: "100%",
-          // maxHeight: MAX_HEIGHT,
-          // aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
+          width: imageState.naturalSize.width,
+          maxWidth: "100%",
+          aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
         }}
       >
         <div
@@ -270,12 +270,6 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
                       "opacity-0": !imageState.imageLoaded || imageState.error,
                     },
                   )}
-                  style={{
-                    width: "100%",
-                    // maxWidth: `min(100%, ${maxWidth}px)`,
-                    // minWidth: `${MIN_WIDTH}px`,
-                    // maxHeight: MAX_HEIGHT,
-                  }}
                   width={currentWidth}
                   height={currentHeight}
                   src={imageState.src}

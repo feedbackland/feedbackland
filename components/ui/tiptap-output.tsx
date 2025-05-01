@@ -37,22 +37,24 @@ export const TiptapOutput = memo(function TiptapOutput({
 
           return (
             <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
+              {/* <img
+                src={imageUrl}
+                alt="Uploaded user image"
+                width={width}
+                height={height}
+                alt="User-uploaded image"
+              /> */}
+
               <Image
                 src={imageUrl}
                 alt="Uploaded user image"
                 width={width}
                 height={height}
-                quality={1}
-                className="w-full"
+                quality={10}
+                className="max-w-full"
               />
             </a>
           );
-
-          // return (
-          //   <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
-          //     <img src={imageUrl} alt="User-uploaded image" />
-          //   </a>
-          // );
         }
       }
 
