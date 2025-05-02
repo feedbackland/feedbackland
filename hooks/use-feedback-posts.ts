@@ -4,16 +4,18 @@ import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
 export function useFeedbackPosts({
   enabled,
-  orderBy = "newest",
-  status = null,
+  orderBy,
+  status,
+  searchValue,
 }: {
   enabled: boolean;
-  orderBy?: FeedbackOrderBy;
-  status?: FeedbackStatus;
+  orderBy: FeedbackOrderBy;
+  status: FeedbackStatus;
+  searchValue: string;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getFeedbackPosts.infiniteQueryOptions(
-    { limit: 10, orderBy, status },
+    { limit: 10, orderBy, status, searchValue },
     {
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,

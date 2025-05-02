@@ -39,5 +39,6 @@ export const feedbackPostsCursorSchema = z
     createdAt: z.string().datetime({ offset: true }),
     commentCount: z.number().min(0),
     upvotes: z.number().min(0),
+    distance: z.number().optional(),
   })
   .nullish();

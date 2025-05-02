@@ -4,7 +4,6 @@ import { db } from "@/db/db";
 import { sql } from "kysely";
 import { textEmbeddingModel } from "@/lib/gemini";
 import { cosineDistance } from "pgvector/kysely";
-import pgvector from "pgvector/pg";
 import {
   ActivityFeedItem,
   FeedbackCategories,
@@ -36,126 +35,134 @@ export async function getActivityFeedQuery({
   excludeComments: boolean;
   searchValue: string;
 }) {
-  const isSearching = searchValue.length > 0;
-  const offset = (page - 1) * pageSize;
-  const maxDistance = 0.4;
-  let searchEmbedding: number[] = [];
+  try {
+    const offset = (page - 1) * pageSize;
+    const isSearching = searchValue.length > 0;
+    const maxDistance = 0.4;
+    let searchEmbedding: number[] = [];
 
-  if (isSearching) {
-    const { embedding } = await textEmbeddingModel.embedContent(searchValue);
-    searchEmbedding = embedding.values;
-  }
+    if (isSearching) {
+      const { embedding } = await textEmbeddingModel.embedContent(searchValue);
+      searchEmbedding = embedding.values;
+    }
 
-  let feedbackQuery = db
-    .selectFrom("feedback")
-    .leftJoin("user", "feedback.authorId", "user.id")
-    .where("feedback.orgId", "=", orgId);
+    let feedbackQuery = db
+      .selectFrom("feedback")
+      .leftJoin("user", "feedback.authorId", "user.id")
+      .where("feedback.orgId", "=", orgId);
 
-  if (!isSearching && status) {
-    feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
-  }
+    if (!isSearching && status) {
+      feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
+    }
 
-  if (categories && categories.length > 0) {
-    feedbackQuery = feedbackQuery.where("feedback.category", "in", categories);
-  }
+    if (categories && categories.length > 0) {
+      feedbackQuery = feedbackQuery.where(
+        "feedback.category",
+        "in",
+        categories,
+      );
+    }
 
-  const feedbackCTE = feedbackQuery.select([
-    "feedback.orgId",
-    "feedback.id",
-    "feedback.id as postId",
-    sql<string | null>`null`.as("commentId"),
-    "feedback.createdAt",
-    "feedback.title",
-    "feedback.description as content",
-    "feedback.upvotes",
-    "feedback.category",
-    "feedback.status",
-    sql<string>`'post'`.as("type"),
-    (eb) =>
-      eb
-        .selectFrom("comment")
-        .select(eb.fn.countAll<string>().as("commentCount"))
-        .whereRef("comment.postId", "=", "feedback.id")
-        .as("commentCount"),
-    "user.id as authorId",
-    "user.name as authorName",
-    "feedback.title as postTitle",
-    ...(isSearching
-      ? [cosineDistance("feedback.embedding", searchEmbedding).as("distance")]
-      : [sql<null>`null`.as("distance")]),
-  ]);
-
-  const commentsCTE = db
-    .selectFrom("comment")
-    .innerJoin("feedback", "comment.postId", "feedback.id")
-    .leftJoin("user", "comment.authorId", "user.id")
-    .where("feedback.orgId", "=", orgId)
-    .select([
+    const feedbackCTE = feedbackQuery.select([
       "feedback.orgId",
-      "comment.id",
-      "comment.postId",
-      "comment.id as commentId",
-      "comment.createdAt",
-      sql<string>`null`.as("title"),
-      "comment.content",
-      "comment.upvotes",
-      sql<FeedbackCategory | null>`null`.as("category"),
-      sql<FeedbackStatus | null>`null`.as("status"),
-      sql<string>`'comment'`.as("type"),
-      sql<string>`'0'`.as("commentCount"),
+      "feedback.id",
+      "feedback.id as postId",
+      sql<string | null>`null`.as("commentId"),
+      "feedback.createdAt",
+      "feedback.title",
+      "feedback.description as content",
+      "feedback.upvotes",
+      "feedback.category",
+      "feedback.status",
+      sql<string>`'post'`.as("type"),
+      (eb) =>
+        eb
+          .selectFrom("comment")
+          .select(eb.fn.countAll<string>().as("commentCount"))
+          .whereRef("comment.postId", "=", "feedback.id")
+          .as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
       "feedback.title as postTitle",
       ...(isSearching
-        ? [cosineDistance("comment.embedding", searchEmbedding).as("distance")]
+        ? [cosineDistance("feedback.embedding", searchEmbedding).as("distance")]
         : [sql<null>`null`.as("distance")]),
     ]);
 
-  let activityQuery = db.selectFrom(
-    feedbackCTE.unionAll(commentsCTE).as("activity"),
-  );
+    const commentsCTE = db
+      .selectFrom("comment")
+      .innerJoin("feedback", "comment.postId", "feedback.id")
+      .leftJoin("user", "comment.authorId", "user.id")
+      .where("feedback.orgId", "=", orgId)
+      .select([
+        "feedback.orgId",
+        "comment.id",
+        "comment.postId",
+        "comment.id as commentId",
+        "comment.createdAt",
+        sql<string>`null`.as("title"),
+        "comment.content",
+        "comment.upvotes",
+        sql<FeedbackCategory | null>`null`.as("category"),
+        sql<FeedbackStatus | null>`null`.as("status"),
+        sql<string>`'comment'`.as("type"),
+        sql<string>`'0'`.as("commentCount"),
+        "user.id as authorId",
+        "user.name as authorName",
+        "feedback.title as postTitle",
+        ...(isSearching
+          ? [
+              cosineDistance("comment.embedding", searchEmbedding).as(
+                "distance",
+              ),
+            ]
+          : [sql<null>`null`.as("distance")]),
+      ]);
 
-  if (excludeFeedback) {
-    activityQuery = db.selectFrom(commentsCTE.as("activity"));
-  } else if (excludeComments) {
-    activityQuery = db.selectFrom(feedbackCTE.as("activity"));
-  }
+    let activityQuery = db.selectFrom(
+      feedbackCTE.unionAll(commentsCTE).as("activity"),
+    );
 
-  let orderedQuery = activityQuery.selectAll("activity");
-
-  if (!isSearching) {
-    if (orderBy === "newest") {
-      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
-    } else if (orderBy === "upvotes") {
-      orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
-    } else if (orderBy === "comments") {
-      orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
-    } else {
-      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+    if (excludeFeedback) {
+      activityQuery = db.selectFrom(commentsCTE.as("activity"));
+    } else if (excludeComments) {
+      activityQuery = db.selectFrom(feedbackCTE.as("activity"));
     }
-  }
 
-  if (isSearching) {
-    orderedQuery = orderedQuery
-      .where("activity.distance", "<", maxDistance)
-      .orderBy("activity.distance");
-  }
+    let orderedQuery = activityQuery.selectAll("activity");
 
-  const finalQuery = orderedQuery
-    .leftJoin("activity_seen", (join) =>
-      join
-        .onRef("activity.id", "=", "activity_seen.itemId")
-        .on("activity_seen.userId", "=", userId),
-    )
-    .selectAll()
-    .select((eb) => [
-      eb("activity_seen.userId", "is not", null).as("isSeen"),
-      eb.fn.count("activity.id").over().as("totalItemsCount"),
-    ])
-    .limit(pageSize)
-    .offset(offset);
+    if (!isSearching) {
+      if (orderBy === "newest") {
+        orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+      } else if (orderBy === "upvotes") {
+        orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
+      } else if (orderBy === "comments") {
+        orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
+      } else {
+        orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+      }
+    }
 
-  try {
+    if (isSearching) {
+      orderedQuery = orderedQuery
+        .where("activity.distance", "<", maxDistance)
+        .orderBy("activity.distance");
+    }
+
+    const finalQuery = orderedQuery
+      .leftJoin("activity_seen", (join) =>
+        join
+          .onRef("activity.id", "=", "activity_seen.itemId")
+          .on("activity_seen.userId", "=", userId),
+      )
+      .selectAll()
+      .select((eb) => [
+        eb("activity_seen.userId", "is not", null).as("isSeen"),
+        eb.fn.count("activity.id").over().as("totalItemsCount"),
+      ])
+      .limit(pageSize)
+      .offset(offset);
+
     const results = await finalQuery.execute();
 
     const items = results;

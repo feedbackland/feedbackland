@@ -5,19 +5,10 @@ import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
 import { FeedbackPostsSearchInput } from "./search-input";
-import { useSearchFeedbackPosts } from "@/hooks/use-search-feedback-posts";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 import { FeedbackPostsLoading } from "./loading";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
-
-function convertToString(value: string | number | bigint | null): string {
-  if (value === null) {
-    return "";
-  }
-
-  return value.toString();
-}
 
 export function FeedbackPosts() {
   const [searchValue, setSearchValue] = useState("");
@@ -32,28 +23,17 @@ export function FeedbackPosts() {
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
-      isPending: isPostsPending,
-      isError: isPostsError,
+      isPending,
+      isError,
     },
-  } = useFeedbackPosts({ enabled: !isSearchActive, orderBy, status });
-
-  const {
-    query: {
-      data: searchData,
-      isPending: isSearchPending,
-      isError: isSearchError,
-    },
-  } = useSearchFeedbackPosts({
+  } = useFeedbackPosts({
+    enabled: true,
+    orderBy,
+    status,
     searchValue,
-    enabled: isSearchActive,
   });
 
-  const posts =
-    (isSearchActive
-      ? searchData
-      : data?.pages.flatMap((page) => page.feedbackPosts)) || [];
-  const isPending = isSearchActive ? isSearchPending : isPostsPending;
-  const isError = isSearchActive ? isSearchError : isPostsError;
+  const posts = data?.pages.flatMap((page) => page.feedbackPosts) || [];
 
   const isPlatformEmpty =
     !isPending &&
@@ -68,7 +48,7 @@ export function FeedbackPosts() {
     isSearchActive &&
     !isError &&
     Array.isArray(posts) &&
-    posts.length === 0;
+    posts?.length === 0;
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -150,7 +130,7 @@ export function FeedbackPosts() {
               createdAt={post.createdAt}
               category={post.category}
               upvoteCount={post.upvotes}
-              commentCount={convertToString(post?.commentCount)}
+              commentCount={String(post?.commentCount)}
               hasUserUpvote={post.hasUserUpvote}
             />
           ))}

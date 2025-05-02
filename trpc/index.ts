@@ -1,5 +1,4 @@
 import { router } from "@/lib/trpc";
-import { searchFeedbackPosts } from "./search-feedback-posts";
 import { updateFeedbackPostStatus } from "./update-feedback-post-status";
 import { upvoteComment } from "./upvote-comment";
 import { getMentionableUsers } from "./get-mentionable-users";
@@ -21,7 +20,6 @@ import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 
 export const appRouter = router({
-  searchFeedbackPosts,
   updateFeedbackPostStatus,
   upvoteComment,
   getMentionableUsers,

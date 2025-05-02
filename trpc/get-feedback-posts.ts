@@ -14,11 +14,12 @@ export const getFeedbackPosts = publicProcedure
       cursor: feedbackPostsCursorSchema,
       orderBy: feedbackOrderBySchema,
       status: feedbackStatusSchema,
+      searchValue: z.string().trim(),
     }),
   )
   .query(
     async ({
-      input: { limit, cursor, orderBy, status },
+      input: { limit, cursor, orderBy, status, searchValue },
       ctx: { userId, orgId },
     }) => {
       try {
@@ -29,6 +30,7 @@ export const getFeedbackPosts = publicProcedure
           cursor,
           orderBy,
           status,
+          searchValue,
         });
 
         return {
