@@ -14,12 +14,15 @@ import { ActivityFeedListItems } from "./list-items";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
+import { useWindowSize } from "react-use";
 
 export function ActivityFeedList({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const { width } = useWindowSize();
+
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
@@ -98,7 +101,7 @@ export function ActivityFeedList({
   return (
     <>
       <div className={cn("", className)}>
-        <div className="mt-2 mb-4 grid grid-cols-4 gap-3">
+        <div className="mt-2 mb-4 grid grid-cols-4 gap-2 sm:gap-3">
           {[
             {
               title: "Feature requests",
@@ -124,7 +127,7 @@ export function ActivityFeedList({
             <Card
               key={index}
               className={cn(
-                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded-md p-3 shadow-xs",
+                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded-md p-2 shadow-xs sm:p-3",
                 stat.title === "Feature requests" &&
                   featureRequestsSelected &&
                   "border-primary ring-ring bg-muted/50 ring-1",
@@ -157,7 +160,9 @@ export function ActivityFeedList({
                 <span className="text-xl font-bold">{stat.totalCount}</span>
                 {stat.newCount !== undefined && stat.newCount > 0 && (
                   <span className="text-xs font-normal">
-                    ({stat.newCount} new)
+                    {width < 640
+                      ? `(${stat.newCount})`
+                      : `(${stat.newCount} new)`}
                   </span>
                 )}
               </CardContent>

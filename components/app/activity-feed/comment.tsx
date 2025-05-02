@@ -14,26 +14,29 @@ export function ActivityFeedComment({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <div className={cn("", className)}>
-      <div className="flex-1 space-y-1.5">
-        <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-          <span className="">Comment posted in {item.postTitle}</span>
-          <span className="text-[8px]">•</span>
-          <span className="">
-            {timeAgo.format(item.createdAt)} by{" "}
-            {item.authorName || "unknown user"}
-          </span>
-        </div>
-        <TiptapOutput
-          content={item.content}
-          forbiddenTags={["a", "pre", "img"]}
-          className={cn("", !item?.isSeen && "font-bold!")}
-        />
-      </div>
-      <div>
-        <div className="flex items-center gap-1">
-          <ArrowBigUpIcon className="size-4" strokeWidth={1.5} />
-          <span className="text-primary text-xs">{item.upvotes || 0}</span>
+    <div className={cn("group", className)}>
+      <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-0.5">
+          <TiptapOutput
+            content={item.content}
+            forbiddenTags={["a", "pre", "img"]}
+            className={cn("line-clamp-4")}
+          />
+
+          <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
+            <span className="">Comment posted in {item.postTitle}</span>
+            <span className="text-[8px]">•</span>
+            <span className="">
+              {timeAgo.format(item.createdAt, "twitter")}
+            </span>
+            <span className="text-[8px]">•</span>
+            <div className="flex items-center gap-1">
+              <ArrowBigUpIcon className="size-3.5!" strokeWidth={1.5} />
+              <span className="text-muted-foreground text-xs">
+                {item.upvotes || 0}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

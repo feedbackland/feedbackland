@@ -40,8 +40,8 @@ export function FeedbackPostOptionsMenu({
   onEdit,
 }: {
   postId: string;
-  authorId: string;
-  onEdit: () => void;
+  authorId?: string;
+  onEdit?: () => void;
 }) {
   const platformUrl = usePlatformUrl();
   const router = useRouter();
@@ -128,9 +128,11 @@ export function FeedbackPostOptionsMenu({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36">
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onEdit()} className="">
-                Edit post
-              </DropdownMenuItem>
+              {onEdit !== undefined && (
+                <DropdownMenuItem onClick={() => onEdit?.()} className="">
+                  Edit post
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
