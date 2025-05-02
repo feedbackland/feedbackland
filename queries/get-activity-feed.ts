@@ -4,6 +4,7 @@ import { db } from "@/db/db";
 import { sql } from "kysely";
 import { textEmbeddingModel } from "@/lib/gemini";
 import { cosineDistance } from "pgvector/kysely";
+import pgvector from "pgvector/pg";
 import {
   ActivityFeedItem,
   FeedbackCategories,
@@ -37,26 +38,18 @@ export async function getActivityFeedQuery({
 }) {
   const isSearching = searchValue.length > 0;
   const offset = (page - 1) * pageSize;
-  const distanceThreshold = 0.5;
-  let searchValueEmbedding: number[] | null = null;
+  const maxDistance = 0.4;
+  let searchEmbedding: number[] = [];
 
   if (isSearching) {
     const { embedding } = await textEmbeddingModel.embedContent(searchValue);
-    searchValueEmbedding = embedding.values;
+    searchEmbedding = embedding.values;
   }
 
   let feedbackQuery = db
     .selectFrom("feedback")
     .leftJoin("user", "feedback.authorId", "user.id")
     .where("feedback.orgId", "=", orgId);
-
-  if (isSearching) {
-    feedbackQuery = feedbackQuery.where(
-      cosineDistance("feedback.embedding", searchValueEmbedding),
-      "<",
-      distanceThreshold,
-    );
-  }
 
   if (!isSearching && status) {
     feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
@@ -88,11 +81,7 @@ export async function getActivityFeedQuery({
     "user.name as authorName",
     "feedback.title as postTitle",
     ...(isSearching
-      ? [
-          cosineDistance("feedback.embedding", searchValueEmbedding).as(
-            "distance",
-          ),
-        ]
+      ? [cosineDistance("feedback.embedding", searchEmbedding).as("distance")]
       : [sql<null>`null`.as("distance")]),
   ]);
 
@@ -118,11 +107,7 @@ export async function getActivityFeedQuery({
       "user.name as authorName",
       "feedback.title as postTitle",
       ...(isSearching
-        ? [
-            cosineDistance("comment.embedding", searchValueEmbedding).as(
-              "distance",
-            ),
-          ]
+        ? [cosineDistance("comment.embedding", searchEmbedding).as("distance")]
         : [sql<null>`null`.as("distance")]),
     ]);
 
@@ -151,7 +136,9 @@ export async function getActivityFeedQuery({
   }
 
   if (isSearching) {
-    orderedQuery = orderedQuery.orderBy("activity.distance");
+    orderedQuery = orderedQuery
+      .where("activity.distance", "<", maxDistance)
+      .orderBy("activity.distance");
   }
 
   const finalQuery = orderedQuery
