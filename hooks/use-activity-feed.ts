@@ -10,11 +10,12 @@ export function useActivityFeed({
   enabled,
   page,
   pageSize,
-  orderBy = "newest",
-  status = null,
-  categories = null,
-  excludeFeedback = false,
-  excludeComments = false,
+  orderBy,
+  status,
+  categories,
+  excludeFeedback,
+  excludeComments,
+  searchValue,
 }: {
   enabled: boolean;
   page: number;
@@ -24,6 +25,7 @@ export function useActivityFeed({
   categories: FeedbackCategories;
   excludeFeedback: boolean;
   excludeComments: boolean;
+  searchValue: string;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getActivityFeed.queryOptions(
@@ -35,6 +37,7 @@ export function useActivityFeed({
       categories,
       excludeFeedback,
       excludeComments,
+      searchValue,
     },
     {
       enabled,

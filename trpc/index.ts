@@ -17,7 +17,6 @@ import { updateFeedbackPost } from "./update-feedback-post";
 import { updateComment } from "./update-comment";
 import { deleteComment } from "./delete-comment";
 import { getActivityFeed } from "./get-activity-feed";
-import { searchActivityFeed } from "./search-activity-feed";
 import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 
@@ -41,7 +40,6 @@ export const appRouter = router({
   deleteComment,
   getActivityFeed,
   getActivityFeedMetaData,
-  searchActivityFeed,
   setActivitiesSeen,
 });
 

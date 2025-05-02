@@ -2,6 +2,8 @@
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
+import { textEmbeddingModel } from "@/lib/gemini";
+import { cosineDistance } from "pgvector/kysely";
 import {
   ActivityFeedItem,
   FeedbackCategories,
@@ -18,27 +20,45 @@ export async function getActivityFeedQuery({
   orderBy,
   status,
   categories,
-  excludeFeedback = false,
-  excludeComments = false,
+  excludeFeedback,
+  excludeComments,
+  searchValue,
 }: {
   orgId: string;
   userId: string;
   page: number;
   pageSize: number;
   orderBy: FeedbackOrderBy;
-  status?: FeedbackStatus;
-  categories?: FeedbackCategories;
-  excludeFeedback?: boolean;
-  excludeComments?: boolean;
+  status: FeedbackStatus;
+  categories: FeedbackCategories;
+  excludeFeedback: boolean;
+  excludeComments: boolean;
+  searchValue: string;
 }) {
+  const isSearching = searchValue.length > 0;
   const offset = (page - 1) * pageSize;
+  const distanceThreshold = 0.5;
+  let searchValueEmbedding: number[] | null = null;
+
+  if (isSearching) {
+    const { embedding } = await textEmbeddingModel.embedContent(searchValue);
+    searchValueEmbedding = embedding.values;
+  }
 
   let feedbackQuery = db
     .selectFrom("feedback")
     .leftJoin("user", "feedback.authorId", "user.id")
     .where("feedback.orgId", "=", orgId);
 
-  if (status) {
+  if (isSearching) {
+    feedbackQuery = feedbackQuery.where(
+      cosineDistance("feedback.embedding", searchValueEmbedding),
+      "<",
+      distanceThreshold,
+    );
+  }
+
+  if (!isSearching && status) {
     feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
   }
 
@@ -67,6 +87,13 @@ export async function getActivityFeedQuery({
     "user.id as authorId",
     "user.name as authorName",
     "feedback.title as postTitle",
+    ...(isSearching
+      ? [
+          cosineDistance("feedback.embedding", searchValueEmbedding).as(
+            "distance",
+          ),
+        ]
+      : [sql<null>`null`.as("distance")]),
   ]);
 
   const commentsCTE = db
@@ -90,6 +117,13 @@ export async function getActivityFeedQuery({
       "user.id as authorId",
       "user.name as authorName",
       "feedback.title as postTitle",
+      ...(isSearching
+        ? [
+            cosineDistance("comment.embedding", searchValueEmbedding).as(
+              "distance",
+            ),
+          ]
+        : [sql<null>`null`.as("distance")]),
     ]);
 
   let activityQuery = db.selectFrom(
@@ -104,14 +138,20 @@ export async function getActivityFeedQuery({
 
   let orderedQuery = activityQuery.selectAll("activity");
 
-  if (orderBy === "newest") {
-    orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
-  } else if (orderBy === "upvotes") {
-    orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
-  } else if (orderBy === "comments") {
-    orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
-  } else {
-    orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+  if (!isSearching) {
+    if (orderBy === "newest") {
+      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+    } else if (orderBy === "upvotes") {
+      orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
+    } else if (orderBy === "comments") {
+      orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
+    } else {
+      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+    }
+  }
+
+  if (isSearching) {
+    orderedQuery = orderedQuery.orderBy("activity.distance");
   }
 
   const finalQuery = orderedQuery

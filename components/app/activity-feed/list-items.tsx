@@ -25,6 +25,7 @@ export function ActivityFeedListItems({
         queryClient.refetchQueries({
           queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
         });
+
         queryClient.refetchQueries({
           queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
@@ -42,8 +43,8 @@ export function ActivityFeedListItems({
     <div className={cn("flex flex-col items-stretch", className)}>
       {items?.map((item) => {
         const itemClassName = cn(
-          "border-border flex-1 border-b px-4 py-5 flex w-full items-center gap-4 hover:bg-muted/50",
-          item.isSeen && "bg-muted/50",
+          "border-border border flex-1 px-4 py-5 flex w-full items-center gap-4 hover:bg-muted/50 hover:dark:bg-muted/40 hover:border-primary",
+          item.isSeen && "bg-muted/50 dark:bg-muted/40",
         );
 
         if (item.type === "post") {

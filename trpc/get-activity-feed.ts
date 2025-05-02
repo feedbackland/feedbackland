@@ -17,6 +17,7 @@ export const getActivityFeed = adminProcedure
       categories: feedbackCategoriesSchema,
       excludeFeedback: z.boolean(),
       excludeComments: z.boolean(),
+      searchValue: z.string().trim(),
     }),
   )
   .query(
@@ -29,6 +30,7 @@ export const getActivityFeed = adminProcedure
         categories,
         excludeFeedback,
         excludeComments,
+        searchValue,
       },
       ctx: { orgId, userId },
     }) => {
@@ -44,6 +46,7 @@ export const getActivityFeed = adminProcedure
             categories,
             excludeFeedback,
             excludeComments,
+            searchValue,
           });
 
         return {

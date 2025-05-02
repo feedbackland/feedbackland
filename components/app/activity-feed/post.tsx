@@ -30,7 +30,7 @@ export function ActivityFeedPost({
 
         <h3
           className={cn(
-            "text-base font-semibold group-hover:underline",
+            "text-base font-semibold",
             !item?.isSeen && "font-bold!",
           )}
         >
@@ -40,10 +40,7 @@ export function ActivityFeedPost({
         <TiptapOutput
           content={item.content}
           forbiddenTags={["a", "pre", "img"]}
-          className={cn(
-            "group-hover:underline",
-            !item?.isSeen && "font-semibold!",
-          )}
+          className={cn("", !item?.isSeen && "font-semibold!")}
         />
 
         {/* <div className="flex items-center gap-2 text-xs">

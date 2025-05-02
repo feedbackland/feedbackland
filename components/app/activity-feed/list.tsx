@@ -6,7 +6,6 @@ import {
   FeedbackOrderBy,
   FeedbackStatus,
 } from "@/lib/typings";
-import { useSearchActivityFeed } from "@/hooks/use-search-activity-feed";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedLoading } from "./loading";
 import { ActivityFeedListPagination } from "./list-pagination";
@@ -15,8 +14,6 @@ import { ActivityFeedListItems } from "./list-items";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
-
-const PAGE_SIZE = 10;
 
 export function ActivityFeedList({
   className,
@@ -58,44 +55,23 @@ export function ActivityFeedList({
   const excludeFeedback = commentsSelected && (categories || [])?.length === 0;
 
   const {
-    query: {
-      data: itemsData,
-      isPending: isItemsPending,
-      isError: isItemsError,
-    },
+    query: { data, isPending, isError },
   } = useActivityFeed({
-    enabled: !isSearchActive,
+    enabled: true,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize: 10,
     orderBy,
     status,
     categories,
     excludeComments,
     excludeFeedback,
-  });
-
-  const {
-    query: {
-      data: searchData,
-      isPending: isSearchPending,
-      isError: isSearchError,
-    },
-  } = useSearchActivityFeed({
     searchValue,
-    enabled: isSearchActive,
-    page,
-    pageSize: PAGE_SIZE,
-    categories,
-    excludeComments,
-    excludeFeedback,
   });
 
-  const activeData = isSearchActive ? searchData : itemsData;
+  const activeData = data;
   const items = activeData?.items;
   const totalPages = activeData?.totalPages ?? 1;
   const currentPage = activeData?.currentPage ?? 1;
-  const isPending = isSearchActive ? isSearchPending : isItemsPending;
-  const isError = isSearchActive ? isSearchError : isItemsError;
   const isLoaded = !isPending && !isError;
   const hasItems = !!(items && items.length > 0);
   const hasNoItems = isLoaded && !hasItems;
@@ -189,7 +165,7 @@ export function ActivityFeedList({
           ))}
         </div>
 
-        <div className="border-border overflow-hidden rounded-md border">
+        <div className="border-border overflow-hidden rounded-md border shadow-xs">
           <ActivityFeedListHeader
             className="bg-background border-border border-b py-2 pr-3 pl-4"
             onChange={({ searchValue, orderBy, status }) => {
