@@ -127,6 +127,7 @@ export function FeedbackPosts() {
               postId={post.id}
               title={post.title}
               description={post.description}
+              status={post.status}
               createdAt={post.createdAt}
               category={post.category}
               upvoteCount={post.upvotes}

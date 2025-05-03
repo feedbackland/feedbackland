@@ -20,11 +20,11 @@ export function ActivityFeedComment({
           <TiptapOutput
             content={item.content}
             forbiddenTags={["a", "pre", "img"]}
-            className={cn("line-clamp-4")}
+            className={cn("line-clamp-4 group-hover:underline")}
           />
 
           <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-            <span className="">Comment posted in {item.postTitle}</span>
+            <span className="">Comment in &apos;{item.postTitle}&apos;</span>
             <span className="text-[8px]">•</span>
             <span className="">
               {timeAgo.format(item.createdAt, "twitter")}

@@ -124,11 +124,11 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
-  --under-consideration: hsl(270 95.2% 75.3%);
-  --planned: hsl(27 96% 61%);
-  --in-progress: hsl(213.1 93.9% 67.8%);
-  --done: hsl(141.9 69.2% 58%);
-  --declined: hsl(0 90.6% 70.8%);
+  --under-consideration: hsl(271.5 81.3% 55.9%);
+  --planned: hsl(32.1 94.6% 43.7%);
+  --in-progress: hsl(200.4 98% 39.4%);
+  --done: hsl(142.1 76.2% 36.3%);
+  --declined: hsl(0 72.2% 50.6%);
 }
 
 .dark {

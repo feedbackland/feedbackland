@@ -7,6 +7,11 @@ import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
 import { ArrowBigUpIcon, MessageSquare } from "lucide-react";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
+import { useTRPC } from "@/providers/trpc-client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FeedbackStatus } from "@/db/schema";
+import { useState } from "react";
+import { set } from "zod";
 
 export function ActivityFeedPost({
   item,
@@ -15,14 +20,54 @@ export function ActivityFeedPost({
   item: ActivityFeedItem;
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const [postStatus, setPostStatus] = useState<FeedbackStatus | null>(
+    item?.status,
+  );
+
+  const updateStatus = useMutation(
+    trpc.updateFeedbackPostStatus.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getFeedbackPost.queryKey({ postId: item.postId }),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
+
+        // toast.success("Status updated", {
+        //   position: "top-right",
+        // });
+      },
+      onSettled: (item) => {
+        setPostStatus(item?.status || null);
+      },
+    }),
+  );
+
+  const statuses: FeedbackStatus[] = [
+    "under consideration",
+    "planned",
+    "in progress",
+    "done",
+    "declined",
+  ];
+
   return (
     <div className={cn("group", className)}>
-      <div className="flex-1 space-y-3">
+      <div className="flex w-full flex-1 flex-col items-stretch space-y-2.5">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-0.5">
             <h3
               className={cn(
-                "text-base font-medium",
+                "text-base font-medium group-hover:underline",
                 !item.isSeen && "font-bold",
               )}
             >
@@ -53,7 +98,7 @@ export function ActivityFeedPost({
               </div>
             </div>
           </div>
-          <FeedbackPostOptionsMenu postId={item.postId} />
+          {/* <FeedbackPostOptionsMenu postId={item.postId} /> */}
         </div>
 
         <TiptapOutput
@@ -65,32 +110,55 @@ export function ActivityFeedPost({
           )}
         />
 
-        {/* <div className="flex items-center gap-2 text-xs">
-          {[
-            "under-consideration",
-            "planned",
-            "in-progress",
-            "done",
-            "declined",
-          ].map((status) => {
+        <div className="-ml-0.5 flex w-full flex-1 flex-wrap items-center gap-2">
+          {statuses.map((status) => {
+            // const safeStatus = status.replace("-", " ");
+            const isStatusSelected = status === postStatus;
+
             return (
               <Button
                 key={status}
                 size="sm"
-                variant="outline"
-                className={cn(
-                  "h-fit bg-transparent px-2 py-1 text-xs shadow-none",
-                  // `text-${status}`,
-                )}
+                variant={isStatusSelected ? "default" : "outline"}
+                className={cn("h-fit px-1.5 py-0.5 text-xs shadow-none", {
+                  "bg-under-consideration!":
+                    postStatus === "under consideration" &&
+                    status === "under consideration",
+                  "bg-planned!":
+                    postStatus === "planned" && status === "planned",
+                  "bg-in-progress!":
+                    postStatus === "in progress" && status === "in progress",
+                  "bg-done!": postStatus === "done" && status === "done",
+                  "bg-declined!":
+                    postStatus === "declined" && status === "declined",
+                  "text-primary-foreground!": postStatus === status,
+                  "border border-transparent": isStatusSelected,
+                })}
                 onClick={(e) => {
                   e.preventDefault();
+
+                  if (item.status !== status) {
+                    setPostStatus(status);
+
+                    updateStatus.mutate({
+                      postId: item.postId,
+                      status,
+                    });
+                  } else {
+                    setPostStatus(null);
+
+                    updateStatus.mutate({
+                      postId: item.postId,
+                      status: null,
+                    });
+                  }
                 }}
               >
                 {capitalizeFirstLetter(status.replace("-", " "))}
               </Button>
             );
           })}
-        </div> */}
+        </div>
       </div>
     </div>
   );

@@ -9,11 +9,14 @@ import { usePlatformUrl } from "@/hooks/use-platform-url";
 import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
+import { FeedbackStatus } from "@/lib/typings";
+import { Badge } from "@/components/ui/badge";
 
 function Inner({
   postId,
   title,
   description,
+  status,
   createdAt,
   category,
   upvoteCount,
@@ -24,6 +27,7 @@ function Inner({
   postId: string;
   title: string;
   description: string;
+  status: FeedbackStatus;
   createdAt: Date;
   category: string | null;
   upvoteCount: string;
@@ -40,20 +44,38 @@ function Inner({
         className="group flex flex-col items-stretch space-y-1.5"
       >
         <div className="flex flex-col items-stretch">
-          {/* <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-            <span>{timeAgo.format(createdAt)}</span>
-            <span className="text-[8px]">•</span>
-            <span className="capitalize">{category}</span>
-          </div> */}
           <h3 className="text-[16px] leading-5.5 font-semibold group-hover:underline">
             {title}
           </h3>
+
+          <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
+            <span>{timeAgo.format(createdAt, "mini")}</span>
+            <span className="text-[8px]">•</span>
+            <span className="capitalize">{category}</span>
+            {status && (
+              <>
+                <span className="text-[8px]">•</span>
+                <span
+                  className={cn(
+                    "capitalize",
+                    `text-${status.replace(" ", "-")}`,
+                  )}
+                >
+                  {status}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* {status && (
+            <Badge className={`bg-${status.replace(" ", "-")}`}>{status}</Badge>
+          )} */}
         </div>
 
         <TiptapOutput
           content={description}
           forbiddenTags={["a", "pre", "img"]}
-          className="text-primary/70! mt-[-1] line-clamp-4 group-hover:underline"
+          className="text-primary/70! mt-[-1] line-clamp-4"
         />
       </Link>
 
