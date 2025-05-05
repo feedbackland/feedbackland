@@ -195,13 +195,15 @@ export const processImagesInHTML = async (html: string) => {
   return modifiedHTML; // Return the final modified HTML
 };
 
-export const sanitize = (htmlString: string) => {
+export const clean = (htmlString: string) => {
   return sanitizeHtml(htmlString, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "a"]),
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "a", "span"]),
+    allowedAttributes: { span: ["data-type", "data-id", "data-label"] },
+    allowedClasses: { span: ["mention"] },
   });
 };
 
-export const stripHtml = (htmlString: string) => {
+export const getPlainText = (htmlString: string) => {
   const plainText = convert(sanitizeHtml(htmlString), {
     wordwrap: false,
     selectors: [

@@ -1,7 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { generateEmbedding, sanitize, stripHtml } from "@/lib/utils";
+import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
 
 export const updateFeedbackPostQuery = async ({
   postId,
@@ -33,7 +33,7 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const plainTextDescription = stripHtml(description);
+        const plainTextDescription = getPlainText(description);
         const embedding = await generateEmbedding(
           `${title}: ${plainTextDescription}`,
         );
@@ -42,7 +42,7 @@ export const updateFeedbackPostQuery = async ({
           .updateTable("feedback")
           .set({
             title,
-            description: sanitize(description),
+            description: clean(description),
             embedding,
           })
           .where("id", "=", postId)

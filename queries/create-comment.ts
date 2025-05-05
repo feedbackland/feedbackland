@@ -1,8 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import sanitize from "sanitize-html";
-import { generateEmbedding, stripHtml } from "@/lib/utils";
+import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
 
 export async function createCommentQuery({
   content,
@@ -16,15 +15,14 @@ export async function createCommentQuery({
   parentCommentId: string | null;
 }) {
   try {
-    const embedding = await generateEmbedding(stripHtml(content));
+    const embedding = await generateEmbedding(getPlainText(content));
 
-    console.log("comment", content);
-    console.log("sanitized comment", sanitize(content));
+    console.log("clean comment: ", clean(content));
 
     const comment = await db
       .insertInto("comment")
       .values({
-        content: sanitize(content),
+        content: clean(content),
         authorId,
         postId,
         parentCommentId,

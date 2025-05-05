@@ -1,8 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { generateEmbedding, stripHtml } from "@/lib/utils";
-import sanitize from "sanitize-html";
+import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
 
 export const updateCommentQuery = async ({
   commentId,
@@ -31,11 +30,11 @@ export const updateCommentQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const embedding = await generateEmbedding(stripHtml(content));
+        const embedding = await generateEmbedding(getPlainText(content));
 
         return await trx
           .updateTable("comment")
-          .set({ content: sanitize(content), embedding })
+          .set({ content: clean(content), embedding })
           .where("id", "=", commentId)
           .returningAll()
           .executeTakeFirstOrThrow();

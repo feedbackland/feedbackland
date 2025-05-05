@@ -90,7 +90,6 @@ const createExtensions = (placeholder: string) => [
     //   return { id: randomId(), src };
     // },
     onToggle(editor, files, pos) {
-      console.log("bleh");
       editor.commands.insertContentAt(
         pos,
         files.map((image) => {

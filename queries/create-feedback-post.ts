@@ -2,7 +2,7 @@
 
 import { db } from "@/db/db";
 import { FeedbackCategory } from "@/lib/typings";
-import { generateEmbedding, sanitize, stripHtml } from "@/lib/utils";
+import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
 
 const getTitleAndCategory = async (plainTextDescription: string) => {
   const prompt = `
@@ -68,7 +68,7 @@ export async function createFeedbackPostQuery({
   orgId: string;
 }) {
   try {
-    const plainTextDescription = stripHtml(description);
+    const plainTextDescription = getPlainText(description);
     const { title, category } = await getTitleAndCategory(plainTextDescription);
     const embedding = await generateEmbedding(
       `${title}: ${plainTextDescription}`,
@@ -78,7 +78,7 @@ export async function createFeedbackPostQuery({
       .insertInto("feedback")
       .values({
         title,
-        description: sanitize(description),
+        description: clean(description),
         category,
         authorId,
         orgId,
