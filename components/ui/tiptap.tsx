@@ -11,6 +11,8 @@ export const Tiptap = ({
   onBlur,
   onCreate,
   className,
+  editorContentClassName,
+  editorClassName,
   showToolbar = true,
   autofocus = false,
 }: {
@@ -21,6 +23,8 @@ export const Tiptap = ({
   onBlur?: () => void;
   onCreate?: () => void;
   className?: React.ComponentProps<"div">["className"];
+  editorContentClassName?: React.ComponentProps<"div">["className"];
+  editorClassName?: React.ComponentProps<"div">["className"];
   showToolbar?: boolean;
   autofocus?: boolean;
 }) => {
@@ -48,8 +52,11 @@ export const Tiptap = ({
         isFocused && "ring-ring ring-1",
         className,
       )}
-      editorContentClassName="text-sm leading-5 p-3"
-      editorClassName="focus:outline-hidden"
+      editorContentClassName={cn(
+        "text-sm leading-5 p-3",
+        editorContentClassName,
+      )}
+      editorClassName={cn("focus:outline-hidden", editorClassName)}
       output="html"
       placeholder={placeholder}
       autofocus={!!autofocus}

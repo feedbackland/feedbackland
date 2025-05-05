@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { cn, processImagesInHTML } from "@/lib/utils";
-import { SendIcon } from "lucide-react";
+import { SendIcon, XIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -12,7 +12,11 @@ import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { Session } from "@/hooks/use-auth";
 import { useKey } from "react-use";
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function CommentForm({
   postId,
@@ -20,6 +24,7 @@ export function CommentForm({
   replyToAuthorId,
   replyToAuthorName,
   scrollIntoView = false,
+  showCloseButton = true,
   onClose,
   onSuccess,
   className,
@@ -29,6 +34,7 @@ export function CommentForm({
   replyToAuthorId?: string;
   replyToAuthorName?: string | null;
   scrollIntoView?: boolean;
+  showCloseButton?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -119,13 +125,17 @@ export function CommentForm({
   };
 
   useKey("Escape", () => {
-    // Reset to initial state on Escape, not just empty
-    setValue(initialContent);
-    onClose?.();
+    handleOnClose();
   });
 
   // Check if text exists beyond the initial mention (if any)
   const hasText = value?.replace(initialContent, "").trim().length > 0;
+
+  const handleOnClose = () => {
+    // Reset to initial state, not just empty
+    setValue(initialContent);
+    onClose?.();
+  };
 
   return (
     <>
@@ -140,23 +150,41 @@ export function CommentForm({
       />
       <div ref={elementRef} className={cn("flex flex-col gap-3", className)}>
         <div className="relative flex items-start gap-2">
+          {showCloseButton && (
+            <Button
+              type="submit"
+              size="icon"
+              variant="link"
+              onClick={handleOnClose}
+              className="text-muted-foreground hover:text-primary absolute! top-0.5 right-1.5 z-10! size-8!"
+            >
+              <XIcon className="size-3.5!" />
+            </Button>
+          )}
+
           <Tiptap
             placeholder={`Add a comment...`}
             value={value}
             onChange={onChange}
+            editorClassName={cn("", showCloseButton && "mr-7")}
           />
-          <div className="absolute right-3 bottom-3 flex flex-row-reverse justify-end gap-2.5">
-            <Button
-              type="submit"
-              size="icon"
-              variant="ghost"
-              loading={saveComment.isPending}
-              onClick={() => onSubmit(session)}
-              disabled={!hasText || saveComment.isPending}
-              className="size-8!"
-            >
-              <SendIcon className="size-4!" />
-            </Button>
+          <div className="absolute right-3 bottom-3 flex items-center justify-end gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  loading={saveComment.isPending}
+                  onClick={() => onSubmit(session)}
+                  disabled={!hasText || saveComment.isPending}
+                  className="size-8!"
+                >
+                  <SendIcon className="size-4!" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Submit comment</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         {errorMessage.length > 0 && <Error title={errorMessage} />}

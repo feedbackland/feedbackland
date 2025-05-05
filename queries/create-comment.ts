@@ -17,8 +17,6 @@ export async function createCommentQuery({
   try {
     const embedding = await generateEmbedding(getPlainText(content));
 
-    console.log("clean comment: ", clean(content));
-
     const comment = await db
       .insertInto("comment")
       .values({

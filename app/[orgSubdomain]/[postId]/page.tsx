@@ -18,7 +18,11 @@ export default function FeedbackPostPage() {
       />
       {isPostLoaded && (
         <div className="space-y-10">
-          <CommentForm postId={postId} parentCommentId={null} />
+          <CommentForm
+            postId={postId}
+            parentCommentId={null}
+            showCloseButton={false}
+          />
           <Comments postId={postId} />
         </div>
       )}
