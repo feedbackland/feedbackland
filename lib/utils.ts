@@ -7,6 +7,7 @@ import sanitizeHtml from "sanitize-html";
 import imageSize from "image-size";
 import { textEmbeddingModel } from "@/lib/gemini";
 import pgvector from "pgvector/pg";
+import { validate as uuidValidate, version as uuidVersion } from "uuid";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,6 +30,10 @@ export const slugifySubdomain = (text: string) => {
 
 export function capitalizeFirstLetter(val: string) {
   return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
+export function isUuidV4(uuid: string) {
+  return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 }
 
 const getUrlObject = (urlString?: string | null) => {

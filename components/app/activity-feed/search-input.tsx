@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useDebounce, useKey } from "react-use";
+import { useDebounce, useKey, usePrevious } from "react-use";
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,7 @@ export const ActivityFeedSearchInput = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState("");
+  const prevInputValue = usePrevious(inputValue || "");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,10 +30,12 @@ export const ActivityFeedSearchInput = ({
 
   useDebounce(
     () => {
-      onDebouncedChange(inputValue);
+      if (prevInputValue !== inputValue) {
+        onDebouncedChange(inputValue);
+      }
     },
     delay,
-    [inputValue],
+    [prevInputValue, inputValue],
   );
 
   const reset = () => {

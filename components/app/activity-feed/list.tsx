@@ -1,11 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import {
-  FeedbackCategories,
-  FeedbackOrderBy,
-  FeedbackStatus,
-} from "@/lib/typings";
+import { FeedbackCategories } from "@/lib/typings";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { ActivityFeedLoading } from "./loading";
 import { ActivityFeedListPagination } from "./list-pagination";
@@ -15,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useWindowSize } from "react-use";
+import { useAtom } from "jotai";
+import { activtyFeedStateAtom } from "@/lib/atoms";
 
 export function ActivityFeedList({
   className,
@@ -23,14 +20,19 @@ export function ActivityFeedList({
 }) {
   const { width } = useWindowSize();
 
-  const [searchValue, setSearchValue] = useState("");
-  const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
-  const [status, setStatus] = useState<FeedbackStatus>(null);
-  const [featureRequestsSelected, setFeatureRequestsSelected] = useState(false);
-  const [bugReportsSelected, setBugReportsSelected] = useState(false);
-  const [generalFeedbackSelected, setGeneralFeedbackSelected] = useState(false);
-  const [commentsSelected, setCommentsSelected] = useState(false);
+  const [activityFeedState, setActivityFeedState] =
+    useAtom(activtyFeedStateAtom);
+
+  const {
+    searchValue,
+    page,
+    orderBy,
+    status,
+    featureRequestsSelected,
+    bugReportsSelected,
+    generalFeedbackSelected,
+    commentsSelected,
+  } = activityFeedState;
 
   const isSearchActive = !!(searchValue?.length > 0);
 
@@ -93,7 +95,10 @@ export function ActivityFeedList({
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
+      setActivityFeedState((prev) => ({
+        ...prev,
+        page: newPage,
+      }));
       window.scrollTo(0, 0); // Scroll to top when page changes
     }
   };
@@ -143,13 +148,29 @@ export function ActivityFeedList({
               )}
               onClick={() => {
                 if (stat.title === "Feature requests") {
-                  setFeatureRequestsSelected((prev) => !prev);
+                  setActivityFeedState((prev) => ({
+                    ...prev,
+                    page: 1,
+                    featureRequestsSelected: !prev.featureRequestsSelected,
+                  }));
                 } else if (stat.title === "Bug reports") {
-                  setBugReportsSelected((prev) => !prev);
+                  setActivityFeedState((prev) => ({
+                    ...prev,
+                    page: 1,
+                    bugReportsSelected: !prev.bugReportsSelected,
+                  }));
                 } else if (stat.title === "General feedback") {
-                  setGeneralFeedbackSelected((prev) => !prev);
+                  setActivityFeedState((prev) => ({
+                    ...prev,
+                    page: 1,
+                    generalFeedbackSelected: !prev.generalFeedbackSelected,
+                  }));
                 } else if (stat.title === "Comments") {
-                  setCommentsSelected((prev) => !prev);
+                  setActivityFeedState((prev) => ({
+                    ...prev,
+                    page: 1,
+                    commentsSelected: !prev.commentsSelected,
+                  }));
                 }
               }}
             >
@@ -174,10 +195,13 @@ export function ActivityFeedList({
           <ActivityFeedListHeader
             className="bg-background border-border border-b py-2 pr-3 pl-4"
             onChange={({ searchValue, orderBy, status }) => {
-              setPage(1);
-              setSearchValue(searchValue);
-              setOrderBy(orderBy);
-              setStatus(status);
+              setActivityFeedState((prev) => ({
+                ...prev,
+                page: 1,
+                searchValue,
+                orderBy,
+                status,
+              }));
             }}
           />
 
