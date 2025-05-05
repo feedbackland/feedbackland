@@ -79,6 +79,7 @@ export async function getActivityFeedQuery({
           .selectFrom("comment")
           .select(eb.fn.countAll<string>().as("commentCount"))
           .whereRef("comment.postId", "=", "feedback.id")
+          .where("content", "not like", "Status updated to%")
           .as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
@@ -93,7 +94,7 @@ export async function getActivityFeedQuery({
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
       .where("feedback.orgId", "=", orgId)
-      // .where("content", "not like", "Status updated to%")
+      .where("content", "not like", "Status updated to%")
       .select([
         "feedback.orgId",
         "comment.id",

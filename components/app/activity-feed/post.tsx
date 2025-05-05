@@ -65,12 +65,12 @@ export function ActivityFeedPost({
             </h3>
 
             <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-normal">
-              <span className="">
-                {capitalizeFirstLetter(
-                  item.category || "uncategorized feedback",
-                )}
-              </span>
-              <span className="text-[8px]">•</span>
+              {item.category && (
+                <>
+                  <span>{capitalizeFirstLetter(item.category)}</span>
+                  <span className="text-[8px]">•</span>
+                </>
+              )}
               <span className="">
                 {timeAgo.format(item.createdAt, "twitter")}
               </span>
@@ -84,7 +84,9 @@ export function ActivityFeedPost({
               <span className="text-[8px]">•</span>
               <div className="flex items-center gap-1">
                 <MessageSquare className="mr-0.5 ml-0.5 size-2.5!" />
-                <span className="text-muted-foreground text-xs">0</span>
+                <span className="text-muted-foreground text-xs">
+                  {item.commentCount}
+                </span>
               </div>
             </div>
           </div>
