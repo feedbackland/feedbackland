@@ -90,7 +90,7 @@ function Inner({
         <Button
           variant="secondary"
           size="sm"
-          className="flex h-[24px] items-center px-1.5 py-0 [&>span]:gap-1"
+          className="flex h-[24px] items-center px-2 py-0 [&>span]:gap-1"
           asChild
         >
           <Link

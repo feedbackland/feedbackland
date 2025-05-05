@@ -24,7 +24,7 @@ export function CommentFooter({
         upvoteCount={upvotes}
         hasUserUpvote={hasUserUpvote}
       />
-      <span className="text-[8px]">•</span>
+      <span className="text-muted-foreground text-[8px]">•</span>
       <Button
         variant="link"
         size="sm"

@@ -1,10 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import parse, { Element } from "html-react-parser";
 import { memo } from "react";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 
 export const TiptapOutput = memo(function TiptapOutput({
   content,
@@ -26,6 +27,29 @@ export const TiptapOutput = memo(function TiptapOutput({
   const parsedHtml = parse(sanitizedHtml, {
     replace: (domNode) => {
       if (domNode instanceof Element) {
+        if (
+          !forbiddenTags.includes("span") &&
+          domNode.name === "span" &&
+          domNode.attribs &&
+          domNode.attribs?.["data-type"] === "status" &&
+          domNode.attribs?.["data-label"]
+        ) {
+          const status = domNode.attribs?.["data-label"];
+          const statusLabel = capitalizeFirstLetter(
+            domNode.attribs?.["data-label"].replace("-", " "),
+          );
+
+          return (
+            <span className={`text-${status} font-medium`}>{statusLabel}</span>
+          );
+
+          // return (
+          //   <Badge className={`bg-${status}! text-primary-foreground!`}>
+          //     {statusLabel}
+          //   </Badge>
+          // );
+        }
+
         if (
           !forbiddenTags.includes("a") &&
           domNode.name === "img" &&

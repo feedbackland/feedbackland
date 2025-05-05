@@ -93,6 +93,7 @@ export async function getActivityFeedQuery({
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
       .where("feedback.orgId", "=", orgId)
+      // .where("content", "not like", "Status updated to%")
       .select([
         "feedback.orgId",
         "comment.id",

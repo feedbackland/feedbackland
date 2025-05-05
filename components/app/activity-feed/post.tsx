@@ -1,17 +1,13 @@
 "use client";
 
-import { ActivityFeedItem } from "@/lib/typings";
+import { ActivityFeedItem, FeedbackStatus } from "@/lib/typings";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
 import { ArrowBigUpIcon, MessageSquare } from "lucide-react";
-import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
-import { useTRPC } from "@/providers/trpc-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FeedbackStatus } from "@/db/schema";
 import { useState } from "react";
-import { set } from "zod";
+import { useUpdateStatus } from "@/hooks/use-update-status";
 
 export function ActivityFeedPost({
   item,
@@ -20,36 +16,30 @@ export function ActivityFeedPost({
   item: ActivityFeedItem;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
+  const updateStatus = useUpdateStatus({ postId: item.postId });
+
+  const changeStatus = (status: FeedbackStatus) => {
+    setPostStatus(status);
+
+    updateStatus.mutate(
+      {
+        postId: item.postId,
+        status: status,
+      },
+      {
+        onSuccess: () => {
+          console.log("onSuccess 2");
+        },
+        onSettled: (updatedPost) => {
+          console.log("onSettled 2");
+          setPostStatus(updatedPost?.status || item.status);
+        },
+      },
+    );
+  };
 
   const [postStatus, setPostStatus] = useState<FeedbackStatus | null>(
     item?.status,
-  );
-
-  const updateStatus = useMutation(
-    trpc.updateFeedbackPostStatus.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getFeedbackPost.queryKey({ postId: item.postId }),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
-        });
-
-        // toast.success("Status updated", {
-        //   position: "top-right",
-        // });
-      },
-      onSettled: (item) => {
-        setPostStatus(item?.status || null);
-      },
-    }),
   );
 
   const statuses: FeedbackStatus[] = [
@@ -111,53 +101,39 @@ export function ActivityFeedPost({
         />
 
         <div className="-ml-0.5 flex w-full flex-1 flex-wrap items-center gap-2">
-          {statuses.map((status) => {
-            // const safeStatus = status.replace("-", " ");
-            const isStatusSelected = status === postStatus;
+          {statuses
+            .filter((x) => x !== null)
+            .map((status) => {
+              const isStatusSelected = status === postStatus;
 
-            return (
-              <Button
-                key={status}
-                size="sm"
-                variant={isStatusSelected ? "default" : "outline"}
-                className={cn("h-fit px-1.5 py-0.5 text-xs shadow-none", {
-                  "bg-under-consideration!":
-                    postStatus === "under consideration" &&
-                    status === "under consideration",
-                  "bg-planned!":
-                    postStatus === "planned" && status === "planned",
-                  "bg-in-progress!":
-                    postStatus === "in progress" && status === "in progress",
-                  "bg-done!": postStatus === "done" && status === "done",
-                  "bg-declined!":
-                    postStatus === "declined" && status === "declined",
-                  "text-primary-foreground!": postStatus === status,
-                  "border border-transparent": isStatusSelected,
-                })}
-                onClick={(e) => {
-                  e.preventDefault();
-
-                  if (item.status !== status) {
-                    setPostStatus(status);
-
-                    updateStatus.mutate({
-                      postId: item.postId,
-                      status,
-                    });
-                  } else {
-                    setPostStatus(null);
-
-                    updateStatus.mutate({
-                      postId: item.postId,
-                      status: null,
-                    });
-                  }
-                }}
-              >
-                {capitalizeFirstLetter(status.replace("-", " "))}
-              </Button>
-            );
-          })}
+              return (
+                <Button
+                  key={status}
+                  size="sm"
+                  variant={isStatusSelected ? "default" : "outline"}
+                  className={cn("h-fit px-1.5 py-0.5 text-xs shadow-none", {
+                    "bg-under-consideration!":
+                      postStatus === "under consideration" &&
+                      status === "under consideration",
+                    "bg-planned!":
+                      postStatus === "planned" && status === "planned",
+                    "bg-in-progress!":
+                      postStatus === "in progress" && status === "in progress",
+                    "bg-done!": postStatus === "done" && status === "done",
+                    "bg-declined!":
+                      postStatus === "declined" && status === "declined",
+                    "text-primary-foreground!": postStatus === status,
+                    "border border-transparent": isStatusSelected,
+                  })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    changeStatus(item.status !== status ? status : null);
+                  }}
+                >
+                  {capitalizeFirstLetter(status.replace("-", " "))}
+                </Button>
+              );
+            })}
         </div>
       </div>
     </div>
