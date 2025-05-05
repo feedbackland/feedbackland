@@ -30,7 +30,7 @@ export function CommentHeader({
         <div className="text-primary">
           {authorName}
           {isAdmin && (
-            <Badge variant="default" className="ml-1 scale-85">
+            <Badge variant="outline" className="border-primary ml-1 scale-85">
               Admin
             </Badge>
           )}

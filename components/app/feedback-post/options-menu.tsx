@@ -33,6 +33,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FeedbackStatus } from "@/lib/typings";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
+import { useUpdateStatus } from "@/hooks/use-update-status";
 
 export function FeedbackPostOptionsMenu({
   postId,
@@ -43,6 +44,8 @@ export function FeedbackPostOptionsMenu({
   authorId?: string;
   onEdit?: () => void;
 }) {
+  const updateStatus = useUpdateStatus({ postId });
+
   const platformUrl = usePlatformUrl();
   const router = useRouter();
   const { session } = useAuth();
@@ -75,24 +78,6 @@ export function FeedbackPostOptionsMenu({
       },
       onSettled: () => {
         setIsDeleteConfirmationOpen(false);
-      },
-    }),
-  );
-
-  const updateStatus = useMutation(
-    trpc.updateFeedbackPostStatus.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getFeedbackPost.queryKey({ postId }),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
-        });
-
-        toast.success("Status updated", {
-          position: "top-right",
-        });
       },
     }),
   );
