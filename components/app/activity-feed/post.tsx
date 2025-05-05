@@ -27,12 +27,8 @@ export function ActivityFeedPost({
         status: status,
       },
       {
-        onSuccess: () => {
-          console.log("onSuccess 2");
-        },
         onSettled: (updatedPost) => {
-          console.log("onSettled 2");
-          setPostStatus(updatedPost?.status || item.status);
+          setPostStatus(updatedPost ? updatedPost.status : item.status);
         },
       },
     );

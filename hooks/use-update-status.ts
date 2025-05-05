@@ -48,8 +48,6 @@ export function useUpdateStatus({ postId }: { postId: string }) {
         queryClient.invalidateQueries({
           queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
         });
-
-        console.log("onSuccess 1");
       },
     }),
   );
