@@ -73,6 +73,7 @@ export const Comment = memo(function Comment({
           replyToAuthorName={replyMeta.authorName}
           scrollIntoView={true}
           className="mt-1 ml-8"
+          autofocus={true}
           onClose={() => {
             setShowReply(false);
             setReplyMeta(null);

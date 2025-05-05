@@ -25,6 +25,7 @@ export function CommentForm({
   replyToAuthorName,
   scrollIntoView = false,
   showCloseButton = true,
+  autofocus = false,
   onClose,
   onSuccess,
   className,
@@ -35,6 +36,7 @@ export function CommentForm({
   replyToAuthorName?: string | null;
   scrollIntoView?: boolean;
   showCloseButton?: boolean;
+  autofocus?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -167,6 +169,7 @@ export function CommentForm({
             value={value}
             onChange={onChange}
             editorClassName={cn("", showCloseButton && "mr-7")}
+            autofocus={autofocus}
           />
           <div className="absolute right-3 bottom-3 flex items-center justify-end gap-2">
             <Tooltip>
