@@ -2,7 +2,6 @@
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
-import { textEmbeddingModel } from "@/lib/gemini";
 import { cosineDistance } from "pgvector/kysely";
 import {
   ActivityFeedItem,
@@ -11,6 +10,7 @@ import {
   FeedbackOrderBy,
   FeedbackStatus,
 } from "@/lib/typings";
+import { generateVector } from "@/lib/utils";
 
 export async function getActivityFeedQuery({
   orgId,
@@ -39,11 +39,10 @@ export async function getActivityFeedQuery({
     const offset = (page - 1) * pageSize;
     const isSearching = searchValue.length > 0;
     const maxDistance = 0.4;
-    let searchEmbedding: number[] = [];
+    let searchVector: number[] = [];
 
     if (isSearching) {
-      const { embedding } = await textEmbeddingModel.embedContent(searchValue);
-      searchEmbedding = embedding.values;
+      searchVector = await generateVector(searchValue);
     }
 
     let feedbackQuery = db
@@ -85,7 +84,7 @@ export async function getActivityFeedQuery({
       "user.name as authorName",
       "feedback.title as postTitle",
       ...(isSearching
-        ? [cosineDistance("feedback.embedding", searchEmbedding).as("distance")]
+        ? [cosineDistance("feedback.embedding", searchVector).as("distance")]
         : [sql<null>`null`.as("distance")]),
     ]);
 
@@ -111,11 +110,7 @@ export async function getActivityFeedQuery({
         "user.name as authorName",
         "feedback.title as postTitle",
         ...(isSearching
-          ? [
-              cosineDistance("comment.embedding", searchEmbedding).as(
-                "distance",
-              ),
-            ]
+          ? [cosineDistance("comment.embedding", searchVector).as("distance")]
           : [sql<null>`null`.as("distance")]),
       ]);
 

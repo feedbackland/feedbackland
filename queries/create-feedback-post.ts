@@ -1,10 +1,8 @@
 "server-only";
 
 import { db } from "@/db/db";
-import pgvector from "pgvector/pg";
-import { textEmbeddingModel } from "@/lib/gemini";
 import { FeedbackCategory } from "@/lib/typings";
-import { sanitize, stripHtml } from "@/lib/utils";
+import { generateEmbedding, sanitize, stripHtml } from "@/lib/utils";
 
 const getTitleAndCategory = async (plainTextDescription: string) => {
   const prompt = `
@@ -72,10 +70,9 @@ export async function createFeedbackPostQuery({
   try {
     const plainTextDescription = stripHtml(description);
     const { title, category } = await getTitleAndCategory(plainTextDescription);
-    const content = `${title}: ${plainTextDescription}`;
-    const embeddedContent = await textEmbeddingModel.embedContent(content);
-    const vector = embeddedContent.embedding.values;
-    const embedding = pgvector.toSql(vector);
+    const embedding = await generateEmbedding(
+      `${title}: ${plainTextDescription}`,
+    );
 
     const feedbackPost = await db
       .insertInto("feedback")

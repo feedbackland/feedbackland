@@ -1,9 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import pgvector from "pgvector/pg";
-import { textEmbeddingModel } from "@/lib/gemini";
-import { stripHtml } from "@/lib/utils";
+import { generateEmbedding, stripHtml } from "@/lib/utils";
 import sanitize from "sanitize-html";
 
 export const updateCommentQuery = async ({
@@ -33,11 +31,7 @@ export const updateCommentQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const plainTextContent = stripHtml(content);
-        const embeddedContent =
-          await textEmbeddingModel.embedContent(plainTextContent);
-        const vector = embeddedContent.embedding.values;
-        const embedding = pgvector.toSql(vector);
+        const embedding = await generateEmbedding(stripHtml(content));
 
         return await trx
           .updateTable("comment")
