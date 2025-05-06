@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
 import { FeedbackPostsSearchInput } from "./search-input";
-import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { useInView } from "react-intersection-observer";
 import { FeedbackPostsLoading } from "./loading";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
+import { feedbackPostsStateAtom } from "@/lib/atoms";
+import { useAtom } from "jotai";
 
 export function FeedbackPosts() {
-  const [searchValue, setSearchValue] = useState("");
-  const [orderBy, setOrderBy] = useState<FeedbackOrderBy>("newest");
-  const [status, setStatus] = useState<FeedbackStatus>(null);
+  const [feedbackPostsState, setFeedbackPostsState] = useAtom(
+    feedbackPostsStateAtom,
+  );
+
+  const { searchValue, orderBy, status } = feedbackPostsState;
 
   const isSearchActive = !!(searchValue?.length > 0);
 
@@ -59,7 +61,10 @@ export function FeedbackPosts() {
   });
 
   const handleSearch = (value: string) => {
-    setSearchValue(value);
+    setFeedbackPostsState((prev) => ({
+      ...prev,
+      searchValue: value,
+    }));
   };
 
   return (
@@ -70,8 +75,11 @@ export function FeedbackPosts() {
             orderBy={orderBy}
             status={status}
             onChange={({ orderBy, status }) => {
-              setOrderBy(orderBy);
-              setStatus(status);
+              setFeedbackPostsState((prev) => ({
+                ...prev,
+                orderBy,
+                status,
+              }));
             }}
           />
 

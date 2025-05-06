@@ -23,3 +23,13 @@ export const activtyFeedStateAtom = atomWithReset<{
   generalFeedbackSelected: false,
   commentsSelected: false,
 });
+
+export const feedbackPostsStateAtom = atomWithReset<{
+  searchValue: string;
+  orderBy: FeedbackOrderBy;
+  status: FeedbackStatus;
+}>({
+  searchValue: "",
+  orderBy: "newest",
+  status: null,
+});
