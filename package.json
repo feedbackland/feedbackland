@@ -83,7 +83,7 @@
     "image-size": "^2.0.2",
     "input-otp": "^1.4.2",
     "javascript-time-ago": "^2.5.11",
-    "jotai": "^2.12.3",
+    "jotai": "^2.12.4",
     "kysely": "^0.28.2",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.507.0",
