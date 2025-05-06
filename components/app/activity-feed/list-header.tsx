@@ -1,40 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { ActivityFeedSearchInput } from "./search-input";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
 import { cn } from "@/lib/utils";
+import { useAtom } from "jotai";
+import { activtyFeedStateAtom } from "@/lib/atoms";
 
 export function ActivityFeedListHeader({
-  onChange,
   className,
 }: {
-  onChange: ({
-    searchValue,
-    orderBy,
-    status,
-  }: {
-    searchValue: string;
-    orderBy: FeedbackOrderBy;
-    status: FeedbackStatus;
-  }) => void;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const [state, setState] = useState<{
-    searchValue: string;
-    orderBy: FeedbackOrderBy;
-    status: FeedbackStatus;
-  }>({
-    searchValue: "",
-    orderBy: "newest",
-    status: null,
-  });
+  const [activityFeedState, setActivityFeedState] =
+    useAtom(activtyFeedStateAtom);
+
+  const { orderBy, status } = activityFeedState;
 
   const handleSearch = (searchValue: string) => {
-    const newState = { ...state, searchValue };
-    setState(newState);
-    onChange(newState);
+    setActivityFeedState((prev) => ({
+      ...prev,
+      page: 1,
+      searchValue,
+    }));
   };
 
   const handleSortingFiltering = ({
@@ -44,9 +32,12 @@ export function ActivityFeedListHeader({
     orderBy: FeedbackOrderBy;
     status: FeedbackStatus;
   }) => {
-    const newState = { ...state, orderBy, status };
-    setState(newState);
-    onChange(newState);
+    setActivityFeedState((prev) => ({
+      ...prev,
+      page: 1,
+      orderBy,
+      status,
+    }));
   };
 
   return (
@@ -57,8 +48,8 @@ export function ActivityFeedListHeader({
       )}
     >
       <SortingFilteringDropdown
-        orderBy={state.orderBy}
-        status={state.status}
+        orderBy={orderBy}
+        status={status}
         onChange={handleSortingFiltering}
       />
       <ActivityFeedSearchInput onDebouncedChange={handleSearch} />

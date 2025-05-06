@@ -109,7 +109,13 @@ export function FeedbackPostEdit({
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input autoFocus type="text" placeholder="Title" {...field} />
+                  <Input
+                    autoFocus
+                    type="text"
+                    placeholder="Title"
+                    {...field}
+                    className="text-sm"
+                  />
                 </FormControl>
                 <FormMessage>{errors.title?.message}</FormMessage>
               </FormItem>
@@ -138,11 +144,11 @@ export function FeedbackPostEdit({
         </FormItem>
 
         <div className="flex items-center space-x-2">
-          <Button type="submit" loading={formState === "pending"}>
+          <Button type="submit" loading={formState === "pending"} size="sm">
             Save
           </Button>
 
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="outline" size="sm">
             Cancel
           </Button>
         </div>

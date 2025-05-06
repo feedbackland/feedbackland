@@ -89,7 +89,7 @@ export function CommentEdit({
     <Form {...form}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn("w-full space-y-6", className)}
+        className={cn("w-full space-y-4", className)}
       >
         <FormItem>
           <FormLabel className="sr-only">Edit comment</FormLabel>
@@ -112,11 +112,11 @@ export function CommentEdit({
         </FormItem>
 
         <div className="flex items-center space-x-2">
-          <Button type="submit" loading={formState === "pending"}>
+          <Button type="submit" loading={formState === "pending"} size="sm">
             Save
           </Button>
 
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="outline" size="sm">
             Cancel
           </Button>
         </div>

@@ -3,7 +3,6 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -75,7 +74,7 @@ export function SortingFilteringDropdown({
           onValueChange={(value) =>
             handleSelectOrderBy(value as FeedbackOrderBy)
           }
-          className="border-border border-r pr-1"
+          className="border-border cursor-pointer border-r pr-2"
         >
           <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="upvotes">
@@ -95,30 +94,30 @@ export function SortingFilteringDropdown({
               (value !== "all" ? value : null) as FeedbackStatus,
             );
           }}
-          className="pr-1 pl-1"
+          className="px-1"
         >
           <DropdownMenuRadioItem value="all">
             All statuses
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
             value="under consideration"
-            className="text-under-consideration"
+            className="text-under-consideration!"
           >
             Under consideration
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="planned" className="text-planned">
+          <DropdownMenuRadioItem value="planned" className="text-planned!">
             Planned
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
             value="in progress"
-            className="text-in-progress"
+            className="text-in-progress!"
           >
             In progress
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="done" className="text-done">
+          <DropdownMenuRadioItem value="done" className="text-done!">
             Done
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="declined" className="text-declined">
+          <DropdownMenuRadioItem value="declined" className="text-declined!">
             Declined
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>

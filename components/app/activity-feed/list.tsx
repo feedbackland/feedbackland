@@ -192,18 +192,7 @@ export function ActivityFeedList({
         </div>
 
         <div className="border-border overflow-hidden rounded-md border shadow-xs">
-          <ActivityFeedListHeader
-            className="bg-background border-border border-b py-2 pr-3 pl-4"
-            onChange={({ searchValue, orderBy, status }) => {
-              setActivityFeedState((prev) => ({
-                ...prev,
-                page: 1,
-                searchValue,
-                orderBy,
-                status,
-              }));
-            }}
-          />
+          <ActivityFeedListHeader className="bg-background border-border border-b py-2 pr-3 pl-4" />
 
           <div className="flex flex-col items-stretch">
             {showItems && <ActivityFeedListItems items={items} />}
