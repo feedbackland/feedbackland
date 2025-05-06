@@ -33,11 +33,13 @@ export default function AdminPage() {
                 ` (${metaData?.totalUnseenCount})`}
             </TabsTrigger>
             <TabsTrigger value="insights">AI Insights</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="activity">
             <ActivityFeed />
           </TabsContent>
           <TabsContent value="insights">AI Insights</TabsContent>
+          <TabsContent value="settings">Settings</TabsContent>
         </Tabs>
       </div>
     );
