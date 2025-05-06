@@ -120,6 +120,11 @@ export async function getActivityFeedQuery({
       feedbackCTE.unionAll(commentsCTE).as("activity"),
     );
 
+    if (status) {
+      // only include feedback records if status is selected
+      activityQuery = db.selectFrom(feedbackCTE.as("activity"));
+    }
+
     if (excludeFeedback) {
       activityQuery = db.selectFrom(commentsCTE.as("activity"));
     } else if (excludeComments) {
