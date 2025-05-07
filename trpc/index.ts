@@ -18,6 +18,7 @@ import { deleteComment } from "./delete-comment";
 import { getActivityFeed } from "./get-activity-feed";
 import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
+import { generateInsights } from "./generateInsights";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -39,6 +40,7 @@ export const appRouter = router({
   getActivityFeed,
   getActivityFeedMetaData,
   setActivitiesSeen,
+  generateInsights,
 });
 
 export type AppRouter = typeof appRouter;
