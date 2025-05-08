@@ -2,28 +2,32 @@
 
 import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { useState } from "react";
 import { useInsights } from "@/hooks/use-insights";
 
 export function Insights() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  const insights = useInsights({ enabled: true });
+  const {
+    query: { data },
+  } = useInsights({ enabled: true });
 
   const [error, setError] = useState<string | null>(null);
 
-  console.log(insights);
+  const insights = data?.pages.flatMap((page) => page.items) || [];
 
   const generateInsightsMutation = useMutation(
     trpc.generateInsights.mutationOptions({
-      onSuccess: () => {
-        console.log("success");
-      },
-      onError: (error) => {
-        console.log(error);
+      onError: () => {
         setError("Something went wrong. Please try again.");
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getInsights.queryKey().slice(0, 1),
+        });
       },
     }),
   );
@@ -45,6 +49,11 @@ export function Insights() {
           <p className="text-sm">Generating insights...</p>
         </div>
       )}
+
+      {error && <p className="text-red-500">{error}</p>}
+
+      {insights &&
+        insights.map((insight) => <div key={insight.id}>{insight.title}</div>)}
     </div>
   );
 }
