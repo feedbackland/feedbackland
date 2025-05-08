@@ -1,22 +1,26 @@
-import { z } from "zod";
-import { userProcedure } from "@/lib/trpc";
+import { adminProcedure } from "@/lib/trpc";
 import { getFeedbackPostsForInsightsQuery } from "@/queries/get-feedback-posts-for-insights";
+import { createInsightsQuery } from "@/queries/create-insight";
 
-export const generateInsight = userProcedure
-  .input(
-    z.object({
-      prompt: z.string().min(1, "Prompt cannot be empty."),
-    }),
-  )
-  .mutation(async ({ input, ctx }) => {
-    try {
-      const feedbackPosts = await getFeedbackPostsForInsightsQuery({
-        orgId: ctx.orgId,
-      });
+interface InsightsOutputItem {
+  title: string;
+  description: string;
+  upvotes: string | number;
+  commentCount: string | number;
+  status: string | null;
+  ids: string[];
+  priority: string | number;
+}
 
-      const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
+  try {
+    const feedbackPosts = await getFeedbackPostsForInsightsQuery({
+      orgId: ctx.orgId,
+    });
 
-      const prompt = `
+    const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+
+    const prompt = `
         You are an AI assistant specifically programmed to help product managers and product owners to analyze and act on user feedback.
 
         You will be provided with a list of user feedback posts. Each post follows this JSON structure:
@@ -83,46 +87,64 @@ export const generateInsight = userProcedure
         }
       `;
 
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-preview",
-            // model: "google/gemini-2.0-flash-001",
-            messages: [
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: prompt,
-                  },
-                ],
-              },
-            ],
-            temperature: 0.3, // Lower temperature for more consistent results
-            // max_tokens: 150,
-            response_format: { type: "json_object" },
-          }),
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-preview",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+          temperature: 0.3, // Lower temperature for more consistent results
+          // max_tokens: 150,
+          response_format: { type: "json_object" },
+        }),
+      },
+    );
 
-      const data = await response.json();
+    const data = await response.json();
 
-      const insight = data?.choices?.[0]?.message?.content as string;
+    const insightsOutputString = data?.choices?.[0]?.message?.content as string;
 
-      if (!insight || insight.length === 0) {
-        throw new Error("Could not generate insight");
-      }
-
-      return insight;
-    } catch (error) {
-      console.log(error);
-      throw error;
+    if (!insightsOutputString || insightsOutputString.length === 0) {
+      throw new Error("insightsOutputString is empty");
     }
-  });
+
+    const insightsOutput: InsightsOutputItem[] =
+      JSON.parse(insightsOutputString);
+
+    if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
+      throw new Error("insightsOutput is not a valid JSON array");
+    }
+
+    const result = await createInsightsQuery(
+      insightsOutput.map((item) => ({
+        orgId: ctx.orgId,
+        title: item.title,
+        description: item.description,
+        upvotes: Number(item?.upvotes || 0),
+        commentCount: Number(item?.commentCount || 0),
+        status: item.status,
+        feedback_post_ids: item.ids,
+        priority: Number(item?.priority || 0),
+      })),
+    );
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+});

@@ -1,116 +1,51 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
 import { useTRPC } from "@/providers/trpc-client";
-import { useMutation } from "@tanstack/react-query"; // Import useMutation
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { Spinner } from "@/components/ui/spinner";
+import { Insights as InsightsSchema } from "@/db/schema";
+import { Selectable } from "kysely";
+import { useState } from "react";
+
+type InsightsItem = Selectable<InsightsSchema>;
 
 export function Insights() {
   const trpc = useTRPC();
 
-  const [prompt, setPrompt] = useState(
-    "Summarize all feature requests. Rank them based on total number of upvotes.",
+  const [insightsItems, setInsightsItems] = useState<InsightsItem[] | null>(
+    null,
   );
+  const [error, setError] = useState<string | null>(null);
 
-  const [insightResult, setInsightResult] = useState<string | null>(null);
-
-  const generateInsightMutation = useMutation(
-    trpc.generateInsight.mutationOptions({
-      onSuccess: (insight) => {
-        console.log(insight);
-        // setInsightResult(JSON.stringify(insight, null, 2));
+  const generateInsightsMutation = useMutation(
+    trpc.generateInsights.mutationOptions({
+      onSuccess: (insights) => {
+        setInsightsItems(insights);
       },
-      onError: () => {
-        setInsightResult(`Failed to generate insights. Please try again.`);
+      onError: (error) => {
+        console.log(error);
+        setError("Something went wrong. Please try again.");
       },
     }),
   );
 
-  const handleSubmit = () => {
-    if (!prompt.trim()) {
-      setInsightResult("Prompt cannot be empty.");
-      return;
-    }
-
-    setInsightResult(null);
-
-    generateInsightMutation.mutate({ prompt });
-  };
-
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Powered Insights</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div>
-            <Label htmlFor="insight-prompt">
-              Ask anything about your platform&apos;s data
-            </Label>
-            <Textarea
-              id="insight-prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={generateInsightMutation.isPending} // Use isPending from react-query
-          >
-            {generateInsightMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              "Generate Insight"
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <Button
+        onClick={() => {
+          generateInsightsMutation.mutate();
+        }}
+        loading={generateInsightsMutation.isPending}
+      >
+        Generate Insights
+      </Button>
 
-      {/* Display loading state from react-query */}
-      {generateInsightMutation.isPending && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="text-primary h-8 w-8 animate-spin" />
-          <p className="ml-2">Generating your insight...</p>
+      {generateInsightsMutation.isPending && (
+        <div className="flex items-center justify-center gap-2 p-4">
+          <Spinner size="small" />
+          <p className="text-sm">Generating insights...</p>
         </div>
-      )}
-
-      {/* Display success result (insightResult state is updated by onSuccess) */}
-      {insightResult &&
-        !generateInsightMutation.isPending &&
-        !generateInsightMutation.isError && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Generated Insight</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="whitespace-pre-wrap">{insightResult}</p>
-            </CardContent>
-          </Card>
-        )}
-
-      {/* Display error state from react-query */}
-      {generateInsightMutation.isError && (
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-destructive">
-              {/* Display error message from react-query's error object */}
-              {generateInsightMutation.error?.message ||
-                "An unknown error occurred while generating insights."}
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

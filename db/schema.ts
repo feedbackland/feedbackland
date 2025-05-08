@@ -364,6 +364,19 @@ export interface Feedback {
   upvotes: Generated<Numeric>;
 }
 
+export interface Insights {
+  commentCount: Generated<Numeric>;
+  createdAt: Generated<Timestamp>;
+  description: string;
+  feedback_post_ids: string[];
+  id: Generated<string>;
+  orgId: string;
+  priority: Generated<Numeric>;
+  status: string | null;
+  title: string;
+  upvotes: Generated<Numeric>;
+}
+
 export interface Org {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
@@ -605,6 +618,7 @@ export interface DB {
   "extensions.pg_stat_statements_info": ExtensionsPgStatStatementsInfo;
   "extensions.wrappers_fdw_stats": ExtensionsWrappersFdwStats;
   feedback: Feedback;
+  insights: Insights;
   org: Org;
   "pgsodium.decrypted_key": PgsodiumDecryptedKey;
   "pgsodium.key": PgsodiumKey;
