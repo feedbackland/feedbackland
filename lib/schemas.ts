@@ -42,3 +42,11 @@ export const feedbackPostsCursorSchema = z
     distance: z.number().optional(),
   })
   .nullish();
+
+export const insightsCursorSchema = z
+  .object({
+    id: z.string(),
+    createdAt: z.string().datetime({ offset: true }),
+    priority: z.number().min(0),
+  })
+  .nullish();

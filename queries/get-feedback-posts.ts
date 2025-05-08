@@ -169,10 +169,10 @@ export const getFeedbackPostsQuery = async ({
 
       if (nextItem) {
         nextCursor = {
-          id: nextItem.id as string,
+          id: nextItem.id,
           commentCount: Number(nextItem.commentCount),
           upvotes: Number(nextItem.upvotes),
-          createdAt: (nextItem.createdAt as Date).toISOString(),
+          createdAt: nextItem.createdAt.toISOString(),
           distance:
             isSearching && nextItem.distance
               ? Number(nextItem.distance)

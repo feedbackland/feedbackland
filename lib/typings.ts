@@ -8,6 +8,7 @@ import {
   upsertOrgSchema,
   feedbackPostsCursorSchema,
   feedbackCategoriesSchema,
+  insightsCursorSchema,
 } from "./schemas";
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
@@ -25,6 +26,8 @@ export type UpsertOrg = z.infer<typeof upsertOrgSchema>;
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;
+
+export type InsightsCursor = z.infer<typeof insightsCursorSchema>;
 
 export type ActivityFeedItem = {
   orgId: string;

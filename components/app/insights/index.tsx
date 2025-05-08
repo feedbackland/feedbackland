@@ -4,24 +4,22 @@ import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
-import { Insights as InsightsSchema } from "@/db/schema";
-import { Selectable } from "kysely";
 import { useState } from "react";
-
-type InsightsItem = Selectable<InsightsSchema>;
+import { useInsights } from "@/hooks/use-insights";
 
 export function Insights() {
   const trpc = useTRPC();
 
-  const [insightsItems, setInsightsItems] = useState<InsightsItem[] | null>(
-    null,
-  );
+  const insights = useInsights({ enabled: true });
+
   const [error, setError] = useState<string | null>(null);
+
+  console.log(insights);
 
   const generateInsightsMutation = useMutation(
     trpc.generateInsights.mutationOptions({
-      onSuccess: (insights) => {
-        setInsightsItems(insights);
+      onSuccess: () => {
+        console.log("success");
       },
       onError: (error) => {
         console.log(error);
