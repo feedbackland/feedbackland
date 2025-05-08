@@ -10,40 +10,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
 export function Insights() {
+  const trpc = useTRPC();
+
   const [prompt, setPrompt] = useState(
     "Summarize all feature requests. Rank them based on total number of upvotes.",
   );
+
   const [insightResult, setInsightResult] = useState<string | null>(null);
-  const trpc = useTRPC();
 
   const generateInsightMutation = useMutation(
-    trpc.generateInsights.mutationOptions({
-      // onSuccess is called by react-query if the mutation is successful
-      onSuccess: (data) => {
-        setInsightResult(data.insight);
+    trpc.generateInsight.mutationOptions({
+      onSuccess: (insight) => {
+        console.log(insight);
+        // setInsightResult(JSON.stringify(insight, null, 2));
       },
-      // onError is called by react-query if the mutation fails
-      onError: (error) => {
-        console.error("Failed to generate insight:", error);
-        setInsightResult(
-          `Failed to generate insights: ${error.message}. Please check the console for more details or ensure your API keys are set up correctly.`,
-        );
-      },
-      // onSettled is called by react-query when the mutation is finished (either success or error)
-      onSettled: () => {
-        // You could potentially stop a global loading indicator here if you had one
+      onError: () => {
+        setInsightResult(`Failed to generate insights. Please try again.`);
       },
     }),
   );
 
   const handleSubmit = () => {
-    // No longer async directly, react-query handles async
     if (!prompt.trim()) {
-      setInsightResult("Prompt cannot be empty."); // Or handle with a toast
+      setInsightResult("Prompt cannot be empty.");
       return;
     }
-    setInsightResult(null); // Clear previous results before new request
-    generateInsightMutation.mutate({ prompt }); // Call mutate instead of mutateAsync
+
+    setInsightResult(null);
+
+    generateInsightMutation.mutate({ prompt });
   };
 
   return (
