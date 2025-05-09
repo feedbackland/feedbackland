@@ -69,7 +69,7 @@ export function Insights() {
           </h1>
           <p className="text-muted-foreground text-sm">
             {hasInsights &&
-              `Generated on ${new Date(insights[0].createdAt).toLocaleDateString()}`}
+              `Generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
             {hasNoInsights &&
               `Instantly summarize and rank key takeaways from active feedback.
             Click Generate to start.`}

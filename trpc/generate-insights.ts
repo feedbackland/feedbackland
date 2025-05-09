@@ -107,11 +107,12 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
           // model: "google/gemini-2.0-flash-lite-001",
           messages: [
             {
-              role: "user",
+              role: "system",
               content: [
                 {
-                  type: "text",
+                  type: "user",
                   text: prompt,
+                  // cache_control: { type: "ephemeral" },
                 },
               ],
             },
