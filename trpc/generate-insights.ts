@@ -25,7 +25,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
     const prompt = `
         You are an AI assistant specifically programmed to help product managers and product owners to analyze and act on user feedback.
 
-        You will be provided with a list of user feedback posts. Each post follows this JSON structure:
+        You are provided with a list of user feedback posts. Each post follows this JSON structure:
         \`\`\`json
         {
           "id": "string",          // Unique identifier
@@ -86,10 +86,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
         Each object represents one prioritized, bundled theme.
 
-        Now, process the following user feedback posts and generate this specific output:
-
-        ${feedbackDataJsonString}
-        }
+        Now process the below listed user feedback posts:
       `;
 
     const response = await fetch(
@@ -110,14 +107,22 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
               role: "system",
               content: [
                 {
-                  type: "user",
+                  type: "text",
                   text: prompt,
-                  // cache_control: { type: "ephemeral" },
+                },
+              ],
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: feedbackDataJsonString,
                 },
               ],
             },
           ],
-          temperature: 0.2, // Lower temperature for more consistent results
+          temperature: 0.2,
           max_tokens: 100000,
           response_format: { type: "json_object" },
         }),
@@ -155,6 +160,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
     return result;
   } catch (error) {
+    console.log("error:", error);
     throw error;
   }
 });
