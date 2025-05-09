@@ -101,7 +101,7 @@ export function Insights() {
       )}
 
       {hasInsights && (
-        <div className="flex flex-col items-stretch space-y-4">
+        <div className="flex flex-col items-stretch space-y-5">
           {insights.map((item) => (
             <InsightsItem key={item.id} item={item} />
           ))}

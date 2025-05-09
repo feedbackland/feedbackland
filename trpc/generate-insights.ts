@@ -51,7 +51,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
         2.  **Summarization for Actionability:**
             * For each identified overarching theme/bundle, create a **very short, impactful title**. (e.g., "Address widespread widget loading failures", "Introduce advanced feedback filtering options", "Enhance AI summary accuracy"). Do not include any labels (e.g. "Bundle: ...") but just the title.
-            * Provide a **concise description** that summarizes the core user need or problem within that theme and clearly points towards a potential area of investigation or action for the product.
+            * Provide a **concise description** that summarizes the core user need or problem within that theme and clearly points towards a potential area of investigation or action for the product. Make it as actionable as possible.
             * Provide a priority score to indicate the importance, impact and urgency of this theme.
 
         3.  **Strict Prioritization:**
