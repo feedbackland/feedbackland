@@ -21,10 +21,6 @@ export const getInsightsQuery = async ({
       .orderBy("insights.id", "desc");
 
     if (cursor) {
-      // When sorting by priority DESC and id DESC,
-      // the next page starts with items that have:
-      // 1. A priority strictly less than the cursor's priority, OR
-      // 2. The same priority as the cursor, but an ID strictly less than the cursor's ID.
       query = query.where((eb) => {
         return eb.or([
           eb("insights.priority", "<", String(cursor.priority)),

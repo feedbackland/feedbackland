@@ -75,10 +75,10 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
             "description": "Short, actionable description for item 1, summarizing the bundled feedback and its importance.",
             "upvotes": "sum of all upvotes in the theme",
             "commentCount": "sum of all comments in the theme",
-            "status": "if any posts have a status reflect that; otherwise leave null",
-            "category": "the category of the majority of posts in the theme",
-            "ids": "the ids of the linked feedback posts",
-            "priority": "the priority score of the theme ranging from 0 to 100, the higher the more important"
+            "status": "the status of the majority of posts in the theme; leave null is no posts have a status",
+            "category": "the category of the majority of posts in the theme; leave null is no posts have a category",
+            "ids": "the ids of the feedback posts in the theme",
+            "priority": "the priority score of the theme ranging from 0 to 100, the higher the more important/urgent"
           },
           // ... more themes, strictly prioritized, list kept as short as possible.
         ]
@@ -99,7 +99,8 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-preview",
+          // model: "google/gemini-2.5-flash-preview",
+          model: "google/gemini-2.5-flash-preview:thinking",
           messages: [
             {
               role: "user",
@@ -112,7 +113,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
             },
           ],
           temperature: 0.3, // Lower temperature for more consistent results
-          // max_tokens: 150,
+          max_tokens: 100000,
           response_format: { type: "json_object" },
         }),
       },

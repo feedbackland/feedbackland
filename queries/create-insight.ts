@@ -13,18 +13,20 @@ export const createInsightsQuery = async (insightsToCreate: InsightInput[]) => {
   const orgId = insightsToCreate[0].orgId;
 
   try {
-    await db.transaction().execute(async (trx) => {
+    return await db.transaction().execute(async (trx) => {
       await trx
         .deleteFrom("insights")
         .where("insights.orgId", "=", orgId)
         .execute();
 
-      if (insightsToCreate.length > 0) {
+      console.log("insightsToCreate", insightsToCreate);
+
+      if (insightsToCreate?.length > 0) {
         await trx.insertInto("insights").values(insightsToCreate).execute();
       }
-    });
 
-    return true;
+      return true;
+    });
   } catch (error: any) {
     throw error;
   }
