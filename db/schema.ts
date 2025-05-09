@@ -369,8 +369,8 @@ export interface Insights {
   commentCount: Generated<Numeric>;
   createdAt: Generated<Timestamp>;
   description: string;
-  feedback_post_ids: string[];
   id: Generated<string>;
+  ids: string[];
   orgId: string;
   priority: Generated<Numeric>;
   status: FeedbackStatus | null;

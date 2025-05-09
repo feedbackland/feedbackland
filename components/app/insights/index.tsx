@@ -60,20 +60,20 @@ export function Insights() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 py-4">
         <div className="space-y-1">
-          <h1>
+          <h1 className="h4">
             {hasInsights && `${insights.length} Insights`}
-            {hasNoInsights && `No insights yet`}
+            {hasNoInsights && `No insights generated yet`}
             {isGenerating && `Generating insights...`}
           </h1>
-          <p>
+          <p className="text-muted-foreground text-sm">
             {hasInsights &&
-              `Insights generated on ${new Date(insights[0].createdAt).toLocaleDateString()}`}
+              `Generated on ${new Date(insights[0].createdAt).toLocaleDateString()}`}
             {hasNoInsights &&
               `Instantly summarize and rank key takeaways from active feedback.
-            Click &apos;Generate&apos; to start.`}
-            {isGenerating && `This might take up to a few minutes.`}
+            Click Generate to start.`}
+            {isGenerating && `This might take a few minutes`}
           </p>
         </div>
         <Button

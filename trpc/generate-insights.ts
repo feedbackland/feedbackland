@@ -51,7 +51,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
         2.  **Summarization for Actionability:**
             * For each identified overarching theme/bundle, create a **very short, impactful title**. (e.g., "Address widespread widget loading failures", "Introduce advanced feedback filtering options", "Enhance AI summary accuracy"). Do not include any labels (e.g. "Bundle: ...") but just the title.
-            * Provide a **concise description** (1-2 sentences maximum) that summarizes the core user need or problem within that theme and clearly points towards a potential area of investigation or action for the product.
+            * Provide a **concise description** that summarizes the core user need or problem within that theme and clearly points towards a potential area of investigation or action for the product.
             * Provide a priority score to indicate the importance, impact and urgency of this theme.
 
         3.  **Strict Prioritization:**
@@ -67,7 +67,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
             * Every word counts. Be direct and avoid fluff. The list must be immediately useful to a busy product manager or developer.
 
         **Required Output Format:**
-        Return a JSON array of objects. Each object represents one prioritized, bundled theme:
+        Respond with a valid JSON array of objects that follows this structure exactly:
         \`\`\`json
         [
           {
@@ -77,12 +77,14 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
             "commentCount": "sum of all comments in the theme",
             "status": "the status of the majority of posts in the theme; leave null is no posts have a status",
             "category": "the category of the majority of posts in the theme; leave null is no posts have a category",
-            "ids": "the ids of the feedback posts in the theme",
+            "ids": "the ids of the feedback posts in the theme. should always be an array",
             "priority": "the priority score of the theme ranging from 0 to 100, the higher the more important/urgent"
           },
           // ... more themes, strictly prioritized, list kept as short as possible.
         ]
         \`\`\`
+
+        Each object represents one prioritized, bundled theme.
 
         Now, process the following user feedback posts and generate this specific output:
 
@@ -99,8 +101,10 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          // model: "google/gemini-2.5-flash-preview",
-          model: "google/gemini-2.5-flash-preview:thinking",
+          // model: "google/gemini-2.5-flash-preview:thinking",
+          model: "google/gemini-2.5-flash-preview",
+          // model: "google/gemini-2.0-flash-001",
+          // model: "google/gemini-2.0-flash-lite-001",
           messages: [
             {
               role: "user",
@@ -112,7 +116,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
               ],
             },
           ],
-          temperature: 0.3, // Lower temperature for more consistent results
+          temperature: 0.2, // Lower temperature for more consistent results
           max_tokens: 100000,
           response_format: { type: "json_object" },
         }),
@@ -143,7 +147,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
         commentCount: Number(item?.commentCount || 0),
         status: item.status,
         category: item.category,
-        feedback_post_ids: item.ids,
+        ids: item.ids,
         priority: Number(item?.priority || 0),
       })),
     );
