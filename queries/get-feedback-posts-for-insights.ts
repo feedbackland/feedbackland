@@ -13,9 +13,7 @@ export const getFeedbackPostsForInsightsQuery = async ({
       .where("feedback.orgId", "=", orgId)
       .where((eb) =>
         eb.or([
-          eb("status", "=", "under consideration"),
-          eb("status", "=", "in progress"),
-          eb("status", "=", "planned"),
+          eb("status", "not in", ["done", "declined"]),
           eb("status", "is", null),
         ]),
       )

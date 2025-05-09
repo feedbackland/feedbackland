@@ -365,6 +365,7 @@ export interface Feedback {
 }
 
 export interface Insights {
+  category: FeedbackCategory | null;
   commentCount: Generated<Numeric>;
   createdAt: Generated<Timestamp>;
   description: string;
@@ -372,7 +373,7 @@ export interface Insights {
   id: Generated<string>;
   orgId: string;
   priority: Generated<Numeric>;
-  status: string | null;
+  status: FeedbackStatus | null;
   title: string;
   upvotes: Generated<Numeric>;
 }

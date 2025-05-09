@@ -1,15 +1,17 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getFeedbackPostsForInsightsQuery } from "@/queries/get-feedback-posts-for-insights";
 import { createInsightsQuery } from "@/queries/create-insight";
+import { FeedbackCategory, FeedbackStatus } from "@/db/schema";
 
 interface InsightsOutputItem {
   title: string;
   description: string;
-  upvotes: string | number;
-  commentCount: string | number;
-  status: string | null;
+  upvotes: number | string;
+  commentCount: number | string;
+  status: FeedbackStatus | null;
+  category: FeedbackCategory | null;
   ids: string[];
-  priority: string | number;
+  priority: number | string;
 }
 
 export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
@@ -74,6 +76,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
             "upvotes": "sum of all upvotes in the theme",
             "commentCount": "sum of all comments in the theme",
             "status": "if any posts have a status reflect that; otherwise leave null",
+            "category": "the category of the majority of posts in the theme",
             "ids": "the ids of the linked feedback posts",
             "priority": "the priority score of the theme ranging from 0 to 100, the higher the more important"
           },
@@ -138,6 +141,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
         upvotes: Number(item?.upvotes || 0),
         commentCount: Number(item?.commentCount || 0),
         status: item.status,
+        category: item.category,
         feedback_post_ids: item.ids,
         priority: Number(item?.priority || 0),
       })),
