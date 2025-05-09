@@ -30,7 +30,7 @@ export const getFeedbackPostsForInsightsQuery = async ({
             .selectFrom("comment")
             .select(eb.fn.countAll<string>().as("commentCount"))
             .whereRef("comment.postId", "=", "feedback.id")
-            .where("content", "not like", "Updated status to%")
+            // .where("content", "not like", "Updated status to%")
             .as("commentCount"),
       ])
       .orderBy("feedback.createdAt", "desc")
