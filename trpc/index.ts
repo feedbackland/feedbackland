@@ -7,6 +7,7 @@ import { claimOrg } from "./claim-org";
 import { createFeedbackPost } from "./create-feedback-post";
 import { upvoteFeedbackPost } from "./upvote-feedback-post";
 import { getFeedbackPosts } from "./get-feedback-posts";
+import { getFeedbackPostsByIds } from "./get-feedback-posts-by-ids";
 import { getFeedbackPost } from "./get-feedback-post";
 import { createComment } from "./create-comment";
 import { getComment } from "./get-comment";
@@ -30,6 +31,7 @@ export const appRouter = router({
   createFeedbackPost,
   upvoteFeedbackPost,
   getFeedbackPosts,
+  getFeedbackPostsByIds,
   getFeedbackPost,
   createComment,
   getComment,

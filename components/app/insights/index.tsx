@@ -5,7 +5,7 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useInsights } from "@/hooks/use-insights";
 import { Error } from "@/components/ui/error";
-import { InsightsItem } from "./item";
+import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 
@@ -101,7 +101,7 @@ export function Insights() {
       {hasInsights && (
         <div className="flex flex-col items-stretch space-y-5">
           {insights.map((item) => (
-            <InsightsItem key={item.id} item={item} />
+            <Insight key={item.id} item={item} />
           ))}
         </div>
       )}

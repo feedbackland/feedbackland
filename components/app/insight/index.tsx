@@ -1,0 +1,99 @@
+"use client";
+
+import { Selectable } from "kysely";
+import { Insights } from "@/db/schema";
+import { Badge } from "@/components/ui/badge";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
+import { InsightPosts } from "./posts";
+
+type Item = Selectable<Insights>;
+
+const getPriorityLabel = (priorityScore: number) => {
+  if (priorityScore < 40) {
+    return "Low priority";
+  } else if (priorityScore < 60) {
+    return "Medium priority";
+  } else if (priorityScore < 95) {
+    return "High priority";
+  } else {
+    return "Critical priority";
+  }
+};
+
+export function Insight({ item }: { item: Item }) {
+  const priorityScore = Number(item.priority);
+  const priorityLabel = getPriorityLabel(priorityScore);
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const postCount = item.ids?.length || 0;
+
+  return (
+    <div className="border-border flex w-full flex-col items-stretch overflow-hidden rounded-xl border shadow-xs">
+      <div className="p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <Badge variant="outline">
+            {capitalizeFirstLetter(item.category || "")}
+          </Badge>
+          <Badge
+            variant="outline"
+            className={cn("", {
+              "text-blue-700 dark:text-blue-400": priorityScore < 40,
+              "text-green-700 dark:text-green-400":
+                priorityScore >= 40 && priorityScore < 60,
+              "text-orange-700 dark:text-orange-400":
+                priorityScore >= 60 && priorityScore < 95,
+              "text-red-700 dark:text-red-400": priorityScore >= 95,
+            })}
+          >
+            {priorityLabel}
+          </Badge>
+        </div>
+        <h3 className="h5 mb-2">{item.title}</h3>
+        <p className="text-muted-foreground text-sm">{item.description}</p>
+      </div>
+
+      {postCount > 0 && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="link"
+              size="lg"
+              className={cn(
+                "hover:bg-muted/40 data-[state=open]:bg-muted/40 border-t-border w-full justify-start rounded-t-none rounded-b-xl border px-5 py-5.5 transition-none hover:no-underline data-[state=open]:rounded-none [&>span]:flex! [&>span]:w-full! [&>span]:flex-1",
+              )}
+            >
+              <div className="flex w-full! flex-1 items-center justify-between">
+                <div className="flex flex-1 items-center justify-between gap-1">
+                  <span className="text-muted-foreground text-sm font-normal">
+                    {postCount} feedback {postCount > 1 ? "posts" : "post"}{" "}
+                    linked to this insight
+                  </span>
+
+                  <ChevronRight
+                    className={cn(
+                      "text-muted-foreground size-4!",
+                      isOpen ? "-rotate-90" : "rotate-90",
+                    )}
+                  />
+                </div>
+              </div>
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="border-t-border space-y-4 border px-5 py-3">
+            <InsightPosts ids={item.ids || []} />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </div>
+  );
+}
