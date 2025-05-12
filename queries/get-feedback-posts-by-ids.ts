@@ -22,6 +22,7 @@ export const getFeedbackPostsByIdsQuery = async ({
         "feedback.category",
         "feedback.createdAt",
         "feedback.upvotes",
+        "feedback.status",
         (eb) =>
           eb
             .selectFrom("comment")
