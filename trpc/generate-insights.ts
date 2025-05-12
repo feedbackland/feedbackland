@@ -1,6 +1,6 @@
 import { adminProcedure } from "@/lib/trpc";
-import { getFeedbackPostsForInsightsQuery } from "@/queries/get-feedback-posts-for-insights";
-import { createInsightsQuery } from "@/queries/create-insight";
+import { getInsightsInputQuery } from "@/queries/get-insights-input";
+import { createInsightsQuery } from "@/queries/create-insights";
 import { FeedbackCategory, FeedbackStatus } from "@/db/schema";
 
 interface InsightsOutputItem {
@@ -16,7 +16,7 @@ interface InsightsOutputItem {
 
 export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
   try {
-    const feedbackPosts = await getFeedbackPostsForInsightsQuery({
+    const feedbackPosts = await getInsightsInputQuery({
       orgId: ctx.orgId,
     });
 

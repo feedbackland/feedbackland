@@ -7,6 +7,7 @@ import { useInsights } from "@/hooks/use-insights";
 import { Error } from "@/components/ui/error";
 import { InsightsItem } from "./item";
 import { useInView } from "react-intersection-observer";
+import { InsightsLoading } from "./loading";
 
 export function Insights() {
   const trpc = useTRPC();
@@ -62,17 +63,12 @@ export function Insights() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 py-4">
         <div className="space-y-1">
-          <h1 className="h4">
-            {hasInsights && `${insights.length} Insights`}
-            {hasNoInsights && `No insights generated yet`}
-            {isGenerating && `Generating insights...`}
-          </h1>
+          <h1 className="h3">Insights</h1>
           <p className="text-muted-foreground text-sm">
             {hasInsights &&
-              `Generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+              `${insights.length} insights generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
             {hasNoInsights &&
-              `Instantly summarize and rank key takeaways from active feedback.
-            Click Generate to start.`}
+              `Click Generate to get AI insights into all active feedback`}
             {isGenerating && `This might take a few minutes`}
           </p>
         </div>
@@ -85,6 +81,8 @@ export function Insights() {
           {hasInsights ? `Regenerate` : `Generate`}
         </Button>
       </div>
+
+      {!!(isGenerating || isPending) && <InsightsLoading />}
 
       {isGeneratingError && (
         <Error
