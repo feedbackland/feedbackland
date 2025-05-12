@@ -53,7 +53,7 @@ export function PlatformHeader() {
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (
-            <Button variant="link" size="default" asChild>
+            <Button variant="ghost" size="default" asChild>
               <Link href={isAdminPage ? platformUrl : `${platformUrl}/admin`}>
                 <span className="flex items-center gap-2">
                   {isAdminPage ? (

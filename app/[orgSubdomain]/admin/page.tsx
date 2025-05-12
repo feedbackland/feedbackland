@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { Insights } from "@/components/app/insights";
 
 export default function AdminPage() {
@@ -18,21 +17,12 @@ export default function AdminPage() {
     router.push(platformUrl);
   }
 
-  const {
-    query: { data: metaData },
-  } = useActivityFeedMetaData({ enabled: true });
-
   if (isAdmin) {
     return (
       <div>
         <Tabs defaultValue="activity" className="">
           <TabsList>
-            <TabsTrigger value="activity">
-              Activity
-              {metaData &&
-                metaData?.totalUnseenCount > 0 &&
-                ` (${metaData?.totalUnseenCount})`}
-            </TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>

@@ -5,6 +5,8 @@ import { useComments } from "@/hooks/use-comments";
 import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 import { CommentWrapper } from "../comment/wrapper";
+import { CommentsLoading } from "./loading";
+import { Error } from "@/components/ui/error";
 
 export function Comments({
   postId,
@@ -38,22 +40,15 @@ export function Comments({
 
   return (
     <div className={cn("", className)}>
-      {/* {isPending && (
-        <div className="mt-10 flex flex-col items-center justify-center space-y-2">
-          <Spinner size="small" />
-          <span className="text-sm">Loading comments...</span>
+      {isPending && <CommentsLoading />}
+
+      {isError && <Error title="Error loading comments" />}
+
+      {!!(!isPending && !isError && comments.length === 0) && (
+        <div className="text-muted-foreground py-3 text-center text-sm">
+          No comments yet
         </div>
       )}
-
-      {isError && (
-        <div className="py-4 text-center text-red-500">Error loading posts</div>
-      )} */}
-
-      {/* {!!(!isPending && !isError && comments.length === 0) && (
-        <div className="text-muted-foreground py-4 text-center">
-          No posts found
-        </div>
-      )} */}
 
       {!!(!isPending && !isError && comments.length > 0) && (
         <div className="space-y-4">

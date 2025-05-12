@@ -45,11 +45,9 @@ export const getActivityFeedMetaDataQuery = async ({
           .on("activity_seen.userId", "=", userId),
       )
       .select(() => [
-        // Total unseen count
         sql<number>`COUNT(CASE WHEN activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "totalUnseenCount",
         ),
-        // Unseen counts by category/type
         sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'feature request' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "unseenFeatureRequestPostCount",
         ),
@@ -62,7 +60,6 @@ export const getActivityFeedMetaDataQuery = async ({
         sql<number>`COUNT(CASE WHEN activity.type = 'comment' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "unseenCommentCount",
         ),
-        // Total counts by category/type (seen and unseen)
         sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'feature request' THEN 1 END)::int`.as(
           "totalFeatureRequestPostCount",
         ),
@@ -77,10 +74,8 @@ export const getActivityFeedMetaDataQuery = async ({
         ),
       ]);
 
-    // Execute the query - it will return a single row with all the counts
     const counts = await finalQuery.executeTakeFirst();
 
-    // Return the counts, ensuring defaults if the query somehow returns nothing
     return {
       totalUnseenCount: counts?.totalUnseenCount ?? 0,
       unseenFeatureRequestPostCount: counts?.unseenFeatureRequestPostCount ?? 0,

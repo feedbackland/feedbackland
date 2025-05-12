@@ -23,15 +23,17 @@ export function ActivityFeedComment({
             className={cn("line-clamp-4 group-hover:underline")}
           />
 
-          <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-            <span className="">Comment in &apos;{item.postTitle}&apos;</span>
+          <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
+            <span className="">Comment</span>
+            {/* <span className="text-[8px]">•</span>
+            <span className="break-normal">{item.postTitle}</span> */}
             <span className="text-[8px]">•</span>
             <span className="">
               {timeAgo.format(item.createdAt, "twitter")}
             </span>
             <span className="text-[8px]">•</span>
-            <div className="flex items-center gap-1">
-              <ArrowBigUpIcon className="size-3.5!" strokeWidth={1.5} />
+            <div className="flex items-center gap-0.5">
+              <ArrowBigUpIcon className="size-4!" strokeWidth={1.5} />
               <span className="text-muted-foreground text-xs">
                 {item.upvotes || 0}
               </span>
