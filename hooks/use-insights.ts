@@ -4,7 +4,7 @@ import { useTRPC } from "@/providers/trpc-client";
 export function useInsights({ enabled }: { enabled: boolean }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getInsights.infiniteQueryOptions(
-    { limit: 10 },
+    { limit: 20 },
     {
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,

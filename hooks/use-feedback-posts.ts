@@ -15,7 +15,7 @@ export function useFeedbackPosts({
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getFeedbackPosts.infiniteQueryOptions(
-    { limit: 10, orderBy, status, searchValue },
+    { limit: 20, orderBy, status, searchValue },
     {
       enabled,
       getNextPageParam: (lastPage) => lastPage.nextCursor,

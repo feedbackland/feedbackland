@@ -64,7 +64,7 @@ export function ActivityFeedList({
   } = useActivityFeed({
     enabled: true,
     page,
-    pageSize: 10,
+    pageSize: 20,
     orderBy,
     status,
     categories,
@@ -191,7 +191,7 @@ export function ActivityFeedList({
           ))}
         </div>
 
-        <div className="border-border overflow-hidden rounded-md border shadow-xs">
+        <div className="border-border overflow-hidden rounded-lg border shadow-xs">
           <ActivityFeedListHeader className="bg-background border-border border-b py-2 pr-3 pl-4" />
 
           <div className="flex flex-col items-stretch">

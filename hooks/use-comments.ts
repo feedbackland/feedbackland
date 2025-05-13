@@ -10,7 +10,7 @@ export function useComments({
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getComments.infiniteQueryOptions(
-    { postId, limit: 10 },
+    { postId, limit: 20 },
     {
       enabled: !!(enabled && postId),
       getNextPageParam: (lastPage) => lastPage?.nextCursor,

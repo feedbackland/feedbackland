@@ -7,9 +7,9 @@ import { timeAgo } from "@/lib/time-ago";
 import { Badge } from "@/components/ui/badge";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
 import Link from "next/link";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 export function ActivityFeedListItem({
   item,
@@ -21,19 +21,19 @@ export function ActivityFeedListItem({
   const platformUrl = usePlatformUrl();
   const setActivitySeen = useSetActivitiesSeen();
 
+  const { status, type, category, createdAt, title, content, postId } = item;
+
   const handleOnClick = (itemId: string) => {
     setActivitySeen?.mutate({
       itemIds: [itemId],
     });
   };
 
-  const { status, type, category, createdAt, title, content, postId } = item;
-
   return (
     <div
       className={cn(
         "group border-b-border flex w-full flex-1 items-center gap-6 border px-4 py-5",
-        item.isSeen && "bg-muted/80 dark:bg-muted/50",
+        item.isSeen && "bg-muted/50",
         className,
       )}
     >
@@ -51,7 +51,7 @@ export function ActivityFeedListItem({
             {status && (
               <Badge
                 variant="outline"
-                className={cn("h-fit px-1.5 py-0.5 text-xs shadow-none", {
+                className={cn("", {
                   "text-under-consideration!": status === "under consideration",
                   "text-planned!": status === "planned",
                   "text-in-progress!": status === "in progress",
