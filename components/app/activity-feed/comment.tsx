@@ -28,9 +28,7 @@ export function ActivityFeedComment({
             {/* <span className="text-[8px]">•</span>
             <span className="break-normal">{item.postTitle}</span> */}
             <span className="text-[8px]">•</span>
-            <span className="">
-              {timeAgo.format(item.createdAt, "twitter")}
-            </span>
+            <span className="">{timeAgo.format(item.createdAt)}</span>
             <span className="text-[8px]">•</span>
             <div className="flex items-center gap-0.5">
               <ArrowBigUpIcon className="size-4!" strokeWidth={1.5} />

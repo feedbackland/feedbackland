@@ -33,7 +33,7 @@ export function InsightPosts({ ids }: { ids: string[] }) {
                   <span>{post.title}</span>
                 </Link>
                 <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-                  <span>{timeAgo.format(post.createdAt, "mini")}</span>
+                  <span>{timeAgo.format(post.createdAt)}</span>
                   <span className="text-[8px]">•</span>
                   <span className="capitalize">{post.category}</span>
                   {post.status && (
@@ -53,13 +53,13 @@ export function InsightPosts({ ids }: { ids: string[] }) {
               </div>
             </div>
             <div className="text-primary flex items-center gap-4.5 text-xs">
-              <div className="flex items-center gap-1">
-                <MessageSquareIcon className="size-3" />
-                <span>{post.commentCount}</span>
-              </div>
               <div className="flex items-center gap-0.5">
                 <ArrowBigUp className="size-4!" strokeWidth={1.5} />
                 <span>{post.upvotes}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageSquareIcon className="size-3" />
+                <span>{post.commentCount}</span>
               </div>
             </div>
           </div>

@@ -63,7 +63,9 @@ export function Insights() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 py-4">
         <div className="space-y-1">
-          <h1 className="h3">Insights</h1>
+          <h1 className="h3">
+            {isGenerating ? `Generating Insights...` : `Insights`}
+          </h1>
           <p className="text-muted-foreground text-sm">
             {hasInsights &&
               `${insights.length} insights generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
@@ -100,8 +102,8 @@ export function Insights() {
 
       {hasInsights && (
         <div className="flex flex-col items-stretch space-y-5">
-          {insights.map((item) => (
-            <Insight key={item.id} item={item} />
+          {insights.map((item, index) => (
+            <Insight key={item.id} item={item} index={index} />
           ))}
         </div>
       )}

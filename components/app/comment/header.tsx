@@ -36,7 +36,7 @@ export function CommentHeader({
           )}
         </div>
         <span className="text-[8px]">•</span>
-        <div className="">{timeAgo.format(createdAt, "round")}</div>
+        <div className="">{timeAgo.format(createdAt)}</div>
       </div>
     </div>
   );

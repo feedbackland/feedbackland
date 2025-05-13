@@ -49,7 +49,7 @@ function Inner({
           </h3>
 
           <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-            <span>{timeAgo.format(createdAt, "mini")}</span>
+            <span>{timeAgo.format(createdAt)}</span>
             <span className="text-[8px]">•</span>
             <span className="capitalize">{category}</span>
             {status && (
