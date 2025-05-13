@@ -126,7 +126,7 @@ export function PlatformHeader() {
           )}
         </div>
       </div>
-      <p className="text-muted-foreground text-xs">
+      {/* <p className="text-muted-foreground text-xs">
         Powered by{" "}
         <a
           href="https://feedbackland.com"
@@ -135,7 +135,7 @@ export function PlatformHeader() {
         >
           Feedbackland
         </a>
-      </p>
+      </p> */}
     </div>
   );
 }
