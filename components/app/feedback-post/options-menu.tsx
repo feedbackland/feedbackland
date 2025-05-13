@@ -34,15 +34,18 @@ import { toast } from "sonner";
 import { FeedbackStatus } from "@/lib/typings";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { useUpdateStatus } from "@/hooks/use-update-status";
+import { cn } from "@/lib/utils";
 
 export function FeedbackPostOptionsMenu({
   postId,
   authorId,
   onEdit,
+  className,
 }: {
   postId: string;
   authorId?: string;
   onEdit?: () => void;
+  className?: React.ComponentProps<"div">["className"];
 }) {
   const updateStatus = useUpdateStatus({ postId });
 
@@ -107,11 +110,16 @@ export function FeedbackPostOptionsMenu({
       <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Open options menu">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Open options menu"
+              className={cn("", className)}
+            >
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
+          <DropdownMenuContent align="end" className="">
             <DropdownMenuGroup>
               {onEdit !== undefined && (
                 <DropdownMenuItem onClick={() => onEdit?.()} className="">
@@ -121,7 +129,7 @@ export function FeedbackPostOptionsMenu({
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
+                  <DropdownMenuSubContent className="w-48">
                     <DropdownMenuItem
                       className="flex items-center justify-between"
                       onClick={() => handleStatusChange(null)}
@@ -202,10 +210,14 @@ export function FeedbackPostOptionsMenu({
             <AlertDialogFooter>
               <AlertDialogCancel
                 onClick={() => setIsDeleteConfirmationOpen(false)}
+                disabled={deletePost.isPending}
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deletePost.isPending}
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -198,8 +198,8 @@
 
 .tiptap,
 .tiptap-output {
-  .mention {
-    @apply bg-secondary rounded-sm box-decoration-clone px-1.5 py-1;
+  & .mention {
+    @apply bg-primary/10 rounded-md box-decoration-clone px-1.5 py-1 font-semibold;
   }
 }
 

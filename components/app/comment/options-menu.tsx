@@ -87,8 +87,8 @@ export function CommentsOptionsMenu({
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => onEdit()} className="">
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit()}>
               Edit comment
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -115,10 +115,14 @@ export function CommentsOptionsMenu({
             <AlertDialogFooter>
               <AlertDialogCancel
                 onClick={() => setIsDeleteConfirmationOpen(false)}
+                disabled={deleteComment.isPending}
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleteComment.isPending}
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

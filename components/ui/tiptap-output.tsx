@@ -39,16 +39,23 @@ export const TiptapOutput = memo(function TiptapOutput({
             domNode.attribs?.["data-label"].replace("-", " "),
           );
 
-          return (
-            <span className={`text-${status} font-medium`}>{statusLabel}</span>
-          );
-
-          // return (
-          //   <Badge className={`bg-${status}! text-primary-foreground!`}>
-          //     {statusLabel}
-          //   </Badge>
-          // );
+          return <span className={`text-${status}`}>{statusLabel}</span>;
         }
+
+        // if (
+        //   !forbiddenTags.includes("span") &&
+        //   domNode.name === "span" &&
+        //   domNode.attribs &&
+        //   domNode.attribs?.["data-type"] === "mention" &&
+        //   domNode.attribs?.["data-label"]
+        // ) {
+        //   const mentionName = domNode.attribs?.["data-label"];
+        //   return (
+        //     <span className="bg-primary/10 rounded-md box-decoration-clone px-1.5 py-1 font-semibold">
+        //       {`@${mentionName}`}
+        //     </span>
+        //   );
+        // }
 
         if (
           !forbiddenTags.includes("a") &&

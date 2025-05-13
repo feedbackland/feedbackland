@@ -74,7 +74,7 @@ export function SortingFilteringDropdown({
           onValueChange={(value) =>
             handleSelectOrderBy(value as FeedbackOrderBy)
           }
-          className="border-border cursor-pointer border-r pr-2"
+          className="border-border border-r pr-2"
         >
           <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="upvotes">

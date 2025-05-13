@@ -79,11 +79,10 @@ export async function getActivityFeedQuery({
           .selectFrom("comment")
           .select(eb.fn.countAll<string>().as("commentCount"))
           .whereRef("comment.postId", "=", "feedback.id")
-          // .where("content", "not like", "Updated status to%")
+          .where("content", "not like", "Updated status to%")
           .as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
-      "feedback.title as postTitle",
       ...(isSearching
         ? [cosineDistance("feedback.embedding", searchVector).as("distance")]
         : [sql<null>`null`.as("distance")]),
@@ -101,7 +100,7 @@ export async function getActivityFeedQuery({
         "comment.postId",
         "comment.id as commentId",
         "comment.createdAt",
-        sql<string>`null`.as("title"),
+        "feedback.title as title",
         "comment.content",
         "comment.upvotes",
         sql<FeedbackCategory | null>`null`.as("category"),
@@ -110,7 +109,6 @@ export async function getActivityFeedQuery({
         sql<string>`'0'`.as("commentCount"),
         "user.id as authorId",
         "user.name as authorName",
-        "feedback.title as postTitle",
         ...(isSearching
           ? [cosineDistance("comment.embedding", searchVector).as("distance")]
           : [sql<null>`null`.as("distance")]),

@@ -68,7 +68,7 @@ export function PlatformHeader() {
           )}
           {session ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild className="cursor-pointer">
+              <DropdownMenuTrigger asChild>
                 <Avatar className="">
                   <AvatarImage src={session?.user?.photoURL || undefined} />
                   <AvatarFallback>
@@ -83,7 +83,7 @@ export function PlatformHeader() {
                     e.stopPropagation();
                     setTheme((theme) => (theme === "light" ? "dark" : "light"));
                   }}
-                  className="flex cursor-pointer items-center justify-between"
+                  className="flex items-center justify-between"
                 >
                   <span className="flex items-center gap-2">
                     <MoonIcon className="size-4" />
@@ -92,10 +92,7 @@ export function PlatformHeader() {
                   <Switch checked={theme === "dark"} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="cursor-pointer"
-                >
+                <DropdownMenuItem onClick={handleSignOut}>
                   <LogOutIcon className="size-4" />
                   Sign out
                 </DropdownMenuItem>
@@ -103,7 +100,7 @@ export function PlatformHeader() {
             </DropdownMenu>
           ) : (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild className="cursor-pointer">
+              <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost" className="">
                   <MoreHorizontal className="size-4" />
                 </Button>
@@ -115,16 +112,13 @@ export function PlatformHeader() {
                     e.stopPropagation();
                     setTheme((theme) => (theme === "light" ? "dark" : "light"));
                   }}
-                  className="flex cursor-pointer items-center justify-between"
+                  className="flex items-center justify-between"
                 >
                   <span>Dark mode</span>
                   <Switch checked={theme === "dark"} />
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setIsSignUpInDialogOpen(true)}
-                  className="cursor-pointer"
-                >
+                <DropdownMenuItem onClick={() => setIsSignUpInDialogOpen(true)}>
                   Sign in
                 </DropdownMenuItem>
               </DropdownMenuContent>
