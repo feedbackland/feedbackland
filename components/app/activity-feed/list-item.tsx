@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
 import Link from "next/link";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "@/providers/trpc-client";
+import { CommentsOptionsMenu } from "../comment/options-menu";
+import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 
 export function ActivityFeedListItem({
   item,
@@ -18,23 +18,8 @@ export function ActivityFeedListItem({
   item: ActivityFeedItem;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const queryClient = useQueryClient();
-  const trpc = useTRPC();
   const platformUrl = usePlatformUrl();
-
-  const setActivitySeen = useMutation(
-    trpc.setActivitiesSeen.mutationOptions({
-      onSuccess: () => {
-        queryClient.refetchQueries({
-          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
-        });
-
-        queryClient.refetchQueries({
-          queryKey: trpc.getActivityFeedMetaData.queryKey(),
-        });
-      },
-    }),
-  );
+  const setActivitySeen = useSetActivitiesSeen();
 
   const handleOnClick = (itemId: string) => {
     setActivitySeen?.mutate({
@@ -83,8 +68,15 @@ export function ActivityFeedListItem({
             href={`${platformUrl}/${item.postId}`}
             onClick={() => handleOnClick(item.id)}
           >
-            <h3 className={cn("mb-2 text-base font-semibold hover:underline")}>
-              {title}
+            <h3
+              className={cn(
+                "mb-2 flex items-center gap-2.5 text-base font-semibold hover:underline",
+              )}
+            >
+              <span>{title}</span>
+              {!item.isSeen && (
+                <span className="size-1.5 rounded-full bg-blue-600" />
+              )}
             </h3>
           </Link>
           <TiptapOutput
@@ -93,8 +85,12 @@ export function ActivityFeedListItem({
             className={cn("line-clamp-4")}
           />
         </div>
-        <div>
-          <FeedbackPostOptionsMenu postId={postId} className="-mt-3" />
+        <div className="-mt-3">
+          {type === "comment" ? (
+            <CommentsOptionsMenu postId={postId} commentId={item.id} />
+          ) : (
+            <FeedbackPostOptionsMenu postId={postId} />
+          )}
         </div>
       </div>
     </div>

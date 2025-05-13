@@ -29,12 +29,13 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FeedbackStatus } from "@/lib/typings";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { useUpdateStatus } from "@/hooks/use-update-status";
 import { cn } from "@/lib/utils";
+import { isUuidV4 } from "@/lib/utils";
 
 export function FeedbackPostOptionsMenu({
   postId,
@@ -47,6 +48,11 @@ export function FeedbackPostOptionsMenu({
   onEdit?: () => void;
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const pathname = usePathname();
+
+  const lastUrlSegment = pathname?.split("/")?.pop() || "";
+  const isFeedbackPage = isUuidV4(lastUrlSegment);
+
   const updateStatus = useUpdateStatus({ postId });
 
   const platformUrl = usePlatformUrl();
@@ -72,11 +78,20 @@ export function FeedbackPostOptionsMenu({
           queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
 
-        if (platformUrl) {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeedMetaData.queryKey(),
+        });
+
+        toast.success("Feedback deleted", {
+          position: "top-right",
+        });
+
+        if (platformUrl && isFeedbackPage) {
           router.push(platformUrl);
-          toast.success("Feedback deleted", {
-            position: "top-right",
-          });
         }
       },
       onSettled: () => {

@@ -33,8 +33,8 @@ export function CommentsOptionsMenu({
 }: {
   postId: string;
   commentId: string;
-  authorId: string;
-  onEdit: () => void;
+  authorId?: string;
+  onEdit?: () => void;
 }) {
   const { session } = useAuth();
   const trpc = useTRPC();
@@ -56,6 +56,14 @@ export function CommentsOptionsMenu({
 
         queryClient.invalidateQueries({
           queryKey: trpc.getFeedbackPost.queryKey({ postId }),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
 
         toast.success("Comment deleted", {
@@ -88,10 +96,14 @@ export function CommentsOptionsMenu({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit()}>
-              Edit comment
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {onEdit !== undefined && (
+              <>
+                <DropdownMenuItem onClick={() => onEdit?.()}>
+                  Edit comment
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
               onClick={() => setIsDeleteConfirmationOpen(true)}
               className="text-red-500 hover:bg-red-500/10! hover:text-red-500!"
