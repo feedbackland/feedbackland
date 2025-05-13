@@ -14,12 +14,12 @@ export default function AdminRedirectPage() {
   const orgSubdomain = params.orgSubdomain as string;
 
   useEffect(() => {
-    if (isLoaded && platformUrl && session && !isAdmin) {
+    if (isLoaded && !isAdmin) {
       router.push(platformUrl);
     } else if (isLoaded && orgSubdomain && isAdmin) {
       router.replace(`/${orgSubdomain}/admin/activity`);
     }
-  }, [isLoaded, platformUrl, session, isAdmin, router, orgSubdomain]);
+  }, [isLoaded, platformUrl, isAdmin, router, orgSubdomain]);
 
   // Render null or a loading indicator while redirecting
   return null;
