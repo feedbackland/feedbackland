@@ -9,10 +9,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { InsightPosts } from "./posts";
+import { useAtom } from "jotai";
+import { insightCollapsibleOpenAtom } from "@/lib/atoms";
 
 type Item = Selectable<Insights>;
 
@@ -32,7 +33,12 @@ export function Insight({ item }: { item: Item }) {
   const priorityScore = Number(item.priority);
   const priorityLabel = getPriorityLabel(priorityScore);
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [openStates, setOpenStates] = useAtom(insightCollapsibleOpenAtom);
+  const isOpen = openStates[item.id] || false;
+
+  const setIsOpen = (open: boolean) => {
+    setOpenStates((prev) => ({ ...prev, [item.id]: open }));
+  };
 
   const postCount = item.ids?.length || 0;
 

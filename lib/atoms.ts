@@ -33,3 +33,5 @@ export const feedbackPostsStateAtom = atomWithReset<{
   orderBy: "newest",
   status: null,
 });
+
+export const insightCollapsibleOpenAtom = atom<Record<string, boolean>>({});
