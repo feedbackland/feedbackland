@@ -174,11 +174,11 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <CardHeader className="text-primary p-0 text-xs font-normal">
+              <CardHeader className="text-muted-foreground p-0 text-xs font-normal">
                 {stat.title}
               </CardHeader>
               <CardContent className="flex items-baseline gap-1.5 p-0">
-                <span className="text-xl font-bold">{stat.totalCount}</span>
+                <span className="text-xl font-semibold">{stat.totalCount}</span>
                 {stat.newCount !== undefined && stat.newCount > 0 && (
                   <span className="text-xs font-normal">
                     {width < 640

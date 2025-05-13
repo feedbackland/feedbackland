@@ -203,7 +203,7 @@ export function FeedbackPostOptionsMenu({
             <DropdownMenuGroup>
               <DropdownMenuItem
                 onClick={() => setIsDeleteConfirmationOpen(true)}
-                className="text-red-500 hover:bg-red-500/10! hover:text-red-500!"
+                className="text-red-700! hover:bg-red-700/5! dark:text-red-500! dark:hover:bg-red-500/10!"
               >
                 Delete post
               </DropdownMenuItem>
