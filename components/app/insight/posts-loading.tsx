@@ -6,8 +6,9 @@ export function InsightPostsLoading() {
   return (
     <div className="space-y-6">
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="flex flex-col items-stretch space-y-0">
+        <div key={index} className="flex flex-col items-stretch space-y-2">
           <Skeleton className="h-4 w-full max-w-full" />
+          <Skeleton className="h-4 w-[100px] max-w-full" />
         </div>
       ))}
     </div>
