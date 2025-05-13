@@ -7,6 +7,7 @@ import {
   previousPathnameAtom,
   activtyFeedStateAtom,
   feedbackPostsStateAtom,
+  expandedInsightsAtom,
 } from "@/lib/atoms";
 import { usePreviousDistinct } from "react-use";
 import { isUuidV4 } from "@/lib/utils";
@@ -19,6 +20,7 @@ export function GlobalState() {
   const setPreviousPathnameAtom = useSetAtom(previousPathnameAtom);
   const setActivityFeedState = useSetAtom(activtyFeedStateAtom);
   const setFeedbackPostsState = useSetAtom(feedbackPostsStateAtom);
+  const setExpandedInsightsAtom = useSetAtom(expandedInsightsAtom);
   const subdomain = useSubdomain();
 
   useEffect(() => {
@@ -30,8 +32,12 @@ export function GlobalState() {
 
     setPreviousPathnameAtom(prevPathname);
 
-    if (prevPage === "admin" && !isUuidV4(nextPage)) {
+    if (prevPage === "activity" && !isUuidV4(nextPage)) {
       setActivityFeedState(RESET);
+    }
+
+    if (prevPage === "insights" && !isUuidV4(nextPage)) {
+      setExpandedInsightsAtom(RESET);
     }
 
     if (prevPage === "" && !isUuidV4(nextPage)) {
@@ -44,6 +50,7 @@ export function GlobalState() {
     setPreviousPathnameAtom,
     setActivityFeedState,
     setFeedbackPostsState,
+    setExpandedInsightsAtom,
   ]);
 
   return null;

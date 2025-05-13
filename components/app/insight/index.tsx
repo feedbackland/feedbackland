@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { InsightPosts } from "./posts";
 import { useAtom } from "jotai";
-import { insightCollapsibleOpenAtom } from "@/lib/atoms";
+import { expandedInsightsAtom } from "@/lib/atoms";
 
 type Item = Selectable<Insights>;
 
@@ -33,7 +33,8 @@ export function Insight({ item }: { item: Item }) {
   const priorityScore = Number(item.priority);
   const priorityLabel = getPriorityLabel(priorityScore);
 
-  const [openStates, setOpenStates] = useAtom(insightCollapsibleOpenAtom);
+  const [openStates, setOpenStates] = useAtom(expandedInsightsAtom);
+
   const isOpen = openStates[item.id] || false;
 
   const setIsOpen = (open: boolean) => {

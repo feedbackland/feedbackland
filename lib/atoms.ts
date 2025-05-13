@@ -1,8 +1,9 @@
-import { atom } from "jotai";
 import { atomWithReset } from "jotai/utils";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 
-export const previousPathnameAtom = atom<string | undefined>(undefined);
+export const previousPathnameAtom = atomWithReset<string | undefined>(
+  undefined,
+);
 
 export const activtyFeedStateAtom = atomWithReset<{
   searchValue: string;
@@ -34,4 +35,4 @@ export const feedbackPostsStateAtom = atomWithReset<{
   status: null,
 });
 
-export const insightCollapsibleOpenAtom = atom<Record<string, boolean>>({});
+export const expandedInsightsAtom = atomWithReset<Record<string, boolean>>({});
