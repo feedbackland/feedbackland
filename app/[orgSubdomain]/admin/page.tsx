@@ -1,42 +1,26 @@
 "use client";
 
-import { ActivityFeed } from "@/components/app/activity-feed";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Insights } from "@/components/app/insights";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect } from "react";
 
-export default function AdminPage() {
+export default function AdminRedirectPage() {
   const { session, isLoaded } = useAuth();
   const isAdmin = session?.userOrg?.role === "admin";
   const platformUrl = usePlatformUrl();
   const router = useRouter();
+  const params = useParams();
+  const orgSubdomain = params.orgSubdomain as string;
 
-  if (isLoaded && platformUrl && !isAdmin) {
-    router.push(platformUrl);
-  }
+  useEffect(() => {
+    if (isLoaded && platformUrl && session && !isAdmin) {
+      router.push(platformUrl);
+    } else if (isLoaded && orgSubdomain && isAdmin) {
+      router.replace(`/${orgSubdomain}/admin/activity`);
+    }
+  }, [isLoaded, platformUrl, session, isAdmin, router, orgSubdomain]);
 
-  if (isAdmin) {
-    return (
-      <div>
-        <Tabs defaultValue="activity" className="">
-          <TabsList>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
-          <TabsContent value="activity">
-            <ActivityFeed />
-          </TabsContent>
-          <TabsContent value="insights">
-            <Insights />
-          </TabsContent>
-          <TabsContent value="settings">Settings</TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
-
+  // Render null or a loading indicator while redirecting
   return null;
 }
