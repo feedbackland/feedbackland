@@ -10,6 +10,7 @@ import Link from "next/link";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useWindowSize } from "react-use";
 
 export function ActivityFeedListItem({
   item,
@@ -20,6 +21,7 @@ export function ActivityFeedListItem({
 }) {
   const platformUrl = usePlatformUrl();
   const setActivitySeen = useSetActivitiesSeen();
+  const { width } = useWindowSize();
 
   const { status, type, category, createdAt, title, content, postId } = item;
 
@@ -32,21 +34,23 @@ export function ActivityFeedListItem({
   return (
     <div
       className={cn(
-        "group border-b-border flex w-full flex-1 items-center gap-6 border px-4 py-5",
+        "group border-b-border flex w-full flex-1 items-center gap-6 border py-5 pr-3 pl-4",
         item.isSeen && "bg-muted/50",
         className,
       )}
     >
       <div className="flex w-full items-start justify-between gap-3">
         <div className="flex flex-col items-stretch">
-          <div className="mb-1 -ml-0.5 flex items-center gap-1.5">
+          <div className="mb-1 -ml-0.5 flex flex-wrap items-center gap-1.5">
             <Badge variant="outline" className="text-muted-foreground">
               {capitalizeFirstLetter(
                 type === "comment" ? type : category || "",
               )}
             </Badge>
             <Badge variant="outline" className="text-muted-foreground">
-              {timeAgo.format(createdAt)}
+              {width < 450
+                ? `${timeAgo.format(createdAt, "mini")} ago`
+                : timeAgo.format(createdAt)}
             </Badge>
             {status && (
               <Badge

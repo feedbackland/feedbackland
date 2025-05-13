@@ -32,7 +32,7 @@ export function InsightPosts({ ids }: { ids: string[] }) {
                 >
                   <span>{post.title}</span>
                 </Link>
-                <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
+                <div className="text-muted-foreground mb-1 flex flex-wrap items-center gap-1.5 text-xs font-normal">
                   <span>{timeAgo.format(post.createdAt)}</span>
                   <span className="text-[8px]">•</span>
                   <span className="capitalize">{post.category}</span>

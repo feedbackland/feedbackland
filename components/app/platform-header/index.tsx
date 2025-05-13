@@ -68,7 +68,7 @@ export function PlatformHeader() {
           )}
           {session ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Avatar className="">
                   <AvatarImage src={session?.user?.photoURL || undefined} />
                   <AvatarFallback>
@@ -124,7 +124,6 @@ export function PlatformHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {/* <ModeToggle /> */}
         </div>
       </div>
       <p className="text-muted-foreground text-xs">

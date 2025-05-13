@@ -23,6 +23,8 @@ import { User, Org, UserOrg } from "@/db/schema";
 import { Selectable } from "kysely";
 import { getSubdomain } from "@/lib/utils";
 import { UpsertUser } from "@/lib/typings";
+import { usePathname, useRouter } from "next/navigation";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 export type Session = {
   user: Selectable<User>;
@@ -114,6 +116,9 @@ const upsertUser = async ({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const platformUrl = usePlatformUrl();
+  const pathname = usePathname();
 
   const [session, setSession] = useState<Session>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -279,6 +284,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await firebaseSignOut(auth);
       queryClient.invalidateQueries();
       destroySession();
+
+      if (pathname.includes("admin")) {
+        router.push(platformUrl);
+      }
+
       return null;
     } catch (err) {
       throw err;
