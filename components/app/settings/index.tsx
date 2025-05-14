@@ -1,5 +1,9 @@
 "use client";
 
 export function Settings() {
-  return <></>;
+  return (
+    <div>
+      <h1>Settings</h1>
+    </div>
+  );
 }
