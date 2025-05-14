@@ -9,7 +9,7 @@ export function useUpdateOrg() {
     trpc.updateOrg.mutationOptions({
       onSuccess: async () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
+          queryKey: trpc.getOrg.queryKey(),
         });
       },
     }),

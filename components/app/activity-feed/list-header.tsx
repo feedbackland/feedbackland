@@ -43,7 +43,7 @@ export function ActivityFeedListHeader({
   return (
     <div
       className={cn(
-        "relative flex h-[54px] items-center justify-between gap-2",
+        "relative flex h-[48px] items-center justify-between gap-2",
         className,
       )}
     >

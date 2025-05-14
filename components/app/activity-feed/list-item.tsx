@@ -11,6 +11,13 @@ import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useWindowSize } from "react-use";
+import {
+  BugIcon,
+  Inbox,
+  Lightbulb,
+  MessageCircleIcon,
+  MessageSquare,
+} from "lucide-react";
 
 export function ActivityFeedListItem({
   item,
@@ -34,62 +41,79 @@ export function ActivityFeedListItem({
   return (
     <div
       className={cn(
-        "group border-b-border flex w-full flex-1 items-center gap-6 border py-5 pr-3 pl-4",
-        item.isSeen && "bg-muted/50",
+        "border-b-border flex flex-1 items-center gap-6 border py-4 pr-2 pl-3",
+        // item.isSeen && "bg-muted/50",
         className,
       )}
     >
-      <div className="flex w-full items-start justify-between gap-3">
-        <div className="flex flex-col items-stretch">
-          <div className="mb-1 -ml-0.5 flex flex-wrap items-center gap-1.5">
-            <Badge variant="outline" className="text-muted-foreground">
+      <div className="flex flex-1 items-stretch gap-2">
+        <div className="border-border flex items-center justify-center rounded-md border px-3 shadow-xs">
+          {item.type === "comment" && <MessageSquare className="size-4!" />}
+
+          {item.type !== "comment" && category === "feature request" && (
+            <Lightbulb className="size-4!" />
+          )}
+
+          {item.type !== "comment" && category === "bug report" && (
+            <Inbox className="size-4!" />
+          )}
+
+          {item.type !== "comment" && category === "general feedback" && (
+            <BugIcon className="size-4!" />
+          )}
+        </div>
+
+        <Link
+          key={item.id}
+          href={`${platformUrl}/${item.postId}`}
+          onClick={() => handleOnClick(item.id)}
+          className="group flex flex-1 flex-col items-stretch hover:cursor-pointer"
+        >
+          <div className="text-muted-foreground mb-0.5 flex flex-wrap items-center gap-1.5 text-xs font-normal">
+            <span className="capitalize">
               {capitalizeFirstLetter(
                 type === "comment" ? type : category || "",
               )}
-            </Badge>
-            <Badge variant="outline" className="text-muted-foreground">
-              {width < 450
-                ? `${timeAgo.format(createdAt, "mini")} ago`
-                : timeAgo.format(createdAt)}
-            </Badge>
+            </span>
+            <span className="text-[8px]">•</span>
+            <span>{timeAgo.format(createdAt, "mini")} ago</span>
             {status && (
-              <Badge
-                variant="outline"
-                className={cn("", {
-                  "text-under-consideration!": status === "under consideration",
-                  "text-planned!": status === "planned",
-                  "text-in-progress!": status === "in progress",
-                  "text-done!": status === "done",
-                  "text-declined!": status === "declined",
-                })}
-              >
-                {capitalizeFirstLetter(status)}
-              </Badge>
+              <>
+                <span className="text-[8px]">•</span>
+                <span
+                  className={cn(
+                    "capitalize",
+                    `text-${status.replace(" ", "-")}`,
+                  )}
+                >
+                  {status}
+                </span>
+              </>
             )}
           </div>
-          <Link
-            key={item.id}
-            href={`${platformUrl}/${item.postId}`}
-            onClick={() => handleOnClick(item.id)}
+
+          <h3
+            className={cn(
+              "mb-2 flex items-center gap-2.5 text-sm font-semibold group-hover:underline",
+            )}
           >
-            <h3
-              className={cn(
-                "mb-2 flex items-center gap-2.5 text-base font-semibold hover:underline",
-              )}
-            >
-              <span>{title}</span>
-              {!item.isSeen && (
-                <span className="size-1.5 rounded-full bg-blue-600" />
-              )}
-            </h3>
-          </Link>
+            <span>{title}</span>
+            {!item.isSeen && (
+              <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-500" />
+            )}
+          </h3>
+
           <TiptapOutput
             content={content}
             forbiddenTags={["a", "pre", "img"]}
-            className={cn("line-clamp-4")}
+            className={cn(
+              "line-clamp-4 text-xs!",
+              !item.isSeen && "font-semibold!",
+            )}
           />
-        </div>
-        <div className="-mt-3">
+        </Link>
+
+        <div className="-mt-2">
           {type === "comment" ? (
             <CommentsOptionsMenu postId={postId} commentId={item.id} />
           ) : (

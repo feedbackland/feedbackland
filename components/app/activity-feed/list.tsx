@@ -12,6 +12,7 @@ import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useWindowSize } from "react-use";
 import { useAtom } from "jotai";
 import { activtyFeedStateAtom } from "@/lib/atoms";
+import { BugIcon, Inbox, Lightbulb, MessageSquare } from "lucide-react";
 
 export function ActivityFeedList({
   className,
@@ -178,6 +179,18 @@ export function ActivityFeedList({
                 {stat.title}
               </CardHeader>
               <CardContent className="flex items-baseline gap-1.5 p-0">
+                {stat.title === "Feature requests" && (
+                  <Lightbulb className="size-4!" />
+                )}
+                {stat.title === "Bug reports" && (
+                  <BugIcon className="size-4!" />
+                )}
+                {stat.title === "General feedback" && (
+                  <Inbox className="size-4!" />
+                )}
+                {stat.title === "Comments" && (
+                  <MessageSquare className="size-4!" />
+                )}
                 <span className="text-xl font-semibold">{stat.totalCount}</span>
                 {stat.newCount !== undefined && stat.newCount > 0 && (
                   <span className="text-xs font-normal">
@@ -192,7 +205,7 @@ export function ActivityFeedList({
         </div>
 
         <div className="border-border overflow-hidden rounded-lg border shadow-xs">
-          <ActivityFeedListHeader className="bg-background border-border border-b py-2 pr-3 pl-4" />
+          <ActivityFeedListHeader className="border-border bg-muted/50 border-b pr-2 pl-3" />
 
           <div className="flex flex-col items-stretch">
             {showItems && <ActivityFeedListItems items={items} />}

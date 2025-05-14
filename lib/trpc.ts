@@ -27,7 +27,7 @@ export const createContext = async ({ req }: { req: Request }) => {
       const org = await getOrgQuery({ orgSubdomain });
       orgId = org?.id;
       orgIsClaimed = org?.isClaimed;
-      orgName = org?.name;
+      orgName = org?.orgName;
     }
     // signed in
     else {

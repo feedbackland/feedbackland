@@ -1,12 +1,12 @@
 import { publicProcedure } from "@/lib/trpc";
+import { getOrgQuery } from "@/queries/get-org";
 
 export const getOrg = publicProcedure.query(
-  async ({ ctx: { orgId, orgName, orgSubdomain, orgIsClaimed } }) => {
-    return {
-      orgId,
-      orgName,
-      orgSubdomain,
-      orgIsClaimed,
-    };
+  async ({ ctx: { orgSubdomain } }) => {
+    const org = await getOrgQuery({
+      orgSubdomain: orgSubdomain || "",
+    });
+
+    return org;
   },
 );
