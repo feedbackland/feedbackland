@@ -44,29 +44,40 @@ export function Insight({ item, index }: { item: Item; index: number }) {
   const postCount = item.ids?.length || 0;
 
   return (
-    <div className="border-border flex w-full flex-col items-stretch overflow-hidden rounded-xl border shadow-xs">
+    <div className="border-border relative flex w-full flex-col items-stretch overflow-hidden rounded-xl border shadow-xs">
+      {/* <Badge
+        variant="outline"
+        className={cn("absolute top-2.5 right-2.5", {
+          "text-blue-700 dark:text-blue-400": priorityScore < 40,
+          "text-green-700 dark:text-green-400":
+            priorityScore >= 40 && priorityScore < 70,
+          "text-orange-700 dark:text-orange-400":
+            priorityScore >= 70 && priorityScore < 95,
+          "text-red-700 dark:text-red-400": priorityScore >= 95,
+        })}
+      >
+        {priorityLabel}
+      </Badge> */}
+
       <div className="p-5">
-        <div className="mb-1 flex items-center gap-2">
-          <Badge variant="outline">
-            {capitalizeFirstLetter(item.category || "")}
-          </Badge>
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <h3 className="h5 flex flex-wrap items-center">
+            {index + 1}. {item.title}
+          </h3>
           <Badge
             variant="outline"
-            className={cn("", {
+            className={cn("mt-0.5", {
               "text-blue-700 dark:text-blue-400": priorityScore < 40,
               "text-green-700 dark:text-green-400":
                 priorityScore >= 40 && priorityScore < 70,
               "text-orange-700 dark:text-orange-400":
-                priorityScore >= 60 && priorityScore < 95,
+                priorityScore >= 70 && priorityScore < 95,
               "text-red-700 dark:text-red-400": priorityScore >= 95,
             })}
           >
             {priorityLabel}
           </Badge>
         </div>
-        <h3 className="h5 mb-2 flex flex-wrap items-center">
-          {index + 1}. {item.title}
-        </h3>
         <p className="text-muted-foreground text-sm">{item.description}</p>
       </div>
 
@@ -83,7 +94,8 @@ export function Insight({ item, index }: { item: Item; index: number }) {
               <div className="flex w-full! flex-1 items-center justify-between">
                 <div className="flex flex-1 items-center justify-between gap-1">
                   <span className="text-muted-foreground text-xs font-medium">
-                    Feedback linked to this insight
+                    Based on {postCount} feedback{" "}
+                    {postCount === 1 ? "post" : "posts"}
                   </span>
 
                   <ChevronRight

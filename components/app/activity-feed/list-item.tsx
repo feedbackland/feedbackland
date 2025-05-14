@@ -11,13 +11,7 @@ import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useWindowSize } from "react-use";
-import {
-  BugIcon,
-  Inbox,
-  Lightbulb,
-  MessageCircleIcon,
-  MessageSquare,
-} from "lucide-react";
+import { BugIcon, Inbox, Lightbulb, MessageSquare } from "lucide-react";
 
 export function ActivityFeedListItem({
   item,
