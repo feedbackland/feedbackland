@@ -10,7 +10,7 @@ export const getOrgQuery = async ({
   try {
     const org = await db
       .selectFrom("org")
-      .where("org.subdomain", "=", orgSubdomain)
+      .where("org.orgSubdomain", "=", orgSubdomain)
       .selectAll()
       .executeTakeFirstOrThrow();
 

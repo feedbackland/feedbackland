@@ -14,7 +14,7 @@ export const upsertUserQuery = async ({
     return await db.transaction().execute(async (trx) => {
       const org = await trx
         .selectFrom("org")
-        .where("org.subdomain", "=", orgSubdomain)
+        .where("org.orgSubdomain", "=", orgSubdomain)
         .selectAll()
         .executeTakeFirst();
 

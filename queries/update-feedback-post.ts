@@ -23,17 +23,19 @@ export const updateFeedbackPostQuery = async ({
         .select("role")
         .where("userId", "=", userId)
         .where("orgId", "=", orgId)
+        .select("user_org.role")
         .executeTakeFirstOrThrow();
 
       const { authorId } = await trx
         .selectFrom("feedback")
         .where("id", "=", postId)
         .where("orgId", "=", orgId)
-        .select(["authorId"])
+        .select("feedback.authorId")
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
         const plainTextDescription = getPlainText(description);
+
         const embedding = await generateEmbedding(
           `${title}: ${plainTextDescription}`,
         );

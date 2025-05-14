@@ -59,13 +59,13 @@ export async function middleware(req: NextRequest) {
     if (isUUIDSubdomain) {
       const orgId = subdomain;
 
-      const org = await upsertOrg({
+      const { orgSubdomain } = await upsertOrg({
         orgId,
       });
 
       const redirectUrl = isLocalhost
-        ? `${origin}/${org.subdomain}${search}`
-        : `${protocol}//${org.subdomain}.${mainDomain}${search}`;
+        ? `${origin}/${orgSubdomain}${search}`
+        : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;
 
       response = NextResponse.redirect(redirectUrl);
     }

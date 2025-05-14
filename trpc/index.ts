@@ -21,6 +21,7 @@ import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 import { generateInsights } from "./generate-insights";
 import { getInsights } from "./get-insights";
+import { updateOrg } from "./update-org";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -45,6 +46,7 @@ export const appRouter = router({
   setActivitiesSeen,
   generateInsights,
   getInsights,
+  updateOrg,
 });
 
 export type AppRouter = typeof appRouter;

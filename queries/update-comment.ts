@@ -21,12 +21,13 @@ export const updateCommentQuery = async ({
         .select("role")
         .where("userId", "=", userId)
         .where("orgId", "=", orgId)
+        .select("user_org.role")
         .executeTakeFirstOrThrow();
 
       const { authorId } = await trx
         .selectFrom("comment")
         .where("id", "=", commentId)
-        .select(["authorId"])
+        .select("comment.authorId")
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {

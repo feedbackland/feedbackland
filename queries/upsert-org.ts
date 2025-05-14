@@ -3,7 +3,7 @@
 import { db } from "@/db/db";
 import {
   uniqueNamesGenerator,
-  adjectives,
+  colors,
   animals,
   NumberDictionary,
 } from "unique-names-generator";
@@ -24,7 +24,7 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
         });
 
         const orgSubdomain = uniqueNamesGenerator({
-          dictionaries: [adjectives, animals, numberDictionary],
+          dictionaries: [colors, animals, numberDictionary],
           length: 3,
           separator: "-",
         });

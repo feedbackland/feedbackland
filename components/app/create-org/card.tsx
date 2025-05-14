@@ -71,7 +71,7 @@ export function CreateOrgCard({
 
     if (response?.data?.success && response?.data?.org) {
       const { org } = response.data;
-      onSuccess({ orgId: org.id, orgSubdomain: org.subdomain });
+      onSuccess({ orgId: org.id, orgSubdomain: org.orgSubdomain });
     } else if (response?.data?.message === "duplicate subdomain") {
       setError("orgSubdomain", {
         message: "Sorry, this subdomain is already taken",
@@ -86,7 +86,7 @@ export function CreateOrgCard({
   return (
     <Card className="w-full max-w-[400px]">
       <CardHeader>
-        <CardTitle className="h3 mb-3 mt-1 text-center font-bold">
+        <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
           Create your platform
         </CardTitle>
       </CardHeader>
