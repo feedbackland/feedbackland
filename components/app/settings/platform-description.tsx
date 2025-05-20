@@ -13,30 +13,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, reservedSubdomains, subdomainRegex } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
-  orgSubdomain: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(1, "Please provide a URL")
-    .max(63, "URL must be at most 63 characters")
-    .regex(
-      subdomainRegex,
-      "URL is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
-    )
-    .refine(
-      (value) => !reservedSubdomains.includes(value),
-      "This URL is reserved for internal use",
-    ),
+  platformDescription: z.string().min(1).optional(),
 });
 
-export function PlatformUrl({
+export function PlatformDescription({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
@@ -52,18 +40,24 @@ export function PlatformUrl({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      orgSubdomain: "",
+      platformDescription: "",
     },
   });
 
   const { setValue } = form;
 
   useEffect(() => {
-    setValue("orgSubdomain", data?.orgSubdomain || "");
+    setValue("platformDescription", data?.platformDescription || "");
   }, [setValue, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({ orgSubdomain: formData.orgSubdomain });
+    await updateOrg.mutateAsync({
+      platformDescription:
+        formData?.platformDescription &&
+        formData?.platformDescription?.length > 0
+          ? formData.platformDescription
+          : null,
+    });
     setIsEditing(false);
   }
 
@@ -96,21 +90,21 @@ export function PlatformUrl({
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
             <FormField
               control={form.control}
-              name="orgSubdomain"
+              name="platformDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Platform URL</FormLabel>
+                  <FormLabel>Platform description</FormLabel>
                   <FormControl>
                     {isEditing ? (
-                      <Input
+                      <Textarea
                         autoFocus={true}
                         className="w-full max-w-96"
-                        placeholder="The URL of your feedback platform"
+                        placeholder="Optional: The description of your feedback platform"
                         {...field}
                       />
                     ) : (
                       <div className="text-primary text-sm">
-                        {`${data?.orgSubdomain}.feedbackland.com`}
+                        {data?.platformDescription || "No description added"}
                       </div>
                     )}
                   </FormControl>

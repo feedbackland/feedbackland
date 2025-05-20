@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
+import { useOrg } from "@/hooks/use-org";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -33,6 +34,9 @@ export function PlatformHeader() {
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
   const { theme, setTheme } = useTheme();
+  const {
+    query: { data: orgData },
+  } = useOrg();
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,7 +52,9 @@ export function PlatformHeader() {
       <div className="flex justify-between">
         <div className="flex flex-col">
           <h1 className="h3 font-extrabold">
-            <Link href={`${platformUrl}`}>Feedback</Link>
+            <Link href={`${platformUrl}`}>
+              {orgData?.platformTitle || "Feedback"}
+            </Link>
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -126,6 +132,7 @@ export function PlatformHeader() {
           )}
         </div>
       </div>
+
       {/* <p className="text-muted-foreground text-xs">
         Powered by{" "}
         <a
@@ -136,6 +143,13 @@ export function PlatformHeader() {
           Feedbackland
         </a>
       </p> */}
+
+      {orgData?.platformDescription &&
+        orgData?.platformDescription?.length > 0 && (
+          <div className="text-muted-foreground text-sm font-normal">
+            {orgData.platformDescription}
+          </div>
+        )}
     </div>
   );
 }

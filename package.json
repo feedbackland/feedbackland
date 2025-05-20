@@ -44,7 +44,7 @@
     "@radix-ui/react-toggle-group": "^1.1.9",
     "@radix-ui/react-tooltip": "^1.2.6",
     "@react-email/components": "0.0.41",
-    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/supabase-js": "^2.49.5",
     "@tanstack/react-query": "^5.76.1",
     "@tanstack/react-query-devtools": "^5.76.1",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
@@ -72,7 +72,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dequal": "^2.0.3",
-    "dompurify": "^3.2.5",
+    "dompurify": "^3.2.6",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.7.3",
     "firebase-admin": "^13.4.0",
@@ -117,7 +117,7 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.24.4"
+    "zod": "^3.25.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
@@ -129,7 +129,7 @@
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.2",
     "kysely-codegen": "^0.18.5",
-    "kysely-ctl": "^0.12.2",
+    "kysely-ctl": "^0.13.0",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",

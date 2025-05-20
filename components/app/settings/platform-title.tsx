@@ -1,13 +1,33 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
+import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function PlatformTitle() {
+const FormSchema = z.object({
+  platformTitle: z.string().min(1),
+});
+
+export function PlatformTitle({
+  className,
+}: {
+  className?: React.ComponentProps<"div">["className"];
+}) {
   const {
     query: { data },
   } = useOrg();
@@ -15,57 +35,84 @@ export function PlatformTitle() {
   const updateOrg = useUpdateOrg();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState("");
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      platformTitle: "",
+    },
+  });
+
+  const { setValue } = form;
 
   useEffect(() => {
-    if (data?.platformTitle) {
-      setValue(data.platformTitle);
-    }
-  }, [data]);
+    setValue("platformTitle", data?.platformTitle || "");
+  }, [setValue, data]);
 
-  const handleOnSave = () => {
-    updateOrg.mutate({ platformTitle: value });
-  };
+  async function onSubmit(formData: z.infer<typeof FormSchema>) {
+    await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
+    setIsEditing(false);
+  }
 
   return (
-    <div className="border-b-border relative border py-5">
+    <div className={cn("", className)}>
       {isEditing ? (
-        <>
-          <Button
-            className="top-2 right-2"
-            size="sm"
-            variant="link"
-            onClick={() => setIsEditing(false)}
-          >
-            Cancel
-          </Button>
-          <Input
-            type="text"
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-            }}
-          />
-          <Button onClick={handleOnSave} loading={updateOrg.isPending}>
-            Save
-          </Button>
-        </>
+        <Button
+          className="absolute! top-2 right-0"
+          size="sm"
+          variant="outline"
+          onClick={() => setIsEditing(false)}
+        >
+          <XIcon className="size-3.5" />
+          Cancel
+        </Button>
       ) : (
-        <>
-          <Button
-            className="top-2 right-2"
-            size="sm"
-            variant="link"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit
-          </Button>
-          <div className="flex flex-col items-stretch space-y-3">
-            <Label>Platform title</Label>
-            <div className="text-primary text-sm">{value}</div>
-          </div>
-        </>
+        <Button
+          className="absolute! top-2 right-0"
+          size="sm"
+          variant="outline"
+          onClick={() => setIsEditing(true)}
+        >
+          <PenIcon className="size-3" />
+          Edit
+        </Button>
       )}
+
+      <div className="flex flex-col items-stretch space-y-3">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="">
+            <FormField
+              control={form.control}
+              name="platformTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Platform title</FormLabel>
+                  <FormControl>
+                    {isEditing ? (
+                      <Input
+                        autoFocus={true}
+                        className="w-full max-w-96"
+                        placeholder="The title of your feedback platform"
+                        {...field}
+                      />
+                    ) : (
+                      <div className="text-primary text-sm">
+                        {data?.platformTitle}
+                      </div>
+                    )}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isEditing && (
+              <Button type="submit" size="sm" className="mt-3">
+                Save
+              </Button>
+            )}
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
