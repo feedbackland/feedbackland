@@ -47,6 +47,12 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export type UserOrgRole = "admin" | "user";
 
+export interface AdminInvites {
+  email: string;
+  orgId: string;
+  createdAt: Generated<Timestamp>;
+}
+
 export interface ActivitySeen {
   itemId: string;
   seenAt: Generated<Timestamp>;
@@ -641,4 +647,5 @@ export interface DB {
   user_upvote: UserUpvote;
   "vault.decrypted_secrets": VaultDecryptedSecrets;
   "vault.secrets": VaultSecrets;
+  admin_invites: AdminInvites;
 }
