@@ -111,7 +111,7 @@ export function PlatformUrl({
                       <div className="flex flex-wrap items-center">
                         <Input
                           autoFocus={true}
-                          className="w-full max-w-72"
+                          className="w-full max-w-36 sm:max-w-52"
                           placeholder="The URL of your feedback platform"
                           {...field}
                         />

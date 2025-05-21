@@ -63,9 +63,11 @@ export function Insights() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 py-4">
         <div className="space-y-1">
-          <h1 className="h3">
-            {isGenerating ? `Generating Insights...` : `Insights`}
-          </h1>
+          <h2 className="h3">
+            {isGenerating
+              ? `Generating Roadmap Insights...`
+              : `Roadmap Insights`}
+          </h2>
           <p className="text-muted-foreground text-sm">
             {hasInsights &&
               `${insights.length} insights generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
@@ -89,14 +91,14 @@ export function Insights() {
       {isGeneratingError && (
         <Error
           title="Could not generate insights"
-          description="An error occured while trying to generate insights. Please try again."
+          description="An error occured while trying to generate roadmap insights. Please try again."
         />
       )}
 
       {!isGeneratingError && isError && (
         <Error
           title="Could not load insights"
-          description="An error occured while trying to load the insights. Please try again."
+          description="An error occured while trying to load the roadmap insights. Please try again."
         />
       )}
 

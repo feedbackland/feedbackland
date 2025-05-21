@@ -70,9 +70,9 @@ export function Insight({ item, index }: { item: Item; index: number }) {
               "text-blue-700 dark:text-blue-400": priorityScore < 40,
               "text-green-700 dark:text-green-400":
                 priorityScore >= 40 && priorityScore < 70,
-              "text-orange-700 dark:text-orange-400":
+              "text-amber-700 dark:text-amber-400":
                 priorityScore >= 70 && priorityScore < 95,
-              "text-red-700 dark:text-red-400": priorityScore >= 95,
+              "text-red-800 dark:text-red-500": priorityScore >= 95,
             })}
           >
             {priorityLabel}

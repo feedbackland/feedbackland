@@ -35,7 +35,7 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
       if (pathSegments.length > 3 && pathSegments[2] === "admin") {
         const tabName = pathSegments[3];
 
-        if (["activity", "insights", "settings"].includes(tabName)) {
+        if (["activity", "insights", "settings", "admins"].includes(tabName)) {
           currentSubPath = tabName;
         }
       }
@@ -70,6 +70,10 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
 
           <TabsTrigger value="settings" asChild>
             <Link href={`${adminBasePath}/settings`}>Settings</Link>
+          </TabsTrigger>
+
+          <TabsTrigger value="admins" asChild>
+            <Link href={`${adminBasePath}/admins`}>Admins</Link>
           </TabsTrigger>
         </TabsList>
       </Tabs>

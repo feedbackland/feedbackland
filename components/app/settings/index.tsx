@@ -10,7 +10,7 @@ export default function Settings() {
 
   return (
     <div className="pt-4">
-      <h2 className="mb-4 text-2xl font-semibold">Settings</h2>
+      <h2 className="h3 mb-4">Settings</h2>
       <div className="">
         {/* <h2 className="mb-4 text-2xl font-semibold">Settings</h2> */}
         <OrgName className={className} />

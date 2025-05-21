@@ -21,7 +21,7 @@ import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
-  orgName: z.string().min(1),
+  orgName: z.string().optional(),
 });
 
 export function OrgName({
@@ -49,7 +49,12 @@ export function OrgName({
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({ orgName: formData.orgName });
+    await updateOrg.mutateAsync({
+      orgName:
+        formData?.orgName && formData?.orgName?.length > 0
+          ? formData.orgName
+          : null,
+    });
     setIsEditing(false);
   }
 
@@ -103,7 +108,7 @@ export function OrgName({
                       />
                     ) : (
                       <div className="text-primary text-sm">
-                        {data?.orgName}
+                        {data?.orgName || "No name added"}
                       </div>
                     )}
                   </FormControl>
