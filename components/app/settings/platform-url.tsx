@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -56,11 +57,9 @@ export function PlatformUrl({
     },
   });
 
-  const { setValue } = form;
-
   useEffect(() => {
-    setValue("orgSubdomain", data?.orgSubdomain || "");
-  }, [setValue, data]);
+    form.setValue("orgSubdomain", data?.orgSubdomain || "");
+  }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     await updateOrg.mutateAsync({ orgSubdomain: formData.orgSubdomain });
@@ -74,7 +73,11 @@ export function PlatformUrl({
           className="absolute! top-2 right-0"
           size="sm"
           variant="outline"
-          onClick={() => setIsEditing(false)}
+          onClick={() => {
+            setIsEditing(false);
+            form.setValue("orgSubdomain", data?.orgSubdomain || "");
+            form.clearErrors();
+          }}
         >
           <XIcon className="size-3.5" />
           Cancel
@@ -100,14 +103,22 @@ export function PlatformUrl({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Platform URL</FormLabel>
+                  <FormDescription>
+                    The URL through which your feedback platform is accessible.
+                  </FormDescription>
                   <FormControl>
                     {isEditing ? (
-                      <Input
-                        autoFocus={true}
-                        className="w-full max-w-96"
-                        placeholder="The URL of your feedback platform"
-                        {...field}
-                      />
+                      <div className="flex flex-wrap items-center">
+                        <Input
+                          autoFocus={true}
+                          className="w-full max-w-72"
+                          placeholder="The URL of your feedback platform"
+                          {...field}
+                        />
+                        <span className="text-primary ml-2 text-sm">
+                          .feedbackland.com
+                        </span>
+                      </div>
                     ) : (
                       <div className="text-primary text-sm">
                         {`${data?.orgSubdomain}.feedbackland.com`}

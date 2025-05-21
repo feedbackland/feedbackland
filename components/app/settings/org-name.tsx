@@ -21,10 +21,10 @@ import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
-  platformTitle: z.string().min(1),
+  orgName: z.string().min(1),
 });
 
-export function PlatformTitle({
+export function OrgName({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
@@ -40,16 +40,16 @@ export function PlatformTitle({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      platformTitle: "",
+      orgName: "",
     },
   });
 
   useEffect(() => {
-    form.setValue("platformTitle", data?.platformTitle || "");
+    form.setValue("orgName", data?.orgName || "");
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
+    await updateOrg.mutateAsync({ orgName: formData.orgName });
     setIsEditing(false);
   }
 
@@ -62,7 +62,7 @@ export function PlatformTitle({
           variant="outline"
           onClick={() => {
             setIsEditing(false);
-            form.setValue("platformTitle", data?.platformTitle || "");
+            form.setValue("orgName", data?.orgName || "");
             form.clearErrors();
           }}
         >
@@ -86,24 +86,24 @@ export function PlatformTitle({
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
             <FormField
               control={form.control}
-              name="platformTitle"
+              name="orgName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Platform title</FormLabel>
+                  <FormLabel>Organization or product name</FormLabel>
                   <FormDescription>
-                    The title of your platform, displayed at the top.
+                    The name of your organization or product.
                   </FormDescription>
                   <FormControl>
                     {isEditing ? (
                       <Input
                         autoFocus={true}
                         className="w-full max-w-96"
-                        placeholder="The title of your feedback platform"
+                        placeholder="The name of your organization or product"
                         {...field}
                       />
                     ) : (
                       <div className="text-primary text-sm">
-                        {data?.platformTitle}
+                        {data?.orgName}
                       </div>
                     )}
                   </FormControl>

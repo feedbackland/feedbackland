@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,7 +22,7 @@ import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
-  platformDescription: z.string().min(1).optional(),
+  platformDescription: z.string().optional(),
 });
 
 export function PlatformDescription({
@@ -44,11 +45,9 @@ export function PlatformDescription({
     },
   });
 
-  const { setValue } = form;
-
   useEffect(() => {
-    setValue("platformDescription", data?.platformDescription || "");
-  }, [setValue, data]);
+    form.setValue("platformDescription", data?.platformDescription || "");
+  }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     await updateOrg.mutateAsync({
@@ -68,7 +67,14 @@ export function PlatformDescription({
           className="absolute! top-2 right-0"
           size="sm"
           variant="outline"
-          onClick={() => setIsEditing(false)}
+          onClick={() => {
+            setIsEditing(false);
+            form.setValue(
+              "platformDescription",
+              data?.platformDescription || "",
+            );
+            form.clearErrors();
+          }}
         >
           <XIcon className="size-3.5" />
           Cancel
@@ -94,12 +100,16 @@ export function PlatformDescription({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Platform description</FormLabel>
+                  <FormDescription className="max-w-[80%]">
+                    Optional description of your platform, displayed at the top
+                    underneath your platform title.
+                  </FormDescription>
                   <FormControl>
                     {isEditing ? (
                       <Textarea
                         autoFocus={true}
                         className="w-full max-w-96"
-                        placeholder="Optional: The description of your feedback platform"
+                        placeholder="The description of your feedback platform"
                         {...field}
                       />
                     ) : (
