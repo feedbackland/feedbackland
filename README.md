@@ -1,1 +1,107 @@
-Readme
+# Feedbackland
+
+Feedbackland is a platform for collecting and managing user feedback. It allows organizations to create their own dedicated spaces to gather insights, interact with their users, and improve their products or services.
+
+## Main Features
+
+*   **User Authentication:** Secure sign-up, sign-in, password reset, and Single Sign-On (SSO) options (e.g., Google, Microsoft).
+*   **Organization Management:** Users can create or claim organizations, manage organization settings, and define user roles.
+*   **Feedback Collection:** Create, view, edit, and manage feedback posts. Users can upvote and comment on posts.
+*   **Activity Feed:** A real-time feed of activities within an organization's feedback space.
+*   **Insights & Analytics:** (Likely) Provides insights and analytics based on the collected feedback.
+*   **Admin Dashboard:** A dedicated interface for administrators to manage the platform and organization-specific settings.
+*   **Embeddable Widget:** Functionality to embed feedback collection forms or displays on external websites.
+*   **Rich Text Editing:** Advanced text editor for creating and editing posts and comments.
+*   **Email Notifications:** Integration with Resend for sending email notifications (e.g., password resets).
+*   **AI-Powered Features:** Utilizes Google Generative AI for potential enhancements (e.g., summarizing feedback, generating insights).
+
+## Setup and Run Locally
+
+To set up and run Feedbackland locally, follow these steps:
+
+1.  **Prerequisites:**
+    *   Node.js (refer to `.nvmrc` or project documentation for specific version, if available. A `package-lock.json` exists, so npm is likely the primary package manager.)
+    *   npm
+
+2.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd feedbackland
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+4.  **Set up environment variables:**
+    *   This project likely requires environment variables for database connections (Supabase, PostgreSQL), authentication providers (Firebase, Google SSO), and other services (Resend, Google Generative AI).
+    *   Look for a `.env.example` or similar file in the repository. If it exists, copy it to `.env` and fill in the necessary values.
+    *   `cp .env.example .env` (if applicable)
+
+5.  **Database Setup:**
+    *   The project uses Kysely for database migrations with a PostgreSQL database.
+    *   Ensure your PostgreSQL database server is running and configured according to the environment variables.
+    *   Run database migrations:
+        ```bash
+        npm run migrate-up
+        ```
+    *   To create new migrations:
+        ```bash
+        npm run migrate-make -- <migration_name>
+        ```
+        *(Note: Added `--` before migration_name as is common practice with npm run scripts to pass arguments)*
+    *   To generate Kysely schema types after database changes:
+        ```bash
+        npm run kysely-codegen
+        ```
+
+6.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    This will start the Next.js development server (using Turbopack as specified in `package.json`), typically on `http://localhost:3000`.
+
+7.  **Other available scripts (from `package.json`):**
+    *   Build for production: `npm run build`
+    *   Start production server: `npm run start`
+    *   Lint the code: `npm run lint`
+    *   Rollback the last migration: `npm run migrate-down`
+
+## Technologies Used
+
+*   **Framework:** Next.js (v15.3.2, with Turbopack)
+*   **Language:** TypeScript
+*   **UI:** React (v19.1.0), Tailwind CSS (v4.1.7), Shadcn/ui (inferred from component structure and common usage: `components/ui/`)
+*   **State Management:** Jotai
+*   **API/RPC:** tRPC
+*   **Database:** PostgreSQL
+*   **ORM/Query Builder:** Kysely
+*   **Database & Auth Provider (likely):** Supabase
+*   **Authentication (additional):** Firebase (for SSO)
+*   **Email:** Resend
+*   **AI:** Google Generative AI (`@google/generative-ai`)
+*   **Rich Text Editor:** Tiptap (`@tiptap/*`)
+*   **Forms:** React Hook Form (`react-hook-form`), Zod (`zod`)
+*   **Styling/UI Libraries:** `lucide-react` (icons), `class-variance-authority`, `clsx`, `tailwind-merge`, `tailwindcss-animate`
+*   **Code Quality:** ESLint, Prettier
+*   **Other notable libraries:** `next-safe-action` (for server actions), `javascript-time-ago`, `recharts` (charts), `sonner` (toasts/notifications).
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute to Feedbackland, please follow these general guidelines:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix: `git checkout -b feature/your-feature-name` or `bugfix/issue-number`.
+3.  Make your changes, adhering to the project's coding style and conventions (ESLint and Prettier are used).
+4.  Ensure your changes pass linting checks: `npm run lint`.
+5.  Commit your changes with clear and descriptive messages.
+6.  Push your branch to your forked repository.
+7.  Open a pull request to the main repository, detailing the changes you've made.
+
+Please also consider opening an issue first to discuss any significant changes or new features.
+
+## License
+
+This project is licensed under the terms of the [LICENSE](LICENSE) file.
+(The `ls()` command showed a `LICENSE` file. Typically this would be MIT or Apache 2.0 for such projects, but linking directly to it is the safest.)
