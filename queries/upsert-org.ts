@@ -33,7 +33,7 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
           .insertInto("org")
           .values({
             id: orgId,
-            subdomain: orgSubdomain,
+            orgSubdomain,
           })
           .returningAll()
           .executeTakeFirstOrThrow();

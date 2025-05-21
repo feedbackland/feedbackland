@@ -13,8 +13,8 @@ export const createOrgQuery = async ({
     return await db
       .insertInto("org")
       .values({
-        name: orgName,
-        subdomain: orgSubdomain,
+        orgName,
+        orgSubdomain,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

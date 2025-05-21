@@ -42,7 +42,7 @@ export const upsertUserQuery = async ({
           .insertInto("user")
           .values({
             id: userId,
-            email,
+            email: email.toLowerCase(),
             name,
             photoURL,
           })

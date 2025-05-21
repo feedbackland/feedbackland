@@ -22,6 +22,8 @@ import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 import { generateInsights } from "./generate-insights";
 import { getInsights } from "./get-insights";
 import { updateOrg } from "./update-org";
+import { createAdminInvite } from "./create-admin-invite";
+import { getAdmins } from "./get-admins";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -47,6 +49,8 @@ export const appRouter = router({
   generateInsights,
   getInsights,
   updateOrg,
+  createAdminInvite,
+  getAdmins,
 });
 
 export type AppRouter = typeof appRouter;

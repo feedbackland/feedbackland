@@ -22,7 +22,7 @@ export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
 export const upsertUserSchema = z.object({
   orgSubdomain: z.string().min(1),
   userId: z.string().min(1),
-  email: z.string().email().nullable(),
+  email: z.string().email(),
   name: z.string().min(1).nullable(),
   photoURL: z.string().min(1).nullable(),
 });
