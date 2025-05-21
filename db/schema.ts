@@ -53,6 +53,12 @@ export interface ActivitySeen {
   userId: string;
 }
 
+export interface AdminInvites {
+  createdAt: Generated<Timestamp>;
+  email: string;
+  orgId: string;
+}
+
 export interface AuthAuditLogEntries {
   created_at: Timestamp | null;
   id: string;
@@ -385,7 +391,7 @@ export interface Org {
   orgName: string | null;
   orgSubdomain: string;
   platformDescription: string | null;
-  platformTitle: string;
+  platformTitle: Generated<string>;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -600,6 +606,7 @@ export interface VaultSecrets {
 
 export interface DB {
   activity_seen: ActivitySeen;
+  admin_invites: AdminInvites;
   "auth.audit_log_entries": AuthAuditLogEntries;
   "auth.flow_state": AuthFlowState;
   "auth.identities": AuthIdentities;
