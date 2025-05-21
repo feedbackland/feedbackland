@@ -4,13 +4,11 @@ import { ActivityFeedItem } from "@/lib/typings";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
-import { Badge } from "@/components/ui/badge";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
 import Link from "next/link";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useWindowSize } from "react-use";
 import { BugIcon, Inbox, Lightbulb, MessageSquare } from "lucide-react";
 
 export function ActivityFeedListItem({
@@ -22,7 +20,6 @@ export function ActivityFeedListItem({
 }) {
   const platformUrl = usePlatformUrl();
   const setActivitySeen = useSetActivitiesSeen();
-  const { width } = useWindowSize();
 
   const { status, type, category, createdAt, title, content, postId } = item;
 
