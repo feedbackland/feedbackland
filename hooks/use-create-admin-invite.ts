@@ -8,9 +8,9 @@ export function useCreateAdminInvite() {
   const mutation = useMutation(
     trpc.createAdminInvite.mutationOptions({
       onSuccess: async () => {
-        // queryClient.invalidateQueries({
-        //   queryKey: trpc.getOrg.queryKey(),
-        // });
+        queryClient.invalidateQueries({
+          queryKey: trpc.getAdmins.queryKey(),
+        });
       },
     }),
   );

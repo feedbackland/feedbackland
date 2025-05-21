@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableBody,
@@ -6,35 +8,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const admins = [
-  {
-    email: "bleh@blah.com",
-    status: "Active",
-  },
-  {
-    email: "zolg@wolg.com",
-    status: "Active",
-  },
-];
+import { useAdmins } from "@/hooks/use-admins";
 
 export function AdminsTable() {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="">Email</TableHead>
-          <TableHead className="">Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {admins.map((admin) => (
-          <TableRow key={admin.email}>
-            <TableCell className="">{admin.email}</TableCell>
-            <TableCell className="">{admin.status}</TableCell>
+  const {
+    query: { data: admins },
+  } = useAdmins();
+
+  if (admins && admins.length > 0) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="">Email</TableHead>
+            <TableHead className="">Status</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+        </TableHeader>
+        <TableBody>
+          {admins.map((admin) => (
+            <TableRow key={admin.email}>
+              <TableCell className="">{admin.email}</TableCell>
+              <TableCell className="">{admin.status}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  }
 }

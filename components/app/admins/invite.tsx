@@ -14,12 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
 
 const FormSchema = z.object({
   email: z.string().email(),
 });
 
 export function AdminsInvite() {
+  const createAdminInvite = useCreateAdminInvite();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -28,8 +31,8 @@ export function AdminsInvite() {
   });
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    // await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
-    // setIsEditing(false);
+    await createAdminInvite.mutateAsync({ email: formData.email });
+    form.reset();
   }
 
   return (
@@ -53,7 +56,12 @@ export function AdminsInvite() {
                         placeholder="The email of the person you want to invite"
                         {...field}
                       />
-                      <Button type="submit" size="sm" className="h-[36px]">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="h-[36px]"
+                        loading={createAdminInvite.isPending}
+                      >
                         Send invite
                       </Button>
                     </div>

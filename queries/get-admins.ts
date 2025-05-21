@@ -9,22 +9,22 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
       .selectFrom("user")
       .innerJoin("user_org", "user.id", "user_org.userId")
       .innerJoin("org", "user_org.orgId", "org.id")
+      .where("org.id", "=", orgId)
+      .where("user_org.role", "=", "admin")
       .select([
         "user.email",
         sql<"admin" | "invited">`'admin'`.as("status"),
         "user.createdAt",
-      ])
-      .where("org.id", "=", orgId)
-      .where("user_org.role", "=", "admin");
+      ]);
 
     const adminInvitesCTE = db
       .selectFrom("admin_invites")
+      .where("admin_invites.orgId", "=", orgId)
       .select([
         "admin_invites.email",
         sql<"admin" | "invited">`'invited'`.as("status"),
         "admin_invites.createdAt",
-      ])
-      .where("admin_invites.orgId", "=", orgId);
+      ]);
 
     const results = await db
       .selectFrom(adminUsersCTE.unionAll(adminInvitesCTE).as("admins"))
