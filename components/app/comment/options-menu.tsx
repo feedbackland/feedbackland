@@ -29,11 +29,13 @@ export function CommentsOptionsMenu({
   postId,
   commentId,
   authorId,
+  variant = "ghost",
   onEdit,
 }: {
   postId: string;
   commentId: string;
   authorId?: string;
+  variant?: "ghost" | "link" | "default" | "secondary";
   onEdit?: () => void;
 }) {
   const { session } = useAuth();
@@ -91,7 +93,12 @@ export function CommentsOptionsMenu({
       <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Open options menu">
+            <Button
+              variant={variant}
+              size="icon"
+              aria-label="Open options menu"
+              className="h-fit w-fit px-1.5 py-1"
+            >
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>

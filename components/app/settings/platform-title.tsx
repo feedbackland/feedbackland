@@ -55,69 +55,72 @@ export function PlatformTitle({
 
   return (
     <div className={cn("", className)}>
-      {isEditing ? (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setIsEditing(false);
-            form.setValue("platformTitle", data?.platformTitle || "");
-            form.clearErrors();
-          }}
-        >
-          <XIcon className="size-3.5" />
-          Cancel
-        </Button>
-      ) : (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => setIsEditing(true)}
-        >
-          <PenIcon className="size-3" />
-          Edit
-        </Button>
-      )}
-
-      <div className="flex flex-col items-stretch space-y-3">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="">
-            <FormField
-              control={form.control}
-              name="platformTitle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Platform title</FormLabel>
-                  <FormDescription>
-                    The title of your platform, displayed at the top.
-                  </FormDescription>
-                  <FormControl>
-                    {isEditing ? (
-                      <Input
-                        autoFocus={true}
-                        className="w-full max-w-96"
-                        placeholder="The title of your feedback platform"
-                        {...field}
-                      />
-                    ) : (
-                      <div className="text-primary text-sm">
-                        {data?.platformTitle}
-                      </div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      <div className="flex items-start gap-6">
+        <div className="flex flex-1 flex-col items-stretch space-y-3">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="">
+              <FormField
+                control={form.control}
+                name="platformTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Platform title</FormLabel>
+                    <FormDescription className="">
+                      The title of your feedback platform
+                    </FormDescription>
+                    <FormControl>
+                      {isEditing ? (
+                        <Input
+                          autoFocus={true}
+                          className="w-full max-w-[450px] text-sm"
+                          placeholder="Title of your feedback platform"
+                          {...field}
+                        />
+                      ) : (
+                        <div className="text-primary text-sm">
+                          {data?.platformTitle}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <Button type="submit" size="sm" className="mt-3">
+                  Save
+                </Button>
               )}
-            />
-            {isEditing && (
-              <Button type="submit" size="sm" className="mt-3">
-                Save
-              </Button>
-            )}
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+        <div className="-mt-2.5">
+          {isEditing ? (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                form.setValue("platformTitle", data?.platformTitle || "");
+                form.clearErrors();
+              }}
+            >
+              <XIcon className="size-3.5" />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              <PenIcon className="size-3" />
+              Edit
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

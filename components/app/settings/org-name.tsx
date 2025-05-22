@@ -60,69 +60,72 @@ export function OrgName({
 
   return (
     <div className={cn("", className)}>
-      {isEditing ? (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setIsEditing(false);
-            form.setValue("orgName", data?.orgName || "");
-            form.clearErrors();
-          }}
-        >
-          <XIcon className="size-3.5" />
-          Cancel
-        </Button>
-      ) : (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => setIsEditing(true)}
-        >
-          <PenIcon className="size-3" />
-          Edit
-        </Button>
-      )}
-
-      <div className="flex flex-col items-stretch space-y-3">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="">
-            <FormField
-              control={form.control}
-              name="orgName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Organization or product name</FormLabel>
-                  <FormDescription>
-                    The name of your organization or product.
-                  </FormDescription>
-                  <FormControl>
-                    {isEditing ? (
-                      <Input
-                        autoFocus={true}
-                        className="w-full max-w-96"
-                        placeholder="The name of your organization or product"
-                        {...field}
-                      />
-                    ) : (
-                      <div className="text-primary text-sm">
-                        {data?.orgName || "No name added"}
-                      </div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      <div className="flex items-start gap-6">
+        <div className="flex flex-1 flex-col items-stretch space-y-3">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="">
+              <FormField
+                control={form.control}
+                name="orgName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product name</FormLabel>
+                    <FormDescription className="">
+                      The name of your product or organization
+                    </FormDescription>
+                    <FormControl>
+                      {isEditing ? (
+                        <Input
+                          autoFocus={true}
+                          className="w-full max-w-[450px] text-sm"
+                          placeholder="Name of your product or organization"
+                          {...field}
+                        />
+                      ) : (
+                        <div className="text-primary text-sm">
+                          {data?.orgName || "No name added"}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <Button type="submit" size="sm" className="mt-3">
+                  Save
+                </Button>
               )}
-            />
-            {isEditing && (
-              <Button type="submit" size="sm" className="mt-3">
-                Save
-              </Button>
-            )}
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+        <div className="-mt-2.5">
+          {isEditing ? (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                form.setValue("orgName", data?.orgName || "");
+                form.clearErrors();
+              }}
+            >
+              <XIcon className="size-3.5" />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              <PenIcon className="size-3" />
+              Edit
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

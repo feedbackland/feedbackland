@@ -6,6 +6,7 @@ import { useRouter, usePathname, useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, useState, ReactNode } from "react";
+import { useWindowSize } from "react-use";
 
 export default function AdminTabLayout({ children }: { children: ReactNode }) {
   const { session, isLoaded } = useAuth();
@@ -14,6 +15,7 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
+  const { width } = useWindowSize();
   const orgSubdomain = params.orgSubdomain as string;
 
   const [activeTab, setActiveTab] = useState("activity");
@@ -59,13 +61,15 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   return (
     <div>
       <Tabs value={activeTab} className="w-full">
-        <TabsList>
+        <TabsList className="flex h-auto flex-wrap items-center justify-start space-y-1">
           <TabsTrigger value="activity" asChild>
             <Link href={`${adminBasePath}/activity`}>Activity</Link>
           </TabsTrigger>
 
           <TabsTrigger value="insights" asChild>
-            <Link href={`${adminBasePath}/insights`}>Insights</Link>
+            <Link href={`${adminBasePath}/insights`}>
+              {width < 600 ? "Insights" : "Roadmap Insights"}
+            </Link>
           </TabsTrigger>
 
           <TabsTrigger value="settings" asChild>

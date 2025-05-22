@@ -25,8 +25,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useTRPC } from "@/providers/trpc-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,15 +34,18 @@ import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { useUpdateStatus } from "@/hooks/use-update-status";
 import { cn } from "@/lib/utils";
 import { isUuidV4 } from "@/lib/utils";
+import { useDeleteFeedbackPost } from "@/hooks/use-delete-feedback-post";
 
 export function FeedbackPostOptionsMenu({
   postId,
   authorId,
+  variant = "ghost",
   onEdit,
   className,
 }: {
   postId: string;
   authorId?: string;
+  variant?: "ghost" | "link" | "default" | "secondary";
   onEdit?: () => void;
   className?: React.ComponentProps<"div">["className"];
 }) {
@@ -58,8 +59,6 @@ export function FeedbackPostOptionsMenu({
   const platformUrl = usePlatformUrl();
   const router = useRouter();
   const { session } = useAuth();
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
   const {
     query: { data },
@@ -68,42 +67,31 @@ export function FeedbackPostOptionsMenu({
     enabled: true,
   });
 
+  const deletePost = useDeleteFeedbackPost();
+
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
 
-  const deletePost = useMutation(
-    trpc.deleteFeedbackPost.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getActivityFeed.queryKey().slice(0, 1),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getActivityFeedMetaData.queryKey(),
-        });
-
-        toast.success("Feedback deleted", {
-          position: "top-right",
-        });
-
-        if (platformUrl && isFeedbackPage) {
-          router.push(platformUrl);
-        }
-      },
-      onSettled: () => {
-        setIsDeleteConfirmationOpen(false);
-      },
-    }),
-  );
-
   const handleDelete = async () => {
-    deletePost.mutate({
-      postId,
-    });
+    deletePost.mutate(
+      {
+        postId,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Feedback deleted", {
+            position: "top-right",
+          });
+
+          if (platformUrl && isFeedbackPage) {
+            router.push(platformUrl);
+          }
+        },
+        onSettled: () => {
+          setIsDeleteConfirmationOpen(false);
+        },
+      },
+    );
   };
 
   const handleStatusChange: (status: FeedbackStatus) => void = async (
@@ -126,10 +114,10 @@ export function FeedbackPostOptionsMenu({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant="ghost"
+              variant={variant}
               size="icon"
               aria-label="Open options menu"
-              className={cn("", className)}
+              className={cn("h-fit w-fit px-1.5 py-1", className)}
             >
               <MoreHorizontal className="size-4" />
             </Button>

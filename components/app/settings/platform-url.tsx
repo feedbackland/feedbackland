@@ -68,74 +68,77 @@ export function PlatformUrl({
 
   return (
     <div className={cn("", className)}>
-      {isEditing ? (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setIsEditing(false);
-            form.setValue("orgSubdomain", data?.orgSubdomain || "");
-            form.clearErrors();
-          }}
-        >
-          <XIcon className="size-3.5" />
-          Cancel
-        </Button>
-      ) : (
-        <Button
-          className="absolute! top-2 right-0"
-          size="sm"
-          variant="outline"
-          onClick={() => setIsEditing(true)}
-        >
-          <PenIcon className="size-3" />
-          Edit
-        </Button>
-      )}
-
-      <div className="flex flex-col items-stretch space-y-3">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="">
-            <FormField
-              control={form.control}
-              name="orgSubdomain"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Platform URL</FormLabel>
-                  <FormDescription>
-                    The URL through which your feedback platform is accessible.
-                  </FormDescription>
-                  <FormControl>
-                    {isEditing ? (
-                      <div className="flex flex-wrap items-center">
-                        <Input
-                          autoFocus={true}
-                          className="w-full max-w-36 sm:max-w-52"
-                          placeholder="The URL of your feedback platform"
-                          {...field}
-                        />
-                        <span className="text-primary ml-2 text-sm">
-                          .feedbackland.com
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="text-primary text-sm">
-                        {`${data?.orgSubdomain}.feedbackland.com`}
-                      </div>
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      <div className="flex items-start gap-6">
+        <div className="flex flex-1 flex-col items-stretch space-y-3">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="">
+              <FormField
+                control={form.control}
+                name="orgSubdomain"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Platform URL</FormLabel>
+                    <FormDescription className="">
+                      The URL through which your feedback platform is accessible
+                    </FormDescription>
+                    <FormControl>
+                      {isEditing ? (
+                        <div className="flex w-full max-w-[450px] items-center">
+                          <Input
+                            autoFocus={true}
+                            className="z-10 w-full rounded-r-none text-sm"
+                            placeholder="The URL of your feedback platform"
+                            {...field}
+                          />
+                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-2 text-sm">
+                            <span>.feedbackland.com</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-primary text-sm">
+                          {`${data?.orgSubdomain}.feedbackland.com`}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditing && (
+                <Button type="submit" size="sm" className="mt-3">
+                  Save
+                </Button>
               )}
-            />
-            {isEditing && (
-              <Button type="submit" size="sm" className="mt-3">
-                Save
-              </Button>
-            )}
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+        <div className="-mt-2.5">
+          {isEditing ? (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsEditing(false);
+                form.setValue("orgSubdomain", data?.orgSubdomain || "");
+                form.clearErrors();
+              }}
+            >
+              <XIcon className="size-3.5" />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              <PenIcon className="size-3" />
+              Edit
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -13,18 +13,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
-  platformDescription: z.string().optional(),
+  orgUrl: z.string().optional(),
 });
 
-export function PlatformDescription({
+export function OrgUrl({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
@@ -40,20 +40,19 @@ export function PlatformDescription({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      platformDescription: "",
+      orgUrl: "",
     },
   });
 
   useEffect(() => {
-    form.setValue("platformDescription", data?.platformDescription || "");
+    form.setValue("orgUrl", data?.orgUrl || "");
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     await updateOrg.mutateAsync({
-      platformDescription:
-        formData?.platformDescription &&
-        formData?.platformDescription?.length > 0
-          ? formData.platformDescription
+      orgUrl:
+        formData?.orgUrl && formData?.orgUrl?.length > 0
+          ? formData.orgUrl
           : null,
     });
     setIsEditing(false);
@@ -67,24 +66,24 @@ export function PlatformDescription({
             <form onSubmit={form.handleSubmit(onSubmit)} className="">
               <FormField
                 control={form.control}
-                name="platformDescription"
+                name="orgUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Platform description</FormLabel>
+                    <FormLabel>Product website</FormLabel>
                     <FormDescription className="">
-                      The optional description of your feedback platform
+                      The URL of your product or organization's website
                     </FormDescription>
                     <FormControl>
                       {isEditing ? (
-                        <Textarea
+                        <Input
                           autoFocus={true}
                           className="w-full max-w-[450px] text-sm"
-                          placeholder="Description of your feedback platform"
+                          placeholder="URL of your product or organization's website"
                           {...field}
                         />
                       ) : (
                         <div className="text-primary text-sm">
-                          {data?.platformDescription || "No description added"}
+                          {data?.orgUrl || "No product website added"}
                         </div>
                       )}
                     </FormControl>
@@ -108,10 +107,7 @@ export function PlatformDescription({
               variant="outline"
               onClick={() => {
                 setIsEditing(false);
-                form.setValue(
-                  "platformDescription",
-                  data?.platformDescription || "",
-                );
+                form.setValue("orgUrl", data?.orgUrl || "");
                 form.clearErrors();
               }}
             >

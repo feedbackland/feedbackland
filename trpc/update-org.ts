@@ -6,6 +6,7 @@ export const updateOrg = adminProcedure
   .input(
     z.object({
       orgName: z.string().nullish(),
+      orgUrl: z.string().nullish(),
       orgSubdomain: z.string().optional(),
       platformTitle: z.string().optional(),
       platformDescription: z.string().nullish(),
@@ -13,7 +14,13 @@ export const updateOrg = adminProcedure
   )
   .mutation(
     async ({
-      input: { orgName, orgSubdomain, platformTitle, platformDescription },
+      input: {
+        orgName,
+        orgUrl,
+        orgSubdomain,
+        platformTitle,
+        platformDescription,
+      },
       ctx: { userId, orgId },
     }) => {
       try {
@@ -21,6 +28,7 @@ export const updateOrg = adminProcedure
           userId,
           orgId,
           orgName,
+          orgUrl,
           orgSubdomain,
           platformTitle,
           platformDescription,
