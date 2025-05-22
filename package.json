@@ -44,7 +44,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-email/components": "0.0.41",
-    "@supabase/supabase-js": "^2.49.7",
+    "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.76.1",
     "@tanstack/react-query-devtools": "^5.76.1",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
@@ -74,7 +74,7 @@
     "dequal": "^2.0.3",
     "dompurify": "^3.2.6",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^11.8.0",
+    "firebase": "^11.8.1",
     "firebase-admin": "^13.4.0",
     "geist": "^1.4.2",
     "he": "^1.2.0",
@@ -117,13 +117,13 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.25.16"
+    "zod": "^3.25.20"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
     "@types/he": "^1.2.3",
     "@types/node": "^22.15.21",
-    "@types/react": "^19.1.4",
+    "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@types/sanitize-html": "^2.16.0",
     "eslint": "^9.27.0",
