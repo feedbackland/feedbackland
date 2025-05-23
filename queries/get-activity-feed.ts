@@ -10,7 +10,7 @@ import {
   FeedbackOrderBy,
   FeedbackStatus,
 } from "@/lib/typings";
-import { generateVector } from "@/lib/utils";
+import { generateVector } from "@/lib/utils-server";
 
 export async function getActivityFeedQuery({
   orgId,

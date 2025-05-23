@@ -1,7 +1,8 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
+import { clean, getPlainText } from "@/lib/utils";
+import { generateEmbedding } from "@/lib/utils-server";
 
 export async function createCommentQuery({
   content,

@@ -5,8 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import imageSize from "image-size";
-import { textEmbeddingModel } from "@/lib/gemini";
-import pgvector from "pgvector/pg";
 import { validate as uuidValidate, version as uuidVersion } from "uuid";
 
 export function cn(...inputs: ClassValue[]) {
@@ -221,22 +219,4 @@ export const getPlainText = (htmlString: string) => {
     .trim();
 
   return plainText;
-};
-
-export const generateVector = async (text: string) => {
-  try {
-    const result = await textEmbeddingModel.embedContent(text);
-    return result.embedding.values;
-  } catch {
-    throw new Error("Failed to generate vector");
-  }
-};
-
-export const generateEmbedding = async (text: string) => {
-  try {
-    const vector = await generateVector(text);
-    return pgvector.toSql(vector);
-  } catch {
-    throw new Error("Failed to generate embedding");
-  }
 };

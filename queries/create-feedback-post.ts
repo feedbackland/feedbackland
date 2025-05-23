@@ -2,7 +2,8 @@
 
 import { db } from "@/db/db";
 import { FeedbackCategory } from "@/lib/typings";
-import { generateEmbedding, clean, getPlainText } from "@/lib/utils";
+import { clean, getPlainText } from "@/lib/utils";
+import { generateEmbedding } from "@/lib/utils-server";
 
 const getTitleAndCategory = async (plainTextDescription: string) => {
   const prompt = `

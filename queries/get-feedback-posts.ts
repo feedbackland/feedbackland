@@ -8,7 +8,7 @@ import {
   FeedbackPostsCursor,
   FeedbackStatus,
 } from "@/lib/typings";
-import { generateVector } from "@/lib/utils";
+import { generateVector } from "@/lib/utils-server";
 
 export const getFeedbackPostsQuery = async ({
   orgId,
