@@ -28,7 +28,7 @@ export async function deleteAdminInviteQuery({
           .returningAll()
           .executeTakeFirstOrThrow();
       } else {
-        throw new Error("Not authorized to delete this comment");
+        throw new Error("Not authorized to delete this admin invite");
       }
     });
   } catch (error) {
