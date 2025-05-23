@@ -75,7 +75,7 @@ const upsertUser = async ({
   photoURL,
 }: {
   userId: string;
-  email: string | null;
+  email: string;
   name: string | null;
   photoURL: string | null;
 }) => {
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       photoURL,
     }: {
       userId: string;
-      email: string | null;
+      email: string;
       name: string | null;
       photoURL: string | null;
     }) => {
@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (user?.uid) {
         createSession({
           userId: user.uid,
-          email: user.email,
+          email: user.email || `${user.uid}@no-email.com`,
           name: user.displayName,
           photoURL: user.photoURL,
         });
@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       const session = await createSession({
         userId: user.uid,
-        email: user.email,
+        email: user.email || `${user.uid}@no-email.com`,
         name: user.displayName,
         photoURL: user.photoURL,
       });
@@ -210,7 +210,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { user } = await firebaseSignInAnonymously(auth);
       const session = await createSession({
         userId: user.uid,
-        email: user.email,
+        email: user.email || `${user.uid}@no-email.com`,
         name: user.displayName,
         photoURL: user.photoURL,
       });
@@ -237,7 +237,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       );
       const session = await createSession({
         userId: user.uid,
-        email: user.email,
+        email: user.email || `${user.uid}@no-email.com`,
         name: name,
         photoURL: user.photoURL,
       });
@@ -253,7 +253,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { user } = await signInWithPopup(auth, provider);
       const session = await createSession({
         userId: user.uid,
-        email: user.email,
+        email: user.email || `${user.uid}@no-email.com`,
         name: user.displayName,
         photoURL: user.photoURL,
       });
@@ -269,7 +269,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { user } = await signInWithPopup(auth, provider);
       const session = await createSession({
         userId: user.uid,
-        email: user.email,
+        email: user.email || `${user.uid}@no-email.com`,
         name: user.displayName,
         photoURL: user.photoURL,
       });

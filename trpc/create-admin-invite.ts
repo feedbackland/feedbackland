@@ -30,7 +30,7 @@ export const createAdminInvite = adminProcedure
           subject: "Feedbackland - Admin invitation",
           react: AdminInviteEmail({
             invitedBy,
-            inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}`,
+            inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
           }),
         });
 
