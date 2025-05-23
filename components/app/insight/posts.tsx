@@ -39,7 +39,7 @@ export function InsightPosts({ ids }: { ids: string[] }) {
               className="flex items-start justify-between gap-5"
             >
               <div className="flex items-start gap-2">
-                <LinkIcon className="mt-0.5 size-3! shrink-0!"></LinkIcon>
+                <LinkIcon className="mt-1.5 size-3! shrink-0!"></LinkIcon>
                 <div className="flex flex-col items-stretch space-y-0.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
