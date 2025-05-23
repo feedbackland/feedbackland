@@ -15,20 +15,16 @@ import {
 import * as React from "react";
 
 export const AdminInviteEmail = ({
-  invitedByUsername = "A Feedbackland Team Member",
+  invitedBy,
   inviteLink,
-  feedbacklandUrl,
 }: {
-  invitedByUsername?: string;
+  invitedBy: string;
   inviteLink: string;
-  feedbacklandUrl: string;
 }) => {
-  const previewText = `Join ${invitedByUsername} on Feedbackland as an Admin`;
-
   return (
     <Html>
       <Head />
-      <Preview>{previewText}</Preview>
+      <Preview>Join {invitedBy} on Feedbackland as an Admin</Preview>
       <Tailwind>
         <Body className="bg-offwhite mx-auto my-auto font-sans text-base text-gray-700">
           <Container className="mx-auto my-[40px] max-w-[465px] rounded-lg border border-solid border-gray-200 bg-white p-[20px] shadow-md">
@@ -89,7 +85,7 @@ export const AdminInviteEmail = ({
                 © {new Date().getFullYear()} Feedbackland. All rights reserved.
               </Text>
               <Link
-                href={feedbacklandUrl}
+                href={`https://feedbackland.com`}
                 className="text-brand text-[12px] no-underline"
               >
                 Visit Feedbackland.com

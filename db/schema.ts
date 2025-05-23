@@ -57,6 +57,7 @@ export interface AdminInvites {
   createdAt: Generated<Timestamp>;
   email: string;
   orgId: string;
+  token: Generated<string>;
 }
 
 export interface AuthAuditLogEntries {

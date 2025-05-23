@@ -15,12 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useAuth } from "@/hooks/use-auth";
 
 const FormSchema = z.object({
   email: z.string().email(),
 });
 
 export function AdminsInvite() {
+  const platformUrl = usePlatformUrl();
+  const { session } = useAuth();
   const createAdminInvite = useCreateAdminInvite();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -31,8 +35,18 @@ export function AdminsInvite() {
   });
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await createAdminInvite.mutateAsync({ email: formData.email });
-    form.reset();
+    try {
+      await createAdminInvite.mutateAsync({
+        platformUrl,
+        email: formData.email,
+        invitedBy:
+          session?.user?.name || session?.user?.email || "nameless user",
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
