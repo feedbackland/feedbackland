@@ -13,11 +13,15 @@ export const createAdminInvite = adminProcedure
     }),
   )
   .mutation(
-    async ({ input: { platformUrl, invitedBy, email }, ctx: { orgId } }) => {
+    async ({
+      input: { platformUrl, invitedBy, email },
+      ctx: { orgId, userId },
+    }) => {
       try {
         const adminInvite = await createAdminInviteQuery({
           email,
           orgId,
+          userId,
         });
 
         await resend.emails.send({

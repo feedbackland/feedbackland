@@ -24,6 +24,7 @@ import { getInsights } from "./get-insights";
 import { updateOrg } from "./update-org";
 import { createAdminInvite } from "./create-admin-invite";
 import { getAdmins } from "./get-admins";
+import { deleteAdminInvite } from "./delete-admin-invite";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -50,6 +51,7 @@ export const appRouter = router({
   getInsights,
   updateOrg,
   createAdminInvite,
+  deleteAdminInvite,
   getAdmins,
 });
 

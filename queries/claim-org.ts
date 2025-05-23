@@ -25,11 +25,8 @@ export async function claimOrgQuery({
             orgId,
             role: "admin",
           })
-          .onConflict(
-            (oc) =>
-              oc
-                .columns(["userId", "orgId"]) // Specify the columns causing the conflict
-                .doUpdateSet({ role: "admin" }), // Update the role if conflict occurs
+          .onConflict((oc) =>
+            oc.columns(["userId", "orgId"]).doUpdateSet({ role: "admin" }),
           )
           .returningAll()
           .execute();

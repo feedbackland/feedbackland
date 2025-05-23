@@ -3,11 +3,22 @@
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { PlatformHeader } from "@/components/app/platform-header";
 import { useInIframe } from "@/hooks/use-in-iframe";
+import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
+  const [adminInviteToken, setAdminInviteToken] =
+    useQueryState("admin-invite-token");
   const inIframe = useInIframe();
 
+  useEffect(() => {
+    if (adminInviteToken) {
+      setAdminInviteToken(null);
+    }
+  }, [adminInviteToken, setAdminInviteToken]);
+
+  // don't render yet if not yet deteremined if in iframe
   if (inIframe === null) {
     return null;
   }

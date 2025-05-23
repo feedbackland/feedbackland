@@ -56,6 +56,7 @@ export interface ActivitySeen {
 export interface AdminInvites {
   createdAt: Generated<Timestamp>;
   email: string;
+  id: Generated<string>;
   orgId: string;
   token: Generated<string>;
 }

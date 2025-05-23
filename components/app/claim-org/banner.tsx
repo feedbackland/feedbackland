@@ -26,10 +26,10 @@ export function ClaimOrgBanner() {
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
   const {
-    query: { data },
+    query: { data: org },
   } = useOrg();
-  const orgId = data?.orgId;
-  const isOrgClaimed = data?.orgIsClaimed;
+  const orgId = org?.id;
+  const isOrgClaimed = org?.isClaimed;
   const isSignedIn = !!session;
 
   const handleOpenDialog = async () => {
