@@ -1,37 +1,31 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useTRPC } from "@/providers/trpc-client";
 import { useQueryState } from "nuqs";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useCallback, useEffect, useState } from "react";
+import { useRedeemAdminInvite } from "@/hooks/use-redeem-admin-invite";
 
 export function RedeemAdminInvitation() {
-  const trpc = useTRPC();
   const { session, isLoaded, signOut } = useAuth();
   const [adminInviteToken, setAdminInviteToken] =
     useQueryState("admin-invite-token");
   const [adminInviteEmail, setAdminInviteEmail] =
     useQueryState("admin-invite-email");
   const [showSignUpDialog, setShowSignUpDialog] = useState(false);
-
-  const redeemInvitation = useMutation(
-    trpc.redeemAdminInvite.mutationOptions(),
-  );
+  const redeemInvite = useRedeemAdminInvite();
 
   const triggerRedeem = useCallback(async () => {
     if (adminInviteToken) {
-      await redeemInvitation.mutateAsync({
-        adminInviteToken: adminInviteToken,
+      await redeemInvite.mutateAsync({
+        adminInviteToken,
       });
       setAdminInviteToken(null);
       setAdminInviteEmail(null);
-      window.location.reload();
     }
   }, [
     adminInviteToken,
-    redeemInvitation,
+    redeemInvite,
     setAdminInviteToken,
     setAdminInviteEmail,
   ]);
@@ -43,7 +37,7 @@ export function RedeemAdminInvitation() {
       } else if (session && session.user.email === adminInviteEmail) {
         triggerRedeem();
       } else if (session && session.user.email !== adminInviteEmail) {
-        signOut().then(() => window.location.reload());
+        signOut().then(() => setShowSignUpDialog(true));
       }
     }
   }, [

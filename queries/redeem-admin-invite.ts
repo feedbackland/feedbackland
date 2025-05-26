@@ -16,6 +16,7 @@ export async function redeemAdminInviteQuery({
       const adminInvite = await trx
         .selectFrom("admin_invites")
         .where("token", "=", adminInviteToken)
+        .where("orgId", "=", orgId)
         .selectAll()
         .executeTakeFirstOrThrow();
 

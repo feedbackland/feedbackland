@@ -285,7 +285,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       queryClient.invalidateQueries();
       destroySession();
 
-      if (pathname.includes("admin")) {
+      if (pathname.includes("/admin")) {
         router.push(platformUrl);
       }
 

@@ -36,16 +36,25 @@ export function AdminsInvite() {
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
+      form.clearErrors();
+
       await createAdminInvite.mutateAsync({
         platformUrl,
         email: formData.email,
         invitedBy:
-          session?.user?.name || session?.user?.email || "nameless user",
+          session?.user?.name ||
+          session?.user?.email ||
+          "user with unknown name",
       });
 
       form.reset();
     } catch (error) {
-      console.error(error);
+      console.log(error);
+
+      form.setError("email", {
+        message:
+          "Something went wrong trying to send the invite. Please try again.",
+      });
     }
   }
 
