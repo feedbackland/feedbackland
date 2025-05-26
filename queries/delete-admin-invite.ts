@@ -20,8 +20,8 @@ export async function deleteAdminInviteQuery({
         .where("orgId", "=", orgId)
         .executeTakeFirstOrThrow();
 
-      if (role === "admin") {
-        throw new Error("Not authorized to delete this admin invite");
+      if (role !== "admin") {
+        throw new Error("Not authorized to delete admin invite");
       }
 
       return await trx

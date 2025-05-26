@@ -23,8 +23,12 @@ import { Admin } from "@/lib/typings";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export function AdminsTableRow({ admin }: { admin: Admin }) {
+  const { session } = useAuth();
+
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
 
@@ -32,13 +36,23 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
 
   const deleteAdminInvite = useDeleteAdminInvite();
 
-  const handleOnDelete = (admin: Admin) => {
+  const handleOnDelete = async (admin: Admin) => {
     if (admin.status === "invited" && admin.adminInviteId) {
-      deleteAdminInvite.mutate({ adminInviteId: admin.adminInviteId });
+      await deleteAdminInvite.mutateAsync({
+        adminInviteId: admin.adminInviteId,
+      });
+
+      toast.success("Invitation successfully revoked", {
+        position: "top-right",
+      });
     }
 
     if (admin.status === "admin" && admin.userId) {
-      deleteAdmin.mutate({ adminId: admin.userId });
+      await deleteAdmin.mutateAsync({ adminId: admin.userId });
+
+      toast.success("Admin successfully removed", {
+        position: "top-right",
+      });
     }
   };
 
@@ -50,23 +64,25 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
           {capitalizeFirstLetter(admin.status)}
         </TableCell>
         <TableCell className="text-right">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="text-destructive!"
-                onClick={() => setIsDeleteConfirmationOpen(true)}
-              >
-                <Trash2Icon className="text-destructive!" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {admin.status === "invited"
-                ? "Remove invitation"
-                : "Remove admin"}
-            </TooltipContent>
-          </Tooltip>
+          {session?.user.id !== admin.userId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="text-destructive!"
+                  onClick={() => setIsDeleteConfirmationOpen(true)}
+                >
+                  <Trash2Icon className="text-destructive! size-3.5!" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {admin.status === "invited"
+                  ? "Revoke invitation"
+                  : "Remove admin"}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </TableCell>
       </TableRow>
 

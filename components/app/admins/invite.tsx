@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -48,6 +49,10 @@ export function AdminsInvite() {
       });
 
       form.reset();
+
+      toast.success("Invite successfully sent", {
+        position: "top-right",
+      });
     } catch (error) {
       let message = "Something went wrong. Please try again.";
 
@@ -65,8 +70,8 @@ export function AdminsInvite() {
   }
 
   return (
-    <div>
-      <Label className="mb-2">Invite admins</Label>
+    <div className="mt-8">
+      <Label className="mb-2">Invite</Label>
       <div className="border-border rounded-md border p-4 shadow-xs">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
@@ -81,7 +86,7 @@ export function AdminsInvite() {
                       <Input
                         type="email"
                         autoFocus={true}
-                        className="w-full max-w-[400px] text-sm"
+                        className="w-full max-w-[350px] text-sm"
                         placeholder="Email of the person you want to invite"
                         {...field}
                       />

@@ -5,12 +5,16 @@ import { PlatformHeader } from "@/components/app/platform-header";
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
 import { RedeemAdminInvitation } from "@/components/app/redeem-admin-invitation";
+import { useOrg } from "@/hooks/use-org";
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
+  const {
+    query: { isPending },
+  } = useOrg();
   const inIframe = useInIframe();
 
   // don't render yet if not yet deteremined if in iframe
-  if (inIframe === null) {
+  if (inIframe === null || isPending === true) {
     return null;
   }
 
