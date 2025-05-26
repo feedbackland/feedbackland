@@ -19,8 +19,6 @@ export const createInsightsQuery = async (insightsToCreate: InsightInput[]) => {
         .where("insights.orgId", "=", orgId)
         .execute();
 
-      console.log("insightsToCreate", insightsToCreate);
-
       if (insightsToCreate?.length > 0) {
         await trx.insertInto("insights").values(insightsToCreate).execute();
       }

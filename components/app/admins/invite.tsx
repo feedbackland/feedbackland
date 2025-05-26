@@ -49,11 +49,17 @@ export function AdminsInvite() {
 
       form.reset();
     } catch (error) {
-      console.log(error);
+      let message = "Something went wrong. Please try again.";
+
+      if (
+        error instanceof Error &&
+        error?.message?.toLowerCase()?.includes("invite already exists")
+      ) {
+        message = "This email is already invited";
+      }
 
       form.setError("email", {
-        message:
-          "Something went wrong trying to send the invite. Please try again.",
+        message,
       });
     }
   }
@@ -75,8 +81,8 @@ export function AdminsInvite() {
                       <Input
                         type="email"
                         autoFocus={true}
-                        className="w-full text-sm"
-                        placeholder="The email of the person you want to invite"
+                        className="w-full max-w-[400px] text-sm"
+                        placeholder="Email of the person you want to invite"
                         {...field}
                       />
                       <Button

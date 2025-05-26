@@ -68,7 +68,7 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
 
           <TabsTrigger value="insights" asChild>
             <Link href={`${adminBasePath}/insights`}>
-              {width < 600 ? "Insights" : "Roadmap Insights"}
+              {width < 600 ? "Insights" : "AI Insights"}
             </Link>
           </TabsTrigger>
 

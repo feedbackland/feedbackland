@@ -12,6 +12,8 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
       .where("org.id", "=", orgId)
       .where("user_org.role", "=", "admin")
       .select([
+        sql<string | null>`${sql.ref("user.id")}`.as("userId"),
+        sql<string | null>`null`.as("adminInviteId"),
         "user.email",
         sql<"admin" | "invited">`'admin'`.as("status"),
         "user.createdAt",
@@ -21,6 +23,8 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
       .selectFrom("admin_invites")
       .where("admin_invites.orgId", "=", orgId)
       .select([
+        sql<string | null>`null`.as("userId"),
+        sql<string | null>`${sql.ref("admin_invites.id")}`.as("adminInviteId"),
         "admin_invites.email",
         sql<"admin" | "invited">`'invited'`.as("status"),
         "admin_invites.createdAt",

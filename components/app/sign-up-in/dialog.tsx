@@ -40,7 +40,7 @@ export function SignUpInDialog({
         }
       }}
     >
-      <DialogContent className="max-w-[400px] pb-8">
+      <DialogContent className="max-w-[420px]! pb-8">
         <DialogHeader>
           <DialogTitle className="h3 mb-5 text-center">
             {selectedMethod === "sign-in" && "Sign in"}

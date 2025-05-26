@@ -2,12 +2,12 @@
 
 import { db } from "@/db/db";
 
-export async function deleteAdminInviteQuery({
-  adminInviteId,
+export async function deleteAdminQuery({
+  adminId,
   userId,
   orgId,
 }: {
-  adminInviteId: string;
+  adminId: string;
   userId: string;
   orgId: string;
 }) {
@@ -20,16 +20,17 @@ export async function deleteAdminInviteQuery({
         .where("orgId", "=", orgId)
         .executeTakeFirstOrThrow();
 
-      if (role === "admin") {
-        throw new Error("Not authorized to delete this admin invite");
+      if (role === "admin" && userId !== adminId) {
+        return await trx
+          .updateTable("user_org")
+          .set({ role: "user" })
+          .where("userId", "=", adminId)
+          .where("orgId", "=", orgId)
+          .returningAll()
+          .executeTakeFirstOrThrow();
+      } else {
+        throw new Error("Not authorized to delete admin");
       }
-
-      return await trx
-        .deleteFrom("admin_invites")
-        .where("id", "=", adminInviteId)
-        .where("orgId", "=", orgId)
-        .returningAll()
-        .executeTakeFirstOrThrow();
     });
   } catch (error) {
     throw error;

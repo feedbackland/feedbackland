@@ -29,6 +29,14 @@ export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;
 
 export type InsightsCursor = z.infer<typeof insightsCursorSchema>;
 
+export type Admin = {
+  userId: string | null;
+  adminInviteId: string | null;
+  createdAt: Date;
+  email: string;
+  status: "admin" | "invited";
+};
+
 export type ActivityFeedItem = {
   orgId: string;
   id: string;
