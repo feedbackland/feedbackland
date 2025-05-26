@@ -45,8 +45,8 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-email/components": "0.0.41",
     "@supabase/supabase-js": "^2.49.8",
-    "@tanstack/react-query": "^5.76.2",
-    "@tanstack/react-query-devtools": "^5.76.2",
+    "@tanstack/react-query": "^5.77.1",
+    "@tanstack/react-query-devtools": "^5.77.1",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
     "@tiptap/extension-color": "^2.12.0",
     "@tiptap/extension-heading": "^2.12.0",
@@ -117,7 +117,7 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.25.23"
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.7",
@@ -129,7 +129,7 @@
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.2",
     "kysely-codegen": "^0.18.5",
-    "kysely-ctl": "^0.13.0",
+    "kysely-ctl": "^0.13.1",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
