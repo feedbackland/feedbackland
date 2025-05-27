@@ -61,19 +61,39 @@ export function Insights() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 py-4">
+      <div className="flex items-start justify-between gap-8 py-4">
         <div className="space-y-1">
           <h2 className="h3">
             {isGenerating ? `Generating AI Insights...` : `AI Insights`}
           </h2>
-          <p className="text-muted-foreground text-sm">
-            {hasInsights &&
-              `${insights.length} insights generated on ${new Date(insights[0].createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
-            {hasNoInsights &&
-              `Click Generate to get AI insights into all active feedback`}
-            {isGenerating && `This might take a few minutes`}
-          </p>
+
+          {!isGenerating && hasInsights && (
+            <p className="text-muted-foreground text-sm">
+              Derived from all active feedback (feedback not labeled as 'done'
+              or 'declined'). Last generated on{" "}
+              {new Date(insights[0].createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+              .
+            </p>
+          )}
+
+          {!isGenerating && hasNoInsights && (
+            <p className="text-muted-foreground text-sm">
+              Click Generate to get AI insights into all active feedback on your
+              platform.
+            </p>
+          )}
+
+          {isGenerating && (
+            <p className="text-muted-foreground text-sm">
+              This might take a few minutes
+            </p>
+          )}
         </div>
+
         <Button
           size="default"
           value="default"

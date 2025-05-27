@@ -61,9 +61,7 @@ export function Insight({ item, index }: { item: Item; index: number }) {
 
       <div className="p-5">
         <div className="mb-2 flex items-start justify-between gap-2">
-          <h3 className="h5 flex flex-wrap items-center">
-            {index + 1}. {item.title}
-          </h3>
+          <h3 className="h5 flex flex-wrap items-center">{item.title}</h3>
           <Badge
             variant="outline"
             className={cn("mt-0.5", {

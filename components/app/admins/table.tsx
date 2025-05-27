@@ -20,7 +20,7 @@ export function AdminsTable() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="">Email</TableHead>
+            <TableHead className="">Admin</TableHead>
             <TableHead className="">Status</TableHead>
             <TableHead className="text-right"></TableHead>
           </TableRow>

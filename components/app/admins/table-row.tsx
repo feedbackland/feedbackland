@@ -61,7 +61,7 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
       <TableRow>
         <TableCell className="">{admin.email}</TableCell>
         <TableCell className="">
-          {capitalizeFirstLetter(admin.status)}
+          {admin.status === "invited" ? "Invite pending" : "Active"}
         </TableCell>
         <TableCell className="text-right">
           {session?.user.id !== admin.userId && (

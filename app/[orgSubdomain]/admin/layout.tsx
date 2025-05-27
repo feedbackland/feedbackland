@@ -60,8 +60,8 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
 
   return (
     <div>
-      <Tabs value={activeTab} className="w-full">
-        <TabsList className="flex h-auto flex-wrap items-center justify-start space-y-1">
+      <Tabs value={activeTab} className="">
+        <TabsList className="">
           <TabsTrigger value="activity" asChild>
             <Link href={`${adminBasePath}/activity`}>Activity</Link>
           </TabsTrigger>
