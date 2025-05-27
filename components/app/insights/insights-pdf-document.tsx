@@ -1,7 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { InsightData as InsightType } from "@/lib/typings"; // Use the new InsightData type
-import { capitalizeFirstLetter, cn, getPriorityLabel } from "@/lib/utils";
+import { getPriorityLabel } from "@/lib/utils";
 
 const styles = StyleSheet.create({
   page: {
@@ -56,7 +56,11 @@ export const InsightsPdfDocument: React.FC<InsightsPdfDocumentProps> = ({
           <Text style={styles.title}>AI Insights Report</Text>
           <Text style={styles.generatedOn}>
             Generated on{" "}
-            {new Date(insights?.[0].createdAt).toLocaleDateString()}
+            {new Date(insights?.[0].createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
           </Text>
           {insights.map((insight, index) => (
             <View key={insight.id} style={{ marginBottom: 20 }}>

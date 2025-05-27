@@ -17,7 +17,7 @@ export function InsightPosts({ ids }: { ids: string[] }) {
   const platformUrl = usePlatformUrl();
 
   return (
-    <div className="flex flex-col items-stretch space-y-3 p-0">
+    <div className="flex flex-col items-stretch space-y-4 p-0">
       {isPending && <InsightPostsLoading />}
 
       {posts
@@ -38,23 +38,34 @@ export function InsightPosts({ ids }: { ids: string[] }) {
               key={post.id}
               className="flex items-start justify-between gap-5"
             >
-              <div className="flex items-start gap-2">
-                <LinkIcon className="mt-1.5 size-3! shrink-0!"></LinkIcon>
-                <div className="flex flex-col items-stretch space-y-0.5">
-                  <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-1 items-start gap-2">
+                <LinkIcon className="mt-1 size-3! shrink-0!"></LinkIcon>
+                <div className="flex flex-1 flex-col items-stretch space-y-0">
+                  <div className="flex flex-1 items-start justify-between gap-4">
                     <Link
                       key={post.id}
                       href={`${platformUrl}/${post.id}`}
-                      className="flex flex-wrap items-center gap-2 text-sm hover:underline"
+                      className="text-[13px] font-medium hover:underline"
                     >
-                      <span>{post.title}</span>
+                      {post.title}
                     </Link>
-                    <FeedbackPostOptionsMenu
-                      postId={post.id}
-                      authorId={undefined}
-                    />
+                    <div className="text-primary flex items-center gap-4 text-xs">
+                      <FeedbackPostOptionsMenu
+                        postId={post.id}
+                        authorId={undefined}
+                        className="text-muted-foreground h-fit py-0.5"
+                      />
+                      <div className="flex items-center gap-0.5">
+                        <ArrowBigUp className="size-4!" strokeWidth={1.5} />
+                        <span>{post.upvotes}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquareIcon className="size-3" />
+                        <span>{post.commentCount}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-muted-foreground mb-1 flex flex-wrap items-center gap-1.5 text-xs font-normal">
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs font-normal">
                     <span>{timeAgo.format(post.createdAt)}</span>
                     <span className="text-[8px]">•</span>
                     <span className="capitalize">{post.category}</span>
@@ -72,16 +83,6 @@ export function InsightPosts({ ids }: { ids: string[] }) {
                       </>
                     )}
                   </div>
-                </div>
-              </div>
-              <div className="text-primary flex items-center gap-4.5 text-xs">
-                <div className="flex items-center gap-0.5">
-                  <ArrowBigUp className="size-4!" strokeWidth={1.5} />
-                  <span>{post.upvotes}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquareIcon className="size-3" />
-                  <span>{post.commentCount}</span>
                 </div>
               </div>
             </div>
