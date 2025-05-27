@@ -46,8 +46,9 @@ export const upsertUserQuery = async ({
             name,
             photoURL,
           })
+          .onConflict((oc) => oc.doNothing())
           .returningAll()
-          .executeTakeFirstOrThrow();
+          .executeTakeFirst();
       }
 
       if (!userOrg) {
@@ -58,8 +59,13 @@ export const upsertUserQuery = async ({
             orgId,
             role: "user",
           })
+          .onConflict((oc) => oc.doNothing())
           .returningAll()
-          .executeTakeFirstOrThrow();
+          .executeTakeFirst();
+      }
+
+      if (!user || !userOrg || !org) {
+        throw new Error("Something went wrong");
       }
 
       return { user, userOrg, org };

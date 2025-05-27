@@ -27,6 +27,7 @@ import { getAdmins } from "./get-admins";
 import { deleteAdminInvite } from "./delete-admin-invite";
 import { redeemAdminInvite } from "./redeem-admin-invite";
 import { deleteAdmin } from "./delete-admin";
+import { getAdminInvite } from "./get-admin-invite";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -56,6 +57,7 @@ export const appRouter = router({
   deleteAdminInvite,
   getAdmins,
   redeemAdminInvite,
+  getAdminInvite,
   deleteAdmin,
 });
 

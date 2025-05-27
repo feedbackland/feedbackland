@@ -5,7 +5,7 @@ import { deleteAdminQuery } from "@/queries/delete-admin";
 export const deleteAdmin = adminProcedure
   .input(
     z.object({
-      adminId: z.string().uuid(),
+      adminId: z.string(),
     }),
   )
   .mutation(async ({ input: { adminId }, ctx: { userId, orgId } }) => {

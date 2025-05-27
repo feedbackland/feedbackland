@@ -18,30 +18,30 @@ export async function redeemAdminInviteQuery({
         .where("token", "=", adminInviteToken)
         .where("orgId", "=", orgId)
         .selectAll()
-        .executeTakeFirstOrThrow();
+        .executeTakeFirst();
 
-      if (adminInvite) {
-        await trx
-          .insertInto("user_org")
-          .values({
-            userId,
-            orgId,
-            role: "admin",
-          })
-          .onConflict((oc) =>
-            oc.columns(["userId", "orgId"]).doUpdateSet({ role: "admin" }),
-          )
-          .execute();
-
-        await trx
-          .deleteFrom("admin_invites")
-          .where("token", "=", adminInviteToken)
-          .execute();
-
-        return true;
-      } else {
+      if (!adminInvite) {
         throw new Error("Admin invite not found");
       }
+
+      await trx
+        .insertInto("user_org")
+        .values({
+          userId,
+          orgId,
+          role: "admin",
+        })
+        .onConflict((oc) =>
+          oc.columns(["userId", "orgId"]).doUpdateSet({ role: "admin" }),
+        )
+        .execute();
+
+      await trx
+        .deleteFrom("admin_invites")
+        .where("token", "=", adminInviteToken)
+        .execute();
+
+      return true;
     });
   } catch (error) {
     throw error;

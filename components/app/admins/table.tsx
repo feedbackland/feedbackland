@@ -15,8 +15,6 @@ export function AdminsTable() {
     query: { data: admins },
   } = useAdmins();
 
-  console.log("admins", admins);
-
   if (admins && admins.length > 0) {
     return (
       <Table>

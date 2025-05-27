@@ -32,7 +32,7 @@ export const AdminInviteEmail = ({
                 width="170"
                 height="20"
                 alt="Feedbackland"
-                className="mx-auto my-0 rounded-md"
+                className="mx-auto my-0"
               />
             </Section>
 

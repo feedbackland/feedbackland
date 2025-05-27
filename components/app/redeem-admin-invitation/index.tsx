@@ -5,54 +5,80 @@ import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useCallback, useEffect, useState } from "react";
 import { useRedeemAdminInvite } from "@/hooks/use-redeem-admin-invite";
+import { useAdminInvite } from "@/hooks/use-admin-invite";
 
 export function RedeemAdminInvitation() {
-  const { session, isLoaded, signOut } = useAuth();
+  const { session, isLoaded: isAuthLoaded, signOut } = useAuth();
   const [adminInviteToken, setAdminInviteToken] =
     useQueryState("admin-invite-token");
   const [adminInviteEmail, setAdminInviteEmail] =
     useQueryState("admin-invite-email");
   const [showSignUpDialog, setShowSignUpDialog] = useState(false);
   const redeemInvite = useRedeemAdminInvite();
+  const {
+    query: { isSuccess: isAdminInviteSuccess, isError: isAdminInviteError },
+  } = useAdminInvite({ adminInviteToken });
 
-  const triggerRedeem = useCallback(async () => {
+  const handleOnClose = useCallback(() => {
+    setShowSignUpDialog(false);
+    setAdminInviteToken(null);
+    setAdminInviteEmail(null);
+  }, [setShowSignUpDialog, setAdminInviteToken, setAdminInviteEmail]);
+
+  const triggerRedeem = useCallback(() => {
     if (adminInviteToken) {
-      await redeemInvite.mutateAsync({
-        adminInviteToken,
-      });
-      setAdminInviteToken(null);
-      setAdminInviteEmail(null);
+      redeemInvite.mutate(
+        {
+          adminInviteToken,
+        },
+        {
+          onSuccess: () => {
+            handleOnClose();
+            window.location.reload();
+          },
+          onError: () => {
+            handleOnClose();
+          },
+        },
+      );
     }
-  }, [
-    adminInviteToken,
-    redeemInvite,
-    setAdminInviteToken,
-    setAdminInviteEmail,
-  ]);
+  }, [adminInviteToken, redeemInvite, handleOnClose]);
 
   useEffect(() => {
-    if (isLoaded && adminInviteToken && adminInviteEmail) {
+    if (isAdminInviteError) {
+      handleOnClose();
+    }
+  }, [isAdminInviteError, handleOnClose]);
+
+  useEffect(() => {
+    if (
+      isAuthLoaded &&
+      isAdminInviteSuccess &&
+      adminInviteToken &&
+      adminInviteEmail &&
+      redeemInvite.isIdle &&
+      !redeemInvite.isPending &&
+      !redeemInvite.isError &&
+      !redeemInvite.isSuccess
+    ) {
       if (!session) {
         setShowSignUpDialog(true);
       } else if (session && session.user.email === adminInviteEmail) {
         triggerRedeem();
       } else if (session && session.user.email !== adminInviteEmail) {
-        signOut().then(() => setShowSignUpDialog(true));
+        signOut();
       }
     }
   }, [
+    session,
+    isAuthLoaded,
+    isAdminInviteSuccess,
     adminInviteToken,
     adminInviteEmail,
-    session,
-    isLoaded,
+    redeemInvite,
     triggerRedeem,
     signOut,
   ]);
-
-  const handleOnClose = () => {
-    setAdminInviteToken(null);
-    setAdminInviteEmail(null);
-  };
 
   return (
     <SignUpInDialog
