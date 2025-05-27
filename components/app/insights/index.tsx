@@ -8,6 +8,8 @@ import { Error } from "@/components/ui/error";
 import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
+import { PDFDownloadLink } from "@react-pdf/renderer"; // Import PDFDownloadLink
+import { InsightsPdfDocument } from "./insights-pdf-document"; // Import the PDF document component
 
 export function Insights() {
   const trpc = useTRPC();
@@ -94,14 +96,30 @@ export function Insights() {
           )}
         </div>
 
-        <Button
-          size="default"
-          value="default"
-          onClick={handleGenerateClick}
-          loading={isGenerating}
-        >
-          {hasInsights ? `Regenerate` : `Generate`}
-        </Button>
+        <div className="flex gap-2">
+          {" "}
+          {/* Added a div to group buttons */}
+          {hasInsights && ( // Only show download button if there are insights
+            <PDFDownloadLink
+              document={<InsightsPdfDocument insights={insights} />}
+              fileName="ai_insights_report.pdf"
+            >
+              {({ loading }) => (
+                <Button size="default" value="default" loading={loading}>
+                  {loading ? "Preparing PDF..." : "Download PDF"}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          )}
+          <Button
+            size="default"
+            value="default"
+            onClick={handleGenerateClick}
+            loading={isGenerating}
+          >
+            {hasInsights ? `Regenerate` : `Generate`}
+          </Button>
+        </div>
       </div>
 
       {!!(isGenerating || isPending) && <InsightsLoading />}

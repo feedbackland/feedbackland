@@ -54,3 +54,18 @@ export type ActivityFeedItem = {
   authorName?: string | null;
   isSeen?: boolean;
 };
+
+// Define a type for insights data as it's received from the query (unwrapped Kysely types)
+export type InsightData = {
+  id: string;
+  orgId: string;
+  title: string;
+  description: string;
+  category: FeedbackCategory | null;
+  status: FeedbackStatus | null;
+  upvotes: string; // Numeric from DB often comes as string
+  commentCount: string; // Numeric from DB often comes as string
+  priority: string; // Numeric from DB often comes as string
+  ids: string[];
+  createdAt: Date; // Timestamp from DB often comes as Date object
+};
