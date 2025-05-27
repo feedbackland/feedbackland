@@ -23,13 +23,14 @@ export function CommentFooter({
         commentId={commentId}
         upvoteCount={upvotes}
         hasUserUpvote={hasUserUpvote}
+        className="text-xs"
       />
       <span className="text-muted-foreground text-[8px]">•</span>
       <Button
         variant="link"
         size="sm"
         onClick={onReplyClicked}
-        className="text-muted-foreground hover:text-primary"
+        className="text-muted-foreground hover:text-primary text-xs"
       >
         Reply
       </Button>

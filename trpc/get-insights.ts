@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { adminProcedure } from "@/lib/trpc";
 import { insightsCursorSchema } from "@/lib/schemas";
-import { getInsightsQuery } from "@/queries/get-insights";
+import { getInsightsQuery, getAllInsightsQuery } from "@/queries/get-insights"; // Import getAllInsightsQuery
 
 export const getInsights = adminProcedure
   .input(
@@ -22,6 +22,17 @@ export const getInsights = adminProcedure
         items,
         nextCursor,
       };
+    } catch (error) {
+      throw error;
+    }
+  });
+
+export const getAllInsights = adminProcedure
+  .input(z.object({}))
+  .query(async ({ ctx: { orgId } }) => {
+    try {
+      const insights = await getAllInsightsQuery({ orgId });
+      return insights;
     } catch (error) {
       throw error;
     }

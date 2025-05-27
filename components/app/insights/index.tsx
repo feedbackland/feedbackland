@@ -8,14 +8,7 @@ import { Error } from "@/components/ui/error";
 import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import { InsightsPdfDocument } from "./insights-pdf-document";
-import { DownloadIcon } from "@radix-ui/react-icons";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { InsightsDownloadButton } from "./download-button";
 
 export function Insights() {
   const trpc = useTRPC();
@@ -101,23 +94,7 @@ export function Insights() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {hasInsights && ( // Only show download button if there are insights
-                <PDFDownloadLink
-                  document={<InsightsPdfDocument insights={insights} />}
-                  fileName="ai_insights_report.pdf"
-                >
-                  {({ loading }) => (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="icon" variant="outline" loading={loading}>
-                          <DownloadIcon className="size-4!" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Download as PDF</TooltipContent>
-                    </Tooltip>
-                  )}
-                </PDFDownloadLink>
-              )}
+              {hasInsights && <InsightsDownloadButton />}
               <Button
                 size="default"
                 variant="default"

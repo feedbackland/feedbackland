@@ -20,7 +20,7 @@ import { getActivityFeed } from "./get-activity-feed";
 import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 import { generateInsights } from "./generate-insights";
-import { getInsights } from "./get-insights";
+import { getInsights, getAllInsights } from "./get-insights";
 import { updateOrg } from "./update-org";
 import { createAdminInvite } from "./create-admin-invite";
 import { getAdmins } from "./get-admins";
@@ -52,6 +52,7 @@ export const appRouter = router({
   setActivitiesSeen,
   generateInsights,
   getInsights,
+  getAllInsights,
   updateOrg,
   createAdminInvite,
   deleteAdminInvite,

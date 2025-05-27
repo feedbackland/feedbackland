@@ -58,3 +58,19 @@ export const getInsightsQuery = async ({
     throw error;
   }
 };
+
+export const getAllInsightsQuery = async ({ orgId }: { orgId: string }) => {
+  try {
+    const items = await db
+      .selectFrom("insights")
+      .selectAll()
+      .where("insights.orgId", "=", orgId)
+      .orderBy("insights.priority", "desc")
+      .orderBy("insights.id", "desc")
+      .execute();
+
+    return items;
+  } catch (error: any) {
+    throw error;
+  }
+};
