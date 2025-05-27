@@ -1,6 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { InsightData as InsightType } from "@/lib/typings"; // Use the new InsightData type
+import { capitalizeFirstLetter, cn, getPriorityLabel } from "@/lib/utils";
 
 const styles = StyleSheet.create({
   page: {
@@ -15,27 +16,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  generatedOn: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 25,
   },
   insightTitle: {
-    fontSize: 18,
+    fontSize: 14,
     marginBottom: 5,
     fontWeight: "bold",
   },
   insightDescription: {
     fontSize: 12,
-    marginBottom: 10,
+    lineHeight: 1.3,
+    marginBottom: 6,
   },
-  insightCategory: {
-    fontSize: 10,
-    color: "#888",
-    marginBottom: 5,
-  },
-  insightMeta: {
+  insightPriority: {
     fontSize: 10,
     color: "#666",
-    marginBottom: 10,
   },
 });
 
@@ -45,32 +48,33 @@ interface InsightsPdfDocumentProps {
 
 export const InsightsPdfDocument: React.FC<InsightsPdfDocumentProps> = ({
   insights,
-}) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.title}>AI Insights Report</Text>
-        {insights.map((insight, index) => (
-          <View key={insight.id} style={{ marginBottom: 15 }}>
-            {" "}
-            {/* No cast needed */}
-            <Text style={styles.insightTitle}>{insight.title}</Text>
-            <Text style={styles.insightDescription}>{insight.description}</Text>
-            {insight.category && (
-              <Text style={styles.insightCategory}>
-                Category: {insight.category}
+}) => {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.title}>AI Insights Report</Text>
+          <Text style={styles.generatedOn}>
+            Generated on{" "}
+            {new Date(insights?.[0].createdAt).toLocaleDateString()}
+          </Text>
+          {insights.map((insight, index) => (
+            <View key={insight.id} style={{ marginBottom: 20 }}>
+              <Text style={styles.insightTitle}>
+                {index + 1}
+                {". "}
+                {insight.title}
               </Text>
-            )}
-            <Text style={styles.insightMeta}>
-              Upvotes: {insight.upvotes} | Comments: {insight.commentCount} |
-              Priority: {insight.priority}
-            </Text>
-            <Text style={styles.insightMeta}>
-              Generated: {new Date(insight.createdAt).toLocaleDateString()}{" "}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
+              <Text style={styles.insightDescription}>
+                {insight.description}
+              </Text>
+              <Text style={styles.insightPriority}>
+                {getPriorityLabel(Number(insight.priority))}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+};

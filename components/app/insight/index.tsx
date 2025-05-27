@@ -3,7 +3,7 @@
 import { Selectable } from "kysely";
 import { Insights } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn, getPriorityLabel } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,18 +16,6 @@ import { useAtom } from "jotai";
 import { expandedInsightsAtom } from "@/lib/atoms";
 
 type Item = Selectable<Insights>;
-
-const getPriorityLabel = (priorityScore: number) => {
-  if (priorityScore < 40) {
-    return "Low priority";
-  } else if (priorityScore < 70) {
-    return "Medium priority";
-  } else if (priorityScore < 95) {
-    return "High priority";
-  } else {
-    return "Critical priority";
-  }
-};
 
 export function Insight({ item, index }: { item: Item; index: number }) {
   const priorityScore = Number(item.priority);

@@ -220,3 +220,15 @@ export const getPlainText = (htmlString: string) => {
 
   return plainText;
 };
+
+export const getPriorityLabel = (priorityScore: number) => {
+  if (priorityScore < 40) {
+    return "Low priority";
+  } else if (priorityScore < 70) {
+    return "Medium priority";
+  } else if (priorityScore < 95) {
+    return "High priority";
+  } else {
+    return "Critical priority";
+  }
+};
