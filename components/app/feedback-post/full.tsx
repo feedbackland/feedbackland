@@ -3,7 +3,7 @@
 import { timeAgo } from "@/lib/time-ago";
 import { Button } from "@/components/ui/button";
 import { FeedbackPostUpvoteButton } from "./upvote-button";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { GoBackButton } from "./go-back-button";
@@ -55,7 +55,9 @@ export function FeedbackPostFull({
             <GoBackButton className="" />
             <Avatar className="">
               <AvatarImage src={authorPhotoURL || undefined} />
-              <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {authorName?.charAt(0) || <UserIcon className="size-4" />}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col space-y-0">
               <div className="text-primary text-xs font-normal">

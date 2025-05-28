@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Session } from "@/hooks/use-auth";
 
 export const signUpSchema = z.object({
-  name: z.string().nonempty("Name is required"),
+  name: z.string().min(1, "please provide a name"),
   email: z
     .string()
     .email("Invalid email address")

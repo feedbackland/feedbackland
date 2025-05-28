@@ -6,7 +6,7 @@ import { CommentInner } from "./inner";
 import { type CommentReplyMeta } from "./inner";
 import { CommentForm } from "@/components/app/comment-form";
 
-export interface Comment {
+export type Comment = {
   id: string;
   parentCommentId: string | null;
   postId: string;
@@ -18,7 +18,7 @@ export interface Comment {
   authorName: string | null;
   authorPhotoURL: string | null;
   hasUserUpvote: boolean;
-}
+};
 
 export const Comment = memo(function Comment({
   comment,

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
+import { UserIcon } from "lucide-react";
 
 export function CommentHeader({
   authorPhotoURL,
@@ -24,7 +25,9 @@ export function CommentHeader({
     <div className={cn("flex items-center gap-1", className)}>
       <Avatar className="-ml-1 scale-80!">
         <AvatarImage src={authorPhotoURL || undefined} />
-        <AvatarFallback>{authorName?.charAt(0)}</AvatarFallback>
+        <AvatarFallback>
+          {authorName?.charAt(0) || <UserIcon className="size-4" />}
+        </AvatarFallback>
       </Avatar>
       <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
         <div className="text-primary">

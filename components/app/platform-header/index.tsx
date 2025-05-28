@@ -8,6 +8,7 @@ import {
   MoonIcon,
   MoreHorizontal,
   Shield,
+  UserIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -78,7 +79,9 @@ export function PlatformHeader() {
                 <Avatar className="">
                   <AvatarImage src={session?.user?.photoURL || undefined} />
                   <AvatarFallback>
-                    {session?.user?.name?.charAt(0)}
+                    {session?.user?.name?.charAt(0) || (
+                      <UserIcon className="size-4" />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
