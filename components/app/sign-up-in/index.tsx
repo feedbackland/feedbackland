@@ -4,6 +4,7 @@ import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
+import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
 
@@ -50,12 +51,10 @@ export function SignUpIn({
   }
 
   if (selectedMethod === "forgot-password") {
-    return null;
-
-    // return (
-    //   <ForgotPasswordForm
-    //     onGoBack={() => handleOnSelectedMethodChange("sign-in")}
-    //   />
-    // );
+    return (
+      <ForgotPasswordForm
+        onGoBack={() => handleOnSelectedMethodChange("sign-in")}
+      />
+    );
   }
 }
