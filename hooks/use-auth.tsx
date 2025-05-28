@@ -12,6 +12,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
   signInWithPopup,
   signInAnonymously as firebaseSignInAnonymously,
   GoogleAuthProvider,
@@ -235,10 +236,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       );
+      await updateProfile(user, { displayName: name });
       const session = await createSession({
         userId: user.uid,
-        email: user.email || `${user.uid}@no-email.com`,
-        name: name,
+        email,
+        name,
         photoURL: user.photoURL,
       });
       return session;

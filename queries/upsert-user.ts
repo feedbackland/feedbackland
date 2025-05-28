@@ -30,14 +30,7 @@ export const upsertUserQuery = async ({
         .selectAll()
         .executeTakeFirst();
 
-      let userOrg = await trx
-        .selectFrom("user_org")
-        .where("user_org.userId", "=", userId)
-        .where("user_org.orgId", "=", orgId)
-        .selectAll()
-        .executeTakeFirst();
-
-      if (!user) {
+      if (!user || !!(user && !user.name && name)) {
         user = await trx
           .insertInto("user")
           .values({
@@ -46,10 +39,25 @@ export const upsertUserQuery = async ({
             name,
             photoURL,
           })
-          .onConflict((oc) => oc.doNothing())
+          .onConflict((oc) =>
+            oc.column("id").doUpdateSet({
+              name,
+            }),
+          )
           .returningAll()
           .executeTakeFirst();
       }
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      let userOrg = await trx
+        .selectFrom("user_org")
+        .where("user_org.userId", "=", userId)
+        .where("user_org.orgId", "=", orgId)
+        .selectAll()
+        .executeTakeFirst();
 
       if (!userOrg) {
         userOrg = await trx
@@ -59,13 +67,12 @@ export const upsertUserQuery = async ({
             orgId,
             role: "user",
           })
-          .onConflict((oc) => oc.doNothing())
           .returningAll()
-          .executeTakeFirst();
+          .executeTakeFirstOrThrow();
       }
 
-      if (!user || !userOrg || !org) {
-        throw new Error("Something went wrong");
+      if (!userOrg) {
+        throw new Error("userOrg not found");
       }
 
       return { user, userOrg, org };
