@@ -51,11 +51,11 @@ export default async function RootLayout({
               <TooltipProvider>
                 <JotaiProvider>
                   <NuqsAdapter>
-                    <IframeResizerProvider>
-                      <GlobalState />
-                      {children}
-                      <Toaster />
-                    </IframeResizerProvider>
+                    {/* <IframeResizerProvider> */}
+                    <GlobalState />
+                    {children}
+                    <Toaster />
+                    {/* </IframeResizerProvider> */}
                   </NuqsAdapter>
                 </JotaiProvider>
               </TooltipProvider>
