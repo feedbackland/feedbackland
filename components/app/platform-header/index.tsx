@@ -8,10 +8,12 @@ import {
   MoonIcon,
   MoreHorizontal,
   Shield,
+  ShieldIcon,
   UserIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
+  DropdownMenuSubContent,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -26,6 +28,7 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { useOrg } from "@/hooks/use-org";
+import { Badge } from "@/components/ui/badge";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -85,7 +88,35 @@ export function PlatformHeader() {
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" side="bottom" align="end">
+              <DropdownMenuContent className="w-56" side="bottom" align="end">
+                <DropdownMenuItem className="flex flex-col items-stretch space-y-0">
+                  <div className="text-primary flex items-center gap-1 font-semibold">
+                    <span>{session?.user?.name || "Unnamed user"}</span>
+                    {session?.userOrg?.role === "admin" && (
+                      <Badge className="scale-85">Admin</Badge>
+                    )}
+                  </div>
+                  {session?.user?.email && (
+                    <div className="text-muted-foreground -mt-1 text-xs">
+                      {session?.user?.email}
+                    </div>
+                  )}
+                </DropdownMenuItem>
+                {session?.userOrg?.role === "admin" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`${platformUrl}/admin`}
+                        className="flex items-center gap-2"
+                      >
+                        <ShieldIcon className="size-4" />
+                        Admin panel
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault();
