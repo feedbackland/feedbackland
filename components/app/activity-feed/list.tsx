@@ -104,9 +104,6 @@ export function ActivityFeedList({
     }
   };
 
-  console.log("isPending", isPending);
-  console.log("isError", isError);
-
   return (
     <>
       <div className={cn("", className)}>

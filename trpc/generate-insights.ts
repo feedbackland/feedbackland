@@ -162,7 +162,6 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
     return result;
   } catch (error) {
-    console.log("error:", error);
     throw error;
   }
 });
