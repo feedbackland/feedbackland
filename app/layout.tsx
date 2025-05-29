@@ -10,6 +10,7 @@ import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
 import { IframeResizerProvider } from "@/providers/iframe-resizer";
 import { Toaster } from "@/components/ui/sonner";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -40,6 +41,7 @@ export default async function RootLayout({
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
       <body className="bg-background font-sans">
+        <Script src="https://cdn.jsdelivr.net/npm/@open-iframe-resizer/core@latest/dist/index.js" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
