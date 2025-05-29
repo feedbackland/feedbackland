@@ -49,7 +49,6 @@ export type UserOrgRole = "admin" | "user";
 
 export interface ActivitySeen {
   itemId: string;
-  seenAt: Generated<Timestamp>;
   userId: string;
 }
 
