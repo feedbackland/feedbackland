@@ -6,11 +6,13 @@ import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
 import { RedeemAdminInvitation } from "@/components/app/redeem-admin-invitation";
 import { useOrg } from "@/hooks/use-org";
+import { SetColorMode } from "@/components/app/set-color-mode";
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
   const {
     query: { isPending },
   } = useOrg();
+
   const inIframe = useInIframe();
 
   // don't render yet if not yet deteremined if in iframe
@@ -22,6 +24,8 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
     <>
       <ClaimOrgBanner />
       <RedeemAdminInvitation />
+      <SetColorMode />
+
       <div
         className={cn(
           "m-auto flex w-full max-w-full grow flex-col px-10 py-5",

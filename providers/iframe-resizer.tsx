@@ -1,10 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import "@iframe-resizer/child";
+// import dynamic from "next/dynamic";
 
-const IframeResizerChild = dynamic(() => import("./iframe-resizer-child"), {
-  ssr: false,
-});
+// const IframeResizerChild = dynamic(() => import("./iframe-resizer-child"), {
+//   ssr: false,
+// });
 
 export function IframeResizerProvider({
   children,
@@ -13,7 +14,7 @@ export function IframeResizerProvider({
 }) {
   return (
     <>
-      <IframeResizerChild />
+      {/* <IframeResizerChild /> */}
       {children}
     </>
   );

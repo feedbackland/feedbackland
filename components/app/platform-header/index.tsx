@@ -27,7 +27,6 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { useOrg } from "@/hooks/use-org";
-import { Badge } from "@/components/ui/badge";
 
 export function PlatformHeader() {
   const pathname = usePathname();
