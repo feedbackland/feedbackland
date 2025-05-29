@@ -6,14 +6,12 @@ import {
   HomeIcon,
   LogOutIcon,
   MoonIcon,
-  MoreHorizontal,
-  Shield,
+  MoreHorizontalIcon,
   ShieldIcon,
   UserIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
-  DropdownMenuSubContent,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -69,15 +67,16 @@ export function PlatformHeader() {
                   {isAdminPage ? (
                     <HomeIcon className="size-3.5!" />
                   ) : (
-                    <Shield className="size-3.5!" />
+                    <ShieldIcon className="size-3.5!" />
                   )}
                   <span>{isAdminPage ? "Home" : "Admin panel"}</span>
                 </span>
               </Link>
             </Button>
           )}
-          {session ? (
-            <DropdownMenu>
+
+          <DropdownMenu>
+            {session ? (
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Avatar className="">
                   <AvatarImage src={session?.user?.photoURL || undefined} />
@@ -88,95 +87,77 @@ export function PlatformHeader() {
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" side="bottom" align="end">
-                <DropdownMenuItem className="flex flex-col items-stretch space-y-0">
-                  <div className="text-primary flex items-center gap-1 font-semibold">
-                    <span>{session?.user?.name || "Unnamed user"}</span>
-                    {session?.userOrg?.role === "admin" && (
-                      <Badge className="scale-85">Admin</Badge>
-                    )}
-                  </div>
-                  {session?.user?.email && (
-                    <div className="text-muted-foreground -mt-1 text-xs">
-                      {session?.user?.email}
+            ) : (
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="">
+                  <MoreHorizontalIcon className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            )}
+
+            <DropdownMenuContent className="w-56" side="bottom" align="end">
+              {session && (
+                <>
+                  <DropdownMenuItem className="flex flex-col items-stretch space-y-0">
+                    <div className="flex items-center gap-1 font-semibold">
+                      <span>{session?.user?.name || "Unnamed user"}</span>
+                      {session?.userOrg?.role === "admin" && (
+                        <Badge className="scale-85">Admin</Badge>
+                      )}
                     </div>
+                    {session?.user?.email && (
+                      <div className="text-muted-foreground -mt-1 text-xs">
+                        {session?.user?.email}
+                      </div>
+                    )}
+                  </DropdownMenuItem>
+
+                  {session?.userOrg?.role === "admin" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={`${platformUrl}/admin`}
+                          className="flex items-center gap-2"
+                        >
+                          <ShieldIcon className="size-4" />
+                          Admin panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
-                </DropdownMenuItem>
-                {session?.userOrg?.role === "admin" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href={`${platformUrl}/admin`}
-                        className="flex items-center gap-2"
-                      >
-                        <ShieldIcon className="size-4" />
-                        Admin panel
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setTheme((theme) => (theme === "light" ? "dark" : "light"));
-                  }}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <MoonIcon className="size-4" />
-                    Dark mode
-                  </span>
-                  <Switch checked={theme === "dark"} />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setTheme((theme) => (theme === "light" ? "dark" : "light"));
+                }}
+                className="flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2 text-sm">
+                  <MoonIcon className="size-4" />
+                  Dark mode
+                </span>
+                <Switch checked={theme === "dark"} />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {session ? (
+                <DropdownMenuItem onClick={handleSignOut} className="text-sm">
                   <LogOutIcon className="size-4" />
                   Sign out
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" side="bottom" align="end">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setTheme((theme) => (theme === "light" ? "dark" : "light"));
-                  }}
-                  className="flex items-center justify-between"
-                >
-                  <span>Dark mode</span>
-                  <Switch checked={theme === "dark"} />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+              ) : (
                 <DropdownMenuItem onClick={() => setIsSignUpInDialogOpen(true)}>
                   Sign in
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-      {/* <p className="text-muted-foreground text-xs">
-        Powered by{" "}
-        <a
-          href="https://feedbackland.com"
-          target="_blank"
-          className="hover:text-primary underline"
-        >
-          Feedbackland
-        </a>
-      </p> */}
 
       {orgData?.platformDescription &&
         orgData?.platformDescription?.length > 0 && (
