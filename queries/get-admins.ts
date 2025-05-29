@@ -15,6 +15,7 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
         sql<string | null>`${sql.ref("user.id")}`.as("userId"),
         sql<string | null>`null`.as("adminInviteId"),
         "user.email",
+        "user.name",
         sql<"admin" | "invited">`'admin'`.as("status"),
         "user.createdAt",
       ]);
@@ -26,6 +27,7 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
         sql<string | null>`null`.as("userId"),
         sql<string | null>`${sql.ref("admin_invites.id")}`.as("adminInviteId"),
         "admin_invites.email",
+        sql<string | null>`null`.as("name"),
         sql<"admin" | "invited">`'invited'`.as("status"),
         "admin_invites.createdAt",
       ]);

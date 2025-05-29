@@ -20,7 +20,6 @@ import {
 import { useDeleteAdmin } from "@/hooks/use-delete-admin";
 import { useDeleteAdminInvite } from "@/hooks/use-delete-admin-invite";
 import { Admin } from "@/lib/typings";
-import { capitalizeFirstLetter } from "@/lib/utils";
 import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -59,7 +58,10 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
   return (
     <>
       <TableRow>
-        <TableCell className="">{admin.email}</TableCell>
+        <TableCell className="flex flex-col space-y-0">
+          {admin.name && <span className="font-medium">{admin.name}</span>}
+          <span>{admin.email}</span>
+        </TableCell>
         <TableCell className="">
           {admin.status === "invited" ? "Invite pending" : "Active"}
         </TableCell>
@@ -96,8 +98,8 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {admin.status === "invited"
-                ? `Are you sure you want to revoke the admin invitation for ${admin.email} ?`
-                : `Are you sure you want to remove admin privileges for ${admin.email}?`}
+                ? `Are you sure you want to revoke the admin invitation for ${admin.name || admin.email} ?`
+                : `Are you sure you want to remove admin privileges for ${admin.name || admin.email}?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

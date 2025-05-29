@@ -34,6 +34,7 @@ export type Admin = {
   adminInviteId: string | null;
   createdAt: Date;
   email: string;
+  name: string | null;
   status: "admin" | "invited";
 };
 
