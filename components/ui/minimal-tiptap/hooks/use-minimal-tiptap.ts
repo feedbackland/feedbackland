@@ -109,9 +109,7 @@ const createExtensions = (placeholder: string) => [
         }),
       );
     },
-    onImageRemoved({ id, src }) {
-      console.log("Image removed", { id, src });
-    },
+    // onImageRemoved({ id, src }) {},
     onValidationError(errors) {
       errors.forEach((error) => {
         toast.error("Image validation error", {

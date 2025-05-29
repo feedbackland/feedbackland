@@ -49,7 +49,7 @@ export function Code({
       )}
     >
       <CopyButton
-        className="absolute! top-1.5 right-1.5 text-white"
+        className="hover:bg-muted-foreground/50 absolute! top-1 right-1.5 size-fit bg-black p-2 text-white hover:text-white"
         text={code}
       />
 
@@ -58,7 +58,7 @@ export function Code({
       </pre> */}
 
       <div
-        className="scrollbar grow overflow-x-auto font-mono text-sm"
+        className="scrollbar grow overflow-x-auto font-mono text-xs"
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
       />
     </div>
