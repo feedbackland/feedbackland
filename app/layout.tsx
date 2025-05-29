@@ -1,5 +1,8 @@
+"use client";
+
+import "@open-iframe-resizer/core";
 import "./globals.css";
-import type { Metadata } from "next";
+// import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,13 +11,13 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
-import { IframeResizerProvider } from "@/providers/iframe-resizer";
+// import { IframeResizerProvider } from "@/providers/iframe-resizer";
 import { Toaster } from "@/components/ui/sonner";
 
-export const metadata: Metadata = {
-  title: "Feedbackland",
-  description: "User Feedback Platform",
-};
+// export const metadata: Metadata = {
+//   title: "Feedbackland",
+//   description: "User Feedback Platform",
+// };
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +31,7 @@ const roboto_mono = Roboto_Mono({
   display: "swap",
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
