@@ -65,7 +65,7 @@ export function PlatformTitle({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Platform title</FormLabel>
-                    <FormDescription className="">
+                    <FormDescription className="sr-only">
                       The title of your feedback platform
                     </FormDescription>
                     <FormControl>

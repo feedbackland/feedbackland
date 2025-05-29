@@ -70,7 +70,7 @@ export function OrgUrl({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Product website</FormLabel>
-                    <FormDescription className="">
+                    <FormDescription className="sr-only">
                       The URL of your product or organization's website
                     </FormDescription>
                     <FormControl>

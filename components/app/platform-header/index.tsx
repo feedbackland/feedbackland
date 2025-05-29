@@ -97,7 +97,7 @@ export function PlatformHeader() {
             )}
 
             <DropdownMenuContent
-              className="w-56 space-y-1"
+              className="w-52 space-y-1"
               side="bottom"
               align="end"
             >

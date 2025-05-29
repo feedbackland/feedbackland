@@ -9,33 +9,40 @@ import {
 } from "@/components/ui/table";
 import { useAdmins } from "@/hooks/use-admins";
 import { AdminsTableRow } from "./table-row";
+import { AdminsTableLoading } from "./table-loading";
 
 export function AdminsTable() {
   const {
-    query: { data: admins },
+    query: { data: admins, isPending, isSuccess },
   } = useAdmins();
 
-  if (admins && admins.length > 0) {
+  if (isPending) {
+    return <AdminsTableLoading />;
+  }
+
+  if (isSuccess && admins && admins.length > 0) {
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="">Admin</TableHead>
-            <TableHead className="">Status</TableHead>
-            <TableHead className="text-right"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {admins.map((admin) => (
-            <AdminsTableRow
-              key={admin.userId || admin.adminInviteId}
-              admin={admin}
-            />
-          ))}
-        </TableBody>
-      </Table>
+      <>
+        <div className="rounded-md border shadow-xs">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="">Admin</TableHead>
+                <TableHead className="">Status</TableHead>
+                <TableHead className="text-right"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {admins.map((admin) => (
+                <AdminsTableRow
+                  key={admin.userId || admin.adminInviteId}
+                  admin={admin}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </>
     );
-  } else {
-    return <div className="py-4 text-center">No admins found.</div>; // Added fallback UI
   }
 }

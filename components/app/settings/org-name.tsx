@@ -70,7 +70,7 @@ export function OrgName({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Product name</FormLabel>
-                    <FormDescription className="">
+                    <FormDescription className="sr-only">
                       The name of your product or organization
                     </FormDescription>
                     <FormControl>

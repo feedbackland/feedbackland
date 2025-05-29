@@ -71,8 +71,8 @@ export function PlatformDescription({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Platform description</FormLabel>
-                    <FormDescription className="">
-                      The optional description of your feedback platform
+                    <FormDescription className="sr-only">
+                      The description of your feedback platform (optional)
                     </FormDescription>
                     <FormControl>
                       {isEditing ? (
@@ -83,7 +83,13 @@ export function PlatformDescription({
                           {...field}
                         />
                       ) : (
-                        <div className="text-primary text-sm">
+                        <div
+                          className={cn(
+                            "text-primary text-sm",
+                            !data?.platformDescription &&
+                              "text-muted-foreground",
+                          )}
+                        >
                           {data?.platformDescription || "No description added"}
                         </div>
                       )}
