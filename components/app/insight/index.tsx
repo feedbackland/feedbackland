@@ -17,7 +17,7 @@ import { expandedInsightsAtom } from "@/lib/atoms";
 
 type Item = Selectable<Insights>;
 
-export function Insight({ item, index }: { item: Item; index: number }) {
+export function Insight({ item }: { item: Item; index: number }) {
   const priorityScore = Number(item.priority);
   const priorityLabel = getPriorityLabel(priorityScore);
 

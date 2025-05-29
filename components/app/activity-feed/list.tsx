@@ -104,6 +104,9 @@ export function ActivityFeedList({
     }
   };
 
+  console.log("isPending", isPending);
+  console.log("isError", isError);
+
   return (
     <>
       <div className={cn("", className)}>
@@ -212,14 +215,14 @@ export function ActivityFeedList({
 
             {isPending && <ActivityFeedLoading />}
 
-            {isError && (
-              <div className="py-4 text-center text-red-500">
-                Error loading inbox
+            {!isPending && isError && (
+              <div className="text-destructive py-5 text-center text-sm">
+                Error loading activity feed
               </div>
             )}
 
             {isPlatformEmpty && (
-              <div className="text-muted-foreground space-y-1 py-5 text-center">
+              <div className="text-muted-foreground space-y-1 py-5 text-center text-sm">
                 <div className="text-sm font-normal">No content found</div>
               </div>
             )}

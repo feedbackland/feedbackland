@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   HomeIcon,
+  LogInIcon,
   LogOutIcon,
   MoonIcon,
   MoreHorizontalIcon,
@@ -82,7 +83,7 @@ export function PlatformHeader() {
                   <AvatarImage src={session?.user?.photoURL || undefined} />
                   <AvatarFallback>
                     {session?.user?.name?.charAt(0) || (
-                      <UserIcon className="size-4" />
+                      <UserIcon className="size-3.5!" />
                     )}
                   </AvatarFallback>
                 </Avatar>
@@ -90,20 +91,21 @@ export function PlatformHeader() {
             ) : (
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost" className="">
-                  <MoreHorizontalIcon className="size-4" />
+                  <MoreHorizontalIcon className="size-3.5!" />
                 </Button>
               </DropdownMenuTrigger>
             )}
 
-            <DropdownMenuContent className="w-56" side="bottom" align="end">
+            <DropdownMenuContent
+              className="w-56 space-y-1"
+              side="bottom"
+              align="end"
+            >
               {session && (
                 <>
                   <DropdownMenuItem className="flex flex-col items-stretch space-y-0">
                     <div className="flex items-center gap-1 font-semibold">
                       <span>{session?.user?.name || "Unnamed user"}</span>
-                      {session?.userOrg?.role === "admin" && (
-                        <Badge className="scale-85">Admin</Badge>
-                      )}
                     </div>
                     {session?.user?.email && (
                       <div className="text-muted-foreground -mt-1 text-xs">
@@ -111,22 +113,18 @@ export function PlatformHeader() {
                       </div>
                     )}
                   </DropdownMenuItem>
-
-                  {session?.userOrg?.role === "admin" && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href={`${platformUrl}/admin`}
-                          className="flex items-center gap-2"
-                        >
-                          <ShieldIcon className="size-4" />
-                          Admin panel
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
                   <DropdownMenuSeparator />
+                  {session?.userOrg?.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`${platformUrl}/admin`}
+                        className="flex items-center gap-2"
+                      >
+                        <ShieldIcon className="size-3.5!" />
+                        Admin panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
               <DropdownMenuItem
@@ -138,7 +136,7 @@ export function PlatformHeader() {
                 className="flex items-center justify-between"
               >
                 <span className="flex items-center gap-2 text-sm">
-                  <MoonIcon className="size-4" />
+                  <MoonIcon className="size-3.5!" />
                   Dark mode
                 </span>
                 <Switch checked={theme === "dark"} />
@@ -146,11 +144,12 @@ export function PlatformHeader() {
               <DropdownMenuSeparator />
               {session ? (
                 <DropdownMenuItem onClick={handleSignOut} className="text-sm">
-                  <LogOutIcon className="size-4" />
+                  <LogOutIcon className="size-3.5!" />
                   Sign out
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem onClick={() => setIsSignUpInDialogOpen(true)}>
+                  <LogInIcon className="size-3.5!" />
                   Sign in
                 </DropdownMenuItem>
               )}

@@ -124,6 +124,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const destroySession = useCallback(() => {
+    queryClient.invalidateQueries();
+    setSession(null);
+    setIsLoaded(true);
+  }, [setSession, setIsLoaded, queryClient]);
+
   const createSession = useCallback(
     async ({
       userId,
@@ -137,6 +143,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       photoURL: string | null;
     }) => {
       let newSession: Session = null;
+
+      queryClient.invalidateQueries();
 
       try {
         const { user, userOrg, org } = await upsertUser({
@@ -160,13 +168,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return newSession;
     },
-    [setSession],
+    [setSession, queryClient, destroySession],
   );
-
-  const destroySession = () => {
-    setSession(null);
-    setIsLoaded(true);
-  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -183,7 +186,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [createSession]);
+  }, [createSession, destroySession]);
 
   const signInWithEmail = async ({
     email,
@@ -284,7 +287,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      queryClient.invalidateQueries();
       destroySession();
 
       if (pathname.includes("/admin")) {

@@ -90,7 +90,9 @@ export function FeedbackPosts() {
       {isPending && <FeedbackPostsLoading />}
 
       {isError && (
-        <div className="py-4 text-center text-red-500">Error loading posts</div>
+        <div className="text-destructive py-4 text-center">
+          Error loading posts
+        </div>
       )}
 
       {isPlatformEmpty && (
