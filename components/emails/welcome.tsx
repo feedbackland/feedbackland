@@ -15,15 +15,13 @@ import {
 } from "@react-email/components";
 
 export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
-  const previewText = `Welcome to Feedbackland! Your new feedback platform is ready.`;
-
   return (
     <Tailwind>
       <Html lang="en">
         <Head>
           <title>Welcome to Feedbackland!</title>
         </Head>
-        <Preview>{previewText}</Preview>
+        <Preview>Your feedback platform is ready.</Preview>
         <Body className="bg-gray-100 font-sans">
           <Container className="mx-auto my-10 max-w-xl rounded-lg bg-white py-5 pb-12 shadow-md">
             <Section className="px-6 py-8 sm:px-12">
@@ -39,19 +37,19 @@ export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
               <Text className="mb-6 text-center text-3xl font-bold text-gray-800">
                 Welcome to Feedbackland!
               </Text>
-              <Text className="text-base leading-relaxed text-gray-600">
+              <Text className="text-base leading-relaxed text-black">
                 Congratulations! Your feedback platform is all set up and ready
                 for you to start collecting feedback.
               </Text>
               <Section className="my-8 text-center">
                 <Button
                   href={`https://${orgId}.feedbackland.com`}
-                  className="rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-blue-700"
+                  className="hover:bg-opacity-80 rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 >
                   Access Your Platform
                 </Button>
               </Section>
-              <Text className="text-base leading-relaxed text-gray-600">
+              <Text className="text-base leading-relaxed text-black">
                 You can start collecting feedback right away. If you're
                 wondering where to begin, consider adding the widget to your
                 app.
@@ -61,7 +59,7 @@ export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
             <Hr className="my-6 border-t border-gray-300" />
 
             <Section className="px-6 py-6 sm:px-12">
-              <Text className="text-base leading-relaxed text-gray-600">
+              <Text className="text-base leading-relaxed text-black">
                 Your feedback is invaluable. Please feel free to share your
                 thoughts, suggestions, or any issues you encounter on our own
                 feedback platform:
@@ -69,7 +67,7 @@ export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
               <Section className="my-8 text-center">
                 <Button
                   href={`https://feedback.feedbackland.com`}
-                  className="rounded-lg bg-green-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-green-600"
+                  className="hover:bg-opacity-80 rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 >
                   Give Feedback on Feedbackland
                 </Button>
@@ -79,21 +77,21 @@ export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
             <Hr className="my-6 border-t border-gray-300" />
 
             <Section className="px-6 pt-6 pb-12 sm:px-12">
-              <Text className="text-base leading-relaxed text-gray-600">
+              <Text className="text-base leading-relaxed text-black">
                 If you have any questions, need help getting started, or just
                 want to say hi, don't hesitate to reach out to us directly at{" "}
                 <Link
                   href="mailto:hello@feedbackland.com"
-                  className="text-blue-600 underline hover:text-blue-700"
+                  className="text-black underline"
                 >
                   hello@feedbackland.com
                 </Link>
                 .
               </Text>
-              <Text className="mt-5 text-base leading-relaxed text-gray-600">
+              <Text className="mt-5 text-base leading-relaxed text-black">
                 Happy feedback collecting!
               </Text>
-              <Text className="mt-5 text-base leading-relaxed text-gray-600">
+              <Text className="mt-5 text-base leading-relaxed text-black">
                 Best regards,
                 <br />
                 The Feedbackland Team
