@@ -19,6 +19,7 @@ import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useMaindomain } from "@/hooks/use-maindomain";
 
 const FormSchema = z.object({
   orgSubdomain: z
@@ -46,6 +47,8 @@ export function PlatformUrl({
     query: { data },
   } = useOrg();
 
+  const maindomain = useMaindomain();
+
   const updateOrg = useUpdateOrg();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -62,7 +65,17 @@ export function PlatformUrl({
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({ orgSubdomain: formData.orgSubdomain });
+    const { orgSubdomain: subdomain } = await updateOrg.mutateAsync({
+      orgSubdomain: formData.orgSubdomain,
+    });
+
+    const { protocol, port } = window.location;
+    const isLocalhost = maindomain?.includes("localhost");
+    const url = isLocalhost
+      ? `${protocol}//${maindomain}:${port}/${subdomain}/admin/settings`
+      : `${protocol}//${subdomain}.${maindomain}/admin/settings`;
+    window.location.href = url;
+
     setIsEditing(false);
   }
 
@@ -105,7 +118,12 @@ export function PlatformUrl({
                 )}
               />
               {isEditing && (
-                <Button type="submit" size="sm" className="mt-3">
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="mt-3"
+                  loading={updateOrg.isPending}
+                >
                   Save
                 </Button>
               )}

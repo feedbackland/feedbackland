@@ -99,7 +99,12 @@ export function PlatformDescription({
                 )}
               />
               {isEditing && (
-                <Button type="submit" size="sm" className="mt-3">
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="mt-3"
+                  loading={updateOrg.isPending}
+                >
                   Save
                 </Button>
               )}
