@@ -8,7 +8,7 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
-import { IframeResizerProvider } from "@/providers/iframe-resizer";
+// import { IframeResizerProvider } from "@/providers/iframe-resizer";
 import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
 
