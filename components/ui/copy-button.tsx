@@ -4,6 +4,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Check, Copy } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const CopyButton = ({
   text,
@@ -25,17 +30,22 @@ export const CopyButton = ({
   };
 
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      onClick={handleCopy}
-      className={cn("", className)}
-    >
-      {isCopied ? (
-        <Check className="size-3.5!" />
-      ) : (
-        <Copy className="size-3.5!" />
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={handleCopy}
+          className={cn("", className)}
+        >
+          {isCopied ? (
+            <Check className="size-3.5!" />
+          ) : (
+            <Copy className="size-3.5!" />
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Copy</TooltipContent>
+    </Tooltip>
   );
 };

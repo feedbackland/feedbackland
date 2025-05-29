@@ -16,15 +16,17 @@ export function ActivityFeed() {
     <div className="pt-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="h3">Activity Feed</h2>
-        <Button
-          disabled={metaData?.totalUnseenCount === 0}
-          loading={allActivitiesSeen.isPending}
-          onClick={() => {
-            allActivitiesSeen.mutate();
-          }}
-        >
-          Mark all as read
-        </Button>
+        {metaData && metaData?.totalUnseenCount > 0 && (
+          <Button
+            disabled={metaData?.totalUnseenCount === 0}
+            loading={allActivitiesSeen.isPending}
+            onClick={() => {
+              allActivitiesSeen.mutate();
+            }}
+          >
+            Mark all as read
+          </Button>
+        )}
       </div>
       <ActivityFeedList />
     </div>

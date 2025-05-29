@@ -205,7 +205,7 @@ export function ActivityFeedList({
         </div>
 
         <div className="border-border overflow-hidden rounded-lg border shadow-xs">
-          <ActivityFeedListHeader className="border-border bg-muted/50 border-b pr-2 pl-3" />
+          <ActivityFeedListHeader className="border-border bg-muted/50 dark:bg-background border-b pr-2 pl-3" />
 
           <div className="flex flex-col items-stretch">
             {showItems && <ActivityFeedListItems items={items} />}

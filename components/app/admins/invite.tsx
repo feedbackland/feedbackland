@@ -85,7 +85,7 @@ export function AdminsInvite() {
                     <div className="flex flex-row items-center gap-4">
                       <Input
                         type="email"
-                        autoFocus={true}
+                        autoFocus={false}
                         className="w-full max-w-[350px] text-sm"
                         placeholder="Email of the person you want to invite"
                         {...field}
