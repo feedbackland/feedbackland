@@ -6,16 +6,18 @@ import { getUserWithRoleAndOrgQuery } from "@/queries/get-user-with-role-and-org
 import { getOrgQuery } from "@/queries/get-org";
 import { UserRole } from "@/lib/typings";
 
-const getUserID = async (req: Request) => {
+const getFirebaseUser = async (req: Request) => {
   const authorization = req.headers.get("authorization");
   const idToken = authorization?.split(" ")?.[1];
   const user = idToken ? await adminAuth.verifyIdToken(idToken) : null;
-  return user?.uid || null;
+  return user;
 };
 
 export const createContext = async ({ req }: { req: Request }) => {
   const orgSubdomain = req?.headers?.get("subdomain");
-  const userId = await getUserID(req);
+  const firebaseUser = await getFirebaseUser(req);
+  const userId = firebaseUser?.uid || null;
+  const userEmail = firebaseUser?.email || null;
   let orgId: string | null | undefined;
   let orgName: string | null | undefined;
   let orgIsClaimed: boolean | null | undefined;
@@ -49,6 +51,7 @@ export const createContext = async ({ req }: { req: Request }) => {
     orgSubdomain,
     orgIsClaimed,
     userId,
+    userEmail,
     userRole,
   };
 };

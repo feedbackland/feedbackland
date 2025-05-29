@@ -13,7 +13,13 @@ export function cn(...inputs: ClassValue[]) {
 
 export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
-export const reservedSubdomains = ["get-started", "auth", "public"];
+export const reservedSubdomains = [
+  "new",
+  "auth",
+  "public",
+  "static",
+  "get-started",
+];
 
 export const slugifySubdomain = (text: string) => {
   return text

@@ -31,7 +31,7 @@ export const AdminInviteEmail = ({
                 src="https://public.feedbackland.com/feedbackland_logo_email.png"
                 width="170"
                 height="20"
-                alt="Feedbackland"
+                alt="Feedbackland logo"
                 className="mx-auto my-0"
               />
             </Section>
