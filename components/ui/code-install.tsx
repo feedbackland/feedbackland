@@ -2,7 +2,12 @@
 
 import { CopyButton } from "./copy-button";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs-underlined";
 import { useState } from "react";
 
 interface CodeProps {
@@ -10,36 +15,33 @@ interface CodeProps {
   className?: React.ComponentProps<"div">["className"];
 }
 
-const tabsTriggerClassnames = `inline-flex items-center justify-center whitespace-nowrap rounded-none border-b border-transparent bg-transparent p-0 pb-2 font-mono text-xs font-medium text-zinc-400 ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-b-white data-[state=active]:bg-transparent data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm`;
-
-const tabsContentClassnames = `border-t border-border/20 px-4 py-3 font-mono text-xs`;
-
-const packageManagers = ["npm", "pnpm", "yarn", "bun"];
-
 export function CodeInstall({ packageName, className }: CodeProps) {
+  const packageManagers = ["npm", "pnpm", "yarn", "bun"];
+
   const [selectedPackageManager, setSelectedPackageManager] = useState("npm");
-  const text = `${selectedPackageManager} ${selectedPackageManager === "npm" ? "install" : "add"} ${packageName}`;
+
+  const text = `${selectedPackageManager} ${selectedPackageManager === "npm" ? "i" : "add"} ${packageName}`;
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-lg bg-primary text-primary-foreground",
+        "border-border relative overflow-hidden rounded-lg border bg-black text-white shadow-xs",
         className,
       )}
     >
-      <CopyButton className="absolute right-1.5 top-1" text={text} />
+      <CopyButton className="absolute! top-1 right-1.5" text={text} />
 
       <Tabs
         value={selectedPackageManager}
         onValueChange={setSelectedPackageManager}
       >
-        <TabsList className="inline-flex h-0 translate-y-[2px] items-center justify-center gap-3 rounded-lg bg-transparent p-0 pl-4 text-muted-foreground">
+        <TabsList className="border-muted-foreground px-4">
           {packageManagers.map((packageManager) => {
             return (
               <TabsTrigger
                 key={packageManager}
                 value={packageManager}
-                className={tabsTriggerClassnames}
+                className="text-xs data-[state=active]:border-b-white data-[state=active]:bg-transparent data-[state=active]:text-white"
               >
                 {packageManager}
               </TabsTrigger>
@@ -52,7 +54,7 @@ export function CodeInstall({ packageName, className }: CodeProps) {
             <TabsContent
               key={packageManager}
               value={packageManager}
-              className={tabsContentClassnames}
+              className="px-4 pt-2 pb-4 font-mono text-sm"
             >
               <pre>
                 <code>{text}</code>

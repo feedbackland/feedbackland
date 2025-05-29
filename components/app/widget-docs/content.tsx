@@ -2,12 +2,6 @@
 
 import { Code } from "@/components/ui/code";
 import { CodeInstall } from "@/components/ui/code-install";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs-underlined";
 
 export function WidgetDocsContent({ orgId }: { orgId: string }) {
   const overlayWidgetCode = `import { OverlayWidget } from "feedbackland/react";
@@ -16,63 +10,31 @@ function App() {
   return <OverlayWidget id="${orgId}" />;
 }`;
 
-  const inlineWidgetCode = `import { InlineWidget } from "feedbackland/react";
-
-function App() {
-  return <InlineWidget id="${orgId}" />;
-}`;
-
   return (
     <div className="flex flex-col">
-      <Tabs defaultValue="overlay" className="">
-        <TabsList>
-          <TabsTrigger value="overlay" className="text-sm">
-            Overlay widget
-          </TabsTrigger>
-          <TabsTrigger value="inline" className="text-sm">
-            Inline Widget
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="overlay" className="pt-2">
-          <>
-            <h3 className="text-muted-foreground text-sm font-medium">
-              Adds a button to your app that slides in the platform as an
-              overlay when clicked
-            </h3>
-            <div className="mt-6 flex flex-col space-y-6">
-              <div>
-                <h3 className="text-primary mb-2 text-sm font-medium">
-                  Step 1 - Install the feedbackland package
-                </h3>
-                <CodeInstall packageName="feedbackland/react" />
-              </div>
-              <div>
-                <h3 className="text-primary mb-2 text-sm font-medium">
-                  Step 2 - Add the widget component to your app
-                </h3>
-                <Code
-                  title="App.tsx"
-                  code={overlayWidgetCode}
-                  showLineNumbers={true}
-                  language="tsx"
-                  className="min-h-[148px]"
-                />
-              </div>
-            </div>
-          </>
-        </TabsContent>
-        <TabsContent value="inline">
-          <div className="mt-5 flex flex-col space-y-3">
-            <CodeInstall packageName="feedbackland/react" />
-            <Code
-              title="App.tsx"
-              code={inlineWidgetCode}
-              showLineNumbers={true}
-              language="tsx"
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+      <h3 className="text-muted-foreground text-sm font-medium">
+        Adds a button to your app that slides in the platform as an overlay when
+        clicked
+      </h3>
+      <div className="mt-6 flex flex-col space-y-6">
+        <div>
+          <h3 className="text-primary mb-3 text-sm font-medium">
+            Step 1 - Install the package
+          </h3>
+          <CodeInstall packageName="feedbackland/react" />
+        </div>
+        <div>
+          <h3 className="text-primary mb-3 text-sm font-medium">
+            Step 2 - Add the widget to your app
+          </h3>
+          <Code
+            code={overlayWidgetCode}
+            showLineNumbers={true}
+            language="tsx"
+            className=""
+          />
+        </div>
+      </div>
     </div>
   );
 }

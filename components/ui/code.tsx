@@ -13,13 +13,11 @@ export function Code({
   code,
   language = "ts",
   showLineNumbers = false,
-  title,
   className,
 }: {
   code: string;
   language?: string;
   showLineNumbers?: boolean;
-  title?: string;
   className?: React.ComponentProps<"div">["className"];
 }) {
   const [highlightedCode, setHighlightedCode] = useState("");
@@ -46,23 +44,21 @@ export function Code({
   return (
     <div
       className={cn(
-        "bg-primary relative flex flex-col overflow-hidden rounded-lg text-gray-100",
+        "border-border relative flex flex-col overflow-hidden rounded-lg border bg-black p-4 shadow-xs",
         className,
       )}
     >
       <CopyButton
-        className={cn("absolute right-1.5", title ? "top-1.5" : "top-3")}
+        className="absolute! top-1.5 right-1.5 text-white"
         text={code}
       />
-      {title && (
-        <div className="border-border/20 bg-primary flex items-center justify-between border-b px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-200">{title}</span>
-          </div>
-        </div>
-      )}
+
+      {/* <pre>
+        <code>{code}</code>
+      </pre> */}
+
       <div
-        className="scrollbar grow overflow-x-auto p-4 text-xs"
+        className="scrollbar grow overflow-x-auto font-mono text-sm"
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
       />
     </div>
