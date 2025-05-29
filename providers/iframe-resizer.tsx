@@ -1,7 +1,7 @@
 "use client";
 
 // import "@iframe-resizer/child";
-import "@open-iframe-resizer/core";
+// import "@open-iframe-resizer/core";
 // import Script from "next/script";
 // import dynamic from "next/dynamic";
 

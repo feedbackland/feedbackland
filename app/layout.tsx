@@ -1,6 +1,7 @@
 "use client";
 
-import "@open-iframe-resizer/core";
+// import "@open-iframe-resizer/core";
+import "@iframe-resizer/child";
 import "./globals.css";
 // import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
