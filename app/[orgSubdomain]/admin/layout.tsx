@@ -6,7 +6,6 @@ import { useRouter, usePathname, useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, useState, ReactNode } from "react";
-import { useWindowSize } from "react-use";
 
 export default function AdminTabLayout({ children }: { children: ReactNode }) {
   const { session, isLoaded } = useAuth();
@@ -15,14 +14,12 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
-  const { width } = useWindowSize();
   const orgSubdomain = params.orgSubdomain as string;
 
   const [activeTab, setActiveTab] = useState("activity");
 
   useEffect(() => {
     if (isLoaded && platformUrl && session && !isAdmin) {
-      // Redirect non-admins or users without org role away from admin pages
       router.push(platformUrl);
     }
   }, [isLoaded, platformUrl, session, isAdmin, router]);
@@ -30,14 +27,16 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (pathname && orgSubdomain) {
       const pathSegments = pathname.split("/");
-      // Expected path: /<orgSubdomain>/admin/<tabName>
-      // pathSegments: ["", "orgSubdomain", "admin", "tabName"]
-      let currentSubPath = "activity"; // Default for /<orgSubdomain>/admin
+      let currentSubPath = "activity";
 
       if (pathSegments.length > 3 && pathSegments[2] === "admin") {
         const tabName = pathSegments[3];
 
-        if (["activity", "insights", "settings", "admins"].includes(tabName)) {
+        if (
+          ["activity", "insights", "settings", "admins", "widget"].includes(
+            tabName,
+          )
+        ) {
           currentSubPath = tabName;
         }
       }
@@ -47,12 +46,10 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   }, [pathname, orgSubdomain]);
 
   if (!isLoaded) {
-    return <div>Loading admin section...</div>; // Or a skeleton loader
+    return <div>Loading admin panel...</div>;
   }
 
   if (!session || !isAdmin) {
-    // If not loaded, or no session, or not admin, don't render admin content.
-    // Redirection is handled by the useEffect above.
     return null;
   }
 
@@ -60,16 +57,14 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
 
   return (
     <div>
-      <Tabs value={activeTab} className="">
+      <Tabs value={activeTab}>
         <TabsList className="">
           <TabsTrigger value="activity" asChild>
             <Link href={`${adminBasePath}/activity`}>Activity</Link>
           </TabsTrigger>
 
           <TabsTrigger value="insights" asChild>
-            <Link href={`${adminBasePath}/insights`}>
-              {width < 600 ? "Insights" : "AI Insights"}
-            </Link>
+            <Link href={`${adminBasePath}/insights`}>AI Insights</Link>
           </TabsTrigger>
 
           <TabsTrigger value="settings" asChild>
@@ -78,6 +73,10 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
 
           <TabsTrigger value="admins" asChild>
             <Link href={`${adminBasePath}/admins`}>Admins</Link>
+          </TabsTrigger>
+
+          <TabsTrigger value="widget" asChild>
+            <Link href={`${adminBasePath}/widget`}>Widget</Link>
           </TabsTrigger>
         </TabsList>
       </Tabs>
