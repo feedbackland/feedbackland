@@ -13,7 +13,7 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
     return await db.transaction().execute(async (trx) => {
       let org = await trx
         .selectFrom("org")
-        .selectAll()
+        .select(["orgSubdomain"])
         .where("id", "=", orgId)
         .executeTakeFirst();
 
@@ -35,11 +35,11 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
             id: orgId,
             orgSubdomain,
           })
-          .returningAll()
+          .returning(["orgSubdomain"])
           .executeTakeFirstOrThrow();
       }
 
-      return org;
+      return org.orgSubdomain;
     });
   } catch (error: any) {
     throw error;
