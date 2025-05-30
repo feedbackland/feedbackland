@@ -1,9 +1,9 @@
-"use client";
+// "use client";
 
-import "@open-iframe-resizer/core";
+// import "@open-iframe-resizer/core";
 // import "@iframe-resizer/child";
 import "./globals.css";
-// import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,10 +15,10 @@ import { ThemeProvider } from "@/providers/theme";
 // import { IframeResizerProvider } from "@/providers/iframe-resizer";
 import { Toaster } from "@/components/ui/sonner";
 
-// export const metadata: Metadata = {
-//   title: "Feedbackland",
-//   description: "User Feedback Platform",
-// };
+export const metadata: Metadata = {
+  title: "Feedbackland",
+  description: "User Feedback Platform",
+};
 
 const inter = Inter({
   subsets: ["latin"],
