@@ -1,7 +1,3 @@
-// "use client";
-
-// import "@open-iframe-resizer/core";
-// import "@iframe-resizer/child";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
@@ -12,7 +8,7 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
-// import { IframeResizerProvider } from "@/providers/iframe-resizer";
+import { IframeResizerProvider } from "@/providers/iframe-resizer";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -55,11 +51,11 @@ export default function RootLayout({
               <TooltipProvider>
                 <JotaiProvider>
                   <NuqsAdapter>
-                    {/* <IframeResizerProvider> */}
-                    <GlobalState />
-                    {children}
-                    <Toaster />
-                    {/* </IframeResizerProvider> */}
+                    <IframeResizerProvider>
+                      <GlobalState />
+                      {children}
+                      <Toaster />
+                    </IframeResizerProvider>
                   </NuqsAdapter>
                 </JotaiProvider>
               </TooltipProvider>

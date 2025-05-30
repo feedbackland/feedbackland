@@ -1,6 +1,5 @@
 "use client";
 
-import "@open-iframe-resizer/core";
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { PlatformHeader } from "@/components/app/platform-header";
 import { useInIframe } from "@/hooks/use-in-iframe";
