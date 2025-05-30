@@ -14,28 +14,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, reservedSubdomains, subdomainRegex } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useMaindomain } from "@/hooks/use-maindomain";
+import { orgSubdomainSchema } from "@/lib/schemas";
 
 const FormSchema = z.object({
-  orgSubdomain: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(1, "Please provide a URL")
-    .max(63, "URL must be at most 63 characters")
-    .regex(
-      subdomainRegex,
-      "URL is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
-    )
-    .refine(
-      (value) => !reservedSubdomains.includes(value),
-      "This URL is reserved for internal use",
-    ),
+  orgSubdomain: orgSubdomainSchema,
 });
 
 export function PlatformUrl({
