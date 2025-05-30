@@ -2,6 +2,20 @@ import { upsertOrgSchema } from "@/lib/schemas";
 import { upsertOrgQuery } from "@/queries/upsert-org";
 import { NextResponse, type NextRequest } from "next/server";
 
+const headers = {
+  "Access-Control-Allow-Origin": "*", // Allow any origin
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS", // Allow common methods
+  "Access-Control-Allow-Headers": "*",
+};
+
+// Handler for OPTIONS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const bodyRaw = await request.json();
@@ -10,11 +24,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(org, {
       status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
+      headers,
     });
   } catch (error: any) {
     return NextResponse.json(
