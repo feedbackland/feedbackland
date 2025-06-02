@@ -35,7 +35,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
 
       <div
         className={cn(
-          "m-auto flex w-full max-w-full grow flex-col px-10 py-5",
+          "m-auto flex w-full max-w-full grow flex-col p-0",
           inIframe === false && "mt-10 mb-10 max-w-[800px] px-5 py-0",
         )}
       >
