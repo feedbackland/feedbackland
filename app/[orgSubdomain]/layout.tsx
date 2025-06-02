@@ -1,12 +1,21 @@
 "use client";
 
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
-import { PlatformHeader } from "@/components/app/platform-header";
+// import { PlatformHeader } from "@/components/app/platform-header";
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
 import { RedeemAdminInvitation } from "@/components/app/redeem-admin-invitation";
 import { useOrg } from "@/hooks/use-org";
 import { SetColorMode } from "@/components/app/set-color-mode";
+import dynamic from "next/dynamic";
+
+const PlatformHeader = dynamic(
+  () =>
+    import("../../components/app/platform-header").then(
+      ({ PlatformHeader }) => PlatformHeader,
+    ),
+  { ssr: false, loading: () => <div>Loading header...</div> },
+);
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
   const {
