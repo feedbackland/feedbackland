@@ -105,11 +105,12 @@ export function FeedbackForm() {
         }}
       />
       <div className="flex flex-col gap-3">
-        <div className="dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg shadow-sm">
+        <div className="dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg">
           <Tiptap
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
+            autofocus={true}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
             <Tooltip>
