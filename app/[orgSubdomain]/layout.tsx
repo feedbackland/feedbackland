@@ -22,7 +22,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
 
   const inIframe = useInIframe();
 
-  // don't render yet if not yet deteremined if in iframe
+  // don't render yet if not yet deteremined if in iframe, or if org not yet loaded
   if (inIframe === null || isPending === true) {
     return null;
   }
@@ -35,7 +35,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
 
       <div
         className={cn(
-          "m-auto flex w-full max-w-full grow flex-col p-0",
+          "m-auto flex w-full max-w-full grow flex-col p-0.5",
           inIframe === false && "mt-10 mb-10 max-w-[800px] px-5 py-0",
         )}
       >
