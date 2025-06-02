@@ -7,10 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SignUpIn } from ".";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Method } from ".";
 import { Session } from "@/hooks/use-auth";
-import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function SignUpInDialog({
   open,
@@ -26,44 +25,6 @@ export function SignUpInDialog({
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
-  const inIframe = useInIframe();
-  const originalBodyHeight = useRef<string | null>(null);
-  const originalBodyOverflow = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (inIframe === null) return; // Wait for inIframe to be determined
-
-    if (open) {
-      // Dialog opens
-      originalBodyHeight.current = document.body.style.height;
-      originalBodyOverflow.current = document.body.style.overflow;
-
-      // Set height to 100vh and hide overflow if in iframe
-      document.body.style.height = "100vh";
-      document.body.style.overflow = "hidden";
-    } else {
-      // Dialog closes
-      // Restore original body styles if in iframe
-      if (originalBodyHeight.current !== null) {
-        document.body.style.height = originalBodyHeight.current;
-      }
-      if (originalBodyOverflow.current !== null) {
-        document.body.style.overflow = originalBodyOverflow.current;
-      }
-    }
-
-    // Cleanup function to ensure styles are reset if component unmounts while dialog is open
-    return () => {
-      if (open) {
-        if (originalBodyHeight.current !== null) {
-          document.body.style.height = originalBodyHeight.current;
-        }
-        if (originalBodyOverflow.current !== null) {
-          document.body.style.overflow = originalBodyOverflow.current;
-        }
-      }
-    };
-  }, [open, inIframe]);
 
   const handleOnSuccess = (session: Session) => {
     onSuccess?.(session);
