@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { RedeemAdminInvitation } from "@/components/app/redeem-admin-invitation";
 import { useOrg } from "@/hooks/use-org";
 import { SetColorMode } from "@/components/app/set-color-mode";
-
 import dynamic from "next/dynamic";
 
 const PlatformHeader = dynamic(() =>

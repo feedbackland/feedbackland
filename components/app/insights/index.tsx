@@ -8,7 +8,14 @@ import { Error } from "@/components/ui/error";
 import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
-import { InsightsDownloadButton } from "./download-button";
+// import { InsightsDownloadButton } from "./download-button";
+import dynamic from "next/dynamic";
+
+const InsightsDownloadButton = dynamic(() =>
+  import("./download-button").then(
+    ({ InsightsDownloadButton }) => InsightsDownloadButton,
+  ),
+);
 
 export function Insights() {
   const trpc = useTRPC();
