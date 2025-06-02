@@ -45,15 +45,11 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
     }
   }, [pathname, orgSubdomain]);
 
-  if (!isLoaded) {
-    return <div>Loading admin panel...</div>;
-  }
-
   if (!session || !isAdmin) {
     return null;
   }
 
-  const adminBasePath = `/${orgSubdomain}/admin`;
+  const adminBasePath = `${platformUrl}/admin`;
 
   return (
     <div>
