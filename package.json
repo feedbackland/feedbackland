@@ -13,6 +13,7 @@
     "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.11",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.0.1",
     "@iframe-resizer/child": "^5.4.6",
@@ -48,8 +49,8 @@
     "@react-email/components": "0.0.41",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.49.9",
-    "@tanstack/react-query": "^5.79.0",
-    "@tanstack/react-query-devtools": "^5.79.0",
+    "@tanstack/react-query": "^5.79.2",
+    "@tanstack/react-query-devtools": "^5.79.2",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
     "@tiptap/extension-color": "^2.12.0",
     "@tiptap/extension-heading": "^2.12.0",
@@ -112,7 +113,7 @@
     "resend": "^4.5.1",
     "sanitize-html": "^2.17.0",
     "server-only": "^0.0.1",
-    "sonner": "^2.0.4",
+    "sonner": "^2.0.5",
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.x",
     "tailwindcss-animate": "^1.0.7",
