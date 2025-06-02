@@ -27,6 +27,7 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { useOrg } from "@/hooks/use-org";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -37,7 +38,7 @@ export function PlatformHeader() {
   const platformUrl = usePlatformUrl();
   const { theme, setTheme } = useTheme();
   const {
-    query: { data: orgData },
+    query: { data: orgData, isPending },
   } = useOrg();
 
   const handleSignOut = async () => {
@@ -53,11 +54,13 @@ export function PlatformHeader() {
       />
       <div className="flex justify-between">
         <div className="flex flex-col">
-          <h1 className="h3 font-extrabold">
-            <Link href={`${platformUrl}`}>
-              {orgData?.platformTitle || "Feedback"}
-            </Link>
-          </h1>
+          {isPending ? (
+            <Skeleton className="h-[32px] w-[230px]" />
+          ) : (
+            <h1 className="h3 font-extrabold">
+              <Link href={`${platformUrl}`}>{orgData?.platformTitle}</Link>
+            </h1>
+          )}
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (

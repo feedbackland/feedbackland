@@ -105,7 +105,7 @@ export function FeedbackForm() {
         }}
       />
       <div className="flex flex-col gap-3">
-        <div className="relative w-full">
+        <div className="dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg shadow-sm">
           <Tiptap
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
