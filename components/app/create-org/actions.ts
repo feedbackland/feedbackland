@@ -5,7 +5,7 @@ import { createOrgQuery } from "@/queries/create-org";
 import { createOrgSchema } from "./validations";
 
 export const createOrgAction = actionClient
-  .schema(createOrgSchema)
+  .inputSchema(createOrgSchema)
   .action(async ({ parsedInput: { orgName, orgSubdomain } }) => {
     try {
       const org = await createOrgQuery({ orgName, orgSubdomain });
