@@ -16,14 +16,14 @@ const PlatformHeader = dynamic(() =>
 );
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
-  const {
-    query: { isPending },
-  } = useOrg();
+  // const {
+  //   query: { isPending },
+  // } = useOrg();
 
   const inIframe = useInIframe();
 
   // don't render yet if not yet deteremined if in iframe, or if org not yet loaded
-  if (inIframe === null || isPending === true) {
+  if (inIframe === null) {
     return null;
   }
 
@@ -35,8 +35,8 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
 
       <div
         className={cn(
-          "m-auto flex w-full max-w-full grow flex-col p-0.5",
-          inIframe === false && "mt-10 mb-10 max-w-[800px] px-5 py-0",
+          "m-auto flex w-full grow flex-col",
+          inIframe ? "px-8 py-6" : "mt-10 mb-10 max-w-[800px] px-5",
         )}
       >
         <PlatformHeader />

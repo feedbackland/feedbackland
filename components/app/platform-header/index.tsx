@@ -28,6 +28,8 @@ import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { useOrg } from "@/hooks/use-org";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAtomValue } from "jotai";
+import { iframeParentRefAtom } from "@/lib/atoms";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -36,6 +38,7 @@ export function PlatformHeader() {
   const isAdmin = session?.userOrg?.role === "admin";
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
+  const iframeParentRef = useAtomValue(iframeParentRefAtom);
   const { theme, setTheme } = useTheme();
   const {
     query: { data: orgData, isPending },
@@ -133,7 +136,9 @@ export function PlatformHeader() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setTheme((theme) => (theme === "light" ? "dark" : "light"));
+                  const newTheme = theme === "light" ? "dark" : "light";
+                  setTheme(newTheme);
+                  iframeParentRef?.selectedColorMode(newTheme);
                 }}
                 className="flex items-center justify-between"
               >

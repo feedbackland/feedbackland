@@ -10,7 +10,6 @@ import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { FeedbackStatus } from "@/lib/typings";
-import { Badge } from "@/components/ui/badge";
 
 function Inner({
   postId,
@@ -44,12 +43,12 @@ function Inner({
         className="group flex flex-col items-stretch space-y-1.5"
       >
         <div className="flex flex-col items-stretch">
-          <h3 className="text-[16px] leading-5.5 font-semibold group-hover:underline">
+          <h3 className="mb-0.5 text-[17px] leading-5.5 font-semibold group-hover:underline">
             {title}
           </h3>
 
-          <div className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs font-normal">
-            <span>{timeAgo.format(createdAt)}</span>
+          <div className="text-muted-foreground mb-1 flex items-center gap-1 text-xs font-normal">
+            <span>{timeAgo.format(createdAt, "mini")}</span>
             <span className="text-[8px]">•</span>
             <span className="capitalize">{category}</span>
             {status && (
@@ -66,10 +65,6 @@ function Inner({
               </>
             )}
           </div>
-
-          {/* {status && (
-            <Badge className={`bg-${status.replace(" ", "-")}`}>{status}</Badge>
-          )} */}
         </div>
 
         <TiptapOutput
