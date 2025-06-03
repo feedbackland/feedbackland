@@ -12,8 +12,6 @@ import { Method } from ".";
 import { Session } from "@/hooks/use-auth";
 import { useAtomValue } from "jotai";
 import { iframeParentRefAtom } from "@/lib/atoms";
-import { useInIframe } from "@/hooks/use-in-iframe";
-import { cn } from "@/lib/utils";
 
 export function SignUpInDialog({
   open,
@@ -26,10 +24,11 @@ export function SignUpInDialog({
   onClose: () => void;
   onSuccess?: (session: Session) => void;
 }) {
-  // const inIframe = useInIframe();
-  const iframeParentRef = useAtomValue(iframeParentRefAtom);
-  const [scrollY, setScrollY] = useState<number | null>(null);
+  const dialogOffsetY = 300;
 
+  const iframeParentRef = useAtomValue(iframeParentRefAtom);
+
+  const [scrollY, setScrollY] = useState(dialogOffsetY);
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
@@ -42,10 +41,10 @@ export function SignUpInDialog({
   useEffect(() => {
     if (open && iframeParentRef) {
       iframeParentRef.getScrollY().then((scrollY) => {
-        setScrollY(Math.round(scrollY));
+        setScrollY(Math.round(scrollY + dialogOffsetY));
       });
     } else {
-      setScrollY(null);
+      setScrollY(dialogOffsetY);
     }
   }, [open, iframeParentRef]);
 
@@ -60,10 +59,8 @@ export function SignUpInDialog({
         }}
       >
         <DialogContent
-          // className={cn("max-w-[420px]! pb-8")}
-          className="!fixed !left-1/2 w-full max-w-lg !-translate-x-1/2"
-          // Inline style to set dynamic top position:
-          style={{ top: `${scrollY + 300}px` }}
+          className="max-w-[420px]! duration-0!"
+          style={{ top: `${scrollY}px` }}
         >
           <DialogHeader>
             <DialogTitle className="h3 mb-5 text-center">
