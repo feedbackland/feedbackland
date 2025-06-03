@@ -45,11 +45,11 @@ export function ActivityFeedListItem({
             <Lightbulb className="size-4!" />
           )}
 
-          {item.type !== "comment" && category === "bug report" && (
+          {item.type !== "comment" && category === "general feedback" && (
             <Inbox className="size-4!" />
           )}
 
-          {item.type !== "comment" && category === "general feedback" && (
+          {item.type !== "comment" && category === "bug report" && (
             <BugIcon className="size-4!" />
           )}
         </div>
