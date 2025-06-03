@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function AdminRedirectPage() {
@@ -10,17 +10,16 @@ export default function AdminRedirectPage() {
   const isAdmin = session?.userOrg?.role === "admin";
   const platformUrl = usePlatformUrl();
   const router = useRouter();
-  const params = useParams();
-  const orgSubdomain = params.orgSubdomain as string;
 
   useEffect(() => {
-    if (isLoaded && !isAdmin) {
-      router.push(platformUrl);
-    } else if (isLoaded && orgSubdomain && isAdmin) {
-      router.replace(`/${orgSubdomain}/admin/activity`);
+    if (isLoaded) {
+      if (isAdmin) {
+        router.replace(`${platformUrl}/admin/activity`);
+      } else {
+        router.push(platformUrl);
+      }
     }
-  }, [isLoaded, platformUrl, isAdmin, router, orgSubdomain]);
+  }, [isLoaded, platformUrl, isAdmin, router]);
 
-  // Render null or a loading indicator while redirecting
   return null;
 }
