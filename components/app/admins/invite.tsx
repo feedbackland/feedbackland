@@ -40,7 +40,7 @@ export function AdminsInvite() {
       form.clearErrors();
 
       await createAdminInvite.mutateAsync({
-        platformUrl,
+        platformUrl: platformUrl || "",
         email: formData.email,
         invitedBy:
           session?.user?.name ||

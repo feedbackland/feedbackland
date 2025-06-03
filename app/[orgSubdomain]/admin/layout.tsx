@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
 
-export default function AdminTabLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const { session, isLoaded } = useAuth();
   const isAdmin = session?.userOrg?.role === "admin";
   const platformUrl = usePlatformUrl();
@@ -15,7 +15,7 @@ export default function AdminTabLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isLoaded && !isAdmin) {
+    if (platformUrl && isLoaded && !isAdmin) {
       router.push(platformUrl);
     }
   }, [isLoaded, platformUrl, isAdmin, router]);

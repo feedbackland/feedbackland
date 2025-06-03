@@ -12,7 +12,7 @@ export default function AdminRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded) {
+    if (platformUrl && isLoaded) {
       if (isAdmin) {
         router.replace(`${platformUrl}/admin/activity`);
       } else {

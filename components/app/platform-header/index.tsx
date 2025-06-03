@@ -66,9 +66,13 @@ export function PlatformHeader() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {isAdmin && (
+          {isAdmin && platformUrl && (
             <Button variant="ghost" size="default" asChild>
-              <Link href={isAdminPage ? platformUrl : `${platformUrl}/admin`}>
+              <Link
+                href={
+                  isAdminPage ? platformUrl : `${platformUrl}/admin/activity`
+                }
+              >
                 <span className="flex items-center gap-2">
                   {isAdminPage ? (
                     <HomeIcon className="size-3.5!" />
@@ -122,7 +126,7 @@ export function PlatformHeader() {
                   {session?.userOrg?.role === "admin" && (
                     <DropdownMenuItem asChild>
                       <Link
-                        href={`${platformUrl}/admin`}
+                        href={`${platformUrl}/admin/activity`}
                         className="flex items-center gap-2"
                       >
                         <ShieldIcon className="size-3.5!" />

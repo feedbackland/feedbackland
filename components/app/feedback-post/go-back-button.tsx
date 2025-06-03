@@ -15,13 +15,13 @@ export const GoBackButton = ({
 }) => {
   const router = useRouter();
   const previousPathname = useAtomValue(previousPathnameAtom);
-  const platfromUrl = usePlatformUrl();
+  const platformUrl = usePlatformUrl();
 
   const handleGoBack = () => {
     if (previousPathname) {
       router.back();
-    } else {
-      router.push(platfromUrl as string);
+    } else if (platformUrl) {
+      router.push(platformUrl);
     }
   };
 

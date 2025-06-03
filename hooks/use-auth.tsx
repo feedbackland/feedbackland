@@ -289,7 +289,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await firebaseSignOut(auth);
       destroySession();
 
-      if (pathname.includes("/admin")) {
+      if (pathname.includes("/admin") && platformUrl) {
         router.push(platformUrl);
       }
 
