@@ -1,12 +1,38 @@
 "use client";
 
 import "@open-iframe-resizer/core";
-// import "@iframe-resizer/child";
+import { WindowMessenger, connect } from "penpal";
+import { useEffect } from "react";
+import { IframeParentAPI } from "@/lib/typings";
+import { useSetAtom } from "jotai";
+import { iframeParentRefAtom } from "@/lib/atoms";
 
 export function IframeResizerProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const setIframeParentRef = useSetAtom(iframeParentRefAtom);
+
+  useEffect(() => {
+    const messenger = new WindowMessenger({
+      remoteWindow: window.parent,
+      allowedOrigins: ["*"],
+    });
+
+    const connection = connect<IframeParentAPI>({
+      messenger,
+    });
+
+    connection.promise.then((parent) => {
+      setIframeParentRef(parent);
+    });
+
+    return () => {
+      setIframeParentRef(null);
+      connection.destroy();
+    };
+  }, [setIframeParentRef]);
+
   return children;
 }

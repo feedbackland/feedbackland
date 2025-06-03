@@ -1,5 +1,7 @@
 import { atomWithReset } from "jotai/utils";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
+import { RemoteProxy } from "penpal";
+import { IframeParentAPI } from "@/lib/typings";
 
 export const previousPathnameAtom = atomWithReset<string | undefined>(
   undefined,
@@ -36,3 +38,6 @@ export const feedbackPostsStateAtom = atomWithReset<{
 });
 
 export const expandedInsightsAtom = atomWithReset<Record<string, boolean>>({});
+
+export const iframeParentRefAtom =
+  atomWithReset<RemoteProxy<IframeParentAPI> | null>(null);

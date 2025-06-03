@@ -70,3 +70,7 @@ export type InsightData = {
   ids: string[];
   createdAt: Date; // Timestamp from DB often comes as Date object
 };
+
+export type IframeParentAPI = {
+  getScrollY: () => Promise<number>;
+};

@@ -13,7 +13,6 @@
     "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.12",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.0.1",
     "@iframe-resizer/child": "^5.4.6",
@@ -49,8 +48,8 @@
     "@react-email/components": "0.0.41",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.49.9",
-    "@tanstack/react-query": "^5.79.2",
-    "@tanstack/react-query-devtools": "^5.79.2",
+    "@tanstack/react-query": "^5.80.2",
+    "@tanstack/react-query-devtools": "^5.80.2",
     "@tiptap/extension-code-block-lowlight": "^2.12.0",
     "@tiptap/extension-color": "^2.12.0",
     "@tiptap/extension-heading": "^2.12.0",
