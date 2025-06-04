@@ -5,14 +5,10 @@ import { WindowMessenger, connect } from "penpal";
 import { useEffect } from "react";
 import { IframeParentAPI } from "@/lib/typings";
 import { useSetAtom } from "jotai";
-import { iframeParentRefAtom } from "@/lib/atoms";
+import { iframeParentAtom } from "@/lib/atoms";
 
-export function IframeResizerProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const setIframeParentRef = useSetAtom(iframeParentRefAtom);
+export function IframeProvider({ children }: { children: React.ReactNode }) {
+  const setIframeParent = useSetAtom(iframeParentAtom);
 
   useEffect(() => {
     const messenger = new WindowMessenger({
@@ -25,14 +21,14 @@ export function IframeResizerProvider({
     });
 
     connection.promise.then((parent) => {
-      setIframeParentRef(parent);
+      setIframeParent(parent);
     });
 
     return () => {
-      setIframeParentRef(null);
+      setIframeParent(null);
       connection.destroy();
     };
-  }, [setIframeParentRef]);
+  }, [setIframeParent]);
 
   return children;
 }

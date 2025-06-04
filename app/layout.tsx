@@ -8,7 +8,7 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
-import { IframeResizerProvider } from "@/providers/iframe-resizer";
+import { IframeProvider } from "@/providers/iframe";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -51,11 +51,11 @@ export default function RootLayout({
               <TooltipProvider>
                 <JotaiProvider>
                   <NuqsAdapter>
-                    <IframeResizerProvider>
+                    <IframeProvider>
                       <GlobalState />
                       {children}
                       <Toaster />
-                    </IframeResizerProvider>
+                    </IframeProvider>
                   </NuqsAdapter>
                 </JotaiProvider>
               </TooltipProvider>

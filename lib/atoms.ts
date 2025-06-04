@@ -39,5 +39,5 @@ export const feedbackPostsStateAtom = atomWithReset<{
 
 export const expandedInsightsAtom = atomWithReset<Record<string, boolean>>({});
 
-export const iframeParentRefAtom =
+export const iframeParentAtom =
   atomWithReset<RemoteProxy<IframeParentAPI> | null>(null);

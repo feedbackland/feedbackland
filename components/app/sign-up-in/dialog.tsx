@@ -7,11 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SignUpIn } from ".";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Method } from ".";
 import { Session } from "@/hooks/use-auth";
-import { useAtomValue } from "jotai";
-import { iframeParentRefAtom } from "@/lib/atoms";
 
 export function SignUpInDialog({
   open,
@@ -24,11 +22,6 @@ export function SignUpInDialog({
   onClose: () => void;
   onSuccess?: (session: Session) => void;
 }) {
-  const dialogOffsetY = 300;
-
-  const iframeParentRef = useAtomValue(iframeParentRefAtom);
-
-  const [scrollY, setScrollY] = useState(dialogOffsetY);
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
@@ -37,17 +30,6 @@ export function SignUpInDialog({
     onSuccess?.(session);
     onClose();
   };
-
-  useEffect(() => {
-    const setDialogPosition = async () => {
-      const scrollY = await (iframeParentRef?.getScrollY() || 0);
-      setScrollY(Math.round(scrollY + dialogOffsetY));
-    };
-
-    if (open && iframeParentRef) {
-      setDialogPosition();
-    }
-  }, [open, iframeParentRef]);
 
   return (
     <Dialog
@@ -58,10 +40,7 @@ export function SignUpInDialog({
         }
       }}
     >
-      <DialogContent
-        className="max-w-[420px]! duration-0!"
-        style={{ top: `${scrollY}px` }}
-      >
+      <DialogContent className="max-w-[420px]!">
         <DialogHeader>
           <DialogTitle className="h3 mb-5 text-center">
             {selectedMethod === "sign-in" && "Sign in"}

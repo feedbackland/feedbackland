@@ -72,6 +72,5 @@ export type InsightData = {
 };
 
 export type IframeParentAPI = {
-  getScrollY: () => number;
   setColorMode: (colorMode: "light" | "dark") => void;
 };

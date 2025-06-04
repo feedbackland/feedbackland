@@ -13,6 +13,19 @@ import { useInIframe } from "@/hooks/use-in-iframe";
 import { isUuidV4 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
+function isInViewport(el: Element) {
+  if (!(el instanceof HTMLElement)) return false;
+
+  const rect = el.getBoundingClientRect();
+
+  return (
+    rect.bottom >= 0 &&
+    rect.right >= 0 &&
+    rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.left <= (window.innerWidth || document.documentElement.clientWidth)
+  );
+}
+
 export function FeedbackPosts() {
   const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
   const [feedbackPostsState, setFeedbackPostsState] = useAtom(
@@ -24,16 +37,6 @@ export function FeedbackPosts() {
   const postIdToScrollIntoView = isUuidV4(previousPathnameLastSegment || "")
     ? previousPathnameLastSegment
     : null;
-
-  const scrollIntoView = (postId: string) => {
-    const element = document.querySelector(`[data-post-id="${postId}"]`);
-
-    if (element) {
-      setTimeout(() => {
-        element.scrollIntoView({ behavior: "instant", block: "center" });
-      }, 20);
-    }
-  };
 
   const { searchValue, orderBy, status } = feedbackPostsState;
 
@@ -88,7 +91,18 @@ export function FeedbackPosts() {
       !isPending
     ) {
       setIsScrolledIntoView(true);
-      scrollIntoView(postIdToScrollIntoView);
+
+      const element = document.querySelector(
+        `[data-post-id="${postIdToScrollIntoView}"]`,
+      );
+
+      if (element) {
+        setTimeout(() => {
+          if (!isInViewport(element)) {
+            element.scrollIntoView({ behavior: "instant", block: "center" });
+          }
+        }, 20);
+      }
     }
   }, [inIframe, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
