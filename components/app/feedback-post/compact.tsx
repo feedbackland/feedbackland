@@ -37,7 +37,7 @@ function Inner({
   const platformUrl = usePlatformUrl();
 
   return (
-    <div className={cn("", className)}>
+    <div className={cn("", className)} data-post-id={postId}>
       <Link
         href={`${platformUrl}/${postId}`}
         className="group flex flex-col items-stretch space-y-1.5"

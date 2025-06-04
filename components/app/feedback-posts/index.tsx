@@ -7,13 +7,33 @@ import { FeedbackPostsSearchInput } from "./search-input";
 import { useInView } from "react-intersection-observer";
 import { FeedbackPostsLoading } from "./loading";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
-import { feedbackPostsStateAtom } from "@/lib/atoms";
-import { useAtom } from "jotai";
+import { feedbackPostsStateAtom, previousPathnameAtom } from "@/lib/atoms";
+import { useAtom, useAtomValue } from "jotai";
+import { useInIframe } from "@/hooks/use-in-iframe";
+import { isUuidV4 } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function FeedbackPosts() {
+  const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
   const [feedbackPostsState, setFeedbackPostsState] = useAtom(
     feedbackPostsStateAtom,
   );
+  const inIframe = useInIframe();
+  const previousPathname = useAtomValue(previousPathnameAtom);
+  const previousPathnameLastSegment = previousPathname?.split("/").pop();
+  const postIdToScrollIntoView = isUuidV4(previousPathnameLastSegment || "")
+    ? previousPathnameLastSegment
+    : null;
+
+  const scrollIntoView = (postId: string) => {
+    const element = document.querySelector(`[data-post-id="${postId}"]`);
+
+    if (element) {
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: "instant", block: "center" });
+      }, 50);
+    }
+  };
 
   const { searchValue, orderBy, status } = feedbackPostsState;
 
@@ -59,6 +79,18 @@ export function FeedbackPosts() {
       }
     },
   });
+
+  useEffect(() => {
+    if (
+      inIframe &&
+      postIdToScrollIntoView &&
+      !isScrolledIntoView &&
+      !isPending
+    ) {
+      setIsScrolledIntoView(true);
+      scrollIntoView(postIdToScrollIntoView);
+    }
+  }, [inIframe, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
   const handleSearch = (value: string) => {
     setFeedbackPostsState((prev) => ({
