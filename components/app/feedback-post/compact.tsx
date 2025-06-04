@@ -43,9 +43,9 @@ function Inner({
         className="group flex flex-col items-stretch space-y-1.5"
       >
         <div className="flex flex-col items-stretch">
-          <h3 className="mb-0.5 text-[17px] leading-5.5 font-semibold group-hover:underline">
+          <h2 className="mb-0.5 text-[17px] leading-5.5 font-semibold group-hover:underline">
             {title}
-          </h3>
+          </h2>
 
           <div className="text-muted-foreground mb-1 flex items-center gap-1 text-xs font-normal">
             <span>{timeAgo.format(createdAt, "mini")}</span>
