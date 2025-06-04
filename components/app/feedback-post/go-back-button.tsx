@@ -33,6 +33,7 @@ export const GoBackButton = ({
       className={cn("size-8", className)}
     >
       <ArrowLeft className="size-4" />
+      <span className="sr-only">Go back</span>
     </Button>
   );
 };

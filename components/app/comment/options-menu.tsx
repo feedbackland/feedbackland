@@ -100,6 +100,7 @@ export function CommentsOptionsMenu({
               className="h-fit w-fit px-1.5 py-1"
             >
               <MoreHorizontal className="size-4" />
+              <span className="sr-only">Options</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

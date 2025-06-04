@@ -41,6 +41,7 @@ export function ModeToggle() {
         ) : (
           <Moon className="size-4" />
         )}
+        <span className="sr-only">Toggle dark mode</span>
       </Button>
     );
   }

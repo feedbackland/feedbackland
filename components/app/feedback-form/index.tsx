@@ -125,6 +125,7 @@ export function FeedbackForm() {
                   className="size-8!"
                 >
                   <SendIcon className="size-4!" />
+                  <span className="sr-only">Submit feedback</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Submit feedback</TooltipContent>

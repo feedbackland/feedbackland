@@ -70,6 +70,7 @@ export const ActivityFeedSearchInput = ({
             }}
           >
             <SearchIcon className="size-4" />
+            <span className="sr-only">Search activity feed</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Search activity feed</TooltipContent>
@@ -102,12 +103,13 @@ export const ActivityFeedSearchInput = ({
             "text-muted-foreground hover:text-primary absolute! top-[0.17rem] right-0.5 hidden",
             inputValue?.length > 0 && "block",
           )}
-          onClick={(e) => {
+          onClick={() => {
             reset();
             inputRef.current?.focus();
           }}
         >
           <XIcon className="size-4" />
+          <span className="sr-only">Close search</span>
         </Button>
       </div>
     </div>

@@ -120,6 +120,7 @@ export function FeedbackPostOptionsMenu({
               className={cn("h-fit w-fit px-1.5 py-1", className)}
             >
               <MoreHorizontal className="size-4" />
+              <span className="sr-only">Options</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="">

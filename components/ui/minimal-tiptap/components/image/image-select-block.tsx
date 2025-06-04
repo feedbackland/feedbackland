@@ -55,6 +55,7 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
             className="size-7!"
           >
             <ImageIcon className="size-3.5!" />
+            <span className="sr-only">Upload images</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Upload images</TooltipContent>

@@ -43,6 +43,7 @@ export const CopyButton = ({
           ) : (
             <Copy className="size-3.5!" />
           )}
+          <span className="sr-only">Copy</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>Copy</TooltipContent>

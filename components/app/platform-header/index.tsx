@@ -103,6 +103,7 @@ export function PlatformHeader() {
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost" className="">
                   <MoreHorizontalIcon className="size-3.5!" />
+                  <span className="sr-only">Open options dropdown</span>
                 </Button>
               </DropdownMenuTrigger>
             )}

@@ -76,6 +76,7 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
                   onClick={() => setIsDeleteConfirmationOpen(true)}
                 >
                   <Trash2Icon className="text-destructive! size-3.5!" />
+                  <span className="sr-only">Remove admin</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

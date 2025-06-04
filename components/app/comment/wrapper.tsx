@@ -27,6 +27,7 @@ export function CommentWrapper({
           onClick={() => setIsExpanded(true)}
         >
           <PlusCircleIcon className="size-4!" />
+          <span className="sr-only">Expand comment</span>
         </Button>
       )}
       <Comment

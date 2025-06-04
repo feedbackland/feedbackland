@@ -69,6 +69,7 @@ export const FeedbackPostsSearchInput = ({
             }}
           >
             <SearchIcon className="size-4" />
+            <span className="sr-only">Search feedback</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Search feedback</TooltipContent>
@@ -112,6 +113,7 @@ export const FeedbackPostsSearchInput = ({
         }}
       >
         <XIcon className="size-4" />
+        <span className="sr-only">Close search</span>
       </Button>
     </div>
   );

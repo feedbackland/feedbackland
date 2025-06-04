@@ -161,6 +161,7 @@ export function CommentForm({
               className="text-muted-foreground hover:text-primary absolute! top-0.5 right-1.5 z-10! size-8!"
             >
               <XIcon className="size-3.5!" />
+              <span className="sr-only">Close comment form</span>
             </Button>
           )}
 
@@ -184,6 +185,7 @@ export function CommentForm({
                   className="size-8!"
                 >
                   <SendIcon className="size-4!" />
+                  <span className="sr-only">Submit comment</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Submit comment</TooltipContent>

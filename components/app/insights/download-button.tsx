@@ -59,6 +59,7 @@ export function InsightsDownloadButton() {
           loading={isProcessing}
         >
           <DownloadIcon className="size-4!" />
+          <span className="sr-only">Download as PDF</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>Download as PDF</TooltipContent>
