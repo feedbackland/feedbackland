@@ -61,7 +61,9 @@ export function PlatformHeader() {
             <Skeleton className="h-[32px] w-[230px]" />
           ) : (
             <h1 className="h3 font-extrabold">
-              <Link href={`${platformUrl}`}>{orgData?.platformTitle}</Link>
+              <Link href={`${platformUrl}`}>
+                {!isAdminPage ? orgData?.platformTitle : "Admin panel"}
+              </Link>
             </h1>
           )}
         </div>

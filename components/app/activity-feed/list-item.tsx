@@ -98,7 +98,7 @@ export function ActivityFeedListItem({
             content={content}
             forbiddenTags={["a", "pre", "img"]}
             className={cn(
-              "line-clamp-4 text-xs!",
+              "text-muted-foreground! line-clamp-4 text-sm!",
               !item.isSeen && "font-semibold!",
             )}
           />

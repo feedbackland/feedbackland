@@ -87,7 +87,7 @@ export function AdminsInvite() {
                         type="email"
                         autoFocus={false}
                         className="w-full max-w-[350px] text-sm"
-                        placeholder="Email of the person you want to invite"
+                        placeholder="Email of the admin you want to invite"
                         {...field}
                       />
                       <Button
