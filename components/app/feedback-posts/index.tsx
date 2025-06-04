@@ -31,7 +31,7 @@ export function FeedbackPosts() {
     if (element) {
       setTimeout(() => {
         element.scrollIntoView({ behavior: "instant", block: "center" });
-      }, 50);
+      }, 20);
     }
   };
 
