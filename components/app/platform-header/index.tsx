@@ -148,7 +148,7 @@ export function PlatformHeader() {
                   e.stopPropagation();
                   const newTheme = theme === "light" ? "dark" : "light";
                   setTheme(newTheme);
-                  iframeParentRef?.selectedColorMode(newTheme);
+                  iframeParentRef?.setColorMode(newTheme);
                 }}
                 className="flex items-center justify-between"
               >

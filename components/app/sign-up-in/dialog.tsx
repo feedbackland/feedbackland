@@ -39,45 +39,44 @@ export function SignUpInDialog({
   };
 
   useEffect(() => {
+    const setDialogPosition = async () => {
+      const scrollY = await (iframeParentRef?.getScrollY() || 0);
+      setScrollY(Math.round(scrollY + dialogOffsetY));
+    };
+
     if (open && iframeParentRef) {
-      iframeParentRef.getScrollY().then((scrollY) => {
-        setScrollY(Math.round(scrollY + dialogOffsetY));
-      });
-    } else {
-      setScrollY(dialogOffsetY);
+      setDialogPosition();
     }
   }, [open, iframeParentRef]);
 
-  if (scrollY !== null) {
-    return (
-      <Dialog
-        open={open}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            onClose();
-          }
-        }}
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent
+        className="max-w-[420px]! duration-0!"
+        style={{ top: `${scrollY}px` }}
       >
-        <DialogContent
-          className="max-w-[420px]! duration-0!"
-          style={{ top: `${scrollY}px` }}
-        >
-          <DialogHeader>
-            <DialogTitle className="h3 mb-5 text-center">
-              {selectedMethod === "sign-in" && "Sign in"}
-              {selectedMethod === "sign-up" && "Sign up"}
-              {selectedMethod === "forgot-password" && "Forgot password"}
-            </DialogTitle>
-          </DialogHeader>
-          <SignUpIn
-            selectedMethod={selectedMethod}
-            onSuccess={handleOnSuccess}
-            onSelectedMethodChange={(newSelectedMethod) =>
-              setSelectedMethod(newSelectedMethod)
-            }
-          />
-        </DialogContent>
-      </Dialog>
-    );
-  }
+        <DialogHeader>
+          <DialogTitle className="h3 mb-5 text-center">
+            {selectedMethod === "sign-in" && "Sign in"}
+            {selectedMethod === "sign-up" && "Sign up"}
+            {selectedMethod === "forgot-password" && "Forgot password"}
+          </DialogTitle>
+        </DialogHeader>
+        <SignUpIn
+          selectedMethod={selectedMethod}
+          onSuccess={handleOnSuccess}
+          onSelectedMethodChange={(newSelectedMethod) =>
+            setSelectedMethod(newSelectedMethod)
+          }
+        />
+      </DialogContent>
+    </Dialog>
+  );
 }
