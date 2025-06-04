@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRedeemAdminInvite } from "@/hooks/use-redeem-admin-invite";
 import { useAdminInvite } from "@/hooks/use-admin-invite";
 
-export function RedeemAdminInvitation() {
+export function ProcessAdminInviteParams() {
   const { session, isLoaded: isAuthLoaded, signOut } = useAuth();
   const [adminInviteToken, setAdminInviteToken] =
     useQueryState("admin-invite-token");
@@ -25,7 +25,7 @@ export function RedeemAdminInvitation() {
     setAdminInviteEmail(null);
   }, [setShowSignUpDialog, setAdminInviteToken, setAdminInviteEmail]);
 
-  const triggerRedeem = useCallback(() => {
+  const redeem = useCallback(() => {
     if (adminInviteToken) {
       redeemInvite.mutate(
         {
@@ -64,7 +64,7 @@ export function RedeemAdminInvitation() {
       if (!session) {
         setShowSignUpDialog(true);
       } else if (session && session.user.email === adminInviteEmail) {
-        triggerRedeem();
+        redeem();
       } else if (session && session.user.email !== adminInviteEmail) {
         signOut();
       }
@@ -76,7 +76,7 @@ export function RedeemAdminInvitation() {
     adminInviteToken,
     adminInviteEmail,
     redeemInvite,
-    triggerRedeem,
+    redeem,
     signOut,
   ]);
 
@@ -85,7 +85,7 @@ export function RedeemAdminInvitation() {
       open={showSignUpDialog}
       initialSelectedMethod="sign-up"
       onClose={handleOnClose}
-      onSuccess={triggerRedeem}
+      onSuccess={redeem}
     />
   );
 }

@@ -4,7 +4,7 @@ import { useQueryState } from "nuqs";
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 
-export function SetColorMode() {
+export function ProcessModeParam() {
   const { setTheme } = useTheme();
   const [mode, setMode] = useQueryState("mode");
 

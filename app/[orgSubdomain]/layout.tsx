@@ -3,8 +3,8 @@
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
-import { RedeemAdminInvitation } from "@/components/app/redeem-admin-invitation";
-import { SetColorMode } from "@/components/app/set-color-mode";
+import { ProcessAdminInviteParams } from "@/components/app/process-admin-invite-params";
+import { ProcessModeParam } from "@/components/app/process-mode-param";
 import dynamic from "next/dynamic";
 
 const PlatformHeader = dynamic(() =>
@@ -16,7 +16,7 @@ const PlatformHeader = dynamic(() =>
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
   const inIframe = useInIframe();
 
-  // wait until deteremined if in iframe
+  // wait until determined if in iframe
   if (inIframe === null) {
     return null;
   }
@@ -24,8 +24,8 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ClaimOrgBanner />
-      <RedeemAdminInvitation />
-      <SetColorMode />
+      <ProcessAdminInviteParams />
+      <ProcessModeParam />
 
       <div
         className={cn(
