@@ -23,7 +23,7 @@ export function SSOButtonMicrosoft({
 
   return (
     <Button
-      variant="default"
+      variant="outline"
       className="w-full"
       onClick={continueWithMicrosoft}
     >

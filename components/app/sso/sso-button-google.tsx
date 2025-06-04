@@ -22,7 +22,7 @@ export function SSOButtonGoogle({
   };
 
   return (
-    <Button variant="default" className="w-full" onClick={continueWithGoogle}>
+    <Button variant="outline" className="w-full" onClick={continueWithGoogle}>
       <GoogleLogo className="size-5" />
       <span>Continue with Google</span>
     </Button>

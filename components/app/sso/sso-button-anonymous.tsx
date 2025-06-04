@@ -24,7 +24,7 @@ export function SSOButtonAnonymous({
     <div className="m-auto flex items-center">
       <span className="text-foreground mr-1 text-sm">Or</span>
       <Button
-        variant="link"
+        variant="outline"
         onClick={continueAsAnonymous}
         className="p-0 underline"
       >
