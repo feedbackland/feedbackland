@@ -54,7 +54,10 @@ export function FeedbackPostFull({
           <div className="flex items-center gap-2">
             <GoBackButton className="" />
             <Avatar className="">
-              <AvatarImage src={authorPhotoURL || undefined} />
+              <AvatarImage
+                src={authorPhotoURL || undefined}
+                alt="User avatar image"
+              />
               <AvatarFallback>
                 {authorName?.charAt(0) || <UserIcon className="size-4" />}
               </AvatarFallback>

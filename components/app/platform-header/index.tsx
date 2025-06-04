@@ -91,7 +91,10 @@ export function PlatformHeader() {
             {session ? (
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Avatar className="">
-                  <AvatarImage src={session?.user?.photoURL || undefined} />
+                  <AvatarImage
+                    src={session?.user?.photoURL || undefined}
+                    alt="User avatar image"
+                  />
                   <AvatarFallback>
                     {session?.user?.name?.charAt(0) || (
                       <UserIcon className="size-3.5!" />

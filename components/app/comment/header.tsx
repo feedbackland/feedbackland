@@ -24,7 +24,10 @@ export function CommentHeader({
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <Avatar className="-ml-1 scale-80!">
-        <AvatarImage src={authorPhotoURL || undefined} />
+        <AvatarImage
+          src={authorPhotoURL || undefined}
+          alt="User avatar image"
+        />
         <AvatarFallback>
           {authorName?.charAt(0) || <UserIcon className="size-4" />}
         </AvatarFallback>
