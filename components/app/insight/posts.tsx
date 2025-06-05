@@ -65,8 +65,8 @@ export function InsightPosts({ ids }: { ids: string[] }) {
                       </div>
                     </div>
                   </div>
-                  <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs font-normal">
-                    <span>{timeAgo.format(post.createdAt)}</span>
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
+                    <span>{timeAgo.format(post.createdAt, "mini-now")}</span>
                     <span className="text-[8px]">•</span>
                     <span className="capitalize">{post.category}</span>
                     {post.status && (

@@ -71,6 +71,7 @@ export function PlatformHeader() {
           {isAdmin && platformUrl && (
             <Button variant="ghost" size="default" asChild>
               <Link
+                className="xs:block hidden"
                 href={
                   isAdminPage ? platformUrl : `${platformUrl}/admin/activity`
                 }

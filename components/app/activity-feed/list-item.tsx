@@ -60,14 +60,14 @@ export function ActivityFeedListItem({
           onClick={() => handleOnClick(item.id)}
           className="group flex flex-1 flex-col items-stretch hover:cursor-pointer"
         >
-          <div className="text-muted-foreground mb-0.5 flex flex-wrap items-center gap-1.5 text-xs font-normal">
+          <div className="text-muted-foreground mb-0.5 flex flex-wrap items-center gap-1 text-xs font-normal">
             <span className="capitalize">
               {capitalizeFirstLetter(
                 type === "comment" ? type : category || "",
               )}
             </span>
             <span className="text-[8px]">•</span>
-            <span>{timeAgo.format(createdAt, "mini")} ago</span>
+            <span>{timeAgo.format(createdAt, "mini-now")} ago</span>
             {status && (
               <>
                 <span className="text-[8px]">•</span>

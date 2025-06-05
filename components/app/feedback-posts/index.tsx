@@ -114,9 +114,9 @@ export function FeedbackPosts() {
   };
 
   return (
-    <div className="mt-10">
+    <div className="xs:mt-8 mt-6">
       {!isPlatformEmpty && (
-        <div className="relative mb-3 flex h-[40px] items-center justify-between gap-2">
+        <div className="relative mb-2 flex h-[40px] items-center justify-between gap-2">
           <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}

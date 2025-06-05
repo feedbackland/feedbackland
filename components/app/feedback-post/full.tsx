@@ -50,10 +50,10 @@ export function FeedbackPostFull({
 
     return (
       <div className="mt-3">
-        <div className="mb-3 flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <GoBackButton className="" />
-            <Avatar className="">
+        <div className="mb-3.5 flex items-start justify-between">
+          <div className="flex items-center">
+            <GoBackButton className="mr-2.5" />
+            <Avatar className="xs:block mr-1 hidden scale-90">
               <AvatarImage
                 src={authorPhotoURL || undefined}
                 alt="User avatar image"
@@ -66,8 +66,8 @@ export function FeedbackPostFull({
               <div className="text-primary text-xs font-normal">
                 {authorName}
               </div>
-              <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-normal">
-                <span>{timeAgo.format(createdAt)}</span>
+              <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
+                <span>{timeAgo.format(createdAt, "mini-now")}</span>
                 <span className="text-[8px]">•</span>
                 <span className="capitalize">{category}</span>
                 {status && (
