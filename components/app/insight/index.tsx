@@ -3,7 +3,7 @@
 import { Selectable } from "kysely";
 import { Insights } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
-import { capitalizeFirstLetter, cn, getPriorityLabel } from "@/lib/utils";
+import { cn, getPriorityLabel } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -32,8 +32,8 @@ export function Insight({ item }: { item: Item; index: number }) {
   const postCount = item.ids?.length || 0;
 
   return (
-    <div className="border-border relative flex w-full flex-col items-stretch overflow-hidden rounded-xl border shadow-xs">
-      <div className="p-5">
+    <div className="border-border relative flex w-full flex-col items-stretch overflow-hidden rounded-lg border shadow-xs">
+      <div className="p-4 pt-3">
         <div className="mb-2 flex items-start justify-between gap-2">
           <h3 className="h5 flex flex-wrap items-center">{item.title}</h3>
           <Badge
@@ -60,7 +60,7 @@ export function Insight({ item }: { item: Item; index: number }) {
               variant="link"
               size="lg"
               className={cn(
-                "hover:bg-muted/40 data-[state=open]:bg-muted/40 border-t-border w-full justify-start rounded-t-none rounded-b-xl border px-4.5 py-5 transition-none hover:no-underline data-[state=open]:rounded-none [&>span]:flex! [&>span]:w-full! [&>span]:flex-1",
+                "hover:bg-muted/40 data-[state=open]:bg-muted/40 border-t-border w-full justify-start rounded-t-none rounded-b-xl border px-3.5 py-4 transition-none hover:no-underline data-[state=open]:rounded-none [&>span]:flex! [&>span]:w-full! [&>span]:flex-1",
               )}
             >
               <div className="flex w-full! flex-1 items-center justify-between">
@@ -80,7 +80,7 @@ export function Insight({ item }: { item: Item; index: number }) {
             </Button>
           </CollapsibleTrigger>
 
-          <CollapsibleContent className="border-t-border space-y-4 border px-5 py-3">
+          <CollapsibleContent className="border-t-border space-y-4 border px-4 py-3">
             <InsightPosts ids={item.ids || []} />
           </CollapsibleContent>
         </Collapsible>

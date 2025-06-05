@@ -25,8 +25,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     return (
       <div>
-        <Tabs value={pathname?.split("/")?.pop() || "activity"}>
-          <TabsList className="">
+        <Tabs
+          className="relative h-10 w-full overflow-x-auto overflow-y-hidden"
+          value={pathname?.split("/")?.pop() || "activity"}
+        >
+          <TabsList className="absolute flex h-10">
             <TabsTrigger value="activity" asChild>
               <Link href={`${adminBasePath}/activity`}>Activity</Link>
             </TabsTrigger>
