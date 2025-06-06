@@ -28,6 +28,7 @@ export const getUserWithRoleAndOrgQuery = async ({
         "org.isClaimed as orgIsClaimed",
         "org.createdAt as orgCreatedAt",
         "org.updatedAt as orgUpdatedAt",
+        "org.polarSubscriptionId as orgPolarSubscriptionId",
       ])
       .where("user.id", "=", userId)
       .where("org.orgSubdomain", "=", orgSubdomain)

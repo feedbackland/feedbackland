@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </TabsTrigger>
 
             <TabsTrigger value="insights" asChild>
-              <Link href={`${adminBasePath}/insights`}>AI Insights</Link>
+              <Link href={`${adminBasePath}/insights`}>Insights</Link>
             </TabsTrigger>
 
             <TabsTrigger value="settings" asChild>
@@ -48,6 +48,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             <TabsTrigger value="widget" asChild>
               <Link href={`${adminBasePath}/widget`}>Widget</Link>
+            </TabsTrigger>
+
+            <TabsTrigger value="plan" asChild>
+              <Link href={`${adminBasePath}/plan`}>Plan</Link>
             </TabsTrigger>
           </TabsList>
         </Tabs>

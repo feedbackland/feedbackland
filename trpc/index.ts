@@ -29,6 +29,10 @@ import { redeemAdminInvite } from "./redeem-admin-invite";
 import { deleteAdmin } from "./delete-admin";
 import { getAdminInvite } from "./get-admin-invite";
 import { setAllActivitiesSeen } from "./set-all-activities-seen";
+import { createPolarCustomerSession } from "./create-polar-customer-session";
+import { createPolarCheckoutSession } from "./create-polar-checkout-session";
+import { getPolarProducts } from "./get-polar-products";
+import { getPolarSubscription } from "./get-polar-subscription";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -62,6 +66,10 @@ export const appRouter = router({
   redeemAdminInvite,
   getAdminInvite,
   deleteAdmin,
+  createPolarCustomerSession,
+  createPolarCheckoutSession,
+  getPolarProducts,
+  getPolarSubscription,
 });
 
 export type AppRouter = typeof appRouter;

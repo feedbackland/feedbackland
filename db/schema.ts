@@ -394,6 +394,7 @@ export interface Org {
   orgUrl: string | null;
   platformDescription: string | null;
   platformTitle: Generated<string>;
+  polarSubscriptionId: string | null;
   updatedAt: Generated<Timestamp>;
 }
 
