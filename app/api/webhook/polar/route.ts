@@ -5,10 +5,14 @@ import { updateSubscriptionQuery } from "@/queries/update-subscription";
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
-  onSubscriptionCreated: async (payload) => {
-    const { data: subscription } = payload;
+  onPayload: async (payload) => {
+    console.log("onPayload", payload);
+  },
 
-    console.log("onSubscriptionCreated payload", payload);
+  onSubscriptionCreated: async (payload) => {
+    console.log("onSubscriptionCreated", payload);
+
+    const { data: subscription } = payload;
 
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
@@ -28,9 +32,9 @@ export const POST = Webhooks({
   },
 
   onSubscriptionUpdated: async (payload) => {
-    const { data: subscription } = payload;
+    console.log("onSubscriptionUpdated", payload);
 
-    console.log("onSubscriptionUpdated payload", payload);
+    const { data: subscription } = payload;
 
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
