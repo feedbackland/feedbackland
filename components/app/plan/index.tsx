@@ -5,48 +5,60 @@ import { Label } from "@/components/ui/label";
 import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
 import { usePolarProducts } from "@/hooks/use-polar-products";
-import { usePolarSubscription } from "@/hooks/use-polar-subscription";
-import { useEffect } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
+import { useSSE } from "@/hooks/use-sse";
 
 export function Plan() {
   const {
-    query: { data: products },
+    query: { data: polarProducts },
   } = usePolarProducts();
 
   const {
-    query: { data: subscription, refetch },
-  } = usePolarSubscription();
+    query: { data: subscription, refetch: refetchSubscription },
+  } = useSubscription();
 
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/events");
+  useSSE(
+    "/api/events",
+    (event) => {
+      console.log("New message:", event.data);
+      refetchSubscription();
+    },
+    (error) => {
+      console.error("SSE error:", error);
+      refetchSubscription();
+    },
+  );
 
-    eventSource.onmessage = (event) => {
-      refetch();
-      const data = JSON.parse(event.data);
-      console.log("event received:", data);
-      // setMessage(data.text);
-    };
+  // useEffect(() => {
+  //   const eventSource = new EventSource("/api/events");
 
-    eventSource.onerror = (err) => {
-      console.error("EventSource failed:", err);
-      eventSource.close();
-    };
+  //   eventSource.onmessage = (event) => {
+  //     refetch();
+  //     const data = JSON.parse(event.data);
+  //     console.log("event received:", data);
+  //     // setMessage(data.text);
+  //   };
 
-    return () => {
-      console.log("Closing EventSource connection.");
-      eventSource.close();
-    };
-  }, [refetch]);
+  //   eventSource.onerror = (err) => {
+  //     console.error("EventSource failed:", err);
+  //     eventSource.close();
+  //   };
+
+  //   return () => {
+  //     console.log("Closing EventSource connection.");
+  //     eventSource.close();
+  //   };
+  // }, [refetch]);
 
   const handleUpgradeClick = async () => {
-    if (!products) return;
+    if (!polarProducts) return;
 
     const { url } = await createPolarCheckoutSession.mutateAsync({
-      polarProductIds: products.map((product) => product.id),
+      polarProductIds: polarProducts.map((product) => product.id),
     });
 
     window.open(url, "_blank", "noopener,noreferrer");

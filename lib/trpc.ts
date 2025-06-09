@@ -21,7 +21,6 @@ export const createContext = async ({ req }: { req: Request }) => {
   let orgId: string | null | undefined;
   let orgName: string | null | undefined;
   let orgIsClaimed: boolean | null | undefined;
-  let orgPolarSubscriptionId: string | null | undefined;
   let userRole: UserRole | null | undefined;
 
   if (orgSubdomain) {
@@ -42,7 +41,6 @@ export const createContext = async ({ req }: { req: Request }) => {
       orgId = userWithRoleAndOrg?.orgId;
       orgIsClaimed = userWithRoleAndOrg?.orgIsClaimed;
       orgName = userWithRoleAndOrg?.orgName;
-      orgPolarSubscriptionId = userWithRoleAndOrg?.orgPolarSubscriptionId;
       userRole = userWithRoleAndOrg?.userRole;
     }
   }
@@ -52,7 +50,6 @@ export const createContext = async ({ req }: { req: Request }) => {
     orgName,
     orgSubdomain,
     orgIsClaimed,
-    orgPolarSubscriptionId,
     userId,
     userEmail,
     userRole,

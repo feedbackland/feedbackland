@@ -1,27 +1,52 @@
 import { Webhooks } from "@polar-sh/nextjs";
-import { db } from "@/db/db";
 import { emitter } from "@/lib/event-emitter";
+import { createSubscriptionQuery } from "@/queries/create-subscription";
+import { updateSubscriptionQuery } from "@/queries/update-subscription";
 
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
   onSubscriptionCreated: async (payload) => {
     const { data: subscription } = payload;
-    const polarSubscriptionId = subscription.id;
-    const orgId = subscription.customer.externalId;
 
-    if (orgId) {
-      try {
-        await db
-          .updateTable("org")
-          .set({ polarSubscriptionId })
-          .where("id", "=", orgId)
-          .execute();
+    if (!subscription?.customer?.externalId) {
+      throw new Error("Customer externalId not found");
+    }
 
-        emitter.emit("message", { text: "Subscription created" });
-      } catch (error) {
-        console.error(error);
-      }
+    try {
+      await createSubscriptionQuery({
+        orgId: subscription.customer.externalId,
+        subscriptionId: subscription.id,
+        customerId: subscription.customer.id,
+        productId: subscription.product.id,
+        status: subscription.status,
+      });
+
+      emitter.emit("message", { text: "Subscription created" });
+    } catch (error) {
+      console.error(error);
+    }
+  },
+
+  onSubscriptionUpdated: async (payload) => {
+    const { data: subscription } = payload;
+
+    if (!subscription?.customer?.externalId) {
+      throw new Error("Customer externalId not found");
+    }
+
+    try {
+      await updateSubscriptionQuery({
+        orgId: subscription.customer.externalId,
+        subscriptionId: subscription.id,
+        customerId: subscription.customer.id,
+        productId: subscription.product.id,
+        status: subscription.status,
+      });
+
+      emitter.emit("message", { text: "Subscription updated" });
+    } catch (error) {
+      console.error(error);
     }
   },
 });

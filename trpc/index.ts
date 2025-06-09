@@ -32,7 +32,7 @@ import { setAllActivitiesSeen } from "./set-all-activities-seen";
 import { createPolarCustomerSession } from "./create-polar-customer-session";
 import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
-import { getPolarSubscription } from "./get-polar-subscription";
+import { getSubscription } from "./get-subscription";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -69,7 +69,7 @@ export const appRouter = router({
   createPolarCustomerSession,
   createPolarCheckoutSession,
   getPolarProducts,
-  getPolarSubscription,
+  getSubscription,
 });
 
 export type AppRouter = typeof appRouter;

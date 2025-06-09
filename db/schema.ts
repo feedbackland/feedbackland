@@ -394,7 +394,6 @@ export interface Org {
   orgUrl: string | null;
   platformDescription: string | null;
   platformTitle: Generated<string>;
-  polarSubscriptionId: string | null;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -563,6 +562,17 @@ export interface StorageS3MultipartUploadsParts {
   version: string;
 }
 
+export interface Subscriptions {
+  createdAt: Generated<Timestamp>;
+  customerId: string;
+  id: Generated<string>;
+  orgId: string;
+  productId: string;
+  status: string;
+  subscriptionId: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface User {
   createdAt: Generated<Timestamp>;
   email: string;
@@ -646,6 +656,7 @@ export interface DB {
   "storage.objects": StorageObjects;
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
+  subscriptions: Subscriptions;
   user: User;
   user_org: UserOrg;
   user_upvote: UserUpvote;
