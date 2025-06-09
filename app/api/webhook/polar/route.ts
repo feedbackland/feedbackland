@@ -7,10 +7,16 @@ export const POST = Webhooks({
 
   onPayload: async (payload) => {
     console.log("onPayload", payload);
+    console.log("onPayload stringified", JSON.stringify(payload, null, 2));
+    console.log("onPayload status", (payload?.data as any)?.status);
   },
 
   onSubscriptionCreated: async (payload) => {
     console.log("onSubscriptionCreated", payload);
+    console.log(
+      "onSubscriptionCreated stringified",
+      JSON.stringify(payload, null, 2),
+    );
 
     const { data: subscription } = payload;
 
@@ -31,8 +37,20 @@ export const POST = Webhooks({
     }
   },
 
+  onSubscriptionCanceled: async (payload) => {
+    console.log("onSubscriptionCanceled", payload);
+    console.log(
+      "onSubscriptionCanceled stringified",
+      JSON.stringify(payload, null, 2),
+    );
+  },
+
   onSubscriptionUpdated: async (payload) => {
     console.log("onSubscriptionUpdated", payload);
+    console.log(
+      "onSubscriptionUpdated stringified",
+      JSON.stringify(payload, null, 2),
+    );
 
     const { data: subscription } = payload;
 
