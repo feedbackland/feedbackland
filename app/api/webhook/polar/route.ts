@@ -1,5 +1,4 @@
 import { Webhooks } from "@polar-sh/nextjs";
-import { emitter } from "@/lib/event-emitter";
 import { createSubscriptionQuery } from "@/queries/create-subscription";
 import { updateSubscriptionQuery } from "@/queries/update-subscription";
 
@@ -21,8 +20,6 @@ export const POST = Webhooks({
         productId: subscription.product.id,
         status: subscription.status,
       });
-
-      emitter.emit("message", { text: "Subscription created" });
     } catch (error) {
       console.error(error);
     }
@@ -43,8 +40,6 @@ export const POST = Webhooks({
         productId: subscription.product.id,
         status: subscription.status,
       });
-
-      emitter.emit("message", { text: "Subscription updated" });
     } catch (error) {
       console.error(error);
     }

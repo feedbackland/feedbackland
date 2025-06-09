@@ -1,11 +1,12 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
+import { z } from "zod";
 
-export const getSubscription = adminProcedure.query(
-  async ({ ctx: { orgId, userId } }) => {
+export const getSubscription = adminProcedure
+  .input(z.object({}))
+  .query(async ({ ctx: { orgId } }) => {
     try {
       const subscription = getSubscriptionQuery({
-        userId,
         orgId,
       });
 
@@ -13,5 +14,4 @@ export const getSubscription = adminProcedure.query(
     } catch (error) {
       throw error;
     }
-  },
-);
+  });

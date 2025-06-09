@@ -6,53 +6,58 @@ import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
-import { useSSE } from "@/hooks/use-sse";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function Plan() {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [canPoll, setCanPoll] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+
   const {
     query: { data: polarProducts },
   } = usePolarProducts();
 
   const {
-    query: { data: subscription, refetch: refetchSubscription },
-  } = useSubscription();
+    query: { data: subscription },
+  } = useSubscription({ isPolling });
 
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
-  useSSE(
-    "/api/events",
-    (event) => {
-      console.log("New message:", event.data);
-      refetchSubscription();
-    },
-    (error) => {
-      console.error("SSE error:", error);
-      refetchSubscription();
-    },
-  );
+  const stopPolling = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+    setIsPolling(false);
+  }, [setIsPolling]);
 
-  // useEffect(() => {
-  //   const eventSource = new EventSource("/api/events");
+  const startPolling = useCallback(() => {
+    if (canPoll) {
+      stopPolling();
+      setIsPolling(true);
+      timeoutRef.current = setTimeout(() => {
+        setCanPoll(false);
+        stopPolling();
+      }, 60000);
+    }
+  }, [setIsPolling, stopPolling, canPoll]);
 
-  //   eventSource.onmessage = (event) => {
-  //     refetch();
-  //     const data = JSON.parse(event.data);
-  //     console.log("event received:", data);
-  //     // setMessage(data.text);
-  //   };
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
 
-  //   eventSource.onerror = (err) => {
-  //     console.error("EventSource failed:", err);
-  //     eventSource.close();
-  //   };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  //   return () => {
-  //     console.log("Closing EventSource connection.");
-  //     eventSource.close();
-  //   };
-  // }, [refetch]);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [startPolling, stopPolling]);
 
   const handleUpgradeClick = async () => {
     if (!polarProducts) return;
@@ -61,14 +66,25 @@ export function Plan() {
       polarProductIds: polarProducts.map((product) => product.id),
     });
 
+    setCanPoll(true);
+
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleManageOnClick = async () => {
     const { customerPortalUrl } =
       await createPolarCustomerSession.mutateAsync();
+
+    setCanPoll(true);
+
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
+
+  const hasActiveSubscription =
+    subscription && subscription.status === "active";
+  const hasCanceledSubscription =
+    subscription && subscription.status === "canceled";
+  const hasNoSubscription = !subscription;
 
   return (
     <div className="pt-4">
@@ -77,13 +93,15 @@ export function Plan() {
       <div className="border-border w-full max-w-80 rounded-lg border p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between gap-4">
           <h3 className="text-lg font-bold">Pro</h3>
-          <Button
-            variant="link"
-            className="underline"
-            onClick={handleUpgradeClick}
-          >
-            Upgrade
-          </Button>
+          {(!subscription || subscription.status === "canceled") && (
+            <Button
+              variant="link"
+              className="underline"
+              onClick={handleUpgradeClick}
+            >
+              Upgrade
+            </Button>
+          )}
           {subscription && (
             <Button
               variant="link"

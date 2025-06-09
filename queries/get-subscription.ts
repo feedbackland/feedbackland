@@ -2,32 +2,15 @@
 
 import { db } from "@/db/db";
 
-export const getSubscriptionQuery = async ({
-  userId,
-  orgId,
-}: {
-  userId: string;
-  orgId: string;
-}) => {
+export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
   try {
-    return await db.transaction().execute(async (trx) => {
-      const { role } = await trx
-        .selectFrom("user_org")
-        .select("role")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .executeTakeFirstOrThrow();
+    const subscription = await db
+      .selectFrom("subscriptions")
+      .where("orgId", "=", orgId)
+      .selectAll()
+      .executeTakeFirst();
 
-      if (role !== "admin") {
-        throw new Error("Not authorized to read subscription");
-      }
-
-      return await trx
-        .selectFrom("subscriptions")
-        .where("orgId", "=", orgId)
-        .selectAll()
-        .executeTakeFirst();
-    });
+    return subscription || null;
   } catch (error) {
     throw error;
   }
