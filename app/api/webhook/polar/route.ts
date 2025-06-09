@@ -8,6 +8,8 @@ export const POST = Webhooks({
   onSubscriptionCreated: async (payload) => {
     const { data: subscription } = payload;
 
+    console.log("onSubscriptionCreated payload", payload);
+
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
     }
@@ -27,6 +29,8 @@ export const POST = Webhooks({
 
   onSubscriptionUpdated: async (payload) => {
     const { data: subscription } = payload;
+
+    console.log("onSubscriptionUpdated payload", payload);
 
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
