@@ -1,62 +1,46 @@
 import { Webhooks } from "@polar-sh/nextjs";
 import { createSubscriptionQuery } from "@/queries/create-subscription";
 import { updateSubscriptionQuery } from "@/queries/update-subscription";
+import { adminDatabase } from "@/lib/firebase/admin";
+import { database } from "firebase-admin";
 
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
-  onPayload: async (payload) => {
-    console.log("onPayload", payload);
-    console.log("onPayload stringified", JSON.stringify(payload, null, 2));
-    console.log("onPayload status", (payload?.data as any)?.status);
-  },
-
   onSubscriptionCreated: async (payload) => {
-    console.log("onSubscriptionCreated", payload);
-    console.log(
-      "onSubscriptionCreated stringified",
-      JSON.stringify(payload, null, 2),
-    );
-
     const { data: subscription } = payload;
 
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
     }
 
+    const orgId = subscription.customer.externalId;
+
     try {
       await createSubscriptionQuery({
-        orgId: subscription.customer.externalId,
+        orgId,
         subscriptionId: subscription.id,
         customerId: subscription.customer.id,
         productId: subscription.product.id,
         status: subscription.status,
       });
+
+      await adminDatabase
+        .ref(`subscriptions/${orgId}`)
+        .set(database.ServerValue.TIMESTAMP);
     } catch (error) {
       console.error(error);
     }
   },
 
-  onSubscriptionCanceled: async (payload) => {
-    console.log("onSubscriptionCanceled", payload);
-    console.log(
-      "onSubscriptionCanceled stringified",
-      JSON.stringify(payload, null, 2),
-    );
-  },
-
   onSubscriptionUpdated: async (payload) => {
-    console.log("onSubscriptionUpdated", payload);
-    console.log(
-      "onSubscriptionUpdated stringified",
-      JSON.stringify(payload, null, 2),
-    );
-
     const { data: subscription } = payload;
 
     if (!subscription?.customer?.externalId) {
       throw new Error("Customer externalId not found");
     }
+
+    const orgId = subscription.customer.externalId;
 
     try {
       await updateSubscriptionQuery({
@@ -66,6 +50,10 @@ export const POST = Webhooks({
         productId: subscription.product.id,
         status: subscription.status,
       });
+
+      await adminDatabase
+        .ref(`subscriptions/${orgId}`)
+        .set(database.ServerValue.TIMESTAMP);
     } catch (error) {
       console.error(error);
     }

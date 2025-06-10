@@ -5,59 +5,18 @@ import { Label } from "@/components/ui/label";
 import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
 import { usePolarProducts } from "@/hooks/use-polar-products";
-import { useSubscription } from "@/hooks/use-subscription";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useSubscriptionChange } from "@/hooks/use-subscription-change";
 
 export function Plan() {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [canPoll, setCanPoll] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
-
   const {
     query: { data: polarProducts },
   } = usePolarProducts();
 
-  const {
-    query: { data: subscription },
-  } = useSubscription({ isPolling });
+  const { subscription } = useSubscriptionChange();
 
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
-
-  const stopPolling = useCallback(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
-    setIsPolling(false);
-  }, [setIsPolling]);
-
-  const startPolling = useCallback(() => {
-    if (canPoll) {
-      stopPolling();
-      setIsPolling(true);
-      timeoutRef.current = setTimeout(() => {
-        setCanPoll(false);
-        stopPolling();
-      }, 60000);
-    }
-  }, [setIsPolling, stopPolling, canPoll]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [startPolling, stopPolling]);
 
   const handleUpgradeClick = async () => {
     if (!polarProducts) return;
@@ -66,25 +25,14 @@ export function Plan() {
       polarProductIds: polarProducts.map((product) => product.id),
     });
 
-    setCanPoll(true);
-
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleManageOnClick = async () => {
     const { customerPortalUrl } =
       await createPolarCustomerSession.mutateAsync();
-
-    setCanPoll(true);
-
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
-
-  const hasActiveSubscription =
-    subscription && subscription.status === "active";
-  const hasCanceledSubscription =
-    subscription && subscription.status === "canceled";
-  const hasNoSubscription = !subscription;
 
   return (
     <div className="pt-4">
