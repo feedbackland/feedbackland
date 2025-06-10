@@ -18,14 +18,17 @@ export function Plan() {
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
+  console.log("polarProducts", polarProducts);
+  console.log("subscription", subscription);
+
   const handleUpgradeClick = async () => {
     if (!polarProducts) return;
 
-    const { url } = await createPolarCheckoutSession.mutateAsync({
+    const { url: checkoutUrl } = await createPolarCheckoutSession.mutateAsync({
       polarProductIds: polarProducts.map((product) => product.id),
     });
 
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleManageOnClick = async () => {

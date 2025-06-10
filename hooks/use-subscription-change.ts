@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ref, onValue, off } from "firebase/database";
 import { db } from "@/lib/firebase/client";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -20,12 +20,23 @@ export function useSubscriptionChange() {
   } = useSubscription();
 
   const [subscription, setSubscription] = useState<Subscription>(null);
+  const [isPending, setIsPending] = useState(true);
+
+  const getSubscription = useCallback(async () => {
+    try {
+      setIsPending(true);
+      const { data } = await refetch();
+      setSubscription(data || null);
+    } catch {
+      setSubscription(null);
+    } finally {
+      setIsPending(false);
+    }
+  }, [setIsPending, refetch]);
 
   useEffect(() => {
-    refetch().then(({ data }) => {
-      setSubscription(data || null);
-    });
-  }, [refetch]);
+    getSubscription();
+  }, [getSubscription]);
 
   useEffect(() => {
     if (!org) return;
@@ -33,15 +44,14 @@ export function useSubscriptionChange() {
     const subscriptionRef = ref(db, `subscriptions/${org.id}`);
 
     const unsubscribe = onValue(subscriptionRef, () => {
-      refetch().then(({ data }) => {
-        setSubscription(data || null);
-      });
+      console.log("zolg");
+      getSubscription();
     });
 
     return () => {
       off(subscriptionRef, "value", unsubscribe);
     };
-  }, [org, refetch]);
+  }, [org, getSubscription]);
 
-  return { subscription };
+  return { subscription, isPending };
 }
