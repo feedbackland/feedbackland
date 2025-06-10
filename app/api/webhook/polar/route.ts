@@ -56,4 +56,29 @@ export const POST = Webhooks({
       console.error(error);
     }
   },
+
+  onSubscriptionCanceled: async (payload) => {
+    const { data: subscription } = payload;
+    const orgId = subscription?.customer?.externalId;
+
+    if (!orgId) {
+      throw new Error("Customer externalId not found");
+    }
+
+    try {
+      await updateSubscriptionQuery({
+        orgId,
+        subscriptionId: subscription.id,
+        customerId: subscription.customer.id,
+        productId: subscription.product.id,
+        status: "canceled",
+      });
+
+      await adminDatabase
+        .ref(`subscriptions/${orgId}`)
+        .set(database.ServerValue.TIMESTAMP);
+    } catch (error) {
+      console.error(error);
+    }
+  },
 });

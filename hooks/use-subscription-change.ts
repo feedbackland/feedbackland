@@ -44,7 +44,6 @@ export function useSubscriptionChange() {
     const subscriptionRef = ref(db, `subscriptions/${org.id}`);
 
     const unsubscribe = onValue(subscriptionRef, () => {
-      console.log("zolg");
       getSubscription();
     });
 

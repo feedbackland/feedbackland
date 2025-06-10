@@ -33,6 +33,7 @@ import { createPolarCustomerSession } from "./create-polar-customer-session";
 import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
+import { getPolarProduct } from "./get-polar-product";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -69,6 +70,7 @@ export const appRouter = router({
   createPolarCustomerSession,
   createPolarCheckoutSession,
   getPolarProducts,
+  getPolarProduct,
   getSubscription,
 });
 

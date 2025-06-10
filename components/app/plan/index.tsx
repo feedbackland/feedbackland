@@ -4,28 +4,52 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
+import { usePolarProduct } from "@/hooks/use-polar-product";
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscriptionChange } from "@/hooks/use-subscription-change";
 
 export function Plan() {
+  let currentPlanName: "Free" | "Pro" | "Max" = "Free";
+  let currentPlanPrice = 0;
+  let currentPlanFrequency = "month";
+
   const {
     query: { data: polarProducts },
   } = usePolarProducts();
 
+  const polarProductIds = polarProducts?.map((product) => product.id);
+
   const { subscription } = useSubscriptionChange();
+
+  const {
+    query: { data: polarProduct },
+  } = usePolarProduct({ productId: subscription?.productId || null });
+
+  const polarProductPrice = polarProduct?.prices?.[0];
+
+  if (polarProduct?.name?.toLowerCase()?.includes("pro")) {
+    currentPlanName = "Pro";
+  } else if (polarProduct?.name?.toLowerCase()?.includes("max")) {
+    currentPlanName = "Max";
+  }
+
+  if (polarProductPrice && "priceAmount" in polarProductPrice) {
+    currentPlanPrice = Math.round(polarProductPrice?.priceAmount / 100) || 0;
+  }
+
+  if (polarProductPrice && "recurringInterval" in polarProductPrice) {
+    currentPlanFrequency = polarProductPrice?.recurringInterval || "month";
+  }
 
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
-  console.log("polarProducts", polarProducts);
-  console.log("subscription", subscription);
-
   const handleUpgradeClick = async () => {
-    if (!polarProducts) return;
+    if (!polarProductIds || polarProductIds.length === 0) return;
 
     const { url: checkoutUrl } = await createPolarCheckoutSession.mutateAsync({
-      polarProductIds: polarProducts.map((product) => product.id),
+      polarProductIds,
     });
 
     window.open(checkoutUrl, "_blank", "noopener,noreferrer");
@@ -37,14 +61,16 @@ export function Plan() {
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 
+  console.log(polarProduct);
+
   return (
     <div className="pt-4">
       <h2 className="h3 mb-4">Plan</h2>
       <Label className="mb-3">Your current plan</Label>
       <div className="border-border w-full max-w-80 rounded-lg border p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between gap-4">
-          <h3 className="text-lg font-bold">Pro</h3>
-          {(!subscription || subscription.status === "canceled") && (
+          <h3 className="text-lg font-bold">{currentPlanName}</h3>
+          {currentPlanName === "Free" && (
             <Button
               variant="link"
               className="underline"
@@ -53,7 +79,7 @@ export function Plan() {
               Upgrade
             </Button>
           )}
-          {subscription && (
+          {subscription && currentPlanName !== "Free" && (
             <Button
               variant="link"
               className="underline"
@@ -63,8 +89,15 @@ export function Plan() {
             </Button>
           )}
         </div>
-        <div className="mb-0.5 text-lg font-normal">USD $10/month</div>
-        <div className="text-muted-foreground text-xs">Billed monthly</div>
+        <div className="mb-0.5 text-lg font-normal">
+          ${currentPlanPrice}/{currentPlanFrequency}
+        </div>
+        {currentPlanName !== "Free" && (
+          <div className="text-muted-foreground text-xs">
+            {currentPlanFrequency === "month" && "Billed monthly"}
+            {currentPlanFrequency === "year" && "Billed annually"}
+          </div>
+        )}
       </div>
     </div>
   );
