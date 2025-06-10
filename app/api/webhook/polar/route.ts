@@ -16,6 +16,8 @@ export const POST = Webhooks({
     }
 
     try {
+      console.log("onSubscriptionCreated");
+
       await createSubscriptionQuery({
         orgId,
         subscriptionId: subscription.id,
@@ -41,6 +43,8 @@ export const POST = Webhooks({
     }
 
     try {
+      console.log("onSubscriptionUpdated");
+
       await updateSubscriptionQuery({
         orgId,
         subscriptionId: subscription.id,
@@ -66,6 +70,8 @@ export const POST = Webhooks({
     }
 
     try {
+      console.log("onSubscriptionCanceled");
+
       await updateSubscriptionQuery({
         orgId,
         subscriptionId: subscription.id,
