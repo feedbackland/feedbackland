@@ -7,6 +7,10 @@ import { database } from "firebase-admin";
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
+  onPayload: async (payload) => {
+    console.log("onPayload", payload);
+  },
+
   onSubscriptionCreated: async (payload) => {
     const { data: subscription } = payload;
     const orgId = subscription?.customer?.externalId;
