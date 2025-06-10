@@ -2,7 +2,7 @@ import { Webhooks } from "@polar-sh/nextjs";
 import { createSubscriptionQuery } from "@/queries/create-subscription";
 import { updateSubscriptionQuery } from "@/queries/update-subscription";
 import { adminDatabase } from "@/lib/firebase/admin";
-import admin from "firebase-admin";
+import { database } from "firebase-admin";
 
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
@@ -26,7 +26,7 @@ export const POST = Webhooks({
 
       await adminDatabase
         .ref(`subscriptions/${orgId}`)
-        .set(admin.database.ServerValue.TIMESTAMP);
+        .set(database.ServerValue.TIMESTAMP);
     } catch (error) {
       console.error(error);
     }
@@ -51,7 +51,7 @@ export const POST = Webhooks({
 
       await adminDatabase
         .ref(`subscriptions/${orgId}`)
-        .set(admin.database.ServerValue.TIMESTAMP);
+        .set(database.ServerValue.TIMESTAMP);
     } catch (error) {
       console.error(error);
     }

@@ -1,6 +1,6 @@
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { database } from "firebase-admin";
+import { getDatabase } from "firebase-admin/database";
 
 const adminApp =
   getApps().length === 0
@@ -12,11 +12,12 @@ const adminApp =
             String.raw`\n`,
           ).join("\n"),
         }),
+        databaseURL: `https://feedbackland-5bf9e-default-rtdb.firebaseio.com/`,
       })
     : getApps()[0];
 
 const adminAuth = getAuth(adminApp);
 
-const adminDatabase = database(adminApp);
+const adminDatabase = getDatabase(adminApp);
 
-export { adminApp, adminAuth, adminDatabase };
+export { adminAuth, adminDatabase };
