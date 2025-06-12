@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
-import { usePolarProduct } from "@/hooks/use-polar-product";
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscriptionChange } from "@/hooks/use-subscription-change";
 
@@ -21,9 +20,9 @@ export function Plan() {
 
   const { subscription } = useSubscriptionChange();
 
-  const {
-    query: { data: polarProduct },
-  } = usePolarProduct({ productId: subscription?.productId || null });
+  const polarProduct = polarProducts?.find(
+    (product) => product.id === subscription?.productId,
+  );
 
   const polarProductPrice = polarProduct?.prices?.[0];
 

@@ -1,94 +1,51 @@
 import { Webhooks } from "@polar-sh/nextjs";
-import { createSubscriptionQuery } from "@/queries/create-subscription";
-import { updateSubscriptionQuery } from "@/queries/update-subscription";
+import { upsertSubscriptionQuery } from "@/queries/upsert-subscription";
 import { adminDatabase } from "@/lib/firebase/admin";
 import { database } from "firebase-admin";
+
+const getName = (inputName: string) => {
+  if (inputName.toLowerCase().includes("pro")) {
+    return "pro";
+  } else if (inputName.toLowerCase().includes("max")) {
+    return "max";
+  }
+
+  return "free";
+};
 
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
   onPayload: async (payload) => {
-    console.log("onPayload", payload);
-  },
+    const type = payload?.type;
 
-  onSubscriptionCreated: async (payload) => {
-    const { data: subscription } = payload;
-    const orgId = subscription?.customer?.externalId;
+    if (
+      type === "subscription.created" ||
+      type === "subscription.active" ||
+      type === "subscription.canceled" ||
+      type === "subscription.uncanceled" ||
+      type === "subscription.revoked"
+    ) {
+      const { data: subscription } = payload;
+      const orgId = subscription?.customer?.externalId;
 
-    if (!orgId) {
-      throw new Error("Customer externalId not found");
-    }
+      if (orgId) {
+        await upsertSubscriptionQuery({
+          orgId,
+          subscriptionId: subscription.id,
+          customerId: subscription.customer.id,
+          productId: subscription.product.id,
+          status: subscription.status,
+          frequency: subscription.recurringInterval,
+          name: getName(subscription.product.name),
+          validUntil: subscription.currentPeriodEnd,
+          amount: subscription.amount,
+        });
 
-    try {
-      console.log("onSubscriptionCreated");
-
-      await createSubscriptionQuery({
-        orgId,
-        subscriptionId: subscription.id,
-        customerId: subscription.customer.id,
-        productId: subscription.product.id,
-        status: subscription.status,
-      });
-
-      await adminDatabase
-        .ref(`subscriptions/${orgId}`)
-        .set(database.ServerValue.TIMESTAMP);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-
-  onSubscriptionUpdated: async (payload) => {
-    const { data: subscription } = payload;
-    const orgId = subscription?.customer?.externalId;
-
-    if (!orgId) {
-      throw new Error("Customer externalId not found");
-    }
-
-    try {
-      console.log("onSubscriptionUpdated");
-
-      await updateSubscriptionQuery({
-        orgId,
-        subscriptionId: subscription.id,
-        customerId: subscription.customer.id,
-        productId: subscription.product.id,
-        status: subscription.status,
-      });
-
-      await adminDatabase
-        .ref(`subscriptions/${orgId}`)
-        .set(database.ServerValue.TIMESTAMP);
-    } catch (error) {
-      console.error(error);
-    }
-  },
-
-  onSubscriptionCanceled: async (payload) => {
-    const { data: subscription } = payload;
-    const orgId = subscription?.customer?.externalId;
-
-    if (!orgId) {
-      throw new Error("Customer externalId not found");
-    }
-
-    try {
-      console.log("onSubscriptionCanceled");
-
-      await updateSubscriptionQuery({
-        orgId,
-        subscriptionId: subscription.id,
-        customerId: subscription.customer.id,
-        productId: subscription.product.id,
-        status: "canceled",
-      });
-
-      await adminDatabase
-        .ref(`subscriptions/${orgId}`)
-        .set(database.ServerValue.TIMESTAMP);
-    } catch (error) {
-      console.error(error);
+        await adminDatabase
+          .ref(`subscriptions/${orgId}`)
+          .set(database.ServerValue.TIMESTAMP);
+      }
     }
   },
 });

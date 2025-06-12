@@ -43,6 +43,10 @@ export type PgsodiumKeyStatus = "default" | "expired" | "invalid" | "valid";
 
 export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" | "hmacsha256" | "hmacsha512" | "kdf" | "secretbox" | "secretstream" | "shorthash" | "stream_xchacha20";
 
+export type SubscriptionFrequency = "month" | "year";
+
+export type SubscriptionName = "free" | "max" | "pro";
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export type UserOrgRole = "admin" | "user";
@@ -563,14 +567,18 @@ export interface StorageS3MultipartUploadsParts {
 }
 
 export interface Subscriptions {
+  amount: Numeric;
   createdAt: Generated<Timestamp>;
   customerId: string;
+  frequency: SubscriptionFrequency;
   id: Generated<string>;
+  name: SubscriptionName;
   orgId: string;
   productId: string;
   status: string;
   subscriptionId: string;
   updatedAt: Generated<Timestamp>;
+  validUntil: Timestamp | null;
 }
 
 export interface User {
