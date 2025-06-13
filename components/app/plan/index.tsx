@@ -6,6 +6,7 @@ import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscriptionChange } from "@/hooks/use-subscription-change";
 import { Badge } from "@/components/ui/badge";
+import { BadgeCheckIcon, TriangleAlertIcon } from "lucide-react";
 
 export function Plan() {
   const {
@@ -69,7 +70,18 @@ export function Plan() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                {isExpired && <Badge variant="destructive">Expired</Badge>}
+                {isExpired && (
+                  <Badge variant="destructive">
+                    <TriangleAlertIcon />
+                    Expired
+                  </Badge>
+                )}
+                {isActive && (
+                  <Badge variant="default">
+                    <BadgeCheckIcon />
+                    Active
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -78,12 +90,12 @@ export function Plan() {
               <span className="text-2xl font-semibold">
                 ${subscription?.amount || 0}
               </span>
-              <span className="mb-0.5 text-sm font-normal">
+              <span className="mb-1 text-sm font-normal">
                 /{subscription?.frequency || "month"}
               </span>
             </div>
             {subscription && (
-              <div className="text-muted-foreground text-xs">
+              <div className="text-muted-foreground text-sm">
                 {subscription.frequency === "month" && "Billed monthly"}
                 {subscription.frequency === "year" && "Billed annually"}
               </div>

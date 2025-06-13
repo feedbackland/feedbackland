@@ -11,13 +11,9 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       .executeTakeFirst();
 
     if (subscription) {
-      console.log("validUntil", subscription?.validUntil);
-      console.log("typeof validUntil", typeof subscription?.validUntil);
-
       const isExpired = !!(
-        subscription.status === "canceled" &&
         subscription?.validUntil &&
-        subscription.validUntil < new Date()
+        subscription.validUntil.getTime() < new Date().getTime()
       );
 
       return { ...subscription, isExpired };

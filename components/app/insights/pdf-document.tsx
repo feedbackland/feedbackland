@@ -17,13 +17,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 10,
+    textAlign: "left",
+    marginBottom: 8,
   },
   generatedOn: {
     fontSize: 12,
     color: "#666",
-    textAlign: "center",
+    textAlign: "left",
     marginBottom: 25,
   },
   insightTitle: {
@@ -52,7 +52,7 @@ export const InsightsPdfDocument = ({
       <Document>
         <Page size="A4" style={styles.page}>
           <View style={styles.section}>
-            <Text style={styles.title}>Roadmap Report</Text>
+            <Text style={styles.title}>Roadmap</Text>
             <Text style={styles.generatedOn}>
               Generated on{" "}
               {new Date(insights?.[0]?.createdAt).toLocaleDateString("en-US", {
