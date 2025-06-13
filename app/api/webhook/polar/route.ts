@@ -39,7 +39,7 @@ export const POST = Webhooks({
           frequency: subscription.recurringInterval,
           name: getName(subscription.product.name),
           validUntil: subscription.currentPeriodEnd,
-          amount: subscription.amount,
+          amount: Math.round(subscription.amount / 100),
         });
 
         await adminDatabase
