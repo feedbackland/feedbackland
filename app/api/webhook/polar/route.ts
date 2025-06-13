@@ -24,10 +24,13 @@ export const POST = Webhooks({
       type === "subscription.active" ||
       type === "subscription.canceled" ||
       type === "subscription.uncanceled" ||
-      type === "subscription.revoked"
+      type === "subscription.revoked" ||
+      type === "subscription.updated"
     ) {
       const { data: subscription } = payload;
       const orgId = subscription?.customer?.externalId;
+
+      console.log(JSON.stringify(payload, null, 2));
 
       if (orgId) {
         await upsertSubscriptionQuery({
