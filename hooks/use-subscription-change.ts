@@ -4,11 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { ref, onValue, off } from "firebase/database";
 import { db } from "@/lib/firebase/client";
 import { useSubscription } from "@/hooks/use-subscription";
-import { Subscriptions } from "@/db/schema";
-import { Selectable } from "kysely";
 import { useOrg } from "@/hooks/use-org";
-
-type Subscription = Selectable<Subscriptions> | null;
+import { Subscription } from "@/lib/typings";
 
 export function useSubscriptionChange() {
   const {

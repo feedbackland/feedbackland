@@ -19,7 +19,7 @@
     "@next/bundle-analyzer": "^15.3.3",
     "@open-iframe-resizer/core": "^1.6.0",
     "@polar-sh/nextjs": "^0.4.0",
-    "@polar-sh/sdk": "^0.33.0",
+    "@polar-sh/sdk": "^0.33.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -66,9 +66,9 @@
     "@tiptap/pm": "^2.14.0",
     "@tiptap/react": "^2.14.0",
     "@tiptap/starter-kit": "^2.14.0",
-    "@trpc/client": "^11.3.1",
-    "@trpc/server": "^11.3.1",
-    "@trpc/tanstack-react-query": "^11.3.1",
+    "@trpc/client": "^11.4.0",
+    "@trpc/server": "^11.4.0",
+    "@trpc/tanstack-react-query": "^11.4.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/html-to-text": "^9.0.4",
     "@types/pg": "^8.15.4",
@@ -123,7 +123,7 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.25.62"
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.10",

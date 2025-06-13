@@ -13,9 +13,9 @@ export function ActivityFeed() {
   const allActivitiesSeen = useSetAllActivitiesSeen();
 
   return (
-    <div className="pt-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="h3">Activity Feed</h2>
+    <div className="">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="h4">Activity</h2>
         {metaData && metaData?.totalUnseenCount > 0 && (
           <Button
             disabled={metaData?.totalUnseenCount === 0}

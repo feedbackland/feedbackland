@@ -44,7 +44,7 @@ export const upsertSubscriptionQuery = async ({
             name,
             frequency,
             amount,
-            validUntil: validUntil ? validUntil.toISOString() : null,
+            validUntil,
           })
           .returningAll()
           .executeTakeFirstOrThrow();
@@ -53,9 +53,15 @@ export const upsertSubscriptionQuery = async ({
           .updateTable("subscriptions")
           .where("orgId", "=", orgId)
           .set({
+            orgId,
+            subscriptionId,
             customerId,
             productId,
             status,
+            name,
+            frequency,
+            amount,
+            validUntil,
           })
           .returningAll()
           .executeTakeFirstOrThrow();

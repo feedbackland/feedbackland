@@ -10,6 +10,12 @@ import {
   feedbackCategoriesSchema,
   insightsCursorSchema,
 } from "./schemas";
+import { Selectable } from "kysely";
+import { Subscriptions } from "@/db/schema";
+
+export type Subscription =
+  | (Selectable<Subscriptions> & { isExpired: boolean })
+  | null;
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
 

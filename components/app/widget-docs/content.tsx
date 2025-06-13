@@ -12,11 +12,8 @@ function App() {
 
   return (
     <div className="flex flex-col">
-      <h3 className="text-muted-foreground text-sm font-medium">
-        Adds a button to your app that slides in the platform as an overlay when
-        clicked
-      </h3>
-      <div className="mt-6 flex flex-col space-y-6">
+      <h2 className="h4 mb-6">Widget</h2>
+      <div className="flex flex-col space-y-8">
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
             Step 1 - Install the package
@@ -25,7 +22,7 @@ function App() {
         </div>
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 2 - Add the widget to your app
+            Step 2 - Embed the widget
           </h3>
           <Code
             code={overlayWidgetCode}

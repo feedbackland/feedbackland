@@ -69,12 +69,12 @@ export function Insights() {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-start justify-between gap-8 py-4">
+      <div className="mb-6 flex items-start justify-between gap-8">
         <div className="flex-1 space-y-1">
           <div className="mb-0 flex items-start justify-between">
             <div className="flex flex-col">
-              <h2 className="h3">
-                {isGenerating ? `Generating AI Insights...` : `AI Insights`}
+              <h2 className="h4">
+                {isGenerating ? `Generating Roadmap...` : `Roadmap`}
               </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
@@ -90,7 +90,7 @@ export function Insights() {
 
               {!isGenerating && hasNoInsights && (
                 <p className="text-muted-foreground text-sm">
-                  Click Generate to retreive AI insights
+                  Click Generate to retreive Roadmap
                 </p>
               )}
 
@@ -120,14 +120,14 @@ export function Insights() {
       {isGeneratingError && (
         <Error
           title="Could not generate insights"
-          description="An error occured while trying to generate AI insights. Please try again."
+          description="An error occured while trying to generate Roadmap. Please try again."
         />
       )}
 
       {!isGeneratingError && isError && (
         <Error
           title="Could not load insights"
-          description="An error occured while trying to load the AI insights. Please try again."
+          description="An error occured while trying to load the Roadmap. Please try again."
         />
       )}
 
