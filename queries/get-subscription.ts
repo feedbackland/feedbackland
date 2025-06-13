@@ -10,9 +10,10 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       .selectAll()
       .executeTakeFirst();
 
-    console.log("typeof validUntil", typeof subscription?.validUntil);
-
     if (subscription) {
+      console.log("validUntil", subscription?.validUntil);
+      console.log("typeof validUntil", typeof subscription?.validUntil);
+
       const isExpired = !!(
         subscription.status === "canceled" &&
         subscription?.validUntil &&

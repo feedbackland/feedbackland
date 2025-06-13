@@ -36,7 +36,6 @@ export function Plan() {
   const hasSubscription = !!subscription;
   const isActive = !subscription?.isExpired;
   const isExpired = !!(subscription && subscription.isExpired);
-  const isCanceled = subscription?.status === "canceled";
 
   if (!isPending) {
     return (
@@ -71,19 +70,6 @@ export function Plan() {
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {isExpired && <Badge variant="destructive">Expired</Badge>}
-                {isCanceled && !isExpired && <Badge>Canceled</Badge>}
-                {isCanceled && !isExpired && isActive && (
-                  <Badge variant="outline">
-                    Active until{" "}
-                    {subscription &&
-                      subscription.validUntil &&
-                      subscription.validUntil.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>

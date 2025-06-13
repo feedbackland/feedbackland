@@ -13,6 +13,7 @@ export const upsertSubscriptionQuery = async ({
   frequency,
   validUntil,
   amount,
+  email,
 }: {
   orgId: string;
   subscriptionId: string;
@@ -23,6 +24,7 @@ export const upsertSubscriptionQuery = async ({
   frequency: SubscriptionFrequency;
   validUntil: Date | null;
   amount: number;
+  email: string | null;
 }) => {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -45,6 +47,7 @@ export const upsertSubscriptionQuery = async ({
             frequency,
             amount,
             validUntil,
+            email,
           })
           .returningAll()
           .executeTakeFirstOrThrow();
@@ -62,6 +65,7 @@ export const upsertSubscriptionQuery = async ({
             frequency,
             amount,
             validUntil,
+            email,
           })
           .returningAll()
           .executeTakeFirstOrThrow();

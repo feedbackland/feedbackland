@@ -30,8 +30,6 @@ export const POST = Webhooks({
       const { data: subscription } = payload;
       const orgId = subscription?.customer?.externalId;
 
-      console.log(JSON.stringify(payload, null, 2));
-
       if (orgId) {
         await upsertSubscriptionQuery({
           orgId,
@@ -43,6 +41,7 @@ export const POST = Webhooks({
           name: getName(subscription.product.name),
           validUntil: subscription.currentPeriodEnd,
           amount: Math.round(subscription.amount / 100),
+          email: subscription?.customer?.email || null,
         });
 
         await adminDatabase

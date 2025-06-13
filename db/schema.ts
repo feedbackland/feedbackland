@@ -570,6 +570,7 @@ export interface Subscriptions {
   amount: Numeric;
   createdAt: Generated<Timestamp>;
   customerId: string;
+  email: string | null;
   frequency: SubscriptionFrequency;
   id: Generated<string>;
   name: SubscriptionName;
