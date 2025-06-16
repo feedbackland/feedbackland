@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, memo, useRef } from "react";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase/client";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +21,8 @@ export const SubscriptionListener = memo(() => {
   } = useOrg();
 
   useEffect(() => {
+    hasLoadedInitialData.current = false;
+
     if (!org || !isAdmin) return;
 
     const subscriptionRef = ref(db, `subscriptions/${org.id}`);
@@ -31,7 +33,6 @@ export const SubscriptionListener = memo(() => {
         return;
       }
 
-      console.log("zolg");
       queryClient.invalidateQueries();
     });
 
