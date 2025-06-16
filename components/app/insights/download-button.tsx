@@ -42,7 +42,7 @@ export function InsightsDownloadButton() {
       const { data } = await refetch();
       const docElement = <InsightsPdfDocument insights={data || []} />;
       const blob = await pdf(docElement).toBlob();
-      const filename = "insights.pdf";
+      const filename = "roadmap.pdf";
       downloadBlob({ blob, filename });
     } finally {
       setIsProcessing(false);

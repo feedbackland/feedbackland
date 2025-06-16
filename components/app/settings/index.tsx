@@ -11,9 +11,7 @@ export default function Settings() {
   return (
     <div className="">
       <h2 className="h4 mb-6">Settings</h2>
-      <div className="rounded-md border shadow-xs">
-        {/* <OrgName className={className} />
-        <OrgUrl className={className} /> */}
+      <div className="rounded-lg border shadow-xs">
         <PlatformTitle className={className} />
         <PlatformDescription className={className} />
         <PlatformUrl className={className} />

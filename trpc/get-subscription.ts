@@ -1,6 +1,5 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
-import { z } from "zod";
 
 export const getSubscription = adminProcedure.query(
   async ({ ctx: { orgId } }) => {

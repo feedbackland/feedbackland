@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { ProcessAdminInviteParams } from "@/components/app/process-admin-invite-params";
 import { ProcessModeParam } from "@/components/app/process-mode-param";
 import dynamic from "next/dynamic";
+import { SubscriptionListener } from "@/components/app/subscription-listener";
+import { GlobalOrgState } from "@/components/app/global-org-state";
 
 const PlatformHeader = dynamic(() =>
   import("../../components/app/platform-header").then(
@@ -23,8 +25,10 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <GlobalOrgState />
       <ClaimOrgBanner />
       <ProcessAdminInviteParams />
+      <SubscriptionListener />
       <ProcessModeParam />
 
       <div

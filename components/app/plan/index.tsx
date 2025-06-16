@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
 import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
 import { usePolarProducts } from "@/hooks/use-polar-products";
-import { useSubscriptionChange } from "@/hooks/use-subscription-change";
 import { Badge } from "@/components/ui/badge";
-import { BadgeCheckIcon, TriangleAlertIcon } from "lucide-react";
+import { TriangleAlertIcon } from "lucide-react";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export function Plan() {
   const {
     query: { data: polarProducts },
   } = usePolarProducts();
-  const { subscription, isPending } = useSubscriptionChange();
+  const {
+    query: { data: subscription, isPending },
+  } = useSubscription();
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
@@ -34,9 +36,8 @@ export function Plan() {
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 
-  const hasSubscription = !!subscription;
-  const isActive = !subscription?.isExpired;
-  const isExpired = !!(subscription && subscription.isExpired);
+  const isActive = !!(!subscription || subscription.isExpired === false);
+  const isExpired = !!(subscription && subscription.isExpired === true);
 
   if (!isPending) {
     return (
@@ -50,7 +51,7 @@ export function Plan() {
                   {subscription?.name || "Free"}
                 </h3>
                 <div className="-mt-1 -mr-1">
-                  {hasSubscription ? (
+                  {subscription ? (
                     <Button
                       variant="link"
                       className="underline"
@@ -74,12 +75,6 @@ export function Plan() {
                   <Badge variant="destructive">
                     <TriangleAlertIcon />
                     Expired
-                  </Badge>
-                )}
-                {isActive && (
-                  <Badge variant="default">
-                    <BadgeCheckIcon />
-                    Active
                   </Badge>
                 )}
               </div>

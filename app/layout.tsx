@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
-import { GlobalState } from "@/providers/global-state";
 import { ThemeProvider } from "@/providers/theme";
 import { IframeProvider } from "@/providers/iframe";
 import { Toaster } from "@/components/ui/sonner";
@@ -52,7 +51,6 @@ export default function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
-                      <GlobalState />
                       {children}
                       <Toaster />
                     </IframeProvider>

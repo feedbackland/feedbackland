@@ -14,7 +14,7 @@ import { isUuidV4 } from "@/lib/utils";
 import { RESET } from "jotai/utils";
 import { useSubdomain } from "@/hooks/use-subdomain";
 
-export function GlobalState() {
+export function GlobalOrgState() {
   const pathname = usePathname();
   const prevPathname = usePreviousDistinct(pathname);
   const setPreviousPathnameAtom = useSetAtom(previousPathnameAtom);
