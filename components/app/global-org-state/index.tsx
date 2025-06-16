@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useSetAtom } from "jotai";
 import {
@@ -14,7 +14,7 @@ import { isUuidV4 } from "@/lib/utils";
 import { RESET } from "jotai/utils";
 import { useSubdomain } from "@/hooks/use-subdomain";
 
-export function GlobalOrgState() {
+export const GlobalOrgState = memo(() => {
   const pathname = usePathname();
   const prevPathname = usePreviousDistinct(pathname);
   const setPreviousPathnameAtom = useSetAtom(previousPathnameAtom);
@@ -54,4 +54,6 @@ export function GlobalOrgState() {
   ]);
 
   return null;
-}
+});
+
+GlobalOrgState.displayName = "GlobalOrgState";

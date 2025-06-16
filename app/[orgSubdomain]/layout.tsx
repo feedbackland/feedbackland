@@ -1,45 +1,19 @@
-"use client";
-
 import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
-import { useInIframe } from "@/hooks/use-in-iframe";
-import { cn } from "@/lib/utils";
 import { ProcessAdminInviteParams } from "@/components/app/process-admin-invite-params";
 import { ProcessModeParam } from "@/components/app/process-mode-param";
-import dynamic from "next/dynamic";
 import { SubscriptionListener } from "@/components/app/subscription-listener";
 import { GlobalOrgState } from "@/components/app/global-org-state";
-
-const PlatformHeader = dynamic(() =>
-  import("../../components/app/platform-header").then(
-    ({ PlatformHeader }) => PlatformHeader,
-  ),
-);
+import PlatformRoot from "@/components/app/platform-root";
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
-  const inIframe = useInIframe();
-
-  // wait until determined if in iframe
-  if (inIframe === null) {
-    return null;
-  }
-
   return (
     <>
       <GlobalOrgState />
       <ClaimOrgBanner />
-      <ProcessAdminInviteParams />
       <SubscriptionListener />
       <ProcessModeParam />
-
-      <div
-        className={cn(
-          "m-auto flex w-full grow flex-col",
-          inIframe ? "px-8 py-6" : "mt-10 mb-10 max-w-[800px] px-5",
-        )}
-      >
-        <PlatformHeader />
-        {children}
-      </div>
+      <ProcessAdminInviteParams />
+      <PlatformRoot>{children}</PlatformRoot>
     </>
   );
 }
