@@ -56,7 +56,7 @@ export function Plan() {
                       className="underline"
                       onClick={handleManageOnClick}
                     >
-                      {!isExpired ? "Manage & Change plan" : "Renew"}
+                      Manage
                     </Button>
                   ) : (
                     <Button
@@ -70,7 +70,7 @@ export function Plan() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                {isExpired && (
+                {subscription && isExpired && (
                   <Badge variant="destructive">
                     <TriangleAlertIcon />
                     Expired
