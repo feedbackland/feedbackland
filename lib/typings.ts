@@ -13,9 +13,10 @@ import {
 import { Selectable } from "kysely";
 import { Subscriptions } from "@/db/schema";
 
-export type Subscription =
-  | (Selectable<Subscriptions> & { isExpired: boolean })
-  | null;
+export type Subscription = Selectable<Subscriptions> & {
+  activeSubscription: "free" | "pro" | "max";
+  isExpired: boolean;
+};
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
 

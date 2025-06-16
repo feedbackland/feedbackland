@@ -36,10 +36,9 @@ export function Plan() {
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 
-  const isActive = !!(!subscription || subscription.isExpired === false);
-  const isExpired = !!(subscription && subscription.isExpired === true);
+  if (!isPending && subscription) {
+    const { isExpired, name, amount, frequency } = subscription;
 
-  if (!isPending) {
     return (
       <div className="">
         <h2 className="h4 mb-6">Plan</h2>
@@ -51,13 +50,13 @@ export function Plan() {
                   {subscription?.name || "Free"}
                 </h3>
                 <div className="-mt-1 -mr-1">
-                  {subscription ? (
+                  {name !== "free" ? (
                     <Button
                       variant="link"
                       className="underline"
                       onClick={handleManageOnClick}
                     >
-                      {isActive ? "Manage" : "Renew"}
+                      {!isExpired ? "Manage & Change plan" : "Renew"}
                     </Button>
                   ) : (
                     <Button
@@ -82,17 +81,13 @@ export function Plan() {
           </div>
           <div className="flex flex-col items-stretch">
             <div className="mb-0.5 flex items-end">
-              <span className="text-2xl font-semibold">
-                ${subscription?.amount || 0}
-              </span>
-              <span className="mb-1 text-sm font-normal">
-                /{subscription?.frequency || "month"}
-              </span>
+              <span className="text-2xl font-semibold">${amount}</span>
+              <span className="mb-1 text-sm font-normal">/{frequency}</span>
             </div>
             {subscription && (
               <div className="text-muted-foreground text-sm">
-                {subscription.frequency === "month" && "Billed monthly"}
-                {subscription.frequency === "year" && "Billed annually"}
+                {frequency === "month" && "Billed monthly"}
+                {frequency === "year" && "Billed annually"}
               </div>
             )}
           </div>
