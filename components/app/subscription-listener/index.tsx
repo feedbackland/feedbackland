@@ -9,9 +9,11 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const SubscriptionListener = memo(() => {
   const queryClient = useQueryClient();
+
   const hasLoadedInitialData = useRef(false);
 
   const { session } = useAuth();
+
   const isAdmin = session?.userOrg?.role === "admin";
 
   const {
@@ -29,11 +31,13 @@ export const SubscriptionListener = memo(() => {
         return;
       }
 
+      console.log("zolg");
       queryClient.invalidateQueries();
     });
 
     return () => {
-      off(subscriptionRef, "value", unsubscribe);
+      unsubscribe();
+      hasLoadedInitialData.current = false;
     };
   }, [org, isAdmin, queryClient]);
 
