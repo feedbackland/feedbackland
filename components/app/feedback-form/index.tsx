@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useActivityFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
 import { useSubscription } from "@/hooks/use-subscription";
+import { SubscriptionPostsLimitAlert } from "@/components/app/subscription-management/posts-limit-alert";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -106,8 +107,10 @@ export function FeedbackForm() {
 
   const hasText = value?.length > 0;
 
+  const disabled = false;
+
   return (
-    <>
+    <div className={cn("mb-6", disabled && "mb-2")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -117,36 +120,47 @@ export function FeedbackForm() {
           onSubmit(newSession);
         }}
       />
-      <div className={cn("flex flex-col gap-3")}>
-        <div className="dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg">
-          <Tiptap
-            placeholder={`Share your feature request, bug report, or any other feedback...`}
-            value={value}
-            onChange={onChange}
-            autofocus={false}
-          />
-          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="submit"
-                  size="icon"
-                  variant="ghost"
-                  loading={isPending}
-                  onClick={() => onSubmit(session)}
-                  disabled={!!(!hasText || isPending)}
-                  className="size-8!"
-                >
-                  <SendIcon className="size-4!" />
-                  <span className="sr-only">Submit feedback</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Submit feedback</TooltipContent>
-            </Tooltip>
+
+      <SubscriptionPostsLimitAlert />
+
+      {!disabled && (
+        <div className={cn("flex flex-col gap-3")}>
+          <div
+            className={cn(
+              "dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg",
+              disabled && "cursor-not-allowed opacity-50",
+            )}
+          >
+            <Tiptap
+              placeholder={`Share your feature request, bug report, or any other feedback...`}
+              value={value}
+              onChange={onChange}
+              autofocus={false}
+              disabled={disabled}
+            />
+            <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    variant="ghost"
+                    loading={isPending}
+                    onClick={() => onSubmit(session)}
+                    disabled={!!(!hasText || isPending || disabled)}
+                    className="size-8!"
+                  >
+                    <SendIcon className="size-4!" />
+                    <span className="sr-only">Submit feedback</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Submit feedback</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
+          {errorMessage.length > 0 && <Error title={errorMessage} />}
         </div>
-        {errorMessage.length > 0 && <Error title={errorMessage} />}
-      </div>
-    </>
+      )}
+    </div>
   );
 }

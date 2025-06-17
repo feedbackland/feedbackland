@@ -58,7 +58,7 @@ export function FeedbackPostOptionsMenu({
 
   const platformUrl = usePlatformUrl();
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, isAdmin } = useAuth();
 
   const {
     query: { data },
@@ -104,7 +104,6 @@ export function FeedbackPostOptionsMenu({
   };
 
   const isAuthor = session?.user?.id === authorId;
-  const isAdmin = session?.userOrg?.role === "admin";
   const isVisible = !!(isAuthor || isAdmin);
   const status = data?.status;
 

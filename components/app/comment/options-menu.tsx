@@ -38,7 +38,7 @@ export function CommentsOptionsMenu({
   variant?: "ghost" | "link" | "default" | "secondary";
   onEdit?: () => void;
 }) {
-  const { session } = useAuth();
+  const { session, isAdmin } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -85,7 +85,6 @@ export function CommentsOptionsMenu({
   };
 
   const isAuthor = session?.user?.id === authorId;
-  const isAdmin = session?.userOrg?.role === "admin";
   const isVisible = !!(isAuthor || isAdmin);
 
   if (isVisible) {

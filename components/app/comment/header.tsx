@@ -18,8 +18,7 @@ export function CommentHeader({
   createdAt: Date;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const { session } = useAuth();
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { isAdmin } = useAuth();
 
   return (
     <div className={cn("flex items-center gap-1", className)}>

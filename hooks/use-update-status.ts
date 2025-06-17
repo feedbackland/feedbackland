@@ -5,8 +5,7 @@ import { useAuth } from "./use-auth";
 export function useUpdateStatus({ postId }: { postId: string }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { session } = useAuth();
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { isAdmin } = useAuth();
 
   const saveComment = useMutation(trpc.createComment.mutationOptions());
 

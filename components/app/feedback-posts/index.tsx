@@ -114,7 +114,7 @@ export function FeedbackPosts() {
   };
 
   return (
-    <div className="xs:mt-8 mt-6">
+    <div className="">
       {!isPlatformEmpty && (
         <div className="relative mb-2 flex h-[40px] items-center justify-between gap-2">
           <SortingFilteringDropdown

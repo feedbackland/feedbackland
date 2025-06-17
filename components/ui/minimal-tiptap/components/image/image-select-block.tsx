@@ -8,7 +8,13 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 
-export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
+export const ImageSelectBlock = ({
+  editor,
+  disabled = false,
+}: {
+  editor: Editor;
+  disabled?: boolean;
+}) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleClick = React.useCallback(() => {
@@ -53,6 +59,7 @@ export const ImageSelectBlock = ({ editor }: { editor: Editor }) => {
             size="icon"
             onClick={handleClick}
             className="size-7!"
+            disabled={disabled}
           >
             <ImageIcon className="size-3.5!" />
             <span className="sr-only">Upload images</span>

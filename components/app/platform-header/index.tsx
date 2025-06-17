@@ -34,8 +34,7 @@ import { iframeParentAtom } from "@/lib/atoms";
 export function PlatformHeader() {
   const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
-  const { session, signOut } = useAuth();
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { session, signOut, isAdmin } = useAuth();
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
   const iframeParent = useAtomValue(iframeParentAtom);

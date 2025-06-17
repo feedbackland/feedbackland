@@ -12,7 +12,7 @@ export function Info({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <Alert variant="destructive" className={cn("", className)}>
+    <Alert variant="default" className={cn("", className)}>
       <BadgeInfo className="size-4" />
       <AlertTitle>{title}</AlertTitle>
       {description && <AlertDescription>{description}</AlertDescription>}

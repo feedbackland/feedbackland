@@ -36,6 +36,7 @@ export type Session = {
 type AuthContextType = {
   session: Session;
   isLoaded: boolean;
+  isAdmin: boolean;
   signInWithEmail: ({
     email,
     password,
@@ -61,6 +62,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   session: null,
   isLoaded: false,
+  isAdmin: false,
   signInWithEmail: async () => ({}) as Session,
   signInAnonymously: async () => ({}) as Session,
   signUpWithEmail: async () => ({}) as Session,
@@ -129,6 +131,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setSession(null);
     setIsLoaded(true);
   }, [setSession, setIsLoaded, queryClient]);
+
+  const isAdmin = session?.userOrg?.role === "admin";
 
   const createSession = useCallback(
     async ({
@@ -304,6 +308,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         session,
         isLoaded,
+        isAdmin,
         signInWithEmail,
         signInAnonymously,
         signUpWithEmail,

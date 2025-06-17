@@ -10,9 +10,9 @@ const FeedbackForm = dynamic(() =>
 
 export default function OrgPage() {
   return (
-    <>
+    <div>
       <FeedbackForm />
       <FeedbackPosts />
-    </>
+    </div>
   );
 }

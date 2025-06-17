@@ -207,6 +207,11 @@
   }
 }
 
+.tiptap[contenteditable="false"] {
+  caret-color: transparent !important;
+  cursor: not-allowed !important;
+}
+
 .tiptap-output {
   @apply text-primary text-sm leading-relaxed font-normal;
 

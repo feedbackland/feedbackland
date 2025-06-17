@@ -15,6 +15,7 @@ export const Tiptap = ({
   editorClassName,
   showToolbar = true,
   autofocus = false,
+  disabled = false,
 }: {
   value: Content;
   placeholder?: string;
@@ -27,6 +28,7 @@ export const Tiptap = ({
   editorClassName?: React.ComponentProps<"div">["className"];
   showToolbar?: boolean;
   autofocus?: boolean;
+  disabled?: boolean;
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -66,6 +68,7 @@ export const Tiptap = ({
       onFocus={handleFocus}
       onBlur={handleBlur}
       onCreate={onCreate}
+      disabled={disabled}
     />
   );
 };

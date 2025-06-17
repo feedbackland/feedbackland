@@ -8,8 +8,7 @@ import Link from "next/link";
 import { useEffect, ReactNode } from "react";
 
 export default function AdminRoot({ children }: { children: ReactNode }) {
-  const { session, isLoaded } = useAuth();
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { isAdmin, isLoaded } = useAuth();
   const platformUrl = usePlatformUrl();
   const router = useRouter();
   const pathname = usePathname();

@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function AdminRedirectPage() {
-  const { session, isLoaded } = useAuth();
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { isAdmin, isLoaded } = useAuth();
   const platformUrl = usePlatformUrl();
   const router = useRouter();
 

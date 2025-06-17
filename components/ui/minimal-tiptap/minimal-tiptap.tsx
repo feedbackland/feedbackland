@@ -18,17 +18,20 @@ export interface MinimalTiptapProps
   className?: string;
   editorContentClassName?: string;
   showToolbar?: boolean;
+  disabled?: boolean;
 }
 
 const Toolbar = ({
   editor,
   hide = false,
+  disabled = false,
 }: {
   editor: Editor;
   hide?: boolean;
+  disabled?: boolean;
 }) => (
   <div className={cn("flex h-12 items-center px-2", hide && "hidden")}>
-    <ImageSelectBlock editor={editor} />
+    <ImageSelectBlock editor={editor} disabled={disabled} />
   </div>
 );
 
@@ -38,12 +41,16 @@ export const MinimalTiptapEditor = ({
   className,
   editorContentClassName,
   showToolbar = false,
+  disabled = false,
   ...props
 }: MinimalTiptapProps) => {
+  const isDisabled = !!(props.editable === false || disabled);
+
   const editor = useMinimalTiptapEditor({
     value,
     onUpdate: onChange,
     ...props,
+    editable: !isDisabled,
   });
 
   useEffect(() => {
@@ -66,6 +73,7 @@ export const MinimalTiptapEditor = ({
       name="editor"
       className={cn(
         "border-input dark:bg-input/30 flex w-full cursor-text flex-col rounded-md border shadow-xs",
+        isDisabled && "cursor-not-allowed",
         className,
       )}
       onClick={handleOnClick}
@@ -75,7 +83,7 @@ export const MinimalTiptapEditor = ({
         className={cn("minimal-tiptap-editor", editorContentClassName)}
         onClick={handleOnClick}
       />
-      <Toolbar editor={editor} hide={!showToolbar} />
+      <Toolbar editor={editor} hide={!showToolbar} disabled={disabled} />
       <LinkBubbleMenu editor={editor} />
     </MeasuredContainer>
   );

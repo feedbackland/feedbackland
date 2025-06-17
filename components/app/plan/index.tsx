@@ -1,40 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useCreatePolarCheckoutSession } from "@/hooks/use-create-polar-checkout-session";
-import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer-session";
-import { usePolarProducts } from "@/hooks/use-polar-products";
 import { Badge } from "@/components/ui/badge";
 import { TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
+import { SubscriptionUpgradeButton } from "@/components/app/subscription-management/upgrade-button";
+import { SubscriptionManagementButton } from "@/components/app/subscription-management/manage-button";
 
 export function Plan() {
   const {
-    query: { data: polarProducts },
-  } = usePolarProducts();
-  const {
     query: { data: subscription, isPending },
   } = useSubscription();
-  const createPolarCheckoutSession = useCreatePolarCheckoutSession();
-  const createPolarCustomerSession = useCreatePolarCustomerSession();
-
-  const polarProductIds = polarProducts?.map((product) => product.id);
-
-  const handleUpgradeClick = async () => {
-    if (!polarProductIds || polarProductIds.length === 0) return;
-
-    const { url: checkoutUrl } = await createPolarCheckoutSession.mutateAsync({
-      polarProductIds,
-    });
-
-    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleManageOnClick = async () => {
-    const { customerPortalUrl } =
-      await createPolarCustomerSession.mutateAsync();
-    window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
-  };
 
   if (!isPending && subscription) {
     const { isExpired, name, amount, frequency } = subscription;
@@ -50,22 +25,16 @@ export function Plan() {
                   {subscription?.name || "Free"}
                 </h3>
                 <div className="-mt-1 -mr-1">
-                  {name !== "free" ? (
-                    <Button
+                  {name === "free" ? (
+                    <SubscriptionUpgradeButton
                       variant="link"
                       className="underline"
-                      onClick={handleManageOnClick}
-                    >
-                      Manage
-                    </Button>
+                    />
                   ) : (
-                    <Button
+                    <SubscriptionManagementButton
                       variant="link"
                       className="underline"
-                      onClick={handleUpgradeClick}
-                    >
-                      Upgrade
-                    </Button>
+                    />
                   )}
                 </div>
               </div>

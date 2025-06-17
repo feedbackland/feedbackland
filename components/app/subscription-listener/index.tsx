@@ -12,9 +12,7 @@ export const SubscriptionListener = memo(() => {
 
   const hasLoadedInitialData = useRef(false);
 
-  const { session } = useAuth();
-
-  const isAdmin = session?.userOrg?.role === "admin";
+  const { isAdmin } = useAuth();
 
   const {
     query: { data: org },
