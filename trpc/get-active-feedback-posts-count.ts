@@ -1,10 +1,10 @@
 import { adminProcedure } from "@/lib/trpc";
-import { getActivityFeedbackPostsCountQuery } from "@/queries/get-active-feedback-posts-count";
+import { getActiveFeedbackPostsCountQuery } from "@/queries/get-active-feedback-posts-count";
 
-export const getActivityFeedbackPostsCount = adminProcedure.query(
+export const getActiveFeedbackPostsCount = adminProcedure.query(
   async ({ ctx: { orgId } }) => {
     try {
-      return await getActivityFeedbackPostsCountQuery({
+      return await getActiveFeedbackPostsCountQuery({
         orgId,
       });
     } catch (error) {

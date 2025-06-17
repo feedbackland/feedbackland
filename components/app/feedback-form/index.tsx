@@ -20,9 +20,10 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useActivityFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
+import { useActiveFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionPostsLimitAlert } from "@/components/app/subscription-management/posts-limit-alert";
+import { useLimits } from "@/hooks/useLimits";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -30,6 +31,7 @@ export function FeedbackForm() {
   const router = useRouter();
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
+  const { hasReachedPostLimit } = useLimits();
   const [value, setValue] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
@@ -42,7 +44,7 @@ export function FeedbackForm() {
 
   const {
     query: { data: activityFeedbackPostsCount },
-  } = useActivityFeedbackPostsCount();
+  } = useActiveFeedbackPostsCount();
 
   const {
     query: { data: subscription },
@@ -107,10 +109,8 @@ export function FeedbackForm() {
 
   const hasText = value?.length > 0;
 
-  const disabled = false;
-
   return (
-    <div className={cn("mb-6", disabled && "mb-2")}>
+    <div className={cn("mb-6", !hasReachedPostLimit && "mb-2.5")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -123,12 +123,11 @@ export function FeedbackForm() {
 
       <SubscriptionPostsLimitAlert />
 
-      {!disabled && (
+      {!hasReachedPostLimit && (
         <div className={cn("flex flex-col gap-3")}>
           <div
             className={cn(
               "dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg",
-              disabled && "cursor-not-allowed opacity-50",
             )}
           >
             <Tiptap
@@ -136,7 +135,6 @@ export function FeedbackForm() {
               value={value}
               onChange={onChange}
               autofocus={false}
-              disabled={disabled}
             />
             <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
               <Tooltip>
@@ -147,7 +145,7 @@ export function FeedbackForm() {
                     variant="ghost"
                     loading={isPending}
                     onClick={() => onSubmit(session)}
-                    disabled={!!(!hasText || isPending || disabled)}
+                    disabled={!!(!hasText || isPending)}
                     className="size-8!"
                   >
                     <SendIcon className="size-4!" />

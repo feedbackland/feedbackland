@@ -3,8 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionUpgradeButton } from "@/components/app/subscription-management/upgrade-button";
-import { SubscriptionManagementButton } from "@/components/app/subscription-management/manage-button";
+import { SubscriptionButton } from "@/components/app/subscription-management/button";
 
 export function Plan() {
   const {
@@ -12,7 +11,7 @@ export function Plan() {
   } = useSubscription();
 
   if (!isPending && subscription) {
-    const { isExpired, name, amount, frequency } = subscription;
+    const { isExpired, amount, frequency } = subscription;
 
     return (
       <div className="">
@@ -25,17 +24,11 @@ export function Plan() {
                   {subscription?.name || "Free"}
                 </h3>
                 <div className="-mt-1 -mr-1">
-                  {name === "free" ? (
-                    <SubscriptionUpgradeButton
-                      variant="link"
-                      className="underline"
-                    />
-                  ) : (
-                    <SubscriptionManagementButton
-                      variant="link"
-                      className="underline"
-                    />
-                  )}
+                  <SubscriptionButton
+                    variant="link"
+                    className="underline"
+                    buttonText="Manage & change plan"
+                  />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
