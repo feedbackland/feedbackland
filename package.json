@@ -91,9 +91,9 @@
     "jotai": "^2.12.5",
     "kysely": "^0.28.2",
     "lowlight": "^3.3.0",
-    "lucide-react": "^0.515.0",
+    "lucide-react": "^0.516.0",
     "next": "^15.3.3",
-    "next-safe-action": "^8.0.2",
+    "next-safe-action": "^8.0.3",
     "next-themes": "^0.4.6",
     "nuqs": "^2.4.3",
     "penpal": "^7.0.4",
@@ -123,7 +123,7 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^3.25.64"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.10",

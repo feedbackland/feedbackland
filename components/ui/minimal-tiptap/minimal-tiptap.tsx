@@ -56,6 +56,10 @@ export const MinimalTiptapEditor = ({
     return null;
   }
 
+  const handleOnClick = () => {
+    editor.commands.focus();
+  };
+
   return (
     <MeasuredContainer
       as="div"
@@ -64,16 +68,12 @@ export const MinimalTiptapEditor = ({
         "border-input dark:bg-input/30 flex w-full cursor-text flex-col rounded-md border shadow-xs",
         className,
       )}
-      onClick={() => {
-        editor.commands.focus();
-      }}
+      onClick={handleOnClick}
     >
       <EditorContent
         editor={editor}
         className={cn("minimal-tiptap-editor", editorContentClassName)}
-        onClick={() => {
-          editor.commands.focus();
-        }}
+        onClick={handleOnClick}
       />
       <Toolbar editor={editor} hide={!showToolbar} />
       <LinkBubbleMenu editor={editor} />

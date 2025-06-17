@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { processImagesInHTML } from "@/lib/utils";
+import { cn, processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useActivityFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -36,6 +38,17 @@ export function FeedbackForm() {
     setErrormessage("");
     setValue(value);
   };
+
+  const {
+    query: { data: activityFeedbackPostsCount },
+  } = useActivityFeedbackPostsCount();
+
+  const {
+    query: { data: subscription },
+  } = useSubscription();
+
+  console.log("subscription", subscription);
+  console.log("activityFeedbackPostsCount", activityFeedbackPostsCount);
 
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({
@@ -104,7 +117,7 @@ export function FeedbackForm() {
           onSubmit(newSession);
         }}
       />
-      <div className="flex flex-col gap-3">
+      <div className={cn("flex flex-col gap-3")}>
         <div className="dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg">
           <Tiptap
             placeholder={`Share your feature request, bug report, or any other feedback...`}
@@ -121,7 +134,7 @@ export function FeedbackForm() {
                   variant="ghost"
                   loading={isPending}
                   onClick={() => onSubmit(session)}
-                  disabled={!hasText || isPending}
+                  disabled={!!(!hasText || isPending)}
                   className="size-8!"
                 >
                   <SendIcon className="size-4!" />
