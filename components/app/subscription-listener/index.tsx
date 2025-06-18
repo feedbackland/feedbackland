@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, memo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase/client";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 
-export const SubscriptionListener = memo(() => {
+const SubscriptionListenerInner = () => {
   const queryClient = useQueryClient();
 
   const hasLoadedInitialData = useRef(false);
@@ -41,6 +41,16 @@ export const SubscriptionListener = memo(() => {
   }, [org, isAdmin, queryClient]);
 
   return null;
-});
+};
+
+export const SubscriptionListener = () => {
+  const { isAdmin } = useAuth();
+
+  if (isAdmin) {
+    return <SubscriptionListenerInner />;
+  }
+
+  return null;
+};
 
 SubscriptionListener.displayName = "SubscriptionListener";
