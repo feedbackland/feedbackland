@@ -1,7 +1,18 @@
 import { Content } from "@tiptap/react";
-import { MinimalTiptapEditor } from "./minimal-tiptap";
+// import { MinimalTiptapEditor } from "./minimal-tiptap";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+const MinimalTiptapEditor = dynamic(
+  () =>
+    import("./minimal-tiptap").then(
+      ({ MinimalTiptapEditor }) => MinimalTiptapEditor,
+    ),
+  {
+    ssr: false,
+  },
+);
 
 export const Tiptap = ({
   value,
