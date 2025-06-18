@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { ref, onValue } from "firebase/database";
-import { db } from "@/lib/firebase/client";
+import { app } from "@/lib/firebase/client";
+import { getDatabase } from "firebase/database";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,6 +23,8 @@ export const SubscriptionListenerInner = () => {
     hasLoadedInitialData.current = false;
 
     if (!org || !isAdmin) return;
+
+    const db = getDatabase(app);
 
     const subscriptionRef = ref(db, `subscriptions/${org.id}`);
 
