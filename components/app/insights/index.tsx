@@ -10,10 +10,14 @@ import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
 
-const InsightsDownloadButton = dynamic(() =>
-  import("./download-button").then(
-    ({ InsightsDownloadButton }) => InsightsDownloadButton,
-  ),
+const InsightsDownloadButton = dynamic(
+  () =>
+    import("./download-button").then(
+      ({ InsightsDownloadButton }) => InsightsDownloadButton,
+    ),
+  {
+    ssr: false,
+  },
 );
 
 export function Insights() {
