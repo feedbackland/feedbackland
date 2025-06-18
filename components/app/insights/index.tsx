@@ -8,7 +8,6 @@ import { Error } from "@/components/ui/error";
 import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
-// import { InsightsDownloadButton } from "./download-button";
 import dynamic from "next/dynamic";
 
 const InsightsDownloadButton = dynamic(() =>

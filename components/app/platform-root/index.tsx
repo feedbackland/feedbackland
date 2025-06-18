@@ -2,11 +2,7 @@
 
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
-import dynamic from "next/dynamic";
-
-const PlatformHeader = dynamic(() =>
-  import("../platform-header").then(({ PlatformHeader }) => PlatformHeader),
-);
+import { PlatformHeader } from "@/components/app/platform-header";
 
 export default function PlatformRoot({
   children,
