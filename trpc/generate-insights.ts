@@ -69,7 +69,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
         - No fluff—every word must drive action.
 
       ## Required Output
-      Return **valid JSON**: an array of insight objects, strictly ordered by descending 'priority':
+      Return **valid JSON**: an array of insight objects, strictly ordered by descending 'priority', strictly following this schema:
 
       \`\`\`json
       [
@@ -279,14 +279,16 @@ Analyze the provided feedback and generate the prioritized JSON roadmap.
               ],
             },
           ],
-          temperature: 0.2,
-          // max_tokens: 100000,
+          // temperature: 0.3,
+          max_tokens: 14629,
           response_format: { type: "json_object" },
         }),
       },
     );
 
     const data = await response.json();
+
+    console.log("data", data);
 
     const insightsOutputString = data?.choices?.[0]?.message?.content as string;
 

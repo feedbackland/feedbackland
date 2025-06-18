@@ -375,6 +375,12 @@ export interface Feedback {
   upvotes: Generated<Numeric>;
 }
 
+export interface InsightReports {
+  createdAt: Generated<Timestamp>;
+  id: Generated<Int8>;
+  orgId: string;
+}
+
 export interface Insights {
   category: FeedbackCategory | null;
   commentCount: Generated<Numeric>;
@@ -650,6 +656,7 @@ export interface DB {
   "extensions.pg_stat_statements_info": ExtensionsPgStatStatementsInfo;
   "extensions.wrappers_fdw_stats": ExtensionsWrappersFdwStats;
   feedback: Feedback;
+  insight_reports: InsightReports;
   insights: Insights;
   org: Org;
   "pgsodium.decrypted_key": PgsodiumDecryptedKey;

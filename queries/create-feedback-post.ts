@@ -37,7 +37,7 @@ const getTitleAndCategory = async (plainTextDescription: string) => {
             content: prompt,
           },
         ],
-        temperature: 0.3,
+        // temperature: 0.3,
         max_tokens: 200,
         response_format: { type: "json_object" },
       }),
