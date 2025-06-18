@@ -3,14 +3,14 @@ import { useSubscription } from "@/hooks/use-subscription";
 
 export function useLimits() {
   const {
-    query: { data: activityFeedbackPostsCount, isPending: isPending1 },
+    query: { data: activityFeedbackPostsCount, isPending: isPostCountPending },
   } = useActiveFeedbackPostsCount();
 
   const {
-    query: { data: subscription, isPending: isPending2 },
+    query: { data: subscription, isPending: isSubscriptionPending },
   } = useSubscription();
 
-  const isPending = !!(isPending1 || isPending2);
+  const isPending = !!(isPostCountPending || isSubscriptionPending);
   const subName = subscription?.name;
   const postCount = activityFeedbackPostsCount || 0;
   const hasReachedFreePostLimit = subName === "free" && postCount >= 1;

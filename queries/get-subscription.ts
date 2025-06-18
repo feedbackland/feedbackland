@@ -1,7 +1,6 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { Subscription } from "@/lib/typings";
 
 export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
   try {
@@ -17,12 +16,16 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
         subscription.validUntil.getTime() < new Date().getTime()
       );
       const activeSubscription = isExpired ? "free" : subscription.name;
+      const { orgId, amount, name, frequency } = subscription;
 
       return {
-        ...subscription,
-        isExpired,
+        orgId,
+        amount,
+        name,
         activeSubscription,
-      } satisfies Subscription;
+        frequency,
+        isExpired,
+      };
     }
 
     return {
@@ -32,7 +35,7 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       activeSubscription: "free",
       frequency: "month",
       isExpired: false,
-    } satisfies Partial<Subscription>;
+    };
   } catch (error) {
     throw error;
   }
