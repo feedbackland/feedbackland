@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionButton } from "@/components/app/subscription-management/button";
+import { SubscriptionButton } from "@/components/app/subscription-button";
 
 export function Plan() {
   const {

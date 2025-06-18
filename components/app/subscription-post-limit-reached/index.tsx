@@ -1,12 +1,12 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { SubscriptionButton } from "./button";
+import { SubscriptionButton } from "../subscription-button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLimits } from "@/hooks/useLimits";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
-export function SubscriptionPostsLimitAlert({
+export function SubscriptionPostLimitReached({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];

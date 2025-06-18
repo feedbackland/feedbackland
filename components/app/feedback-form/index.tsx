@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useActiveFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionPostsLimitAlert } from "@/components/app/subscription-management/posts-limit-alert";
+import { SubscriptionPostLimitReached } from "@/components/app/subscription-post-limit-reached";
 import { useLimits } from "@/hooks/useLimits";
 
 export function FeedbackForm() {
@@ -121,7 +121,7 @@ export function FeedbackForm() {
         }}
       />
 
-      <SubscriptionPostsLimitAlert />
+      <SubscriptionPostLimitReached />
 
       {!hasReachedPostLimit && (
         <div className={cn("flex flex-col gap-3")}>
