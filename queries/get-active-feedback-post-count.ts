@@ -2,7 +2,7 @@
 
 import { db } from "@/db/db";
 
-export async function getActiveFeedbackPostsCountQuery({
+export async function getActiveFeedbackPostCountQuery({
   orgId,
 }: {
   orgId: string;

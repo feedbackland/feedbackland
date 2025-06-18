@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 
-export function useActiveFeedbackPostsCount() {
+export function useActiveFeedbackPostCount() {
   const trpc = useTRPC();
-  const trpcQuery = trpc.getActiveFeedbackPostsCount.queryOptions();
+  const trpcQuery = trpc.getActiveFeedbackPostCount.queryOptions();
   const queryKey = trpcQuery.queryKey;
   const query = useQuery(trpcQuery);
   return { queryKey, query };

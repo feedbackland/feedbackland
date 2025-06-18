@@ -20,8 +20,6 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useActiveFeedbackPostsCount } from "@/hooks/use-active-feedback-posts-count";
-import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionPostLimitReached } from "@/components/app/subscription-post-limit-reached";
 import { useLimits } from "@/hooks/useLimits";
 
@@ -41,17 +39,6 @@ export function FeedbackForm() {
     setErrormessage("");
     setValue(value);
   };
-
-  const {
-    query: { data: activityFeedbackPostsCount },
-  } = useActiveFeedbackPostsCount();
-
-  const {
-    query: { data: subscription },
-  } = useSubscription();
-
-  console.log("subscription", subscription);
-  console.log("activityFeedbackPostsCount", activityFeedbackPostsCount);
 
   const saveFeedback = useMutation(
     trpc.createFeedbackPost.mutationOptions({

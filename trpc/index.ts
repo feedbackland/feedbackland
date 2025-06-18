@@ -34,7 +34,7 @@ import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
 import { getPolarProduct } from "./get-polar-product";
-import { getActiveFeedbackPostsCount } from "./get-active-feedback-posts-count";
+import { getActiveFeedbackPostCount } from "./get-active-feedback-post-count";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -73,7 +73,7 @@ export const appRouter = router({
   getPolarProducts,
   getPolarProduct,
   getSubscription,
-  getActiveFeedbackPostsCount,
+  getActiveFeedbackPostCount,
 });
 
 export type AppRouter = typeof appRouter;
