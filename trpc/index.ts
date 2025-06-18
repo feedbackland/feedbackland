@@ -35,6 +35,7 @@ import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
 import { getPolarProduct } from "./get-polar-product";
 import { getActiveFeedbackPostCount } from "./get-active-feedback-post-count";
+import { getAdminCount } from "./get-admin-count";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -74,6 +75,7 @@ export const appRouter = router({
   getPolarProduct,
   getSubscription,
   getActiveFeedbackPostCount,
+  getAdminCount,
 });
 
 export type AppRouter = typeof appRouter;

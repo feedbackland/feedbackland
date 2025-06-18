@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLimits } from "@/hooks/useLimits";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
-export function SubscriptionPostLimitReached({
+export function SubscriptionPostLimit({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
@@ -18,16 +18,13 @@ export function SubscriptionPostLimitReached({
     return (
       <Alert
         variant="destructive"
-        className={cn(
-          "bg-destructive/5 flex items-center justify-between gap-4",
-          className,
-        )}
+        className={cn("flex items-center justify-between gap-5", className)}
       >
         <AlertDescription className="font-medium">
           {isAdmin
-            ? `You've hit Feedbackland ${capitalizeFirstLetter(subName || "free")}'s
-            usage limit. Upgrade your plan to continue receiving feedback.`
-            : `We're sorry, but feedback submissions are currently paused. Please
+            ? `Feedback submissions are currently paused because you've hit Feedbackland ${capitalizeFirstLetter(subName || "free")}'s
+            posts limit. Please upgrade your plan to continue collecting feedback.`
+            : `Feedback submissions are currently paused. Please
             check again later.`}
         </AlertDescription>
         {isAdmin && <SubscriptionButton size="sm" buttonText="Upgrade" />}

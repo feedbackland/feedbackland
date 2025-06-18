@@ -43,3 +43,15 @@ export async function getAdminsQuery({ orgId }: { orgId: string }) {
     throw error;
   }
 }
+
+export async function getAdminCountQuery({ orgId }: { orgId: string }) {
+  try {
+    const admins = await getAdminsQuery({
+      orgId,
+    });
+
+    return admins?.length || 1;
+  } catch (error) {
+    throw error;
+  }
+}

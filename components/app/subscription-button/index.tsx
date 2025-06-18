@@ -55,7 +55,7 @@ export function SubscriptionButton({
 
   const handleOnClick = () => {
     if (!isPending) {
-      if (subscription && "id" in subscription && subscription.id) {
+      if (subscription?.name !== "free") {
         openCustomerPortal();
       } else {
         openCheckout();

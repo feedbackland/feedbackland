@@ -1,7 +1,12 @@
 import { useActiveFeedbackPostCount } from "@/hooks/use-active-feedback-post-count";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useAdminCount } from "@/hooks/use-admin-count";
 
 export function useLimits() {
+  const {
+    query: { data: adminCount, isPending: isAdminCountPending },
+  } = useAdminCount();
+
   const {
     query: {
       data: activeFeedbackPostCount,
@@ -14,24 +19,38 @@ export function useLimits() {
   } = useSubscription();
 
   const isPending = !!(
-    isActiveFeedbackPostCountPending || isSubscriptionPending
+    isActiveFeedbackPostCountPending ||
+    isSubscriptionPending ||
+    isAdminCountPending
   );
+
   const subName = subscription?.name;
+  const hasFreePlan = subName === "free";
+  const hasProPlan = subName === "pro";
+
   const postCount = activeFeedbackPostCount || 0;
-  const hasReachedFreePostLimit = subName === "free" && postCount >= 1;
-  const hasReachedProPostLimit = subName === "pro" && postCount >= 1;
+
+  const hasReachedFreePostLimit = hasFreePlan && postCount >= 1;
+  const hasReachedProPostLimit = hasProPlan && postCount >= 1;
   const hasReachedPostLimit = hasReachedFreePostLimit || hasReachedProPostLimit;
 
-  console.log("activeFeedbackPostCount", activeFeedbackPostCount);
-  console.log("subscription", subscription);
+  const hasReachedFreeAdminLimit =
+    !isAdminCountPending && hasFreePlan && adminCount && adminCount >= 1;
+  const hasReachedProAdminLimit =
+    !isAdminCountPending && hasProPlan && adminCount && adminCount >= 1;
+  const hasReachedAdminLimit =
+    hasReachedFreeAdminLimit || hasReachedProAdminLimit;
 
   return {
     isPending,
     subName,
-    hasFreePlan: subName === "free",
-    hasProPlan: subName === "pro",
+    hasFreePlan,
+    hasProPlan,
     hasReachedPostLimit,
     hasReachedFreePostLimit,
     hasReachedProPostLimit,
+    hasReachedAdminLimit,
+    hasReachedFreeAdminLimit,
+    hasReachedProAdminLimit,
   };
 }

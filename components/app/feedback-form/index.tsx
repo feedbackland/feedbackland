@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { SubscriptionPostLimitReached } from "@/components/app/subscription-post-limit-reached";
+import { SubscriptionPostLimit } from "@/components/app/subscription-post-limit";
 import { useLimits } from "@/hooks/useLimits";
 
 export function FeedbackForm() {
@@ -108,7 +108,7 @@ export function FeedbackForm() {
         }}
       />
 
-      <SubscriptionPostLimitReached />
+      <SubscriptionPostLimit />
 
       {!hasReachedPostLimit && (
         <div className={cn("flex flex-col gap-3")}>

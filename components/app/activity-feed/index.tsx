@@ -4,7 +4,7 @@ import { ActivityFeedList } from "./list";
 import { Button } from "@/components/ui/button";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useSetAllActivitiesSeen } from "@/hooks/use-set-all-activities-seen";
-import { SubscriptionPostLimitReached } from "@/components/app/subscription-post-limit-reached";
+import { SubscriptionPostLimit } from "@/components/app/subscription-post-limit";
 
 export function ActivityFeed() {
   const {
@@ -29,7 +29,7 @@ export function ActivityFeed() {
           </Button>
         )}
       </div>
-      <SubscriptionPostLimitReached className="-mt-4 mb-2" />
+      <SubscriptionPostLimit className="-mt-4 mb-4" />
       <ActivityFeedList />
     </div>
   );
