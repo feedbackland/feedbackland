@@ -1,7 +1,7 @@
-import { adminProcedure } from "@/lib/trpc";
+import { publicProcedure } from "@/lib/trpc";
 import { polar } from "@/lib/polar";
 
-export const getPolarProducts = adminProcedure.query(async ({}) => {
+export const getPolarProducts = publicProcedure.query(async ({}) => {
   try {
     const {
       result: { items },
