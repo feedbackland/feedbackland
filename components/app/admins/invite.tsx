@@ -78,7 +78,7 @@ export function AdminsInvite() {
     <div className="mt-8">
       <Label className="mb-2">Invite</Label>
       <SubscriptionAdminLimitAlert />
-      {!isAdminLimitReached && (
+      {isAdminLimitReached === false && (
         <div className="border-border rounded-md border p-4 shadow-xs">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="">

@@ -21,8 +21,8 @@ export function SubscriptionInsightReportLimitAlert({
         className={cn("flex items-center justify-between gap-5", className)}
       >
         <AlertDescription className="font-medium">
-          You've hit your current plan's roadmap limit. Please upgrade to
-          generate more roadmaps.
+          You've hit your current plan's roadmaps per month limit. Please
+          upgrade to generate more roadmaps.
         </AlertDescription>
         <SubscriptionManageUpgradeButton size="sm" buttonText="Upgrade" />
       </Alert>

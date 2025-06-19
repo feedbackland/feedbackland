@@ -21,7 +21,7 @@ export function SubscriptionAdminLimitAlert({
         className={cn("flex items-center justify-between gap-5", className)}
       >
         <AlertDescription className="font-medium">
-          You've hit your current plan's admins limit. Please upgrade to invite
+          You've hit your current plan's admin limit. Please upgrade to invite
           more admins.
         </AlertDescription>
         <SubscriptionManageUpgradeButton size="sm" buttonText="Upgrade" />

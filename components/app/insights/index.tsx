@@ -10,6 +10,7 @@ import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
 import { SubscriptionInsightReportLimitAlert } from "@/components/app/subscription/insight-report-limit-alert";
+import { useIsInsightReportLimitReached } from "@/hooks/use-is-insight-report-limit-reached";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -36,11 +37,19 @@ export function Insights() {
     },
   } = useInsights({ enabled: true });
 
+  const {
+    query: { data: isInsightReportLimitReached },
+  } = useIsInsightReportLimitReached();
+
   const generateInsightsMutation = useMutation(
     trpc.generateInsights.mutationOptions({
       onSettled: () => {
         queryClient.refetchQueries({
           queryKey: trpc.getInsights.queryKey().slice(0, 1),
+        });
+
+        queryClient.refetchQueries({
+          queryKey: trpc.getIsInsightReportLimitReached.queryKey(),
         });
       },
     }),
@@ -108,20 +117,22 @@ export function Insights() {
             </div>
             <div className="flex items-center gap-2">
               {hasInsights && <InsightsDownloadButton />}
-              <Button
-                size="default"
-                variant="default"
-                onClick={handleGenerateClick}
-                loading={isGenerating}
-              >
-                {hasInsights ? `Regenerate` : `Generate`}
-              </Button>
+              {!isInsightReportLimitReached && (
+                <Button
+                  size="default"
+                  variant="default"
+                  onClick={handleGenerateClick}
+                  loading={isGenerating}
+                >
+                  {hasInsights ? `Regenerate` : `Generate`}
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <SubscriptionInsightReportLimitAlert />
+      <SubscriptionInsightReportLimitAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 

@@ -25,10 +25,8 @@ export function SubscriptionPostLimitAlert({
       >
         <AlertDescription className="font-medium">
           {isAdmin
-            ? `Feedback submissions are currently paused because you've hit your current plan's
-            active posts limit. Please upgrade to continue collecting feedback.`
-            : `Feedback submissions are currently paused. Please
-            check again later.`}
+            ? `You've hit your current plan's active posts limit. Please upgrade to continue collecting feedback.`
+            : `Feedback submissions are currently paused. Please check again later.`}
         </AlertDescription>
         {isAdmin && (
           <SubscriptionManageUpgradeButton size="sm" buttonText="Upgrade" />

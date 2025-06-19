@@ -66,6 +66,10 @@ export function FeedbackForm() {
         queryClient.invalidateQueries({
           queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getIsPostLimitReached.queryKey(),
+        });
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");

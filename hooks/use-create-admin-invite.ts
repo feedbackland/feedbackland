@@ -11,6 +11,9 @@ export function useCreateAdminInvite() {
         queryClient.invalidateQueries({
           queryKey: trpc.getAdmins.queryKey(),
         });
+        queryClient.invalidateQueries({
+          queryKey: trpc.getIsAdminLimitReached.queryKey(),
+        });
       },
     }),
   );
