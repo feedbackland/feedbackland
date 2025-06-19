@@ -18,7 +18,10 @@ export function SubscriptionInsightReportLimitAlert({
     return (
       <Alert
         variant="destructive"
-        className={cn("flex items-center justify-between gap-5", className)}
+        className={cn(
+          "border-destructive bg-destructive/5 flex items-center justify-between gap-5 border",
+          className,
+        )}
       >
         <AlertDescription className="font-medium">
           You've hit your current plan's roadmaps per month limit. Please
