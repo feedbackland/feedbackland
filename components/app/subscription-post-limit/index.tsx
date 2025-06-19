@@ -3,8 +3,8 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SubscriptionButton } from "../subscription-button";
 import { useAuth } from "@/hooks/use-auth";
-import { useLimits } from "@/hooks/useLimits";
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useIsPostLimitReached } from "@/hooks/use-is-post-limit-reached";
 
 export function SubscriptionPostLimit({
   className,
@@ -12,9 +12,12 @@ export function SubscriptionPostLimit({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const { isAdmin, isLoaded } = useAuth();
-  const { hasReachedPostLimit, subName, isPending } = useLimits();
 
-  if (isLoaded && !isPending && hasReachedPostLimit) {
+  const {
+    query: { data: isPostLimitReached },
+  } = useIsPostLimitReached();
+
+  if (isLoaded && isPostLimitReached) {
     return (
       <Alert
         variant="destructive"
@@ -22,8 +25,8 @@ export function SubscriptionPostLimit({
       >
         <AlertDescription className="font-medium">
           {isAdmin
-            ? `Feedback submissions are currently paused because you've hit Feedbackland ${capitalizeFirstLetter(subName || "free")}'s
-            posts limit. Please upgrade your plan to continue collecting feedback.`
+            ? `Feedback submissions are currently paused because you've hit your current plan's
+            active posts limit. Please upgrade your plan to continue collecting feedback.`
             : `Feedback submissions are currently paused. Please
             check again later.`}
         </AlertDescription>

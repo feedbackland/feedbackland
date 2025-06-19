@@ -12,7 +12,7 @@ export const createPolarCheckoutSession = adminProcedure
     try {
       return await polar.checkouts.create({
         products: polarProductIds,
-        customerExternalId: orgId,
+        externalCustomerId: orgId,
       });
     } catch (error) {
       throw error;

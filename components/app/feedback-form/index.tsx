@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { SubscriptionPostLimit } from "@/components/app/subscription-post-limit";
-import { useLimits } from "@/hooks/useLimits";
+import { useIsPostLimitReached } from "@/hooks/use-is-post-limit-reached";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -29,7 +29,9 @@ export function FeedbackForm() {
   const router = useRouter();
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
-  const { hasReachedPostLimit } = useLimits();
+  const {
+    query: { data: isPostLimitReached },
+  } = useIsPostLimitReached();
   const [value, setValue] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
@@ -97,7 +99,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("mb-6", !hasReachedPostLimit && "mb-2.5")}>
+    <div className={cn("mb-6", !isPostLimitReached && "mb-2.5")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -110,7 +112,7 @@ export function FeedbackForm() {
 
       <SubscriptionPostLimit />
 
-      {!hasReachedPostLimit && (
+      {!isPostLimitReached && (
         <div className={cn("flex flex-col gap-3")}>
           <div
             className={cn(

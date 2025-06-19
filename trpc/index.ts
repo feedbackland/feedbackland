@@ -34,8 +34,9 @@ import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
 import { getPolarProduct } from "./get-polar-product";
-import { getActiveFeedbackPostCount } from "./get-active-feedback-post-count";
-import { getAdminCount } from "./get-admin-count";
+import { getIsAdminLimitReached } from "./get-is-admin-limit-reached";
+import { getIsPostLimitReached } from "./get-is-post-limit-reached";
+import { getIsInsightReportLimitReached } from "./get-is-insight-report-limit-reached";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -74,8 +75,9 @@ export const appRouter = router({
   getPolarProducts,
   getPolarProduct,
   getSubscription,
-  getActiveFeedbackPostCount,
-  getAdminCount,
+  getIsAdminLimitReached,
+  getIsPostLimitReached,
+  getIsInsightReportLimitReached,
 });
 
 export type AppRouter = typeof appRouter;

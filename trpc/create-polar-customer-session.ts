@@ -5,7 +5,7 @@ export const createPolarCustomerSession = adminProcedure.mutation(
   async ({ ctx: { orgId } }) => {
     try {
       const result = await polar.customerSessions.create({
-        customerExternalId: orgId,
+        externalCustomerId: orgId,
       });
 
       return result;
