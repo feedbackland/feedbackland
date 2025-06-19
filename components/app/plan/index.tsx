@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionButton } from "@/components/app/subscription-button";
+import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
 
 export function Plan() {
   const {
@@ -24,7 +24,7 @@ export function Plan() {
                   {subscription?.name || "Free"}
                 </h3>
                 <div className="-mt-1 -mr-1">
-                  <SubscriptionButton
+                  <SubscriptionManageUpgradeButton
                     variant="link"
                     className="underline"
                     buttonText="Manage & change plan"

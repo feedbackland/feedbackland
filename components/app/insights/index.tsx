@@ -9,6 +9,7 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
+import { SubscriptionInsightReportLimitAlert } from "@/components/app/subscription/insight-report-limit-alert";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -119,6 +120,8 @@ export function Insights() {
           </div>
         </div>
       </div>
+
+      <SubscriptionInsightReportLimitAlert />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 

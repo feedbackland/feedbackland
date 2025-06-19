@@ -8,7 +8,7 @@ import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
 
-export function SubscriptionButton({
+export function SubscriptionManageUpgradeButton({
   variant = "default",
   size = "default",
   className = "",
