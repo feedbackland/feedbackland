@@ -5,7 +5,7 @@ import { CodeInstall } from "@/components/ui/code-install";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export function WidgetDocsContent({ orgId }: { orgId: string }) {
-  const overlayWidgetCode = getOverlayWidgetCodeSnippet({ orgId });
+  const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
 
   return (
     <div className="flex flex-col">
@@ -19,10 +19,10 @@ export function WidgetDocsContent({ orgId }: { orgId: string }) {
         </div>
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 2 - Embed the widget
+            Step 2 - Copy-paste in your app
           </h3>
           <Code
-            code={overlayWidgetCode}
+            code={overlayWidgetCodeSnippet}
             showLineNumbers={true}
             language="tsx"
             className=""

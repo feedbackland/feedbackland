@@ -14,7 +14,13 @@ import {
   Tailwind,
 } from "@react-email/components";
 
-export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
+export const WelcomeEmail = ({
+  orgId,
+  overlayWidgetCodeSnippet,
+}: {
+  orgId: string;
+  overlayWidgetCodeSnippet: string;
+}) => {
   return (
     <Tailwind>
       <Html lang="en">
@@ -52,8 +58,17 @@ export const WelcomeEmail = ({ orgId }: { orgId: string }) => {
               <Text className="text-base leading-relaxed text-black">
                 You can start collecting feedback right away. If you're
                 wondering where to begin, consider adding the widget to your
-                app.
+                app:
               </Text>
+              <p>Step 1: Install the package</p>
+              <pre>
+                <code>npm i @feedbackland/react</code>
+              </pre>
+              <p>Step 2: Add the code-snippet to your app</p>
+              <pre>
+                <code>{overlayWidgetCodeSnippet}</code>
+              </pre>
+              <p>Step 3: Congrats! You're now colelcting in-app feedback :)</p>
             </Section>
 
             <Hr className="my-6 border-t border-gray-300" />
