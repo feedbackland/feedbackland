@@ -3,7 +3,6 @@
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
 import { Session } from "@/hooks/use-auth";
-import { useQueryClient } from "@tanstack/react-query";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
@@ -19,10 +18,7 @@ export function SignUpIn({
   onSuccess: (session: Session) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
-  const queryClient = useQueryClient();
-
   const handleOnSuccess = async (session: Session) => {
-    queryClient.invalidateQueries();
     onSuccess(session);
   };
 

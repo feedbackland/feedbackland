@@ -76,8 +76,14 @@ export function SignUpEmailForm({
       });
       onSuccess(session);
     } catch (error: any) {
+      let message = "An error occured. Please try again";
+
+      if (error?.message?.includes("email-already-in-use")) {
+        message = "This email is already in use. Please sign in instead.";
+      }
+
       setError("root.serverError", {
-        message: error?.message || "An error occured. Please try again.",
+        message,
       });
     } finally {
       setIsPending(false);

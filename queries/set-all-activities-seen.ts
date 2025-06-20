@@ -18,7 +18,7 @@ export const setAllActivitiesSeenQuery = async ({
           .selectFrom("feedback")
           .where("orgId", "=", orgId)
           .select([eb.val(userId).as("userId"), "feedback.id as itemId"])
-          .unionAll(
+          .union(
             eb
               .selectFrom("comment")
               .innerJoin("feedback", "comment.postId", "feedback.id")

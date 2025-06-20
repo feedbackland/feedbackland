@@ -14,6 +14,7 @@ export function ProcessAdminInviteParams() {
   const [adminInviteEmail, setAdminInviteEmail] =
     useQueryState("admin-invite-email");
   const [showSignUpDialog, setShowSignUpDialog] = useState(false);
+  const [isProcessed, setIsProcessed] = useState(false);
   const redeemInvite = useRedeemAdminInvite();
   const {
     query: { isSuccess: isAdminInviteSuccess, isError: isAdminInviteError },
@@ -26,17 +27,23 @@ export function ProcessAdminInviteParams() {
   }, [setShowSignUpDialog, setAdminInviteToken, setAdminInviteEmail]);
 
   const redeem = useCallback(() => {
+    console.log("redeem");
+
     if (adminInviteToken) {
+      console.log("adminInviteToken", adminInviteToken);
+
       redeemInvite.mutate(
         {
           adminInviteToken,
         },
         {
           onSuccess: () => {
+            console.log("success");
             handleOnClose();
             window.location.reload();
           },
-          onError: () => {
+          onError: (error) => {
+            console.log("error", error);
             handleOnClose();
           },
         },
@@ -56,17 +63,18 @@ export function ProcessAdminInviteParams() {
       isAdminInviteSuccess &&
       adminInviteToken &&
       adminInviteEmail &&
-      redeemInvite.isIdle &&
-      !redeemInvite.isPending &&
-      !redeemInvite.isError &&
-      !redeemInvite.isSuccess
+      !isProcessed
     ) {
+      setIsProcessed(true);
+
       if (!session) {
         setShowSignUpDialog(true);
       } else if (session && session.user.email === adminInviteEmail) {
         redeem();
       } else if (session && session.user.email !== adminInviteEmail) {
-        signOut();
+        signOut().then(() => {
+          setShowSignUpDialog(true);
+        });
       }
     }
   }, [
@@ -75,8 +83,9 @@ export function ProcessAdminInviteParams() {
     isAdminInviteSuccess,
     adminInviteToken,
     adminInviteEmail,
-    redeemInvite,
+    isProcessed,
     redeem,
+    setShowSignUpDialog,
     signOut,
   ]);
 

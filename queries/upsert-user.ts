@@ -3,14 +3,11 @@
 import { db } from "@/db/db";
 import { UpsertUser } from "@/lib/typings";
 
-export const upsertUserQuery = async ({
-  userId,
-  orgSubdomain,
-  email,
-  name,
-  photoURL,
-}: UpsertUser) => {
+export const upsertUserQuery = async (args: UpsertUser) => {
   try {
+    const { userId, orgSubdomain, name, photoURL } = args;
+    const email = args.email.toLowerCase();
+
     return await db.transaction().execute(async (trx) => {
       const org = await trx
         .selectFrom("org")
@@ -35,7 +32,7 @@ export const upsertUserQuery = async ({
           .insertInto("user")
           .values({
             id: userId,
-            email: email.toLowerCase(),
+            email,
             name,
             photoURL,
           })
@@ -67,6 +64,11 @@ export const upsertUserQuery = async ({
             orgId,
             role: "user",
           })
+          .onConflict((oc) =>
+            oc.columns(["userId", "orgId"]).doUpdateSet({
+              orgId,
+            }),
+          )
           .returningAll()
           .executeTakeFirstOrThrow();
       }
@@ -77,7 +79,7 @@ export const upsertUserQuery = async ({
 
       return { user, userOrg, org };
     });
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

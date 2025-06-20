@@ -62,8 +62,6 @@ export function AdminsInvite() {
       let message = "Something went wrong. Please try again.";
 
       if (error instanceof Error) {
-        console.log(error);
-
         if (error?.message?.toLowerCase()?.includes("invite-email-exists")) {
           message = "This email is already invited";
         }
