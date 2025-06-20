@@ -61,11 +61,16 @@ export function AdminsInvite() {
     } catch (error) {
       let message = "Something went wrong. Please try again.";
 
-      if (
-        error instanceof Error &&
-        error?.message?.toLowerCase()?.includes("invite already exists")
-      ) {
-        message = "This email is already invited";
+      if (error instanceof Error) {
+        console.log(error);
+
+        if (error?.message?.toLowerCase()?.includes("invite-email-exists")) {
+          message = "This email is already invited";
+        }
+
+        if (error?.message?.toLowerCase()?.includes("admin-email-exists")) {
+          message = "An admin with this email already exists";
+        }
       }
 
       form.setError("email", {
