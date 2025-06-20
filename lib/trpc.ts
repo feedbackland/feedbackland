@@ -19,7 +19,6 @@ export const createContext = async ({ req }: { req: Request }) => {
   const userId = firebaseUser?.uid || null;
   const userEmail = firebaseUser?.email || null;
   let orgId: string | null | undefined;
-  let orgName: string | null | undefined;
   let orgIsClaimed: boolean | null | undefined;
   let userRole: UserRole | null | undefined;
 
@@ -29,7 +28,6 @@ export const createContext = async ({ req }: { req: Request }) => {
       const org = await getOrgQuery({ orgSubdomain });
       orgId = org?.id;
       orgIsClaimed = org?.isClaimed;
-      orgName = org?.orgName;
     }
     // signed in
     else {
@@ -40,14 +38,12 @@ export const createContext = async ({ req }: { req: Request }) => {
 
       orgId = userWithRoleAndOrg?.orgId;
       orgIsClaimed = userWithRoleAndOrg?.orgIsClaimed;
-      orgName = userWithRoleAndOrg?.orgName;
       userRole = userWithRoleAndOrg?.userRole;
     }
   }
 
   return {
     orgId,
-    orgName,
     orgSubdomain,
     orgIsClaimed,
     userId,

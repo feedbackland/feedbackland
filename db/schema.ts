@@ -399,9 +399,7 @@ export interface Org {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
   isClaimed: Generated<boolean>;
-  orgName: string | null;
   orgSubdomain: string;
-  orgUrl: string | null;
   platformDescription: string | null;
   platformTitle: Generated<string>;
   updatedAt: Generated<Timestamp>;

@@ -18,7 +18,7 @@ export const claimOrg = userProcedure.mutation(
         await resend.emails.send({
           from: "Feedbackland <hello@feedbackland.com>",
           to: [userEmail],
-          subject: "Your feedback platform is ready",
+          subject: "Your Feedbackland platform is ready!",
           react: WelcomeEmail({
             orgId,
             overlayWidgetCodeSnippet,

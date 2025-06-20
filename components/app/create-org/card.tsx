@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createOrgAction } from "./actions";
 import { createOrgSchema } from "./validations";
-import { slugifySubdomain } from "@/lib/utils";
 import { z } from "zod";
 import {
   Form,
@@ -38,34 +36,20 @@ export function CreateOrgCard({
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
     defaultValues: {
-      orgName: "",
       orgSubdomain: "",
     },
   });
 
   const {
     formState: { errors },
-    watch,
-    setValue,
     setError,
     clearErrors,
   } = form;
 
-  const organizationName = watch("orgName");
-
-  useEffect(() => {
-    setValue("orgSubdomain", slugifySubdomain(organizationName));
-    clearErrors("orgSubdomain");
-  }, [organizationName, setValue, clearErrors]);
-
-  const onSubmit: SubmitHandler<FormData> = async ({
-    orgName,
-    orgSubdomain,
-  }) => {
+  const onSubmit: SubmitHandler<FormData> = async ({ orgSubdomain }) => {
     clearErrors("root.serverError");
 
     const response = await createOrg({
-      orgName,
       orgSubdomain,
     });
 
@@ -98,23 +82,6 @@ export function CreateOrgCard({
                 {errors?.root?.serverError.message}
               </p>
             )}
-            <FormField
-              control={form.control}
-              name="orgName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company or product name</FormLabel>
-                  <FormControl>
-                    <Input
-                      autoFocus
-                      placeholder="Your company or product name..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="orgSubdomain"

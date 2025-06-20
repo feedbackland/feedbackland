@@ -23,7 +23,6 @@ export const getUserWithRoleAndOrgQuery = async ({
         "user.updatedAt as userUpdatedAt",
         "user_org.role as userRole",
         "org.id as orgId",
-        "org.orgName",
         "org.orgSubdomain",
         "org.isClaimed as orgIsClaimed",
         "org.createdAt as orgCreatedAt",

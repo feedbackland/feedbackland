@@ -7,16 +7,12 @@ import { Selectable } from "kysely";
 export const updateOrgQuery = async ({
   orgId,
   userId,
-  orgName = undefined,
-  orgUrl = undefined,
   orgSubdomain = undefined,
   platformTitle = undefined,
   platformDescription = undefined,
 }: {
   orgId: string;
   userId: string;
-  orgName?: string | null;
-  orgUrl?: string | null;
   orgSubdomain?: string;
   platformTitle?: string;
   platformDescription?: string | null;
@@ -34,8 +30,6 @@ export const updateOrgQuery = async ({
       if (role === "admin") {
         const updatedOrgProps = Object.fromEntries(
           Object.entries({
-            orgName,
-            orgUrl,
             orgSubdomain,
             platformTitle,
             platformDescription,
