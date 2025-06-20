@@ -2,13 +2,10 @@
 
 import { Code } from "@/components/ui/code";
 import { CodeInstall } from "@/components/ui/code-install";
+import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export function WidgetDocsContent({ orgId }: { orgId: string }) {
-  const overlayWidgetCode = `import { OverlayWidget } from "feedbackland/react";
-
-function App() {
-  return <OverlayWidget id="${orgId}" />;
-}`;
+  const overlayWidgetCode = getOverlayWidgetCodeSnippet({ orgId });
 
   return (
     <div className="flex flex-col">

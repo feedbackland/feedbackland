@@ -238,3 +238,13 @@ export const getPriorityLabel = (priorityScore: number) => {
     return "Critical priority";
   }
 };
+
+export const getOverlayWidgetCodeSnippet = ({
+  orgId,
+}: {
+  orgId: string;
+}) => `import { OverlayWidget } from "feedbackland/react";
+
+function App() {
+  return <OverlayWidget id="${orgId}" />;
+}`;
