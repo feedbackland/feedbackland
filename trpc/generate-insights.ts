@@ -44,7 +44,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
       \`\`\`
 
       ## Your Mission
-      Transform hundreds or thousands of posts into **2-50** well-scoped feature insights, each small enough to ship in a sprint and ordered by impact:
+      Transform hundreds or thousands of posts into **1-50** well-scoped feature insights, each small enough to ship in a sprint and ordered by impact:
 
       1. **Bundle & Scope Precisely**  
         - Merge duplicate needs into one theme (e.g. “dark mode,” “night theme,” “black background” → “Dark Mode”).  
@@ -69,7 +69,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
         - No fluff—every word must drive action.
 
       ## Required Output
-      Return **valid JSON**: an array of insight objects, strictly ordered by descending 'priority', strictly following this schema:
+      Return **valid JSON**: an array consisting of maximum 50 insight objects, strictly ordered by descending 'priority', strictly following this schema:
 
       \`\`\`json
       [
@@ -83,7 +83,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
           "ids":          ["id1","id2","id3"],      // original feedback IDs
           "priority":     95                        // 0–100 score
         }
-        // …2-50 more insights, sorted by priority…
+        // …1-50 more insights, sorted by priority…
       ]
       \`\`\`
 
@@ -103,13 +103,11 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash-lite-preview-06-17",
-          // model: "google/gemini-2.5-flash",
-          // reasoning: {
-          //   effort: "high",
-          //   max_tokens: 2000,
-          //   exclude: true,
-          //   enabled: true,
-          // },
+          reasoning: {
+            max_tokens: 24576,
+            exclude: true,
+            enabled: true,
+          },
           messages: [
             {
               role: "system",
@@ -130,7 +128,7 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
               ],
             },
           ],
-          temperature: 0.7,
+          temperature: 0.3,
           response_format: { type: "json_object" },
         }),
       },

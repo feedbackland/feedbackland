@@ -26,6 +26,20 @@ export function Insights() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const generateInsightsMutation = useMutation(
+    trpc.generateInsights.mutationOptions({
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.getInsights.queryKey().slice(0, 1),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getIsInsightReportLimitReached.queryKey(),
+        });
+      },
+    }),
+  );
+
   const {
     query: {
       data,
@@ -35,25 +49,11 @@ export function Insights() {
       isPending,
       isError,
     },
-  } = useInsights({ enabled: true });
+  } = useInsights({ enabled: !generateInsightsMutation?.isPending });
 
   const {
     query: { data: isInsightReportLimitReached },
   } = useIsInsightReportLimitReached();
-
-  const generateInsightsMutation = useMutation(
-    trpc.generateInsights.mutationOptions({
-      onSettled: () => {
-        queryClient.refetchQueries({
-          queryKey: trpc.getInsights.queryKey().slice(0, 1),
-        });
-
-        queryClient.refetchQueries({
-          queryKey: trpc.getIsInsightReportLimitReached.queryKey(),
-        });
-      },
-    }),
-  );
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -64,6 +64,11 @@ export function Insights() {
   });
 
   const handleGenerateClick = () => {
+    queryClient.removeQueries({
+      queryKey: trpc.getInsights.queryKey().slice(0, 1),
+      exact: false,
+    });
+
     generateInsightsMutation.mutate();
   };
 
@@ -71,14 +76,11 @@ export function Insights() {
 
   const isGeneratingError = !isGenerating && generateInsightsMutation.isError;
 
-  const insights = !!(isGenerating || isGeneratingError)
-    ? []
-    : data?.pages.flatMap((page) => page.items) || [];
-
-  const hasNoInsights =
-    !isPending && !isGenerating && (!insights || insights?.length === 0);
+  const insights = data?.pages.flatMap((page) => page.items) || [];
 
   const hasInsights = !isPending && !isGenerating && insights?.length > 0;
+
+  const hasNoInsights = !isPending && !isGenerating && !hasInsights;
 
   return (
     <div className="space-y-1">

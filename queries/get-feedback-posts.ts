@@ -142,9 +142,9 @@ export const getFeedbackPostsQuery = async ({
             case "comments":
               const cursorCommentCount = Number(cursor.commentCount);
               return eb.or([
-                eb(sql.ref("commentCount"), "<", cursorCommentCount),
+                eb("comment_counts.count", "<", cursorCommentCount),
                 eb.and([
-                  eb(sql.ref("commentCount"), "=", cursorCommentCount),
+                  eb("comment_counts.count", "=", cursorCommentCount),
                   eb("feedback.id", "<", cursor.id),
                 ]),
               ]);
