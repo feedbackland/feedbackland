@@ -37,7 +37,6 @@ export const getFeedbackPostsQuery = async ({
       .select(["comment.postId", sql<number>`COUNT(*)::int`.as("count")])
       .innerJoin("feedback", "feedback.id", "comment.postId")
       .where("feedback.orgId", "=", orgId)
-      // .where("content", "not like", "Updated status to%")
       .groupBy("comment.postId");
 
     let query = db
@@ -112,7 +111,7 @@ export const getFeedbackPostsQuery = async ({
           break;
         case "comments":
           query = query
-            .orderBy("commentCount", "desc")
+            .orderBy(sql`comment_counts.count DESC NULLS LAST`)
             .orderBy("feedback.id", "desc");
           break;
         default:

@@ -28,7 +28,6 @@ export const getFeedbackPostsByIdsQuery = async ({
             .selectFrom("comment")
             .select(eb.fn.countAll<string>().as("commentCount"))
             .whereRef("comment.postId", "=", "feedback.id")
-            // .where("content", "not like", "Updated status to%")
             .as("commentCount"),
       ])
       .execute();
