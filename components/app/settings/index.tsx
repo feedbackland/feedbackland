@@ -5,8 +5,7 @@ import { PlatformTitle } from "@/components/app/settings/platform-title";
 import { PlatformUrl } from "@/components/app/settings/platform-url";
 
 export default function Settings() {
-  const className =
-    "border-border relative w-full border-t-1 border-b-1 py-5 px-4";
+  const className = "border-border relative w-full border-b-1 py-5 px-4";
 
   return (
     <div className="">
@@ -14,7 +13,7 @@ export default function Settings() {
       <div className="rounded-lg border shadow-xs">
         <PlatformTitle className={className} />
         <PlatformDescription className={className} />
-        <PlatformUrl className={className} />
+        <PlatformUrl className={`${className} border-b-0`} />
       </div>
     </div>
   );
