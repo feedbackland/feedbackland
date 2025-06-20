@@ -7,6 +7,7 @@ import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
+import { isIOS, isAndroid } from "react-device-detect";
 
 export function SubscriptionManageUpgradeButton({
   variant = "default",
@@ -44,12 +45,23 @@ export function SubscriptionManageUpgradeButton({
       polarProductIds,
     });
 
+    if (isIOS || isAndroid) {
+      window.location.href = checkoutUrl;
+      return;
+    }
+
     window.open(checkoutUrl, "_blank", "noopener,noreferrer");
   };
 
   const openCustomerPortal = async () => {
     const { customerPortalUrl } =
       await createPolarCustomerSession.mutateAsync();
+
+    if (isIOS || isAndroid) {
+      window.location.href = customerPortalUrl;
+      return;
+    }
+
     window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 

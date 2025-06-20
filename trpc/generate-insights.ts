@@ -258,7 +258,7 @@ Analyze the provided feedback and generate the prioritized JSON roadmap.
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite-preview-06-17",
           messages: [
             {
               role: "system",
@@ -279,8 +279,8 @@ Analyze the provided feedback and generate the prioritized JSON roadmap.
               ],
             },
           ],
-          // temperature: 0.3,
-          max_tokens: 14629,
+          temperature: 0.7,
+          // max_tokens: 14629,
           response_format: { type: "json_object" },
         }),
       },
