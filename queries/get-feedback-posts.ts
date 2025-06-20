@@ -32,18 +32,9 @@ export const getFeedbackPostsQuery = async ({
     const maxDistance = 0.4;
     const searchVector = isSearching ? await generateVector(searchValue) : [];
 
-    const commentCountsCTE = db
-      .selectFrom("comment")
-      .select(["comment.postId", sql<number>`COUNT(*)::int`.as("count")])
-      .innerJoin("feedback", "feedback.id", "comment.postId")
-      .where("feedback.orgId", "=", orgId)
-      .groupBy("comment.postId");
-
     let query = db
-      .with("comment_counts", () => commentCountsCTE)
       .selectFrom("feedback")
       .where("feedback.orgId", "=", orgId)
-      .leftJoin("comment_counts", "comment_counts.postId", "feedback.id")
       .leftJoin("user_upvote", (join) =>
         join
           .onRef("feedback.id", "=", "user_upvote.contentId")
@@ -61,8 +52,10 @@ export const getFeedbackPostsQuery = async ({
         "feedback.upvotes",
         "feedback.status",
         (eb) =>
-          eb.fn
-            .coalesce("comment_counts.count", sql<number>`0`)
+          eb
+            .selectFrom("comment")
+            .select(eb.fn.countAll<string>().as("commentCount"))
+            .whereRef("comment.postId", "=", "feedback.id")
             .as("commentCount"),
         (eb) =>
           eb
@@ -111,7 +104,7 @@ export const getFeedbackPostsQuery = async ({
           break;
         case "comments":
           query = query
-            .orderBy(sql`comment_counts.count DESC NULLS LAST`)
+            .orderBy("commentCount", "desc")
             .orderBy("feedback.id", "desc");
           break;
         default:
@@ -141,9 +134,25 @@ export const getFeedbackPostsQuery = async ({
             case "comments":
               const cursorCommentCount = Number(cursor.commentCount);
               return eb.or([
-                eb("comment_counts.count", "<", cursorCommentCount),
+                eb(
+                  (eb) =>
+                    eb
+                      .selectFrom("comment")
+                      .select(eb.fn.countAll().as("commentCount"))
+                      .whereRef("comment.postId", "=", "feedback.id"),
+                  "<",
+                  cursorCommentCount,
+                ),
                 eb.and([
-                  eb("comment_counts.count", "=", cursorCommentCount),
+                  eb(
+                    (eb) =>
+                      eb
+                        .selectFrom("comment")
+                        .select(eb.fn.countAll().as("commentCount"))
+                        .whereRef("comment.postId", "=", "feedback.id"),
+                    "=",
+                    cursorCommentCount,
+                  ),
                   eb("feedback.id", "<", cursor.id),
                 ]),
               ]);
