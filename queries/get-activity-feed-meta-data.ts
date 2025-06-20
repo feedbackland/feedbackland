@@ -27,7 +27,6 @@ export const getActivityFeedMetaDataQuery = async ({
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
       .where("feedback.orgId", "=", orgId)
-      .where("content", "not like", "Updated status to%")
       .select([
         "comment.id",
         sql<FeedbackCategory | null>`null`.as("category"),

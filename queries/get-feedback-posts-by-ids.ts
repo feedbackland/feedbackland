@@ -26,7 +26,7 @@ export const getFeedbackPostsByIdsQuery = async ({
         (eb) =>
           eb
             .selectFrom("comment")
-            .select(eb.fn.countAll<string>().as("commentCount"))
+            .select(eb.fn.countAll().as("commentCount"))
             .whereRef("comment.postId", "=", "feedback.id")
             .as("commentCount"),
       ])
