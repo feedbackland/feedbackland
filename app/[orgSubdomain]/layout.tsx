@@ -1,4 +1,4 @@
-import { ClaimOrgBanner } from "@/components/app/claim-org/banner";
+import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 import { ProcessAdminInviteParams } from "@/components/app/process-admin-invite-params";
 import { ProcessModeParam } from "@/components/app/process-mode-param";
 import { SubscriptionListener } from "@/components/app/subscription-listener";

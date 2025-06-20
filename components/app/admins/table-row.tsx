@@ -24,6 +24,7 @@ import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function AdminsTableRow({ admin }: { admin: Admin }) {
   const { session } = useAuth();
@@ -60,7 +61,9 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
       <TableRow>
         <TableCell className="flex flex-col space-y-0">
           {admin.name && <span className="font-medium">{admin.name}</span>}
-          <span>{admin.email}</span>
+          <span className={cn("", admin?.name && "text-muted-foreground")}>
+            {admin.email}
+          </span>
         </TableCell>
         <TableCell className="">
           {admin.status === "invited" ? "Invite pending" : "Active"}
@@ -124,7 +127,7 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
                   : deleteAdminInvite.isPending
               }
             >
-              Delete
+              Remove
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -10,16 +10,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 
-const triggerConfetti = () => {
-  confetti({
-    particleCount: 100,
-    spread: 700,
-    origin: { y: 0.1 },
-    scalar: 1.2,
-    ticks: 150,
-  });
-};
-
 export function ClaimOrgBanner() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -47,7 +37,13 @@ export function ClaimOrgBanner() {
   const onClaimed = () => {
     setHideBanner(true);
     queryClient.invalidateQueries();
-    triggerConfetti();
+    confetti({
+      particleCount: 100,
+      spread: 700,
+      origin: { y: 0.1 },
+      scalar: 1.2,
+      ticks: 150,
+    });
   };
 
   return (

@@ -94,13 +94,13 @@ export function AdminsInvite() {
                           type="email"
                           autoFocus={false}
                           className="w-full max-w-[350px] text-sm"
-                          placeholder="Email of the admin you want to invite"
+                          placeholder="Email address"
                           {...field}
                         />
                         <Button
                           type="submit"
                           size="sm"
-                          className="h-[36px]"
+                          className="h-[34px]"
                           loading={createAdminInvite.isPending}
                         >
                           Send invite

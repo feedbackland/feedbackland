@@ -9,7 +9,7 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
       .where("feedback.orgId", "=", orgId)
       .where((eb) =>
         eb.or([
-          eb("status", "not in", ["done", "declined"]),
+          eb("status", "not in", ["done", "declined", "in progress"]),
           eb("status", "is", null),
         ]),
       )
