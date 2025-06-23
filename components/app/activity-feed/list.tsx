@@ -130,10 +130,10 @@ export function ActivityFeedList({
               newCount: metaData?.unseenCommentCount || 0,
             },
           ].map((stat, index) => (
-            <Card
+            <div
               key={index}
               className={cn(
-                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-0 rounded-md p-2 shadow-xs sm:p-3",
+                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs sm:p-3",
                 stat.title === "Feature requests" &&
                   featureRequestsSelected &&
                   "border-primary ring-ring bg-muted/50 ring-1",
@@ -175,32 +175,36 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <CardHeader className="text-muted-foreground p-0 text-xs font-normal">
+              <div className="text-muted-foreground p-0 text-xs font-normal">
                 {stat.title}
-              </CardHeader>
-              <CardContent className="flex items-baseline gap-1.5 p-0">
+              </div>
+              <div className="flex items-center gap-2">
                 {stat.title === "Feature requests" && (
-                  <Lightbulb className="size-4!" />
+                  <Lightbulb className="size-4.5!" />
                 )}
                 {stat.title === "Bug reports" && (
-                  <BugIcon className="size-4!" />
+                  <BugIcon className="size-4.5!" />
                 )}
                 {stat.title === "General feedback" && (
-                  <Inbox className="size-4!" />
+                  <Inbox className="size-4.5!" />
                 )}
                 {stat.title === "Comments" && (
-                  <MessageSquare className="size-4!" />
+                  <MessageSquare className="size-4.5!" />
                 )}
-                <span className="text-xl font-semibold">{stat.totalCount}</span>
-                {stat.newCount !== undefined && stat.newCount > 0 && (
-                  <span className="text-xs font-normal">
-                    {width < 640
-                      ? `(${stat.newCount})`
-                      : `(${stat.newCount} new)`}
+                <div className="flex items-baseline gap-1.5 p-0">
+                  <span className="text-xl font-semibold">
+                    {stat.totalCount}
                   </span>
-                )}
-              </CardContent>
-            </Card>
+                  {stat.newCount !== undefined && stat.newCount > 0 && (
+                    <span className="text-xs font-normal">
+                      {width < 640
+                        ? `(${stat.newCount})`
+                        : `(${stat.newCount} new)`}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
