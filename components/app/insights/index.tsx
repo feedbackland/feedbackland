@@ -86,7 +86,7 @@ export function Insights() {
     <div className="space-y-1">
       <div className="mb-6 flex items-start justify-between gap-8">
         <div className="flex-1 space-y-1">
-          <div className="mb-0 flex items-start justify-between">
+          <div className="mb-0 flex items-center justify-between">
             <div className="flex flex-col">
               <h2 className="h4">
                 {isGenerating ? `Generating Roadmap...` : `Roadmap`}
@@ -119,16 +119,19 @@ export function Insights() {
             </div>
             <div className="flex items-center gap-2">
               {hasInsights && <InsightsDownloadButton />}
-              {!isInsightReportLimitReached && (
-                <Button
-                  size="default"
-                  variant="default"
-                  onClick={handleGenerateClick}
-                  loading={isGenerating}
-                >
-                  {hasInsights ? `Regenerate` : `Generate`}
-                </Button>
-              )}
+              <Button
+                size="default"
+                variant="default"
+                onClick={handleGenerateClick}
+                loading={isGenerating}
+                disabled={!!isInsightReportLimitReached?.status}
+                className=""
+              >
+                Generate
+                {Number.isFinite(isInsightReportLimitReached?.reportsLeft) &&
+                  ` (${isInsightReportLimitReached?.reportsLeft} left this
+                month`}
+              </Button>
             </div>
           </div>
         </div>

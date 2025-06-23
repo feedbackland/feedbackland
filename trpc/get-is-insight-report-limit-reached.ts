@@ -10,14 +10,19 @@ export const getIsInsightReportLimitReached = adminProcedure.query(
         getInsightReportCountQuery({ orgId }),
       ]);
 
-      if (
-        (activeSubscription === "free" && insightReportCount >= 1) ||
-        (activeSubscription === "pro" && insightReportCount >= 1)
-      ) {
-        return true;
+      let status = false;
+      let reportsLeft: number | null = null;
+
+      if (activeSubscription === "free" || activeSubscription === "pro") {
+        const totalReports = activeSubscription === "free" ? 2 : 20;
+        reportsLeft = totalReports - insightReportCount;
+        status = reportsLeft <= 0;
       }
 
-      return false;
+      return {
+        status,
+        reportsLeft,
+      };
     } catch (error) {
       throw error;
     }

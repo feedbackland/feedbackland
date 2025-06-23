@@ -14,7 +14,7 @@ export function SubscriptionInsightReportLimitAlert({
     query: { data: isInsightReportLimitReached },
   } = useIsInsightReportLimitReached();
 
-  if (isInsightReportLimitReached) {
+  if (isInsightReportLimitReached?.status === true) {
     return (
       <Alert
         variant="destructive"
