@@ -24,8 +24,8 @@ export function SubscriptionInsightReportLimitAlert({
         )}
       >
         <AlertDescription className="font-medium">
-          You've hit your current plan's roadmaps per month limit. Please
-          upgrade to generate more roadmaps.
+          You've hit your current plan's roadmap limit. Please upgrade to
+          generate more roadmaps.
         </AlertDescription>
         <SubscriptionManageUpgradeButton size="sm" buttonText="Upgrade" />
       </Alert>
