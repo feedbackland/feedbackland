@@ -32,8 +32,7 @@ export function ActivityFeedListItem({
   return (
     <div
       className={cn(
-        "border-b-border flex flex-1 items-center gap-6 border py-4 pr-2 pl-3",
-        // item.isSeen && "bg-muted/50",
+        "border-border flex flex-1 items-center gap-6 border-b-1 py-4 pr-2 pl-3",
         className,
       )}
     >
