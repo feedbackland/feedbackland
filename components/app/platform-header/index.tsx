@@ -30,10 +30,13 @@ import { useOrg } from "@/hooks/use-org";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
+import { AccountSettings } from "@/components/app/account-settings";
 
 export function PlatformHeader() {
   const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
+  const [isAccountSettingsDialogOpen, setIsAccountSettingsDialogOpen] =
+    useState(false);
   const { session, signOut, isAdmin } = useAuth();
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
@@ -47,13 +50,27 @@ export function PlatformHeader() {
     await signOut();
   };
 
+  const openAccountSettings = () => {
+    setIsAccountSettingsDialogOpen(true);
+  };
+
+  const closeAccountSettings = () => {
+    setIsAccountSettingsDialogOpen(false);
+  };
+
   return (
     <div className="mb-5">
+      <AccountSettings
+        open={isAccountSettingsDialogOpen}
+        onClose={closeAccountSettings}
+      />
+
       <SignUpInDialog
         open={isSignUpInDialogOpen}
         initialSelectedMethod="sign-in"
         onClose={() => setIsSignUpInDialogOpen(false)}
       />
+
       <div className="flex justify-between">
         <div className="flex flex-col">
           {isPending ? (
@@ -118,7 +135,10 @@ export function PlatformHeader() {
             >
               {session && (
                 <>
-                  <DropdownMenuItem className="flex flex-col items-stretch space-y-0">
+                  <DropdownMenuItem
+                    className="flex flex-col items-stretch space-y-0"
+                    onClick={openAccountSettings}
+                  >
                     <div className="flex items-center gap-1 font-semibold">
                       <span>{session?.user?.name || "Unnamed user"}</span>
                     </div>

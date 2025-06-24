@@ -247,5 +247,9 @@ export const getOverlayWidgetCodeSnippet = ({
 }) => `import { OverlayWidget } from "feedbackland/react";
 
 function App() {
-  return <OverlayWidget id="${orgId}" />;
+  return (
+    <OverlayWidget id="${orgId}">
+      <button>Feedback</button> // bring your own button
+    </OverlayWidget>
+  );
 }`;

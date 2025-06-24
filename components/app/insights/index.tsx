@@ -86,7 +86,7 @@ export function Insights() {
     <div className="space-y-1">
       <div className="mb-6 flex items-start justify-between gap-8">
         <div className="flex-1 space-y-1">
-          <div className="mb-0 flex items-center justify-between">
+          <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
               <h2 className="h4">
                 {isGenerating ? `Generating Roadmap...` : `Roadmap`}
@@ -97,7 +97,6 @@ export function Insights() {
                   {new Date(insights[0].createdAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
-                    year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
