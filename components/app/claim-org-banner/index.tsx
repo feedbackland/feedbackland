@@ -63,21 +63,21 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "border-primary bg-background flex items-center justify-center rounded-lg border-1 p-3",
+            "border-primary-foreground flex items-center justify-center rounded-lg border-1 bg-yellow-500 p-3",
             hideBanner && "hidden",
             className,
           )}
         >
           <div className="flex w-full items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
-              <AlertTriangle className="size-4! shrink-0! basis-4! text-yellow-500" />
-              <span className="text-primary text-sm">
-                This platform is unclaimed. Claim ownership to make it yours.
+              <AlertTriangle className="text-primary-foreground! size-4! shrink-0! basis-4!" />
+              <span className="text-primary-foreground text-sm">
+                This platform is unclaimed. Claim ownership to get admin access!
               </span>
             </div>
             <Button
               onClick={handleOpenDialog}
-              variant="default"
+              variant="secondary"
               className=""
               size="sm"
             >

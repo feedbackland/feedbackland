@@ -26,6 +26,7 @@ import { getSubdomain } from "@/lib/utils";
 import { UpsertUser } from "@/lib/typings";
 import { usePathname, useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useUserSession } from "@/hooks/use-user-session";
 
 export type Session = {
   user: Selectable<User>;
@@ -57,7 +58,7 @@ type AuthContextType = {
   signOnWithGoogle: () => Promise<Session>;
   signOnWithMicrosoft: () => Promise<Session>;
   signOut: () => Promise<null>;
-  updateSession: ({ username }: { username: string }) => void;
+  refreshSession: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -70,7 +71,7 @@ const AuthContext = createContext<AuthContextType>({
   signOnWithGoogle: async () => ({}) as Session,
   signOnWithMicrosoft: async () => ({}) as Session,
   signOut: async () => null,
-  updateSession: () => {},
+  refreshSession: () => {},
 });
 
 const upsertUser = async ({
@@ -127,6 +128,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [session, setSession] = useState<Session>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const {
+    query: { refetch: refetchUserSession },
+  } = useUserSession({ enabled: false });
 
   const destroySession = useCallback(() => {
     queryClient.invalidateQueries();
@@ -306,15 +311,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateSession = ({ username }: { username: string }) => {
+  const refreshSession = async () => {
+    const { data: session } = await refetchUserSession();
+
     if (session) {
-      setSession({
-        ...session,
-        user: {
-          ...session.user,
-          name: username,
-        },
-      });
+      setSession(session);
+    } else {
+      destroySession();
     }
   };
 
@@ -330,7 +333,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signOnWithGoogle,
         signOnWithMicrosoft,
         signOut,
-        updateSession,
+        refreshSession,
       }}
     >
       {children}

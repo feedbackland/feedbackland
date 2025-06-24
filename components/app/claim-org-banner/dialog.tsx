@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { PartyPopper } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
+import { useAuth } from "@/hooks/use-auth";
 
 export function ClaimOrgDialog({
   orgId,
@@ -30,6 +31,8 @@ export function ClaimOrgDialog({
 }) {
   const trpc = useTRPC();
 
+  const { refreshSession } = useAuth();
+
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
   );
@@ -41,6 +44,9 @@ export function ClaimOrgDialog({
       onSuccess: () => {
         setSelectedStep("success");
         onClaimed?.();
+      },
+      onSettled: async () => {
+        await refreshSession();
       },
     }),
   );

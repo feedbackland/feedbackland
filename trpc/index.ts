@@ -38,6 +38,7 @@ import { getIsAdminLimitReached } from "./get-is-admin-limit-reached";
 import { getIsPostLimitReached } from "./get-is-post-limit-reached";
 import { getIsInsightReportLimitReached } from "./get-is-insight-report-limit-reached";
 import { updateUser } from "./update-user";
+import { getUserSession } from "./get-user-session";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -80,6 +81,7 @@ export const appRouter = router({
   getIsPostLimitReached,
   getIsInsightReportLimitReached,
   updateUser,
+  getUserSession,
 });
 
 export type AppRouter = typeof appRouter;
