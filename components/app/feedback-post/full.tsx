@@ -53,7 +53,7 @@ export function FeedbackPostFull({
         <div className="mb-3.5 flex items-start justify-between">
           <div className="flex items-center">
             <GoBackButton className="mr-2.5" />
-            <Avatar className="xs:block mr-1 hidden scale-90">
+            {/* <Avatar className="xs:block mr-1 hidden scale-90">
               <AvatarImage
                 src={authorPhotoURL || undefined}
                 alt="User avatar image"
@@ -61,7 +61,7 @@ export function FeedbackPostFull({
               <AvatarFallback>
                 {authorName?.charAt(0) || <UserIcon className="size-4" />}
               </AvatarFallback>
-            </Avatar>
+            </Avatar> */}
             <div className="flex flex-col space-y-0">
               <div className="text-primary text-xs font-normal">
                 {authorName}

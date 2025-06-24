@@ -11,8 +11,8 @@ export const getIsPostLimitReached = publicProcedure.query(
       ]);
 
       if (
-        (activeSubscription === "free" && postCount >= 1) ||
-        (activeSubscription === "pro" && postCount >= 1)
+        (activeSubscription === "free" && postCount >= 75) ||
+        (activeSubscription === "pro" && postCount >= 500)
       ) {
         return true;
       }

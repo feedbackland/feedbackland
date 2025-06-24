@@ -178,7 +178,7 @@ export function CommentForm({
                 <Button
                   type="submit"
                   size="icon"
-                  variant="ghost"
+                  variant="default"
                   loading={saveComment.isPending}
                   onClick={() => onSubmit(session)}
                   disabled={!hasText || saveComment.isPending}

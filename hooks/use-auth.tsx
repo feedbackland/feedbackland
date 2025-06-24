@@ -57,7 +57,7 @@ type AuthContextType = {
   signOnWithGoogle: () => Promise<Session>;
   signOnWithMicrosoft: () => Promise<Session>;
   signOut: () => Promise<null>;
-  updateSessionUsername: ({ username }: { username: string }) => void;
+  updateSession: ({ username }: { username: string }) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -70,7 +70,7 @@ const AuthContext = createContext<AuthContextType>({
   signOnWithGoogle: async () => ({}) as Session,
   signOnWithMicrosoft: async () => ({}) as Session,
   signOut: async () => null,
-  updateSessionUsername: () => {},
+  updateSession: () => {},
 });
 
 const upsertUser = async ({
@@ -306,7 +306,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateSessionUsername = ({ username }: { username: string }) => {
+  const updateSession = ({ username }: { username: string }) => {
     if (session) {
       setSession({
         ...session,
@@ -330,7 +330,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signOnWithGoogle,
         signOnWithMicrosoft,
         signOut,
-        updateSessionUsername,
+        updateSession,
       }}
     >
       {children}

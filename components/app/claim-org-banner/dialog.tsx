@@ -62,18 +62,17 @@ export function ClaimOrgDialog({
         }}
       >
         <DialogContent
-          className={cn("flex max-w-[400px] flex-col")}
+          className={cn("flex max-w-[400px]! flex-col")}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {selectedStep === "sign-up-in" && (
             <>
               <DialogHeader className="mt-2 mb-3">
                 <DialogTitle className="h3 text-center">
-                  Claim this platform
+                  Claim platform
                 </DialogTitle>
                 <DialogDescription className="text-primary text-center">
-                  Create an account or sign in to your existing account to claim
-                  ownership of this platform
+                  Sign up to claim ownership of this platform
                 </DialogDescription>
               </DialogHeader>
               <SignUpIn

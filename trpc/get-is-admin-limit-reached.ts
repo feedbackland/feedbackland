@@ -13,8 +13,8 @@ export const getIsAdminLimitReached = adminProcedure.query(
       const adminCount = admins.length;
 
       if (
-        (activeSubscription === "free" && adminCount >= 1) ||
-        (activeSubscription === "pro" && adminCount >= 1)
+        (activeSubscription === "free" && adminCount >= 2) ||
+        (activeSubscription === "pro" && adminCount >= 5)
       ) {
         return true;
       }

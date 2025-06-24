@@ -27,7 +27,7 @@ export function Username({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const { session, updateSessionUsername } = useAuth();
+  const { session, updateSession } = useAuth();
 
   const updateUser = useUpdateUser();
 
@@ -44,7 +44,7 @@ export function Username({
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     await updateUser.mutateAsync({ name: formData.username });
-    updateSessionUsername({ username: formData.username });
+    updateSession({ username: formData.username });
   }
 
   return (

@@ -127,9 +127,9 @@ export function Insights() {
                 className=""
               >
                 Generate
-                {Number.isFinite(isInsightReportLimitReached?.reportsLeft) &&
+                {/* {Number.isFinite(isInsightReportLimitReached?.reportsLeft) &&
                   ` (${isInsightReportLimitReached?.reportsLeft} left this
-                month)`}
+                month)`} */}
               </Button>
             </div>
           </div>

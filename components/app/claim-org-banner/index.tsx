@@ -10,7 +10,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 
-export function ClaimOrgBanner() {
+export function ClaimOrgBanner({
+  className,
+}: {
+  className?: React.ComponentProps<"div">["className"];
+}) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
@@ -59,23 +63,25 @@ export function ClaimOrgBanner() {
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "border-border bg-primary flex items-center justify-center border-b px-4 py-2",
+            "border-primary bg-background flex items-center justify-center rounded-lg border-1 p-3",
             hideBanner && "hidden",
+            className,
           )}
         >
-          <div className="flex w-full max-w-[600px] items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="text-primary-foreground size-4" />
-              <span className="text-primary-foreground text-sm">
-                This platform is unclaimed. Take ownership of this platform.
+          <div className="flex w-full items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="size-4! shrink-0! basis-4! text-yellow-500" />
+              <span className="text-primary text-sm">
+                This platform is unclaimed. Claim ownership to make it yours.
               </span>
             </div>
             <Button
               onClick={handleOpenDialog}
-              variant="ghost"
-              className="border-muted-foreground text-primary-foreground hover:border-primary-foreground hover:text-primary-foreground border bg-transparent hover:bg-transparent"
+              variant="default"
+              className=""
+              size="sm"
             >
-              Claim this platform
+              Claim now
             </Button>
           </div>
         </div>

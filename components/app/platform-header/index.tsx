@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
 import { AccountSettings } from "@/components/app/account-settings";
+import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -201,6 +202,8 @@ export function PlatformHeader() {
             {orgData.platformDescription}
           </div>
         )}
+
+      {/* <ClaimOrgBanner className="mt-4 -mb-1" /> */}
     </div>
   );
 }

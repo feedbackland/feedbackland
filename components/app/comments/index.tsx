@@ -40,7 +40,7 @@ export function Comments({
 
   return (
     <div className={cn("", className)}>
-      {isPending && <CommentsLoading />}
+      {/* {isPending && <CommentsLoading />} */}
 
       {isError && <Error title="Error loading comments" />}
 

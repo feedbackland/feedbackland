@@ -103,7 +103,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("mb-6", !isPostLimitReached && "mb-2.5")}>
+    <div className={cn("mb-6", !isPostLimitReached && "mb-4")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -135,7 +135,7 @@ export function FeedbackForm() {
                   <Button
                     type="submit"
                     size="icon"
-                    variant="ghost"
+                    variant="default"
                     loading={isPending}
                     onClick={() => onSubmit(session)}
                     disabled={!!(!hasText || isPending)}

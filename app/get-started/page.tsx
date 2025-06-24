@@ -25,8 +25,8 @@ export default function GetStartedPage() {
   const maindomain = useMaindomain();
 
   return (
-    <div className="bg-muted/50 m-auto flex min-h-dvh w-dvw flex-col items-center pt-14">
-      <FeedbacklandLogoFull className="mb-14 w-[165px]" />
+    <div className="m-auto flex min-h-dvh w-dvw flex-col items-center pt-14">
+      <FeedbacklandLogoFull className="fill-primary-foreground! mb-8 w-[165px]" />
       <CreateOrgCard
         onSuccess={({ orgSubdomain: subdomain }) => {
           navigateToSubdomain({ maindomain, subdomain });

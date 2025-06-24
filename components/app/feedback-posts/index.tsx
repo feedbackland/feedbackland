@@ -116,7 +116,7 @@ export function FeedbackPosts() {
   return (
     <div className="">
       {!isPlatformEmpty && (
-        <div className="relative mb-2 flex h-[40px] items-center justify-between gap-2">
+        <div className="relative mb-1 flex h-[40px] items-center justify-between gap-2">
           <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}
@@ -141,16 +141,16 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {isPlatformEmpty && (
+      {/* {isPlatformEmpty && (
         <div className="text-muted-foreground space-y-1 py-5 text-center">
-          <div className="text-base font-semibold">
+          <div className="text-base font-medium">
             Be the first to share feedback
           </div>
           <span className="text-sm">
             Have a feature request, a suggestion, or spotted a bug? Let us know!
           </span>
         </div>
-      )}
+      )} */}
 
       {isSearchEmpty && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">

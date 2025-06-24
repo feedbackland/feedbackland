@@ -90,7 +90,11 @@ export function CreateOrgCard({
                   <FormLabel>Platform url</FormLabel>
                   <FormControl className="">
                     <div className="flex items-center">
-                      <Input {...field} placeholder="subdomain" />
+                      <Input
+                        {...field}
+                        placeholder="subdomain"
+                        className="text-sm"
+                      />
                       <span className="ml-2 text-sm">.feedbackland.com</span>
                     </div>
                   </FormControl>
