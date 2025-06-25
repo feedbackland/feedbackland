@@ -79,7 +79,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-1.5">
               <AlertTriangle className="size-4! shrink-0! basis-4! text-black!" />
               <span className="text-sm text-black">
-                This platform is unclaimed. Claim ownership and make it yours.
+                This platform is unclaimed. Claim ownership to make it yours.
               </span>
             </div>
             <Button
