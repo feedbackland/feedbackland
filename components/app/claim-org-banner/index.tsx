@@ -9,6 +9,7 @@ import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
+import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function ClaimOrgBanner({
   className,
@@ -19,6 +20,7 @@ export function ClaimOrgBanner({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
+  const inIframe = useInIframe();
   const {
     query: { data: org },
   } = useOrg();
@@ -60,25 +62,30 @@ export function ClaimOrgBanner({
         onClaimed={onClaimed}
       />
 
-      {isOrgClaimed === false && (
+      {isOrgClaimed === true && (
         <div
           className={cn(
-            "border-primary-foreground flex items-center justify-center rounded-lg border-1 bg-yellow-500 p-3",
+            "border-primary-foreground flex items-center justify-center border-1 bg-yellow-500 py-2",
             hideBanner && "hidden",
             className,
           )}
         >
-          <div className="flex w-full items-center justify-between gap-3">
+          <div
+            className={cn(
+              "mx-auto flex w-full max-w-[800px] items-center justify-between gap-2",
+              inIframe ? "px-8" : "px-5",
+            )}
+          >
             <div className="flex items-center gap-1.5">
-              <AlertTriangle className="text-primary-foreground! size-4! shrink-0! basis-4!" />
-              <span className="text-primary-foreground text-sm">
-                This platform is unclaimed. Claim ownership to get admin access!
+              <AlertTriangle className="size-4! shrink-0! basis-4! text-black!" />
+              <span className="text-sm text-black">
+                This platform is unclaimed. Claim ownership and make it yours.
               </span>
             </div>
             <Button
               onClick={handleOpenDialog}
-              variant="secondary"
-              className=""
+              variant="default"
+              className="bg-black text-white hover:bg-black/80"
               size="sm"
             >
               Claim now

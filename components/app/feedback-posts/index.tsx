@@ -113,9 +113,11 @@ export function FeedbackPosts() {
     }));
   };
 
+  console.log("isPlatformEmpty", isPlatformEmpty);
+
   return (
     <div className="">
-      {!isPlatformEmpty && (
+      {!isPending && !isPlatformEmpty && (
         <div className="relative mb-1 flex h-[40px] items-center justify-between gap-2">
           <SortingFilteringDropdown
             orderBy={orderBy}
@@ -141,16 +143,16 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {/* {isPlatformEmpty && (
-        <div className="text-muted-foreground space-y-1 py-5 text-center">
+      {isPlatformEmpty && (
+        <div className="text-muted-foreground border-border flex w-full items-center justify-center space-y-1 rounded-xl border py-10 text-center">
           <div className="text-base font-medium">
             Be the first to share feedback
           </div>
-          <span className="text-sm">
+          {/* <span className="text-sm">
             Have a feature request, a suggestion, or spotted a bug? Let us know!
-          </span>
+          </span> */}
         </div>
-      )} */}
+      )}
 
       {isSearchEmpty && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">
