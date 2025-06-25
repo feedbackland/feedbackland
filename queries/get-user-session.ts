@@ -14,8 +14,8 @@ export const getUserSessionQuery = async ({
       .selectFrom("user_org")
       .innerJoin("user", "user.id", "user_org.userId")
       .innerJoin("org", "org.id", "user_org.orgId")
+      .where("org.id", "=", orgId)
       .where("user_org.userId", "=", userId)
-      .where("user_org.orgId", "=", orgId)
       .select([
         "user_org.orgId as userOrg_orgId",
         "user_org.userId as userOrg_userId",

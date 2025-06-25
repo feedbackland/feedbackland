@@ -61,10 +61,10 @@ export function FeedbackPostFull({
               <AvatarFallback>
                 {authorName?.charAt(0) || <UserIcon className="size-4" />}
               </AvatarFallback>
-            </Avatar> */}
+            </Avatar>
             <div className="flex flex-col space-y-0">
               <div className="text-primary text-xs font-normal">
-                {authorName}
+                {authorName || "Anonymous user"}
               </div>
               <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
                 <span>{timeAgo.format(createdAt, "mini-now")}</span>
@@ -84,7 +84,7 @@ export function FeedbackPostFull({
                   </>
                 )}
               </div>
-            </div>
+            </div> */}
           </div>
           <div>
             <FeedbackPostOptionsMenu
@@ -106,7 +106,29 @@ export function FeedbackPostFull({
           <div
             className={cn("flex flex-col items-stretch space-y-3", className)}
           >
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <div className="flex flex-col items-stretch gap-0.5">
+              <h2 className="text-xl font-semibold">{title}</h2>
+              <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
+                {/* <span>{authorName || "Anonymous user"}</span>
+                <span className="text-[8px]">•</span> */}
+                <span>{timeAgo.format(createdAt, "mini-now")}</span>
+                <span className="text-[8px]">•</span>
+                <span className="capitalize">{category}</span>
+                {status && (
+                  <>
+                    <span className="text-[8px]">•</span>
+                    <span
+                      className={cn(
+                        "capitalize",
+                        `text-${status.replace(" ", "-")}`,
+                      )}
+                    >
+                      {status}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
 
             <TiptapOutput content={description} />
 

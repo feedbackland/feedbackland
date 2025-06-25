@@ -24,7 +24,7 @@ export const getMentionableUsersQuery = async ({
       .execute();
 
     return users;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

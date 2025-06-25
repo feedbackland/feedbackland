@@ -15,20 +15,23 @@ export const getComments = publicProcedure
         .nullish(),
     }),
   )
-  .query(async ({ input: { postId, limit, cursor }, ctx: { userId } }) => {
-    try {
-      const { comments, nextCursor } = await getCommentsQuery({
-        postId,
-        userId,
-        limit,
-        cursor,
-      });
+  .query(
+    async ({ input: { postId, limit, cursor }, ctx: { orgId, userId } }) => {
+      try {
+        const { comments, nextCursor } = await getCommentsQuery({
+          orgId,
+          postId,
+          userId,
+          limit,
+          cursor,
+        });
 
-      return {
-        comments,
-        nextCursor,
-      };
-    } catch (error) {
-      throw error;
-    }
-  });
+        return {
+          comments,
+          nextCursor,
+        };
+      } catch (error) {
+        throw error;
+      }
+    },
+  );

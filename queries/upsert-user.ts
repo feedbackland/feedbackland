@@ -43,8 +43,8 @@ export const upsertUserQuery = async (args: UpsertUser) => {
 
       let userOrg = await trx
         .selectFrom("user_org")
-        .where("user_org.userId", "=", userId)
-        .where("user_org.orgId", "=", orgId)
+        .where("userId", "=", userId)
+        .where("orgId", "=", orgId)
         .selectAll()
         .executeTakeFirst();
 

@@ -3,11 +3,13 @@
 import { db } from "@/db/db";
 
 export const getCommentsQuery = async ({
+  orgId,
   postId,
   userId,
   limit,
   cursor,
 }: {
+  orgId: string;
   postId: string;
   userId?: string | null;
   limit: number;
@@ -18,6 +20,11 @@ export const getCommentsQuery = async ({
       .selectFrom("comment")
       .leftJoin("user", (join) =>
         join.onRef("comment.authorId", "=", "user.id"),
+      )
+      .leftJoin("user_org", (join) =>
+        join
+          .onRef("comment.authorId", "=", "user_org.userId")
+          .on("user_org.orgId", "=", orgId),
       )
       .leftJoin("user_upvote", (join) =>
         join
@@ -35,6 +42,7 @@ export const getCommentsQuery = async ({
         "comment.upvotes",
         "user.name as authorName",
         "user.photoURL as authorPhotoURL",
+        "user_org.role as authorRole",
         (eb) =>
           eb
             .case()
