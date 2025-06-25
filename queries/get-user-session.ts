@@ -10,28 +10,58 @@ export const getUserSessionQuery = async ({
   userId: string;
 }) => {
   try {
-    return await db.transaction().execute(async (trx) => {
-      const org = await trx
-        .selectFrom("org")
-        .where("org.id", "=", orgId)
-        .selectAll()
-        .executeTakeFirstOrThrow();
+    const result = await db
+      .selectFrom("user_org")
+      .innerJoin("user", "user.id", "user_org.userId")
+      .innerJoin("org", "org.id", "user_org.orgId")
+      .where("user_org.userId", "=", userId)
+      .where("user_org.orgId", "=", orgId)
+      .select([
+        "user_org.orgId as userOrg_orgId",
+        "user_org.userId as userOrg_userId",
+        "user_org.role as userOrg_role",
+        "user.id as user_id",
+        "user.createdAt as user_createdAt",
+        "user.email as user_email",
+        "user.name as user_name",
+        "user.photoURL as user_photoURL",
+        "user.updatedAt as user_updatedAt",
+        "org.id as org_id",
+        "org.createdAt as org_createdAt",
+        "org.isClaimed as org_isClaimed",
+        "org.orgSubdomain as org_orgSubdomain",
+        "org.platformDescription as org_platformDescription",
+        "org.platformTitle as org_platformTitle",
+        "org.updatedAt as org_updatedAt",
+      ])
+      .executeTakeFirstOrThrow();
 
-      const user = await trx
-        .selectFrom("user")
-        .where("user.id", "=", userId)
-        .selectAll()
-        .executeTakeFirstOrThrow();
+    const user = {
+      id: result.user_id,
+      createdAt: result.user_createdAt,
+      email: result.user_email,
+      name: result.user_name,
+      photoURL: result.user_photoURL,
+      updatedAt: result.user_updatedAt,
+    };
 
-      const userOrg = await trx
-        .selectFrom("user_org")
-        .where("user_org.userId", "=", userId)
-        .where("user_org.orgId", "=", orgId)
-        .selectAll()
-        .executeTakeFirstOrThrow();
+    const org = {
+      id: result.org_id,
+      createdAt: result.org_createdAt,
+      isClaimed: result.org_isClaimed,
+      orgSubdomain: result.org_orgSubdomain,
+      platformDescription: result.org_platformDescription,
+      platformTitle: result.org_platformTitle,
+      updatedAt: result.org_updatedAt,
+    };
 
-      return { user, userOrg, org };
-    });
+    const userOrg = {
+      orgId: result.userOrg_orgId,
+      userId: result.userOrg_userId,
+      role: result.userOrg_role,
+    };
+
+    return { user, userOrg, org };
   } catch (error) {
     throw error;
   }

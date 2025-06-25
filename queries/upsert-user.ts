@@ -13,11 +13,7 @@ export const upsertUserQuery = async (args: UpsertUser) => {
         .selectFrom("org")
         .where("org.orgSubdomain", "=", orgSubdomain)
         .selectAll()
-        .executeTakeFirst();
-
-      if (!org) {
-        throw new Error("Org not found");
-      }
+        .executeTakeFirstOrThrow();
 
       const orgId = org.id;
 
@@ -42,11 +38,7 @@ export const upsertUserQuery = async (args: UpsertUser) => {
             }),
           )
           .returningAll()
-          .executeTakeFirst();
-      }
-
-      if (!user) {
-        throw new Error("User not found");
+          .executeTakeFirstOrThrow();
       }
 
       let userOrg = await trx
@@ -71,10 +63,6 @@ export const upsertUserQuery = async (args: UpsertUser) => {
           )
           .returningAll()
           .executeTakeFirstOrThrow();
-      }
-
-      if (!userOrg) {
-        throw new Error("userOrg not found");
       }
 
       return { user, userOrg, org };
