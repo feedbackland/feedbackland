@@ -362,7 +362,7 @@ export interface ExtensionsWrappersFdwStats {
 }
 
 export interface Feedback {
-  authorId: string;
+  authorId: string | null;
   category: FeedbackCategory | null;
   createdAt: Generated<Timestamp>;
   description: string;
