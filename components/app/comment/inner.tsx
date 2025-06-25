@@ -41,6 +41,7 @@ export function CommentInner({
     upvotes,
     authorId,
     authorName,
+    authorRole,
     authorPhotoURL,
     hasUserUpvote,
   } = comment;
@@ -52,6 +53,7 @@ export function CommentInner({
       <div className="flex items-center justify-between">
         <CommentHeader
           authorName={authorName}
+          authorRole={authorRole}
           authorPhotoURL={authorPhotoURL}
           createdAt={createdAt}
         />

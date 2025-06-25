@@ -10,11 +10,13 @@ import { UserIcon } from "lucide-react";
 export function CommentHeader({
   authorPhotoURL,
   authorName,
+  authorRole,
   createdAt,
   className,
 }: {
   authorPhotoURL: string | null;
   authorName: string | null;
+  authorRole: "user" | "admin" | null;
   createdAt: Date;
   className?: React.ComponentProps<"div">["className"];
 }) {
@@ -34,7 +36,7 @@ export function CommentHeader({
       <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
         <div className="text-primary">
           {authorName}
-          {isAdmin && (
+          {authorRole === "admin" && (
             <Badge variant="outline" className="border-primary ml-1 scale-85">
               Admin
             </Badge>

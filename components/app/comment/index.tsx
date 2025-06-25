@@ -16,6 +16,7 @@ export type Comment = {
   updatedAt: Date;
   upvotes: string;
   authorName: string | null;
+  authorRole: "user" | "admin" | null;
   authorPhotoURL: string | null;
   hasUserUpvote: boolean;
 };
