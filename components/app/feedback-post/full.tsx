@@ -109,8 +109,8 @@ export function FeedbackPostFull({
             <div className="flex flex-col items-stretch gap-0.5">
               <h2 className="text-xl font-semibold">{title}</h2>
               <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
-                {/* <span>{authorName || "Anonymous user"}</span>
-                <span className="text-[8px]">•</span> */}
+                <span>Posted by {authorName || "Anonymous user"}</span>
+                <span className="text-[8px]">•</span>
                 <span>{timeAgo.format(createdAt, "mini-now")}</span>
                 <span className="text-[8px]">•</span>
                 <span className="capitalize">{category}</span>

@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { previousPathnameAtom } from "@/lib/atoms";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const GoBackButton = ({
   className,
@@ -26,14 +31,19 @@ export const GoBackButton = ({
   };
 
   return (
-    <Button
-      size="icon"
-      onClick={handleGoBack}
-      variant="outline"
-      className={cn("size-8", className)}
-    >
-      <ArrowLeft className="size-4" />
-      <span className="sr-only">Go back</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          onClick={handleGoBack}
+          variant="outline"
+          className={cn("size-8", className)}
+        >
+          <ArrowLeft className="size-4" />
+          <span className="sr-only">Go back</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Go back to overview</TooltipContent>
+    </Tooltip>
   );
 };
