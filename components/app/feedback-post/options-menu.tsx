@@ -44,7 +44,7 @@ export function FeedbackPostOptionsMenu({
   className,
 }: {
   postId: string;
-  authorId?: string;
+  authorId?: string | null;
   variant?: "ghost" | "link" | "default" | "secondary";
   onEdit?: () => void;
   className?: React.ComponentProps<"div">["className"];
