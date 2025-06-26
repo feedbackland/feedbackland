@@ -14,7 +14,7 @@ export function SubscriptionInsightReportLimitAlert({
     query: { data: isInsightReportLimitReached },
   } = useIsInsightReportLimitReached();
 
-  if (isInsightReportLimitReached?.status === true) {
+  if (isInsightReportLimitReached?.exhausted === true) {
     return (
       <Alert
         variant="destructive"
@@ -24,8 +24,9 @@ export function SubscriptionInsightReportLimitAlert({
         )}
       >
         <AlertDescription className="font-medium">
-          You've hit your current plan's roadmap limit. Please upgrade to
-          generate more roadmaps.
+          You've reached your plan's limit of{" "}
+          {isInsightReportLimitReached.roadmapsLimit} roadmaps/month. To create
+          more, you can upgrade your plan in just a few clicks.
         </AlertDescription>
         <SubscriptionManageUpgradeButton size="sm" buttonText="Upgrade" />
       </Alert>

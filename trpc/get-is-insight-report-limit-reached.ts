@@ -2,6 +2,16 @@ import { adminProcedure } from "@/lib/trpc";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
 import { getInsightReportCountQuery } from "@/queries/get-insight-report-count";
 
+const getRoadmapsLimit = (activeSubscription: string) => {
+  if (activeSubscription === "free") {
+    return 3;
+  } else if (activeSubscription === "pro") {
+    return 20;
+  }
+
+  return null;
+};
+
 export const getIsInsightReportLimitReached = adminProcedure.query(
   async ({ ctx: { orgId } }) => {
     try {
@@ -10,24 +20,18 @@ export const getIsInsightReportLimitReached = adminProcedure.query(
         getInsightReportCountQuery({ orgId }),
       ]);
 
-      let status = false;
-      let reportsLeft: number | null = null;
-
-      if (activeSubscription === "free" || activeSubscription === "pro") {
-        const totalReports = activeSubscription === "free" ? 2 : 20;
-
-        if (totalReports - insightReportCount > 0) {
-          reportsLeft = totalReports - insightReportCount;
-        } else {
-          reportsLeft = 0;
-        }
-
-        status = reportsLeft === 0;
-      }
+      const roadmapsLimit = getRoadmapsLimit(activeSubscription);
+      const roadmapsLeft = !!(
+        roadmapsLimit && Number.isFinite(insightReportCount)
+      )
+        ? roadmapsLimit - insightReportCount
+        : null;
+      const exhausted = roadmapsLeft === 0;
 
       return {
-        status,
-        reportsLeft,
+        exhausted,
+        roadmapsLimit,
+        roadmapsLeft,
       };
     } catch (error) {
       throw error;

@@ -78,7 +78,7 @@ export function PlatformHeader() {
           ) : (
             <h1 className="h3 font-extrabold">
               <Link href={`${platformUrl}`}>
-                {!isAdminPage ? orgData?.platformTitle : "Admin panel"}
+                {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
               </Link>
             </h1>
           )}
@@ -98,7 +98,7 @@ export function PlatformHeader() {
                   ) : (
                     <ShieldIcon className="size-3.5!" />
                   )}
-                  <span>{isAdminPage ? "Home" : "Admin panel"}</span>
+                  <span>{isAdminPage ? "Home" : "Admin Panel"}</span>
                 </span>
               </Link>
             </Button>
@@ -156,7 +156,7 @@ export function PlatformHeader() {
                         className="flex items-center gap-2"
                       >
                         <ShieldIcon className="size-3.5!" />
-                        Admin panel
+                        Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}

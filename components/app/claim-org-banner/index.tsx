@@ -62,7 +62,7 @@ export function ClaimOrgBanner({
         onClaimed={onClaimed}
       />
 
-      {isOrgClaimed === true && (
+      {isOrgClaimed === false && (
         <div
           className={cn(
             "border-primary-foreground flex items-center justify-center border-1 bg-yellow-500 py-2",

@@ -45,7 +45,7 @@ export const createOrgQuery = async (args?: args) => {
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      await db
+      await trx
         .insertInto("feedback")
         .values({
           title: "An example feedback post",

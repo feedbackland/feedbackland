@@ -11,6 +11,7 @@ import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
 import { SubscriptionInsightReportLimitAlert } from "@/components/app/subscription/insight-report-limit-alert";
 import { useIsInsightReportLimitReached } from "@/hooks/use-is-insight-report-limit-reached";
+import { Badge } from "@/components/ui/badge";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -82,14 +83,23 @@ export function Insights() {
 
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
 
+  const roadmapsLeft = isInsightReportLimitReached?.roadmapsLeft;
+
+  const roadmapsExhausted = isInsightReportLimitReached?.exhausted;
+
   return (
     <div className="space-y-1">
       <div className="mb-6 flex items-start justify-between gap-8">
         <div className="flex-1 space-y-1">
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
-              <h2 className="h4">
+              <h2 className="h4 mb-1 flex flex-wrap items-center gap-2">
                 {isGenerating ? `Generating Roadmap...` : `Roadmap`}
+                {!isGenerating && Number.isFinite(roadmapsLeft) && (
+                  <Badge variant="outline" className="border-primary">
+                    {roadmapsLeft} left this month
+                  </Badge>
+                )}
               </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
@@ -106,7 +116,8 @@ export function Insights() {
 
               {!isGenerating && hasNoInsights && (
                 <p className="text-muted-foreground text-sm">
-                  Click Generate to retreive Roadmap
+                  Generate your first roadmap! For the most impactful result,
+                  try adding some feedback first.
                 </p>
               )}
 
@@ -118,19 +129,17 @@ export function Insights() {
             </div>
             <div className="flex items-center gap-2">
               {hasInsights && <InsightsDownloadButton />}
-              <Button
-                size="default"
-                variant="default"
-                onClick={handleGenerateClick}
-                loading={isGenerating}
-                disabled={!!isInsightReportLimitReached?.status}
-                className=""
-              >
-                Generate
-                {/* {Number.isFinite(isInsightReportLimitReached?.reportsLeft) &&
-                  ` (${isInsightReportLimitReached?.reportsLeft} left this
-                month)`} */}
-              </Button>
+              {!roadmapsExhausted && (
+                <Button
+                  size="default"
+                  variant="default"
+                  onClick={handleGenerateClick}
+                  loading={isGenerating}
+                  disabled={roadmapsExhausted}
+                >
+                  Generate
+                </Button>
+              )}
             </div>
           </div>
         </div>

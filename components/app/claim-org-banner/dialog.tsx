@@ -15,6 +15,8 @@ import { PartyPopper } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { useAuth } from "@/hooks/use-auth";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
+import Link from "next/link";
 
 export function ClaimOrgDialog({
   orgId,
@@ -32,6 +34,8 @@ export function ClaimOrgDialog({
   const trpc = useTRPC();
 
   const { refreshSession } = useAuth();
+
+  const platformUrl = usePlatformUrl();
 
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
@@ -99,17 +103,28 @@ export function ClaimOrgDialog({
                   Congratulations!
                 </DialogTitle>
                 <DialogDescription className="text-primary text-center">
-                  You&apos;ve successfully claimed ownership of this platform.
+                  Your platform is officially yours.
+                  <br />
+                  Take the next step and explore your{" "}
+                  <Link href={`${platformUrl}/admin`} className="underline">
+                    Admin Panel
+                  </Link>
+                  .
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex justify-center">
-                <Button
+              <div className="flex items-center justify-center gap-2">
+                <Button asChild onClick={handleOnClose}>
+                  <Link href={`${platformUrl}/admin`}>
+                    Go to the Admin Panel
+                  </Link>
+                </Button>
+                {/* <Button
                   onClick={handleOnClose}
                   variant="secondary"
-                  className="mt-2"
+                  className=""
                 >
                   Close
-                </Button>
+                </Button> */}
               </div>
             </>
           )}
