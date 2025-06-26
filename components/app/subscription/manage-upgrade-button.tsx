@@ -7,6 +7,7 @@ import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
+import { Edit2Icon } from "lucide-react";
 import { isIOS, isAndroid } from "react-device-detect";
 
 export function SubscriptionManageUpgradeButton({
@@ -29,6 +30,8 @@ export function SubscriptionManageUpgradeButton({
   const {
     query: { data: polarProducts, isPending: isPolarProductsPending },
   } = usePolarProducts();
+
+  console.log("subscription", subscription);
 
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
@@ -83,6 +86,7 @@ export function SubscriptionManageUpgradeButton({
         className={cn("", className)}
         onClick={handleOnClick}
       >
+        {buttonText === "Manage" && <Edit2Icon />}
         {buttonText}
       </Button>
     );

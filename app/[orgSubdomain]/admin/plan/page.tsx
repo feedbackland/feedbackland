@@ -1,7 +1,7 @@
 "use client";
 
-import { Plan } from "@/components/app/plan";
+import { PlansOverview } from "@/components/app/plans-overview";
 
 export default function AdminPlanPage() {
-  return <Plan />;
+  return <PlansOverview />;
 }
