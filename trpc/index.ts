@@ -34,9 +34,9 @@ import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
 import { getPolarProduct } from "./get-polar-product";
-import { getIsAdminLimitReached } from "./get-is-admin-limit-reached";
-import { getIsPostLimitReached } from "./get-is-post-limit-reached";
-import { getIsInsightReportLimitReached } from "./get-is-insight-report-limit-reached";
+import { getAdminUsage } from "./get-admin-usage";
+import { getPostUsage } from "./get-post-usage";
+import { getRoadmapUsage } from "./get-roadmap-usage";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
 
@@ -77,9 +77,9 @@ export const appRouter = router({
   getPolarProducts,
   getPolarProduct,
   getSubscription,
-  getIsAdminLimitReached,
-  getIsPostLimitReached,
-  getIsInsightReportLimitReached,
+  getAdminUsage,
+  getPostUsage,
+  getRoadmapUsage,
   updateUser,
   getUserSession,
 });

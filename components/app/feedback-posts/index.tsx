@@ -113,8 +113,6 @@ export function FeedbackPosts() {
     }));
   };
 
-  console.log("isPlatformEmpty", isPlatformEmpty);
-
   return (
     <div className="">
       {!isPending && !isPlatformEmpty && (

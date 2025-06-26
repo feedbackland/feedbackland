@@ -9,9 +9,8 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
-import { SubscriptionInsightReportLimitAlert } from "@/components/app/subscription/insight-report-limit-alert";
-import { useIsInsightReportLimitReached } from "@/hooks/use-is-insight-report-limit-reached";
-import { Badge } from "@/components/ui/badge";
+import { RoadmapUsageAlert } from "@/components/app/subscription/roadmap-usage-alert";
+import { useRoadmapUsage } from "@/hooks/use-roadmap-usage";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -35,7 +34,7 @@ export function Insights() {
         });
 
         queryClient.invalidateQueries({
-          queryKey: trpc.getIsInsightReportLimitReached.queryKey(),
+          queryKey: trpc.getRoadmapUsage.queryKey(),
         });
       },
     }),
@@ -53,8 +52,8 @@ export function Insights() {
   } = useInsights({ enabled: !generateInsightsMutation?.isPending });
 
   const {
-    query: { data: isInsightReportLimitReached },
-  } = useIsInsightReportLimitReached();
+    query: { data: roadmapUsage },
+  } = useRoadmapUsage();
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -83,9 +82,7 @@ export function Insights() {
 
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
 
-  const roadmapsLeft = isInsightReportLimitReached?.roadmapsLeft;
-
-  const roadmapsExhausted = isInsightReportLimitReached?.exhausted;
+  const roadmapsLeft = roadmapUsage?.left;
 
   return (
     <div className="space-y-1">
@@ -95,11 +92,6 @@ export function Insights() {
             <div className="flex flex-col">
               <h2 className="h4 mb-1 flex flex-wrap items-center gap-2">
                 {isGenerating ? `Generating Roadmap...` : `Roadmap`}
-                {!isGenerating && Number.isFinite(roadmapsLeft) && (
-                  <Badge variant="outline" className="border-primary">
-                    {roadmapsLeft} left this month
-                  </Badge>
-                )}
               </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
@@ -129,23 +121,23 @@ export function Insights() {
             </div>
             <div className="flex items-center gap-2">
               {hasInsights && <InsightsDownloadButton />}
-              {!roadmapsExhausted && (
-                <Button
-                  size="default"
-                  variant="default"
-                  onClick={handleGenerateClick}
-                  loading={isGenerating}
-                  disabled={roadmapsExhausted}
-                >
-                  Generate
-                </Button>
-              )}
+              <Button
+                size="default"
+                variant="default"
+                onClick={handleGenerateClick}
+                loading={isGenerating}
+                disabled={roadmapUsage?.limitReached}
+              >
+                Generate
+                {roadmapsLeft !== undefined &&
+                  ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left)`}
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <SubscriptionInsightReportLimitAlert className="mb-5" />
+      <RoadmapUsageAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 

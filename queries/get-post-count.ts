@@ -2,11 +2,7 @@
 
 import { db } from "@/db/db";
 
-export async function getActiveFeedbackPostCountQuery({
-  orgId,
-}: {
-  orgId: string;
-}) {
+export async function getPostCountQuery({ orgId }: { orgId: string }) {
   try {
     const { count } = await db
       .selectFrom("feedback")

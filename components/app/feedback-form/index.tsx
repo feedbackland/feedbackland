@@ -20,8 +20,8 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { SubscriptionPostLimitAlert } from "@/components/app/subscription/post-limit-alert";
-import { useIsPostLimitReached } from "@/hooks/use-is-post-limit-reached";
+import { PostUsageAlert } from "@/components/app/subscription/post-usage-alert";
+import { usePostUsage } from "@/hooks/use-post-usage";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -30,8 +30,8 @@ export function FeedbackForm() {
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
   const {
-    query: { data: isPostLimitReached },
-  } = useIsPostLimitReached();
+    query: { data: postUsage },
+  } = usePostUsage();
   const [value, setValue] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
@@ -68,7 +68,7 @@ export function FeedbackForm() {
         });
 
         queryClient.invalidateQueries({
-          queryKey: trpc.getIsPostLimitReached.queryKey(),
+          queryKey: trpc.getPostUsage.queryKey(),
         });
       },
       onError: () => {
@@ -103,7 +103,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("mb-6", !isPostLimitReached && "mb-4")}>
+    <div className={cn("mb-6", !postUsage?.limitReached && "mb-4")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -114,9 +114,9 @@ export function FeedbackForm() {
         }}
       />
 
-      <SubscriptionPostLimitAlert />
+      <PostUsageAlert />
 
-      {!isPostLimitReached && (
+      {!postUsage?.limitReached && (
         <div className={cn("flex flex-col gap-3")}>
           <div
             className={cn(

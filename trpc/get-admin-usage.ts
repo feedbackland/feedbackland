@@ -1,8 +1,9 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
 import { getAdminsQuery } from "@/queries/get-admins";
+import { getAdminUsageLimit } from "@/lib/utils";
 
-export const getIsAdminLimitReached = adminProcedure.query(
+export const getAdminUsage = adminProcedure.query(
   async ({ ctx: { orgId } }) => {
     try {
       const [{ activeSubscription }, admins] = await Promise.all([
@@ -10,16 +11,17 @@ export const getIsAdminLimitReached = adminProcedure.query(
         getAdminsQuery({ orgId }),
       ]);
 
-      const adminCount = admins.length;
+      const limit = getAdminUsageLimit(activeSubscription);
+      const left = Number.isFinite(limit)
+        ? Number(limit) - admins.length
+        : undefined;
+      const limitReached = Number(left) <= 0;
 
-      if (
-        (activeSubscription === "free" && adminCount >= 2) ||
-        (activeSubscription === "pro" && adminCount >= 5)
-      ) {
-        return true;
-      }
-
-      return false;
+      return {
+        limit,
+        limitReached,
+        left,
+      };
     } catch (error) {
       throw error;
     }

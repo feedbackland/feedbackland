@@ -253,3 +253,33 @@ function App() {
     </OverlayWidget>
   );
 }`;
+
+export const getRoadmapUsageLimit = (plan: string) => {
+  if (plan === "free") {
+    return 3;
+  } else if (plan === "pro") {
+    return 20;
+  }
+
+  return undefined;
+};
+
+export const getAdminUsageLimit = (plan: string) => {
+  if (plan === "free") {
+    return 2;
+  } else if (plan === "pro") {
+    return 5;
+  }
+
+  return undefined;
+};
+
+export const getPostUsageLimit = (plan: string) => {
+  if (plan === "free") {
+    return 75;
+  } else if (plan === "pro") {
+    return 500;
+  }
+
+  return undefined;
+};

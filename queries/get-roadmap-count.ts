@@ -1,10 +1,6 @@
 import { db } from "@/db/db";
 
-export const getInsightReportCountQuery = async ({
-  orgId,
-}: {
-  orgId: string;
-}) => {
+export const getRoadmapCountQuery = async ({ orgId }: { orgId: string }) => {
   try {
     const now = new Date();
     const year = now.getUTCFullYear();

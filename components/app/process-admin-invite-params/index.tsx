@@ -27,23 +27,17 @@ export function ProcessAdminInviteParams() {
   }, [setShowSignUpDialog, setAdminInviteToken, setAdminInviteEmail]);
 
   const redeem = useCallback(() => {
-    console.log("redeem");
-
     if (adminInviteToken) {
-      console.log("adminInviteToken", adminInviteToken);
-
       redeemInvite.mutate(
         {
           adminInviteToken,
         },
         {
           onSuccess: () => {
-            console.log("success");
             handleOnClose();
             window.location.reload();
           },
           onError: (error) => {
-            console.log("error", error);
             handleOnClose();
           },
         },

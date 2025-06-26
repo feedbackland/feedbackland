@@ -31,8 +31,6 @@ export function SubscriptionManageUpgradeButton({
     query: { data: polarProducts, isPending: isPolarProductsPending },
   } = usePolarProducts();
 
-  console.log("subscription", subscription);
-
   const createPolarCustomerSession = useCreatePolarCustomerSession();
 
   const createPolarCheckoutSession = useCreatePolarCheckoutSession();

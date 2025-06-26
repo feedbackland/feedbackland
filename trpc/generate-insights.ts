@@ -136,8 +136,6 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
 
     const data = await response.json();
 
-    console.log("data", data);
-
     const insightsOutputString = data?.choices?.[0]?.message?.content as string;
 
     if (!insightsOutputString || insightsOutputString.length === 0) {

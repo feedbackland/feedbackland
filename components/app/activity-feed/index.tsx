@@ -2,22 +2,27 @@
 
 import { ActivityFeedList } from "./list";
 import { Button } from "@/components/ui/button";
-import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useSetAllActivitiesSeen } from "@/hooks/use-set-all-activities-seen";
-import { SubscriptionPostLimitAlert } from "@/components/app/subscription/post-limit-alert";
-import { BookOpenCheckIcon } from "lucide-react";
+import { PostUsageAlert } from "@/components/app/subscription/post-usage-alert";
+import { BookOpenIcon, CheckIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { useState } from "react";
 
 export function ActivityFeed() {
-  const {
-    query: { data: metaData },
-  } = useActivityFeedMetaData({ enabled: true });
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const allActivitiesSeen = useSetAllActivitiesSeen();
+
+  const handleOnCLick = async () => {
+    allActivitiesSeen.mutate();
+    await allActivitiesSeen.mutateAsync();
+    setIsCompleted(true);
+    setTimeout(() => setIsCompleted(false), 3000);
+  };
 
   return (
     <div className="">
@@ -26,21 +31,18 @@ export function ActivityFeed() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              disabled={metaData?.totalUnseenCount === 0}
               loading={allActivitiesSeen.isPending}
-              onClick={() => {
-                allActivitiesSeen.mutate();
-              }}
+              onClick={handleOnCLick}
               variant="outline"
               size="icon"
             >
-              <BookOpenCheckIcon />
+              {isCompleted ? <CheckIcon /> : <BookOpenIcon />}
             </Button>
           </TooltipTrigger>
           <TooltipContent>Mark all as read</TooltipContent>
         </Tooltip>
       </div>
-      <SubscriptionPostLimitAlert className="-mt-3 mb-4" />
+      <PostUsageAlert className="-mt-3 mb-4" />
       <ActivityFeedList />
     </div>
   );

@@ -1,0 +1,38 @@
+"use client";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
+import { cn } from "@/lib/utils";
+import { AlertTriangleIcon } from "lucide-react";
+
+export function UsageAlert({
+  title,
+  description,
+  className,
+}: {
+  title?: string;
+  description?: string;
+  className?: React.ComponentProps<"div">["className"];
+}) {
+  return (
+    <Alert
+      className={cn(
+        "border-destructive flex items-center justify-between gap-5 border",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-4">
+        <AlertTriangleIcon className="text-destructive! size-6! shrink-0!" />
+        <div className="flex flex-col items-stretch space-y-1">
+          {title && <AlertTitle>{title}</AlertTitle>}
+          {description && <AlertDescription>{description}</AlertDescription>}
+        </div>
+      </div>
+      <SubscriptionManageUpgradeButton
+        size="sm"
+        variant="default"
+        buttonText="Upgrade Now"
+      />
+    </Alert>
+  );
+}
