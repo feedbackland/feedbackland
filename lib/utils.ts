@@ -255,10 +255,22 @@ function App() {
 }`;
 
 export const getRoadmapUsageLimit = (plan: string) => {
+  // if (plan === "free") {
+  //   return 3;
+  // } else if (plan === "pro") {
+  //   return 20;
+  // }
+
+  return undefined;
+};
+
+export const getRoadmapInputUsageLimit = (plan: string) => {
   if (plan === "free") {
-    return 3;
+    return 100;
   } else if (plan === "pro") {
-    return 20;
+    return 1000;
+  } else if (plan === "max") {
+    return 10000;
   }
 
   return undefined;

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
-import { getAdminUsageLimit, getRoadmapUsageLimit } from "@/lib/utils";
+import { getAdminUsageLimit, getRoadmapInputUsageLimit } from "@/lib/utils";
 
 export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
   const {
@@ -85,21 +85,22 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
         <div className="text-muted-foreground flex flex-col items-stretch space-y-1 text-sm font-medium">
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>Unlimited Feedback Posts</span>
+            <span>Unlimited feedback posts</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{getAdminUsageLimit(planName) || "Unlimited"} Admins</span>
+            <span>{getAdminUsageLimit(planName) || "Unlimited"} admins</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>
-              {getRoadmapUsageLimit(planName) || "Unlimited"} AI Roadmaps/Month
+              AI Roadmaps analyzes up to {getRoadmapInputUsageLimit(planName)}{" "}
+              feedback posts
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{isFreePlan ? "Feedbackland Branding" : "No Branding"}</span>
+            <span>{isFreePlan ? "Feedbackland branding" : "No branding"}</span>
           </div>
         </div>
       </div>

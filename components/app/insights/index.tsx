@@ -9,8 +9,6 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
-import { RoadmapUsageAlert } from "@/components/app/subscription/roadmap-usage-alert";
-import { useRoadmapUsage } from "@/hooks/use-roadmap-usage";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -32,10 +30,6 @@ export function Insights() {
         queryClient.invalidateQueries({
           queryKey: trpc.getInsights.queryKey().slice(0, 1),
         });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getRoadmapUsage.queryKey(),
-        });
       },
     }),
   );
@@ -50,10 +44,6 @@ export function Insights() {
       isError,
     },
   } = useInsights({ enabled: !generateInsightsMutation?.isPending });
-
-  const {
-    query: { data: roadmapUsage },
-  } = useRoadmapUsage();
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -81,8 +71,6 @@ export function Insights() {
   const hasInsights = !isPending && !isGenerating && insights?.length > 0;
 
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
-
-  const roadmapsLeft = roadmapUsage?.left;
 
   return (
     <div className="space-y-1">
@@ -126,18 +114,13 @@ export function Insights() {
                 variant="default"
                 onClick={handleGenerateClick}
                 loading={isGenerating}
-                disabled={roadmapUsage?.limitReached}
               >
                 Generate
-                {roadmapsLeft !== undefined &&
-                  ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left)`}
               </Button>
             </div>
           </div>
         </div>
       </div>
-
-      <RoadmapUsageAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 
