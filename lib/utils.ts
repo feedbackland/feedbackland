@@ -275,11 +275,11 @@ export const getAdminUsageLimit = (plan: string) => {
 };
 
 export const getPostUsageLimit = (plan: string) => {
-  if (plan === "free") {
-    return 1;
-  } else if (plan === "pro") {
-    return 1;
-  }
+  // if (plan === "free") {
+  //   return 1;
+  // } else if (plan === "pro") {
+  //   return 1;
+  // }
 
   return undefined;
 };

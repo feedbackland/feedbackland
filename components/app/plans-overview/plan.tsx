@@ -4,11 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
-import {
-  getPostUsageLimit,
-  getAdminUsageLimit,
-  getRoadmapUsageLimit,
-} from "@/lib/utils";
+import { getAdminUsageLimit, getRoadmapUsageLimit } from "@/lib/utils";
 
 export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
   const {
@@ -89,9 +85,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
         <div className="text-muted-foreground flex flex-col items-stretch space-y-1 text-sm font-medium">
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>
-              {getPostUsageLimit(planName) || "Unlimited"} Active Posts
-            </span>
+            <span>Unlimited Feedback Posts</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />

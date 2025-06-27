@@ -20,8 +20,6 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { PostUsageAlert } from "@/components/app/subscription/post-usage-alert";
-import { usePostUsage } from "@/hooks/use-post-usage";
 
 export function FeedbackForm() {
   const trpc = useTRPC();
@@ -29,9 +27,6 @@ export function FeedbackForm() {
   const router = useRouter();
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
-  const {
-    query: { data: postUsage },
-  } = usePostUsage();
   const [value, setValue] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrormessage] = useState("");
@@ -66,10 +61,6 @@ export function FeedbackForm() {
         queryClient.invalidateQueries({
           queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getPostUsage.queryKey(),
-        });
       },
       onError: () => {
         setErrormessage("Something went wrong. Please try again.");
@@ -103,7 +94,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("mb-6", !postUsage?.limitReached && "mb-4")}>
+    <div className={cn("mb-6")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -114,44 +105,40 @@ export function FeedbackForm() {
         }}
       />
 
-      <PostUsageAlert />
-
-      {!postUsage?.limitReached && (
-        <div className={cn("flex flex-col gap-3")}>
-          <div
-            className={cn(
-              "dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg",
-            )}
-          >
-            <Tiptap
-              placeholder={`Share your feature request, bug report, or any other feedback...`}
-              value={value}
-              onChange={onChange}
-              autofocus={false}
-            />
-            <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    variant="default"
-                    loading={isPending}
-                    onClick={() => onSubmit(session)}
-                    disabled={!!(!hasText || isPending)}
-                    className="size-8!"
-                  >
-                    <SendIcon className="size-4!" />
-                    <span className="sr-only">Submit feedback</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Submit feedback</TooltipContent>
-              </Tooltip>
-            </div>
+      <div className={cn("flex flex-col gap-3")}>
+        <div
+          className={cn(
+            "dark:bg-input/30 border-input relative min-h-[93px] w-full rounded-lg",
+          )}
+        >
+          <Tiptap
+            placeholder={`Share your feature request, bug report, or any other feedback...`}
+            value={value}
+            onChange={onChange}
+            autofocus={false}
+          />
+          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="default"
+                  loading={isPending}
+                  onClick={() => onSubmit(session)}
+                  disabled={!!(!hasText || isPending)}
+                  className="size-8!"
+                >
+                  <SendIcon className="size-4!" />
+                  <span className="sr-only">Submit feedback</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Submit feedback</TooltipContent>
+            </Tooltip>
           </div>
-          {errorMessage.length > 0 && <Error title={errorMessage} />}
         </div>
-      )}
+        {errorMessage.length > 0 && <Error title={errorMessage} />}
+      </div>
     </div>
   );
 }

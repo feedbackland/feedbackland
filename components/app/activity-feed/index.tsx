@@ -3,7 +3,6 @@
 import { ActivityFeedList } from "./list";
 import { Button } from "@/components/ui/button";
 import { useSetAllActivitiesSeen } from "@/hooks/use-set-all-activities-seen";
-import { PostUsageAlert } from "@/components/app/subscription/post-usage-alert";
 import { BookOpenIcon, CheckIcon } from "lucide-react";
 import {
   Tooltip,
@@ -42,7 +41,6 @@ export function ActivityFeed() {
           <TooltipContent>Mark all as read</TooltipContent>
         </Tooltip>
       </div>
-      <PostUsageAlert className="-mt-3 mb-4" />
       <ActivityFeedList />
     </div>
   );
