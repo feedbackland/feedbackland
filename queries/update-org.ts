@@ -45,10 +45,11 @@ export const updateOrgQuery = async ({
           .returningAll()
           .executeTakeFirstOrThrow();
       } else {
-        throw new Error("Not authorized to update this post");
+        throw new Error("Not authorized");
       }
     });
   } catch (error) {
+    console.log("error 1", error);
     throw error;
   }
 };

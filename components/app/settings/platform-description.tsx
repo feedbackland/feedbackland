@@ -49,15 +49,27 @@ export function PlatformDescription({
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({
-      platformDescription:
-        formData?.platformDescription &&
-        formData?.platformDescription?.length > 0
-          ? formData.platformDescription
-          : null,
-    });
-    setIsEditing(false);
+    try {
+      await updateOrg.mutateAsync({
+        platformDescription:
+          formData?.platformDescription &&
+          formData?.platformDescription?.length > 0
+            ? formData.platformDescription
+            : null,
+      });
+      setIsEditing(false);
+    } catch {
+      form.setError("platformDescription", {
+        message: "An error occured. Please try again.",
+      });
+    }
   }
+
+  const handleOnCancel = () => {
+    setIsEditing(false);
+    form.setValue("platformDescription", data?.platformDescription || "");
+    form.clearErrors();
+  };
 
   return (
     <div className={cn("", className)}>
@@ -99,14 +111,18 @@ export function PlatformDescription({
                 )}
               />
               {isEditing && (
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="mt-3"
-                  loading={updateOrg.isPending}
-                >
-                  Save
-                </Button>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button type="submit" size="sm" loading={updateOrg.isPending}>
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleOnCancel}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               )}
             </form>
           </Form>
@@ -117,14 +133,7 @@ export function PlatformDescription({
               className=""
               size="sm"
               variant="outline"
-              onClick={() => {
-                setIsEditing(false);
-                form.setValue(
-                  "platformDescription",
-                  data?.platformDescription || "",
-                );
-                form.clearErrors();
-              }}
+              onClick={handleOnCancel}
             >
               <XIcon className="size-3.5" />
               Cancel

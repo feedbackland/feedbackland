@@ -195,7 +195,8 @@ export function PlatformHeader() {
         </div>
       </div>
 
-      {orgData?.platformDescription &&
+      {!isAdminPage &&
+        orgData?.platformDescription &&
         orgData?.platformDescription?.length > 0 && (
           <div className="text-muted-foreground text-sm font-normal">
             {orgData.platformDescription}

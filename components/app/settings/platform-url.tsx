@@ -53,19 +53,37 @@ export function PlatformUrl({
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    const { orgSubdomain: subdomain } = await updateOrg.mutateAsync({
-      orgSubdomain: formData.orgSubdomain,
-    });
+    try {
+      const { orgSubdomain: subdomain } = await updateOrg.mutateAsync({
+        orgSubdomain: formData.orgSubdomain,
+      });
 
-    const { protocol, port } = window.location;
-    const isLocalhost = maindomain?.includes("localhost");
-    const url = isLocalhost
-      ? `${protocol}//${maindomain}:${port}/${subdomain}/admin/settings`
-      : `${protocol}//${subdomain}.${maindomain}/admin/settings`;
-    window.location.href = url;
+      const { protocol, port } = window.location;
+      const isLocalhost = maindomain?.includes("localhost");
+      const url = isLocalhost
+        ? `${protocol}//${maindomain}:${port}/${subdomain}/admin/settings`
+        : `${protocol}//${subdomain}.${maindomain}/admin/settings`;
+      window.location.href = url;
 
-    setIsEditing(false);
+      setIsEditing(false);
+    } catch (error) {
+      if (error instanceof Error && error?.message?.includes("duplicate key")) {
+        form.setError("orgSubdomain", {
+          message: "Sorry, this subdomain is already taken",
+        });
+      } else {
+        form.setError("orgSubdomain", {
+          message: "An error occured. Please try again.",
+        });
+      }
+    }
   }
+
+  const handleOnCancel = () => {
+    setIsEditing(false);
+    form.setValue("orgSubdomain", data?.orgSubdomain || "");
+    form.clearErrors();
+  };
 
   return (
     <div className={cn("", className)}>
@@ -106,14 +124,18 @@ export function PlatformUrl({
                 )}
               />
               {isEditing && (
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="mt-3"
-                  loading={updateOrg.isPending}
-                >
-                  Save
-                </Button>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button type="submit" size="sm" loading={updateOrg.isPending}>
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleOnCancel}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               )}
             </form>
           </Form>
@@ -124,11 +146,7 @@ export function PlatformUrl({
               className=""
               size="sm"
               variant="outline"
-              onClick={() => {
-                setIsEditing(false);
-                form.setValue("orgSubdomain", data?.orgSubdomain || "");
-                form.clearErrors();
-              }}
+              onClick={handleOnCancel}
             >
               <XIcon className="size-3.5" />
               Cancel

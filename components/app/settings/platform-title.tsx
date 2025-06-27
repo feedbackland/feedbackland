@@ -49,9 +49,21 @@ export function PlatformTitle({
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
-    await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
-    setIsEditing(false);
+    try {
+      await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
+      setIsEditing(false);
+    } catch {
+      form.setError("platformTitle", {
+        message: "An error occured. Please try again.",
+      });
+    }
   }
+
+  const handleOnCancel = () => {
+    setIsEditing(false);
+    form.setValue("platformTitle", data?.platformTitle || "");
+    form.clearErrors();
+  };
 
   return (
     <div className={cn("", className)}>
@@ -87,14 +99,18 @@ export function PlatformTitle({
                 )}
               />
               {isEditing && (
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="mt-3"
-                  loading={updateOrg.isPending}
-                >
-                  Save
-                </Button>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button type="submit" size="sm" loading={updateOrg.isPending}>
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleOnCancel}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               )}
             </form>
           </Form>
@@ -105,11 +121,7 @@ export function PlatformTitle({
               className=""
               size="sm"
               variant="outline"
-              onClick={() => {
-                setIsEditing(false);
-                form.setValue("platformTitle", data?.platformTitle || "");
-                form.clearErrors();
-              }}
+              onClick={handleOnCancel}
             >
               <XIcon className="size-3.5" />
               Cancel
