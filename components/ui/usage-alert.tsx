@@ -9,20 +9,28 @@ export function UsageAlert({
   title,
   description,
   className,
+  type = "alert",
 }: {
   title?: string;
   description?: string;
   className?: React.ComponentProps<"div">["className"];
+  type?: "alert" | "warning";
 }) {
   return (
     <Alert
       className={cn(
         "border-destructive flex items-center justify-between gap-5 border",
+        type === "warning" && "border-yellow-500",
         className,
       )}
     >
       <div className="flex items-center gap-4">
-        <AlertTriangleIcon className="text-destructive! size-6! shrink-0!" />
+        <AlertTriangleIcon
+          className={cn(
+            "text-destructive size-6 shrink-0",
+            type === "warning" && "text-yellow-500!",
+          )}
+        />
         <div className="flex flex-col items-stretch space-y-1">
           {title && <AlertTitle>{title}</AlertTitle>}
           {description && <AlertDescription>{description}</AlertDescription>}

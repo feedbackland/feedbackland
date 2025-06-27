@@ -266,9 +266,9 @@ export const getRoadmapUsageLimit = (plan: string) => {
 
 export const getAdminUsageLimit = (plan: string) => {
   if (plan === "free") {
-    return 2;
+    return 1;
   } else if (plan === "pro") {
-    return 5;
+    return 1;
   }
 
   return undefined;
@@ -276,9 +276,9 @@ export const getAdminUsageLimit = (plan: string) => {
 
 export const getPostUsageLimit = (plan: string) => {
   if (plan === "free") {
-    return 75;
+    return 1;
   } else if (plan === "pro") {
-    return 500;
+    return 1;
   }
 
   return undefined;

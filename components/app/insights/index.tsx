@@ -143,15 +143,17 @@ export function Insights() {
 
       {isGeneratingError && (
         <Error
-          title="Could not generate insights"
-          description="An error occured while trying to generate Roadmap. Please try again."
+          title="Could not generate roadmap"
+          description="An error occured while trying to generate the roadmap. Please try again."
+          className="mb-4"
         />
       )}
 
       {!isGeneratingError && isError && (
         <Error
-          title="Could not load insights"
-          description="An error occured while trying to load the Roadmap. Please try again."
+          title="Could not load roadmap"
+          description="An error occured while trying to load the roadmap. Please try again."
+          className="mb-4"
         />
       )}
 

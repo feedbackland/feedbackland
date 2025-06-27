@@ -17,26 +17,43 @@ export function PostUsageAlert({
     query: { data: postUsage },
   } = usePostUsage();
 
-  if (isLoaded && isAdmin && postUsage?.limitReached) {
-    return (
-      <UsageAlert
-        className={className}
-        title="Active posts limit reached"
-        description={`You've reached your plan's limit of ${postUsage?.limit} active posts. To keep on collecting feedback, please upgrade your plan.`}
-      />
-    );
-  }
+  if (isLoaded) {
+    if (isAdmin) {
+      if (!postUsage?.limitReached && Number(postUsage?.left) <= 10) {
+        return (
+          <UsageAlert
+            type="warning"
+            className={className}
+            title="Active posts limit almost reached"
+            description={`You only have ${Number(postUsage?.left)} active posts left on your current plan. Upgrade your plan to make sure you can keep receiving feedback!`}
+          />
+        );
+      }
 
-  if (isLoaded && !isAdmin && postUsage?.limitReached) {
-    return (
-      <Alert className={className}>
-        <AlertDescription className="flex flex-wrap items-center gap-2">
-          <TriangleAlert className="size-4!" />
-          Posting feedback is currently disabled. Please contact an
-          administrator.
-        </AlertDescription>
-      </Alert>
-    );
+      if (postUsage?.limitReached) {
+        return (
+          <UsageAlert
+            className={className}
+            title="Active posts limit reached"
+            description={`You've reached your plan's limit of ${postUsage?.limit} active posts. To keep on collecting feedback, please upgrade your plan.`}
+          />
+        );
+      }
+    }
+
+    if (!isAdmin) {
+      if (postUsage?.limitReached) {
+        return (
+          <Alert className={className}>
+            <AlertDescription className="flex flex-wrap items-center gap-2">
+              <TriangleAlert className="size-4!" />
+              Posting feedback is currently disabled. Please contact an
+              administrator.
+            </AlertDescription>
+          </Alert>
+        );
+      }
+    }
   }
 
   return null;
