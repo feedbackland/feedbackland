@@ -77,9 +77,6 @@ export const AdminInviteEmail = ({
 
             {/* Footer */}
             <Section className="mt-[32px] border-t border-solid border-gray-200 pt-[20px] text-center">
-              <Text className="text-[12px] text-gray-500">
-                © {new Date().getFullYear()} Feedbackland. All rights reserved.
-              </Text>
               <Link
                 href={`https://feedbackland.com`}
                 className="text-brand text-[12px] no-underline"

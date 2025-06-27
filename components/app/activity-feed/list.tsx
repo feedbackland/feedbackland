@@ -7,7 +7,6 @@ import { ActivityFeedListPagination } from "./list-pagination";
 import { ActivityFeedListHeader } from "./list-header";
 import { ActivityFeedListItems } from "./list-items";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useWindowSize } from "react-use";
 import { useAtom } from "jotai";
@@ -209,7 +208,7 @@ export function ActivityFeedList({
         </div>
 
         <div className="border-border overflow-hidden rounded-lg border shadow-xs">
-          <ActivityFeedListHeader className="border-border bg-muted/50 dark:bg-background border-b pr-2 pl-3" />
+          <ActivityFeedListHeader className="border-border bg-background border-b pr-2 pl-3" />
 
           <div className="flex flex-col items-stretch">
             {showItems && <ActivityFeedListItems items={items} />}
