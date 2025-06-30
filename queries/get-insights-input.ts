@@ -8,7 +8,7 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
   try {
     const { activeSubscription } = await getSubscriptionQuery({ orgId });
 
-    const analyzablePostLimit = analyzablePostLimit(activeSubscription);
+    const limit = analyzablePostLimit(activeSubscription);
 
     const posts = await db
       .selectFrom("feedback")
@@ -32,7 +32,7 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
             .as("commentCount"),
       ])
       .orderBy("feedback.createdAt", "desc")
-      .limit(analyzablePostLimit)
+      .limit(limit)
       .execute();
 
     return posts;
