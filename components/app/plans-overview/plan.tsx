@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
-import { getAdminUsageLimit, getRoadmapInputUsageLimit } from "@/lib/utils";
+import { adminLimit, analyzablePostLimit } from "@/lib/utils";
 
 export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
   const {
@@ -89,13 +89,13 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{getAdminUsageLimit(planName) || "Unlimited"} admins</span>
+            <span>{adminLimit(planName) || "Unlimited"} admins</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>
-              AI Roadmaps analyzes up to {getRoadmapInputUsageLimit(planName)}{" "}
-              feedback posts
+              AI Roadmap analyzes up to {analyzablePostLimit(planName)} feedback
+              posts
             </span>
           </div>
           <div className="flex items-center gap-1.5">

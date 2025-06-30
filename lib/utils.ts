@@ -254,44 +254,36 @@ function App() {
   );
 }`;
 
-export const getRoadmapUsageLimit = (plan: string) => {
-  // if (plan === "free") {
-  //   return 3;
-  // } else if (plan === "pro") {
-  //   return 20;
-  // }
+export const roadmapLimit = (plan: string) => {
+  if (plan === "free") {
+    return 5;
+  } else if (plan === "pro") {
+    return 20;
+  } else if (plan === "max") {
+    return 100;
+  }
+
+  return 5;
+};
+
+export const adminLimit = (plan: string) => {
+  if (plan === "free") {
+    return 2;
+  } else if (plan === "pro") {
+    return 5;
+  }
 
   return undefined;
 };
 
-export const getRoadmapInputUsageLimit = (plan: string) => {
+export const analyzablePostLimit = (plan: string) => {
   if (plan === "free") {
     return 100;
   } else if (plan === "pro") {
     return 1000;
   } else if (plan === "max") {
-    return 10000;
+    return 5000;
   }
 
-  return undefined;
-};
-
-export const getAdminUsageLimit = (plan: string) => {
-  if (plan === "free") {
-    return 1;
-  } else if (plan === "pro") {
-    return 1;
-  }
-
-  return undefined;
-};
-
-export const getPostUsageLimit = (plan: string) => {
-  // if (plan === "free") {
-  //   return 1;
-  // } else if (plan === "pro") {
-  //   return 1;
-  // }
-
-  return undefined;
+  return 100;
 };

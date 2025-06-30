@@ -1,18 +1,21 @@
 "server-only";
 
 import { db } from "@/db/db";
+import { getSubscriptionQuery } from "./get-subscription";
+import { analyzablePostLimit } from "@/lib/utils";
 
 export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
   try {
+    const { activeSubscription } = await getSubscriptionQuery({ orgId });
+
+    const analyzablePostLimit = analyzablePostLimit(activeSubscription);
+
     const posts = await db
       .selectFrom("feedback")
       .where("feedback.orgId", "=", orgId)
-      .where((eb) =>
-        eb.or([
-          eb("status", "not in", ["done", "declined", "in progress"]),
-          eb("status", "is", null),
-        ]),
-      )
+      .where("feedback.orgId", "=", orgId)
+      .where("feedback.status", "!=", "done")
+      .where("feedback.status", "!=", "declined")
       .select([
         "feedback.id",
         "feedback.title",
@@ -29,10 +32,11 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
             .as("commentCount"),
       ])
       .orderBy("feedback.createdAt", "desc")
+      .limit(analyzablePostLimit)
       .execute();
 
     return posts;
-  } catch (error: any) {
+  } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
 
     throw new Error(

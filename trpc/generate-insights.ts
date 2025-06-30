@@ -2,6 +2,7 @@ import { adminProcedure } from "@/lib/trpc";
 import { getInsightsInputQuery } from "@/queries/get-insights-input";
 import { createInsightsQuery } from "@/queries/create-insights";
 import { FeedbackCategory, FeedbackStatus } from "@/db/schema";
+import { getRoadmapLimit } from "./get-roadmap-limit";
 
 interface InsightsOutputItem {
   title: string;
@@ -14,15 +15,20 @@ interface InsightsOutputItem {
   priority: number | string;
 }
 
-export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
-  try {
-    const feedbackPosts = await getInsightsInputQuery({
-      orgId: ctx.orgId,
-    });
+export const generateInsights = adminProcedure.mutation(async (opts) => {
+  const { limitReached } = await getRoadmapLimit(opts as any);
 
-    const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+  if (!limitReached) {
+    try {
+      const { ctx } = opts;
 
-    const prompt1 = `
+      const feedbackPosts = await getInsightsInputQuery({
+        orgId: ctx.orgId,
+      });
+
+      const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+
+      const prompt = `
       You are an AI assistant whose sole purpose is to turn a vast array of user feedback into a concise, prioritized list of **feature-sized**, actionable insights.
 
       You will receive an array of feedback posts in this exact JSON format:
@@ -93,78 +99,89 @@ export const generateInsights = adminProcedure.mutation(async ({ ctx }) => {
       - **Ultra-Concise**: Designed for a busy product owner.
     `;
 
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite-preview-06-17",
-          reasoning: {
-            max_tokens: 24576,
-            exclude: true,
-            enabled: true,
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
           },
-          messages: [
-            {
-              role: "system",
-              content: [
-                {
-                  type: "text",
-                  text: prompt1,
-                },
-              ],
-            },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: feedbackDataJsonString,
-                },
-              ],
-            },
-          ],
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-        }),
-      },
-    );
+          body: JSON.stringify({
+            // model: "google/gemini-2.5-flash-lite-preview-06-17",
+            // model: "google/gemini-2.5-flash",
+            model: "google/gemini-2.5-pro",
+            // model: "google/gemini-2.0-flash-001",
+            // model: "google/gemini-2.0-flash-lite-001",
+            // reasoning: {
+            //   // max_tokens: 24576, // 2.5 flash max
+            //   max_tokens: 32768, // 2.5 pro max
+            //   exclude: true,
+            //   enabled: true,
+            // },
+            messages: [
+              {
+                role: "system",
+                content: [
+                  {
+                    type: "text",
+                    text: prompt,
+                  },
+                ],
+              },
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: feedbackDataJsonString,
+                  },
+                ],
+              },
+            ],
+            // temperature: 0.3,
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    const insightsOutputString = data?.choices?.[0]?.message?.content as string;
+      const insightsOutputString = data?.choices?.[0]?.message
+        ?.content as string;
 
-    if (!insightsOutputString || insightsOutputString.length === 0) {
-      throw new Error("insightsOutputString is empty");
+      if (!insightsOutputString || insightsOutputString.length === 0) {
+        throw new Error("insightsOutputString is empty");
+      }
+
+      const insightsOutput: InsightsOutputItem[] =
+        JSON.parse(insightsOutputString);
+
+      console.log("reinsightsOutputsult", insightsOutput);
+
+      if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
+        throw new Error("insightsOutput is not a valid JSON array");
+      }
+
+      const result = await createInsightsQuery(
+        insightsOutput.map((item) => ({
+          orgId: ctx.orgId,
+          title: item.title,
+          description: item.description,
+          upvotes: Number(item?.upvotes || 0),
+          commentCount: Number(item?.commentCount || 0),
+          status: item.status,
+          category: item.category,
+          ids: item.ids,
+          priority: Number(item?.priority || 0),
+        })),
+      );
+
+      console.log("result", result);
+
+      return result;
+    } catch (error) {
+      throw error;
     }
-
-    const insightsOutput: InsightsOutputItem[] =
-      JSON.parse(insightsOutputString);
-
-    if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
-      throw new Error("insightsOutput is not a valid JSON array");
-    }
-
-    const result = await createInsightsQuery(
-      insightsOutput.map((item) => ({
-        orgId: ctx.orgId,
-        title: item.title,
-        description: item.description,
-        upvotes: Number(item?.upvotes || 0),
-        commentCount: Number(item?.commentCount || 0),
-        status: item.status,
-        category: item.category,
-        ids: item.ids,
-        priority: Number(item?.priority || 0),
-      })),
-    );
-
-    return result;
-  } catch (error) {
-    throw error;
   }
 });

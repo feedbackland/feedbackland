@@ -18,8 +18,8 @@ import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { AdminUsageAlert } from "@/components/app/subscription/admin-usage-alert";
-import { useAdminUsage } from "@/hooks/use-admin-usage";
+import { AdminLimitAlert } from "@/components/app/subscription/admin-limit-alert";
+import { useAdminLimit } from "@/hooks/use-admin-limit";
 
 const FormSchema = z.object({
   email: z.string().email(),
@@ -29,8 +29,8 @@ export function AdminsInvite() {
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
   const {
-    query: { data: adminUsage },
-  } = useAdminUsage();
+    query: { data: adminLimit },
+  } = useAdminLimit();
   const createAdminInvite = useCreateAdminInvite();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -80,8 +80,8 @@ export function AdminsInvite() {
   return (
     <div className="mt-8">
       <Label className="mb-2">Invite</Label>
-      <AdminUsageAlert />
-      {!adminUsage?.limitReached && (
+      <AdminLimitAlert />
+      {!adminLimit?.limitReached && (
         <div className="border-border rounded-md border p-4 shadow-xs">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="">

@@ -9,6 +9,8 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
+import { RoadmapLimitAlert } from "@/components/app/subscription/roadmap-limit-alert";
+import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -30,6 +32,10 @@ export function Insights() {
         queryClient.invalidateQueries({
           queryKey: trpc.getInsights.queryKey().slice(0, 1),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.getRoadmapLimit.queryKey(),
+        });
       },
     }),
   );
@@ -44,6 +50,10 @@ export function Insights() {
       isError,
     },
   } = useInsights({ enabled: !generateInsightsMutation?.isPending });
+
+  const {
+    query: { data: roadmapLimit },
+  } = useRoadmapLimit();
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -71,6 +81,8 @@ export function Insights() {
   const hasInsights = !isPending && !isGenerating && insights?.length > 0;
 
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
+
+  const roadmapsLeft = roadmapLimit?.left;
 
   return (
     <div className="space-y-1">
@@ -114,13 +126,19 @@ export function Insights() {
                 variant="default"
                 onClick={handleGenerateClick}
                 loading={isGenerating}
+                disabled={roadmapLimit?.limitReached}
               >
                 Generate
+                {roadmapsLeft !== undefined &&
+                  roadmapsLeft < 3 &&
+                  ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left this month)`}
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      <RoadmapLimitAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 

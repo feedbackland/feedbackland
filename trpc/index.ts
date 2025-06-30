@@ -34,9 +34,9 @@ import { createPolarCheckoutSession } from "./create-polar-checkout-session";
 import { getPolarProducts } from "./get-polar-products";
 import { getSubscription } from "./get-subscription";
 import { getPolarProduct } from "./get-polar-product";
-import { getAdminUsage } from "./get-admin-usage";
-import { getPostUsage } from "./get-post-usage";
-import { getRoadmapUsage } from "./get-roadmap-usage";
+import { getAdminLimit } from "./get-admin-limit";
+import { getAnalyzablePostLimit } from "./get-analyzable-post-limit";
+import { getRoadmapLimit } from "./get-roadmap-limit";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
 
@@ -77,9 +77,9 @@ export const appRouter = router({
   getPolarProducts,
   getPolarProduct,
   getSubscription,
-  getAdminUsage,
-  getPostUsage,
-  getRoadmapUsage,
+  getAdminLimit,
+  getAnalyzablePostLimit,
+  getRoadmapLimit,
   updateUser,
   getUserSession,
 });

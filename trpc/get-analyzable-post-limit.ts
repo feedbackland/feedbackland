@@ -1,19 +1,19 @@
 import { publicProcedure } from "@/lib/trpc";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
-import { getPostCountQuery } from "@/queries/get-post-count";
-import { getPostUsageLimit } from "@/lib/utils";
+import { getActivePostCountQuery } from "@/queries/get-active-post-count";
+import { analyzablePostLimit } from "@/lib/utils";
 
-export const getPostUsage = publicProcedure.query(
+export const getAnalyzablePostLimit = publicProcedure.query(
   async ({ ctx: { orgId } }) => {
     try {
-      const [{ activeSubscription }, postCount] = await Promise.all([
+      const [{ activeSubscription }, activePostCount] = await Promise.all([
         getSubscriptionQuery({ orgId }),
-        getPostCountQuery({ orgId }),
+        getActivePostCountQuery({ orgId }),
       ]);
 
-      const limit = getPostUsageLimit(activeSubscription);
+      const limit = analyzablePostLimit(activeSubscription);
       const left = Number.isFinite(limit)
-        ? Number(limit) - postCount
+        ? Number(limit) - activePostCount
         : undefined;
       const limitReached = Number(left) <= 0;
 

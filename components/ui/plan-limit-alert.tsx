@@ -5,7 +5,7 @@ import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/m
 import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
 
-export function UsageAlert({
+export function PlanLimitAlert({
   title,
   description,
   className,

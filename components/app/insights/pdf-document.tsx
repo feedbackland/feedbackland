@@ -61,13 +61,9 @@ export const InsightsPdfDocument = ({
                 year: "numeric",
               })}
             </Text>
-            {insights.map((insight, index) => (
+            {insights.map((insight) => (
               <View key={insight.id} style={{ marginBottom: 20 }}>
-                <Text style={styles.insightTitle}>
-                  {index + 1}
-                  {". "}
-                  {insight.title}
-                </Text>
+                <Text style={styles.insightTitle}>{insight.title}</Text>
                 <Text style={styles.insightDescription}>
                   {insight.description}
                 </Text>

@@ -12,7 +12,7 @@ export function useCreateAdminInvite() {
           queryKey: trpc.getAdmins.queryKey(),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.getAdminUsage.queryKey(),
+          queryKey: trpc.getAdminLimit.queryKey(),
         });
       },
     }),
