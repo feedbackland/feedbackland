@@ -29,9 +29,10 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="mb-0.5 flex items-center gap-2">
-                <h3 className="text-lg font-bold capitalize">{planName}</h3>
+                <h3 className="h3 capitalize">{planName}</h3>
+
                 {isActiveSubscription && (
-                  <Badge variant="outline">Current plan</Badge>
+                  <Badge variant="outline">Your current plan</Badge>
                 )}
 
                 {isActiveSubscription && !isFreePlan && isExpired && (
