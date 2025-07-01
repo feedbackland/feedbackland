@@ -208,7 +208,10 @@ export const processImagesInHTML = async (html: string) => {
 export const clean = (htmlString: string) => {
   return sanitizeHtml(htmlString, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "a", "span"]),
-    allowedAttributes: { span: ["data-type", "data-id", "data-label"] },
+    allowedAttributes: {
+      span: ["data-type", "data-id", "data-label"],
+      img: ["src", "width", "height", "alt"],
+    },
     allowedClasses: { span: ["mention"] },
   });
 };

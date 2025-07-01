@@ -5,7 +5,6 @@ import DOMPurify from "dompurify";
 import parse, { Element } from "html-react-parser";
 import { memo } from "react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 
 export const TiptapOutput = memo(function TiptapOutput({
   content,
@@ -18,11 +17,15 @@ export const TiptapOutput = memo(function TiptapOutput({
   forbiddenAttr?: string[];
   className?: React.ComponentProps<"div">["className"];
 }) {
+  console.log("content", content);
+
   const sanitizedHtml = DOMPurify.sanitize(content, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: forbiddenTags,
     FORBID_ATTR: forbiddenAttr,
   });
+
+  console.log("sanitizedHtml", sanitizedHtml);
 
   const parsedHtml = parse(sanitizedHtml, {
     replace: (domNode) => {
@@ -81,7 +84,7 @@ export const TiptapOutput = memo(function TiptapOutput({
                 alt="Uploaded user image"
                 width={width}
                 height={height}
-                quality={10}
+                // quality={10}
                 className="max-w-full"
               />
             </a>
@@ -92,6 +95,8 @@ export const TiptapOutput = memo(function TiptapOutput({
       return undefined;
     },
   });
+
+  console.log("parsedHtml", parsedHtml);
 
   return <div className={cn("tiptap-output", className)}>{parsedHtml}</div>;
 });
