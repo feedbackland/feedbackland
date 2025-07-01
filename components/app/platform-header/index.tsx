@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
 import { AccountSettings } from "@/components/app/account-settings";
+import { useSubscription } from "@/hooks/use-subscription";
 
 export function PlatformHeader() {
   const pathname = usePathname();
@@ -42,9 +43,14 @@ export function PlatformHeader() {
   const platformUrl = usePlatformUrl();
   const iframeParent = useAtomValue(iframeParentAtom);
   const { theme, setTheme } = useTheme();
+
   const {
     query: { data: orgData, isPending },
   } = useOrg();
+
+  const {
+    query: { data: subscription },
+  } = useSubscription();
 
   const handleSignOut = async () => {
     await signOut();
@@ -57,6 +63,8 @@ export function PlatformHeader() {
   const closeAccountSettings = () => {
     setIsAccountSettingsDialogOpen(false);
   };
+
+  const isFreePlan = subscription?.activeSubscription === "free";
 
   return (
     <div className="mb-5">
@@ -76,11 +84,25 @@ export function PlatformHeader() {
           {isPending ? (
             <Skeleton className="h-[32px] w-[230px]" />
           ) : (
-            <h1 className="h3 font-extrabold">
-              <Link href={`${platformUrl}`}>
-                {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
-              </Link>
-            </h1>
+            <>
+              <h1 className="h3 font-extrabold">
+                <Link href={`${platformUrl}`}>
+                  {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
+                </Link>
+              </h1>
+              {!isAdminPage && isFreePlan && (
+                <p className="text-muted-foreground mt-0.5 text-xs">
+                  Powered by{" "}
+                  <a
+                    href="https://feedbackland.com"
+                    target="_blank"
+                    className="hover:text-primary underline"
+                  >
+                    Feedbackland
+                  </a>
+                </p>
+              )}
+            </>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -198,7 +220,7 @@ export function PlatformHeader() {
       {!isAdminPage &&
         orgData?.platformDescription &&
         orgData?.platformDescription?.length > 0 && (
-          <div className="text-muted-foreground text-sm font-normal">
+          <div className="text-muted-foreground mt-2.5 text-sm font-normal">
             {orgData.platformDescription}
           </div>
         )}
