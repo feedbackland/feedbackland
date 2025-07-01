@@ -10,8 +10,6 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
 
     const limit = analyzablePostLimit(activeSubscription);
 
-    console.log("limit", limit);
-
     const posts = await db
       .selectFrom("feedback")
       .where("feedback.orgId", "=", orgId)

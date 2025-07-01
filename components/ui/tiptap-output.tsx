@@ -17,15 +17,11 @@ export const TiptapOutput = memo(function TiptapOutput({
   forbiddenAttr?: string[];
   className?: React.ComponentProps<"div">["className"];
 }) {
-  console.log("content", content);
-
   const sanitizedHtml = DOMPurify.sanitize(content, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: forbiddenTags,
     FORBID_ATTR: forbiddenAttr,
   });
-
-  console.log("sanitizedHtml", sanitizedHtml);
 
   const parsedHtml = parse(sanitizedHtml, {
     replace: (domNode) => {
@@ -95,8 +91,6 @@ export const TiptapOutput = memo(function TiptapOutput({
       return undefined;
     },
   });
-
-  console.log("parsedHtml", parsedHtml);
 
   return <div className={cn("tiptap-output", className)}>{parsedHtml}</div>;
 });

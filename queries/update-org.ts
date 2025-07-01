@@ -49,7 +49,6 @@ export const updateOrgQuery = async ({
       }
     });
   } catch (error) {
-    console.log("error 1", error);
     throw error;
   }
 };
