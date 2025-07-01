@@ -97,7 +97,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
       - **Friendly & Professional**  
       - **Action-Oriented**: Focus on “what to build next.”  
       - **Ultra-Concise**: Designed for a busy product owner.
-    `;
+      `;
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",

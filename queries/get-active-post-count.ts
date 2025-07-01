@@ -8,8 +8,12 @@ export async function getActivePostCountQuery({ orgId }: { orgId: string }) {
       .selectFrom("feedback")
       .select(db.fn.count("feedback.id").as("count"))
       .where("feedback.orgId", "=", orgId)
-      .where("feedback.status", "!=", "done")
-      .where("feedback.status", "!=", "declined")
+      .where((eb) =>
+        eb.or([
+          eb("feedback.status", "is", null),
+          eb("feedback.status", "not in", ["done", "declined"]),
+        ]),
+      )
       .executeTakeFirstOrThrow();
 
     return Number(count);

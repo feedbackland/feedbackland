@@ -10,12 +10,17 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
 
     const limit = analyzablePostLimit(activeSubscription);
 
+    console.log("limit", limit);
+
     const posts = await db
       .selectFrom("feedback")
       .where("feedback.orgId", "=", orgId)
-      .where("feedback.orgId", "=", orgId)
-      .where("feedback.status", "!=", "done")
-      .where("feedback.status", "!=", "declined")
+      .where((eb) =>
+        eb.or([
+          eb("feedback.status", "is", null),
+          eb("feedback.status", "not in", ["done", "declined"]),
+        ]),
+      )
       .select([
         "feedback.id",
         "feedback.title",
