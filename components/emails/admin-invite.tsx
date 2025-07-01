@@ -38,8 +38,7 @@ export const AdminInviteEmail = ({
 
             {/* Heading */}
             <Heading className="mx-0 my-[30px] p-0 text-center text-[18px] leading-[28px] font-normal text-black">
-              You&apos;re Invited to be an Admin on{" "}
-              <strong>Feedbackland</strong>
+              You&apos;re Invited to be an Admin
             </Heading>
 
             {/* User Greeting */}
@@ -47,9 +46,9 @@ export const AdminInviteEmail = ({
 
             {/* Main Invitation Text */}
             <Text className="text-[14px] leading-[24px] text-black">
-              You&apos;ve been invited to join Feedbackland as an administrator!
-              This role grants you special permissions to manage and analyze
-              platform feedback.
+              You&apos;ve been invited to join a Feedbackland platform as an
+              administrator! This role grants you special permissions to manage
+              and analyze platform feedback, and generate roadmaps.
             </Text>
 
             {/* Call to Action Button */}
@@ -81,7 +80,7 @@ export const AdminInviteEmail = ({
                 href={`https://feedbackland.com`}
                 className="text-brand text-[12px] no-underline"
               >
-                Visit Feedbackland.com
+                Visit feedbackland.com
               </Link>
             </Section>
           </Container>

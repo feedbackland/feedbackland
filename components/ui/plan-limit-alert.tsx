@@ -1,9 +1,11 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { SubscriptionButton } from "@/components/app/subscription-button";
 import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
+import { Button } from "@/components/ui//button";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
+import Link from "next/link";
 
 export function PlanLimitAlert({
   title,
@@ -16,31 +18,27 @@ export function PlanLimitAlert({
   className?: React.ComponentProps<"div">["className"];
   type?: "alert" | "warning";
 }) {
+  const platformUrl = usePlatformUrl();
+
   return (
     <Alert
       className={cn(
-        "border-destructive flex flex-col items-start justify-between gap-5 border sm:flex-row sm:items-center",
-        type === "warning" && "border-yellow-500",
+        "border-primary flex flex-col items-start justify-between gap-5 border sm:flex-row sm:items-center",
         className,
       )}
     >
       <div className="flex items-center gap-4">
         <AlertTriangleIcon
-          className={cn(
-            "text-destructive hidden size-6 shrink-0 sm:block",
-            type === "warning" && "text-yellow-500!",
-          )}
+          className={cn("text-primary hidden size-6 shrink-0 sm:block")}
         />
         <div className="flex flex-col items-stretch space-y-1">
           {title && <AlertTitle>{title}</AlertTitle>}
           {description && <AlertDescription>{description}</AlertDescription>}
         </div>
       </div>
-      <SubscriptionButton
-        size="sm"
-        variant="default"
-        buttonText="Upgrade Now"
-      />
+      <Button size="sm" variant="default">
+        <Link href={`${platformUrl}/admin/plan`}>Upgrade Now</Link>
+      </Button>
     </Alert>
   );
 }

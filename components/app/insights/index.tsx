@@ -130,7 +130,7 @@ export function Insights() {
               >
                 Generate
                 {roadmapsLeft !== undefined &&
-                  roadmapsLeft < 3 &&
+                  roadmapsLeft < 4 &&
                   ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left this month)`}
               </Button>
             </div>

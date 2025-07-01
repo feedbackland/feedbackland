@@ -286,9 +286,11 @@ export const adminLimit = (plan: string) => {
     return 2;
   } else if (plan === "pro") {
     return 5;
+  } else if (plan === "max") {
+    return undefined;
   }
 
-  return undefined;
+  return 2;
 };
 
 export const analyzablePostLimit = (plan: string) => {

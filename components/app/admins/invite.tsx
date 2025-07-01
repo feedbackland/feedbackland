@@ -80,42 +80,44 @@ export function AdminsInvite() {
   return (
     <div className="mt-8">
       <Label className="mb-2">Invite</Label>
-      <AdminsLimitAlert />
-      {!adminLimit?.limitReached && (
+      {adminLimit?.limitReached && (
         <div className="border-border rounded-md border p-4 shadow-xs">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="sr-only">Email to invite</FormLabel>
-                    <FormControl>
-                      <div className="flex flex-row items-center gap-4">
-                        <Input
-                          type="email"
-                          autoFocus={false}
-                          className="w-full max-w-[300px] text-sm"
-                          placeholder="Email address"
-                          {...field}
-                        />
-                        <Button
-                          type="submit"
-                          size="sm"
-                          className="h-[34px]"
-                          loading={createAdminInvite.isPending}
-                        >
-                          Send invite
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
+          <AdminsLimitAlert />
+          {!adminLimit?.limitReached && (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="sr-only">Email to invite</FormLabel>
+                      <FormControl>
+                        <div className="flex flex-row items-center gap-4">
+                          <Input
+                            type="email"
+                            autoFocus={false}
+                            className="w-full max-w-[300px] text-sm"
+                            placeholder="Email address"
+                            {...field}
+                          />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            className="h-[34px]"
+                            loading={createAdminInvite.isPending}
+                          >
+                            Send invite
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          )}
         </div>
       )}
     </div>
