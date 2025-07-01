@@ -96,7 +96,7 @@ export function AdminsInvite() {
                         <Input
                           type="email"
                           autoFocus={false}
-                          className="w-full max-w-[350px] text-sm"
+                          className="w-full max-w-[300px] text-sm"
                           placeholder="Email address"
                           {...field}
                         />

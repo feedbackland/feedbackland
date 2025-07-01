@@ -30,7 +30,7 @@ export function AccountSettings({
             Account Settings
           </DialogTitle>
         </DialogHeader>
-        <Username />
+        <Username onSaved={onClose} />
       </DialogContent>
     </Dialog>
   );

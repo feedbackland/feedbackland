@@ -28,9 +28,9 @@ export const AdminInviteEmail = ({
             {/* Logo Section */}
             <Section className="mt-[32px] text-center">
               <Img
-                src="https://public.feedbackland.com/feedbackland_logo_email.png"
-                width="170"
-                height="20"
+                src="https://public.feedbackland.com/feedbackland_logo.jpg"
+                width="182"
+                height="24"
                 alt="Feedbackland logo"
                 className="mx-auto my-0"
               />

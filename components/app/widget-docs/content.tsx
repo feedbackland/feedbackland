@@ -15,7 +15,7 @@ export function WidgetDocsContent({ orgId }: { orgId: string }) {
           <h3 className="text-primary mb-3 text-sm font-medium">
             Step 1 - Install the package
           </h3>
-          <CodeInstall packageName="feedbackland/react" />
+          <CodeInstall packageName="feedbackland-react" />
         </div>
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">

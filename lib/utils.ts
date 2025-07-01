@@ -244,11 +244,14 @@ export const getOverlayWidgetCodeSnippet = ({
   orgId,
 }: {
   orgId: string;
-}) => `import { OverlayWidget } from "feedbackland/react";
+}) => `import { OverlayWidget } from "feedbackland-react";
 
-function App() {
+function FeedbackButton() {
   return (
-    <OverlayWidget id="${orgId}">
+    <OverlayWidget
+      id="${orgId}" // your Feedbackland ID
+      mode="system" // 'system', 'dark' or 'light'
+    >
       <button>Feedback</button> // bring your own button
     </OverlayWidget>
   );

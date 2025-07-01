@@ -45,7 +45,7 @@ export function InsightsLimitAlert({
       );
     }
 
-    if (!analyzablePostLimit?.limitReached) {
+    if (analyzablePostLimit?.limitReached) {
       return (
         <PlanLimitAlert
           className={className}

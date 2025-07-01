@@ -23,8 +23,10 @@ const FormSchema = z.object({
 });
 
 export function Username({
+  onSaved,
   className,
 }: {
+  onSaved?: () => void;
   className?: React.ComponentProps<"div">["className"];
 }) {
   const { session } = useAuth();
@@ -44,6 +46,7 @@ export function Username({
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     await updateUser.mutateAsync({ name: formData.username });
+    onSaved?.();
   }
 
   return (
