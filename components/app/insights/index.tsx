@@ -9,7 +9,7 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
-import { RoadmapLimitAlert } from "@/components/app/subscription/roadmap-limit-alert";
+import { InsightsLimitAlert } from "@/components/app/insights/limit-alert";
 import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
 
 const InsightsDownloadButton = dynamic(
@@ -138,7 +138,7 @@ export function Insights() {
         </div>
       </div>
 
-      <RoadmapLimitAlert className="mb-5" />
+      <InsightsLimitAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 

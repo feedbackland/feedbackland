@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
+import { SubscriptionButton } from "@/components/app/subscription-button";
 import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
 
@@ -19,7 +19,7 @@ export function PlanLimitAlert({
   return (
     <Alert
       className={cn(
-        "border-destructive flex items-center justify-between gap-5 border",
+        "border-destructive flex flex-col items-start justify-between gap-5 border sm:flex-row sm:items-center",
         type === "warning" && "border-yellow-500",
         className,
       )}
@@ -27,7 +27,7 @@ export function PlanLimitAlert({
       <div className="flex items-center gap-4">
         <AlertTriangleIcon
           className={cn(
-            "text-destructive size-6 shrink-0",
+            "text-destructive hidden size-6 shrink-0 sm:block",
             type === "warning" && "text-yellow-500!",
           )}
         />
@@ -36,7 +36,7 @@ export function PlanLimitAlert({
           {description && <AlertDescription>{description}</AlertDescription>}
         </div>
       </div>
-      <SubscriptionManageUpgradeButton
+      <SubscriptionButton
         size="sm"
         variant="default"
         buttonText="Upgrade Now"

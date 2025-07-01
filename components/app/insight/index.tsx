@@ -34,7 +34,7 @@ export function Insight({ item, index }: { item: Item; index: number }) {
   return (
     <div className="border-border relative flex w-full flex-col items-stretch overflow-hidden rounded-lg border shadow-xs">
       <div className="p-4 pt-3">
-        <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="mb-2 flex flex-col items-start justify-between gap-2 sm:flex-row">
           <h3 className="h5 flex flex-wrap items-center">
             {index + 1}. {item.title}
           </h3>

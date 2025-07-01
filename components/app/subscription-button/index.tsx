@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Edit2Icon } from "lucide-react";
 import { isIOS, isAndroid } from "react-device-detect";
 
-export function SubscriptionManageUpgradeButton({
+export function SubscriptionButton({
   variant = "default",
   size = "default",
   className = "",

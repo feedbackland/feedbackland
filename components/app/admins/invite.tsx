@@ -18,7 +18,7 @@ import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { AdminLimitAlert } from "@/components/app/subscription/admin-limit-alert";
+import { AdminsLimitAlert } from "@/components/app/admins/limit-alert";
 import { useAdminLimit } from "@/hooks/use-admin-limit";
 
 const FormSchema = z.object({
@@ -80,7 +80,7 @@ export function AdminsInvite() {
   return (
     <div className="mt-8">
       <Label className="mb-2">Invite</Label>
-      <AdminLimitAlert />
+      <AdminsLimitAlert />
       {!adminLimit?.limitReached && (
         <div className="border-border rounded-md border p-4 shadow-xs">
           <Form {...form}>

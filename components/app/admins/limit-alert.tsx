@@ -3,7 +3,7 @@
 import { useAdminLimit } from "@/hooks/use-admin-limit";
 import { PlanLimitAlert } from "@/components/ui/plan-limit-alert";
 
-export function AdminLimitAlert({
+export function AdminsLimitAlert({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];

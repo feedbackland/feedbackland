@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionManageUpgradeButton } from "@/components/app/subscription/manage-upgrade-button";
+import { SubscriptionButton } from "@/components/app/subscription-button";
 import { adminLimit, analyzablePostLimit } from "@/lib/utils";
 
 export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
@@ -72,7 +72,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
 
             {!isFreePlan && (
               <div className="mt-1 mr-1">
-                <SubscriptionManageUpgradeButton
+                <SubscriptionButton
                   variant={isActiveSubscription ? "outline" : "default"}
                   buttonText={isActiveSubscription ? "Manage" : "Upgrade"}
                   size="lg"
