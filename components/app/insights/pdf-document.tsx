@@ -1,7 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { InsightData as InsightType } from "@/lib/typings";
-import { getPriorityLabel } from "@/lib/utils";
+import { getPriorityColor, getPriorityLabel } from "@/lib/utils";
 
 const styles = StyleSheet.create({
   page: {
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   },
   insightTitle: {
     fontSize: 14,
-    marginBottom: 5,
+    marginBottom: 7,
     fontWeight: "bold",
   },
   insightDescription: {
@@ -62,12 +62,17 @@ export const InsightsPdfDocument = ({
               })}
             </Text>
             {insights.map((insight) => (
-              <View key={insight.id} style={{ marginBottom: 20 }}>
+              <View key={insight.id} style={{ marginBottom: 22 }}>
                 <Text style={styles.insightTitle}>{insight.title}</Text>
                 <Text style={styles.insightDescription}>
                   {insight.description}
                 </Text>
-                <Text style={styles.insightPriority}>
+                <Text
+                  style={{
+                    ...styles.insightPriority,
+                    color: getPriorityColor(Number(insight.priority)),
+                  }}
+                >
                   {getPriorityLabel(Number(insight.priority))}
                 </Text>
               </View>

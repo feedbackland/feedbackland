@@ -41,12 +41,12 @@ export function Insight({ item, index }: { item: Item; index: number }) {
           <Badge
             variant="outline"
             className={cn("mt-0.5", {
-              "text-blue-700 dark:text-blue-400": priorityScore < 40,
+              "text-blue-800 dark:text-blue-400": priorityScore < 40,
               "text-green-700 dark:text-green-400":
                 priorityScore >= 40 && priorityScore < 70,
-              "text-amber-700 dark:text-amber-400":
+              "text-orange-600 dark:text-orange-400":
                 priorityScore >= 70 && priorityScore < 95,
-              "text-red-800 dark:text-red-500": priorityScore >= 95,
+              "text-red-700 dark:text-red-500": priorityScore >= 95,
             })}
           >
             {priorityLabel}

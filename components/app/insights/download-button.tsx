@@ -42,7 +42,14 @@ export function InsightsDownloadButton() {
       const { data } = await refetch();
       const docElement = <InsightsPdfDocument insights={data || []} />;
       const blob = await pdf(docElement).toBlob();
-      const filename = "roadmap.pdf";
+      const date = new Date(
+        data?.[0].createdAt || Date.now(),
+      ).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const filename = `Feedbackland roadmap - ${date}.pdf`;
       downloadBlob({ blob, filename });
     } finally {
       setIsProcessing(false);

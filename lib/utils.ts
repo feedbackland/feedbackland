@@ -240,6 +240,18 @@ export const getPriorityLabel = (priorityScore: number) => {
   }
 };
 
+export const getPriorityColor = (priorityScore: number) => {
+  if (priorityScore < 40) {
+    return "blue";
+  } else if (priorityScore < 70) {
+    return "green";
+  } else if (priorityScore < 95) {
+    return "orange";
+  } else {
+    return "red";
+  }
+};
+
 export const getOverlayWidgetCodeSnippet = ({
   orgId,
 }: {

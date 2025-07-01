@@ -45,8 +45,7 @@ export const WelcomeEmail = ({
               </Text>
               <Text className="text-base leading-relaxed text-black">
                 Congratulations! Your feedback platform is all set up and ready
-                for you to start collecting feedback and generating your
-                roadmap.
+                for you to start collecting feedback and generating roadmaps.
               </Text>
               <Section className="my-8 text-center">
                 <Button
@@ -60,14 +59,18 @@ export const WelcomeEmail = ({
                 If you haven't done so already, go ahead and add the widget to
                 your app.
               </Text>
-              <p>Step 1: Install the package</p>
-              <pre>
-                <code>npm i feedbackland-react</code>
-              </pre>
-              <p>Step 2: Paste the snippet into your codebase</p>
-              <pre>
-                <code>{overlayWidgetCodeSnippet}</code>
-              </pre>
+              <div>
+                <p>Step 1: Install the package</p>
+                <pre className="bg-black p-4 text-[14px] text-white">
+                  <code>npm i feedbackland-react</code>
+                </pre>
+              </div>
+              <div>
+                <p>Step 2: Paste the snippet into your codebase</p>
+                <pre className="bg-black p-4 text-[14px] text-white">
+                  <code>{overlayWidgetCodeSnippet}</code>
+                </pre>
+              </div>
             </Section>
 
             <Hr className="my-6 border-t border-gray-300" />
