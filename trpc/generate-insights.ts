@@ -109,16 +109,16 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
           },
           body: JSON.stringify({
             // model: "google/gemini-2.5-flash-lite-preview-06-17",
-            model: "google/gemini-2.5-flash",
+            // model: "google/gemini-2.5-flash",
             // model: "google/gemini-2.5-pro",
             // model: "google/gemini-2.0-flash-001",
-            // model: "google/gemini-2.0-flash-lite-001",
-            reasoning: {
-              // max_tokens: 24576, // 2.5 flash
-              // max_tokens: 32768, // 2.5 pro
-              exclude: true,
-              enabled: true,
-            },
+            model: "google/gemini-2.0-flash-lite-001",
+            // reasoning: {
+            //   // max_tokens: 24576, // 2.5 flash
+            //   // max_tokens: 32768, // 2.5 pro
+            //   exclude: true,
+            //   enabled: true,
+            // },
             messages: [
               {
                 role: "system",
