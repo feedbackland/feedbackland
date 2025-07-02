@@ -83,7 +83,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
         </div>
 
-        <div className="text-muted-foreground flex flex-col items-stretch space-y-1 text-sm font-medium">
+        <div className="text-primary flex flex-col items-stretch space-y-1 text-sm font-medium">
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>Unlimited feedback posts</span>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { AlertTriangle } from "lucide-react";
+import { BadgeAlert } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
@@ -65,7 +65,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "border-primary-foreground flex items-center justify-center border-1 bg-yellow-500 py-2",
+            "bg-primary flex items-center justify-center py-1.5",
             hideBanner && "hidden",
             className,
           )}
@@ -77,17 +77,13 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <AlertTriangle className="size-4! shrink-0! basis-4! text-black!" />
-              <span className="text-sm text-black">
-                This platform is unclaimed. Claim ownership to make it yours.
+              <BadgeAlert className="text-primary-foreground! size-4! shrink-0! basis-4!" />
+              <span className="text-primary-foreground text-sm">
+                This platform is ready for you. Claim it to gain ownership and
+                admin access.
               </span>
             </div>
-            <Button
-              onClick={handleOpenDialog}
-              variant="default"
-              className="bg-black text-white hover:bg-black/80"
-              size="sm"
-            >
+            <Button onClick={handleOpenDialog} variant="secondary" size="sm">
               Claim now
             </Button>
           </div>

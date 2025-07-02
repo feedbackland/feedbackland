@@ -108,8 +108,8 @@ export function Insights() {
 
               {!isGenerating && hasNoInsights && (
                 <p className="text-muted-foreground text-sm">
-                  First add some feedback to your platform. Then generate your
-                  first roadmap!
+                  Add some feedback to your platform and generate your first
+                  roadmap!
                 </p>
               )}
 
