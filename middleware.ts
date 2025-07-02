@@ -34,9 +34,9 @@ const upsertOrg = async ({ orgId }: { orgId: string }) => {
       },
     );
 
-    const org: Org = await response.json();
+    const orgSubdomain: string = await response.json();
 
-    return org;
+    return orgSubdomain;
   } catch (error) {
     console.error("Error upserting org:", error);
     throw error;
@@ -59,7 +59,7 @@ export async function middleware(req: NextRequest) {
       const mainDomain = getMaindomain(urlString);
       const orgId = subdomain;
 
-      const { orgSubdomain } = await upsertOrg({
+      const orgSubdomain = await upsertOrg({
         orgId,
       });
 

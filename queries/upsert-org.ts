@@ -11,9 +11,13 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
       .where("id", "=", orgId)
       .executeTakeFirst();
 
+    console.log("org1", org);
+
     if (!org) {
       org = await createOrgQuery();
     }
+
+    console.log("org2", org);
 
     return org.orgSubdomain;
   } catch (error) {
