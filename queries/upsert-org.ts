@@ -15,7 +15,13 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
       org = await createOrgQuery({ orgId });
     }
 
-    return org.orgSubdomain;
+    const subdomain = org?.orgSubdomain;
+
+    if (subdomain) {
+      return subdomain;
+    } else {
+      throw new Error("No subdomain found");
+    }
   } catch (error) {
     throw error;
   }

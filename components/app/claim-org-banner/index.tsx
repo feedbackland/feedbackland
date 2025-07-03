@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BadgeAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
@@ -77,13 +77,18 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <BadgeAlert className="size-5! shrink-0! fill-amber-500" />
+              <TriangleAlert className="size-5.5! shrink-0! text-orange-500" />
               <span className="text-primary-foreground text-sm font-medium">
-                Claim ownership, unlock admin access and embed the widget
+                Claim ownership of this board to unlock admin access
               </span>
             </div>
-            <Button onClick={handleOpenDialog} variant="secondary" size="sm">
-              Claim Now
+            <Button
+              onClick={handleOpenDialog}
+              variant="secondary"
+              size="sm"
+              className="font-semibold capitalize"
+            >
+              Claim ownership
             </Button>
           </div>
         </div>
