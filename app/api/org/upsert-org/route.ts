@@ -9,7 +9,8 @@ const headers = {
 };
 
 // Handler for OPTIONS preflight requests
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  // note: do not remove the 'request' argument here! Is needed for proper CORS!
   return new NextResponse(null, {
     status: 204,
     headers,

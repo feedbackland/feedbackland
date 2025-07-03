@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
-import { Org } from "@/db/schema";
 import { getMaindomain, getSubdomain } from "@/lib/utils";
 
 export const config = {
@@ -75,11 +74,6 @@ export async function middleware(req: NextRequest) {
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }
-
-  // if (!isLocalhost) {
-  //   const newUrl = `/${subdomain}${pathname}${search}`;
-  //   response = NextResponse.rewrite(new URL(newUrl, req.url));
-  // }
 
   return response;
 }
