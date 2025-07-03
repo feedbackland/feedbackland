@@ -77,10 +77,9 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <BadgeAlert className="text-primary-foreground! size-4! shrink-0! basis-4!" />
-              <span className="text-primary-foreground text-sm">
-                This platform is ready for you. Claim it to gain ownership and
-                admin access.
+              <BadgeAlert className="size-4! shrink-0! basis-4! text-yellow-400! dark:text-yellow-600!" />
+              <span className="text-primary-foreground text-sm font-medium">
+                Claim ownership now to unlock admin access and embed the widget
               </span>
             </div>
             <Button onClick={handleOpenDialog} variant="secondary" size="sm">
