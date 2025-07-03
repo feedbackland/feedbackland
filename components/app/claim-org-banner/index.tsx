@@ -79,7 +79,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-1.5">
               <TriangleAlert className="size-5.5! shrink-0! text-orange-500" />
               <span className="text-primary-foreground text-sm font-medium">
-                Claim ownership of this board to unlock admin access
+                Unlock admin access. Claim ownership of this board now!
               </span>
             </div>
             <Button

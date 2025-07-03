@@ -79,7 +79,7 @@ export function ClaimOrgDialog({
             <>
               <DialogHeader className="mt-2 mb-3">
                 <DialogTitle className="h3 text-center">
-                  Claim platform
+                  Claim ownership
                 </DialogTitle>
                 <DialogDescription className="text-primary text-center">
                   Sign up to claim ownership of this platform
