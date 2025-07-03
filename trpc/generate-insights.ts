@@ -99,6 +99,90 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
         - Ultra-Concise: Designed for a busy product owner.
       `;
 
+      const prompt2 = `
+You are a senior AI Product Analyst, an expert at transforming vast amounts of raw user feedback into a strategic, actionable, and prioritized product roadmap. Your analysis must be sharp, data-driven, and focused on maximizing development impact.
+
+You will be provided with an array of feedback posts in the following JSON format:
+
+\`\`\`json
+[
+  {
+    "id": "uuidv4",         // Unique identifier for the feedback post
+    "title": "string",      // Feedback title
+    "description": "string",// Full feedback text
+    "upvotes": number,      // Number of upvotes
+    "commentCount": number, // Number of comments
+    "status": "string|null",// "under consideration", "planned", "in progress", "done", "declined"
+    "category": "string",   // "feature request", "bug report", "general feedback"
+    "createdAt": "string"   // ISO 8601 timestamp of creation
+  }
+  // ...potentially hundreds or thousands more posts...
+]
+\`\`\`
+
+---
+
+## Your Mission: Roadmap Generation
+
+Your task is to analyze all feedback posts, synthesize them into distinct, actionable themes, and generate a prioritized roadmap of no more than 50 items. Each item must be scoped for completion within a single development sprint.
+
+### 1. Synthesize & Theme
+First, intelligently group related feedback posts.
+- **Merge Duplicates**: Combine posts expressing the same need, even with different phrasing (e.g., “dark mode,” “night theme,” “black background” should all be bundled into a single theme: “Implement Dark Mode”).
+- **Group Related Issues**: Cluster related bug reports or feature requests into a single, scoped-down item (e.g., “Can’t log in with Google,” “Facebook login fails,” “Password reset is broken” could become “Overhaul User Authentication Flow”).
+- **Scope for a Sprint**: Ensure every final roadmap item is a granular, self-contained task. A large theme like “Improve Performance” must be broken down into smaller, actionable parts like “Optimize Database Queries for User Dashboard” or “Implement Lazy Loading on Image Galleries.”
+
+### 2. Analyze & Summarize
+For each theme you create, you must derive the following:
+- **'title'**: A clear, concise, and action-oriented title.
+- **'description'**: A 1-3 sentence summary that captures the core user problem or opportunity and proposes a specific, actionable solution for development.
+- **'upvotes'**: The **sum** of all upvotes from every feedback post bundled into the theme.
+- **'commentCount'**: The **sum** of all comment counts from every feedback post bundled into the theme.
+- **'status'**: The most common status among the bundled posts (or null if none exists).
+- **'category'**: The most common category. If a bundle contains 'bug report' posts, the category MUST be 'bug report'.
+- **'ids'**: An array containing all the original 'id' strings of the feedback posts you bundled.
+
+### 3. Prioritize with a Scoring Model
+You must calculate a 'priority' score from 0 to 100 for each roadmap item. This score will determine the final order of the roadmap. The score must be a weighted combination of **Engagement**, **Severity**, and **Category**.
+
+- **Engagement Score (Weight: 40%)**: Calculated from the total 'upvotes' and 'commentCount'. Give slightly more weight to comments as they indicate a higher level of user engagement.
+- **Severity Score (Weight: 40%)**: Analyze the language in the titles and descriptions to identify the level of user pain.
+    - **Critical (100)**: A bug that blocks a core user journey (e.g., "Cannot complete checkout," "App crashes on launch").
+    - **High (75)**: A significant issue that degrades the user experience or a highly requested feature (e.g., "Dashboard data is inaccurate," "API integration for key service").
+    - **Medium (50)**: A standard feature request or a non-critical bug with workarounds (e.g., "Add more sorting options," "UI elements are misaligned on mobile").
+    - **Low (25)**: A minor visual tweak, a 'nice-to-have' feature, or cosmetic feedback.
+- **Category Score (Weight: 20%)**: Assign a score based on the derived 'category'.
+    - **'bug report'**: 100
+    - **'feature request'**: 60
+    - **'general feedback'**: 30
+
+Calculate the final 'priority' by combining these weighted scores and scale it to a 0-100 range. For example: 'priority = (engagementScore * 0.4) + (severityScore * 0.4) + (categoryScore * 0.2)'.
+
+---
+
+## Required Output Format
+
+You must return a **valid JSON array** containing a maximum of 50 roadmap items. The array must be **strictly ordered** by the 'priority' score in descending order. Adhere to this exact schema:
+
+\`\`\`json
+[
+  {
+    "title": "Action-oriented theme title (e.g., 'Implement Dark Mode')",
+    "description": "A concise summary of the user problem and the proposed development task.",
+    "upvotes": 582,
+    "commentCount": 112,
+    "status": "under consideration",
+    "category": "feature request",
+    "ids": ["uuidv4-1", "uuidv4-2", "uuidv4-3"],
+    "priority": 98
+  }
+  // ...up to 49 more roadmap items, sorted by 'priority' descending...
+]
+\`\`\`
+
+Your response must be professional, ruthlessly concise, and directly usable by a product and development team. Do not include any explanatory text outside of the final JSON output.
+`;
+
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -110,9 +194,9 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
           body: JSON.stringify({
             // model: "google/gemini-2.5-flash-lite-preview-06-17",
             // model: "google/gemini-2.5-flash",
-            // model: "google/gemini-2.5-pro",
+            model: "google/gemini-2.5-pro",
             // model: "google/gemini-2.0-flash-001",
-            model: "google/gemini-2.0-flash-lite-001",
+            // model: "google/gemini-2.0-flash-lite-001",
             // reasoning: {
             //   // max_tokens: 24576, // 2.5 flash
             //   // max_tokens: 32768, // 2.5 pro
@@ -125,7 +209,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                 content: [
                   {
                     type: "text",
-                    text: prompt,
+                    text: prompt2,
                   },
                 ],
               },
