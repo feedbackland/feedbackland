@@ -20,7 +20,6 @@ export const createOrgQuery = async (args?: args) => {
   try {
     return await db.transaction().execute(async (trx) => {
       const id = args?.orgId || uuidv4();
-
       const orgSubdomain =
         args?.orgSubdomain ||
         uniqueNamesGenerator({

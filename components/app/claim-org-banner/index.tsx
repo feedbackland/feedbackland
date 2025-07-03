@@ -79,8 +79,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-1.5">
               <BadgeAlert className="size-5! shrink-0! fill-amber-500" />
               <span className="text-primary-foreground text-sm font-medium">
-                Claim ownership to unlock admin access and embed the widget in
-                your app
+                Claim ownership, unlock admin access and embed the widget
               </span>
             </div>
             <Button onClick={handleOpenDialog} variant="secondary" size="sm">
