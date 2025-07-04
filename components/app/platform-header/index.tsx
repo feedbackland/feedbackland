@@ -79,7 +79,7 @@ export function PlatformHeader() {
         onClose={() => setIsSignUpInDialogOpen(false)}
       />
 
-      <div className="flex justify-between">
+      <div className="flex items-start justify-between">
         <div className="flex flex-col">
           {isPending ? (
             <Skeleton className="h-[32px] w-[230px]" />

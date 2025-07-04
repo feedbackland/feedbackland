@@ -12,7 +12,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
       <SubscriptionListener />
       <ProcessModeParam />
       <ProcessAdminInviteParams />
-      <ClaimOrgBanner />
+      {/* <ClaimOrgBanner /> */}
       <PlatformRoot>{children}</PlatformRoot>
     </>
   );

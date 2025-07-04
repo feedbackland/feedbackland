@@ -65,19 +65,18 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "bg-primary flex items-center justify-center py-1.5",
+            "bg-primary mb-5 flex w-full items-center justify-center rounded-lg px-3 py-2",
             hideBanner && "hidden",
             className,
           )}
         >
           <div
             className={cn(
-              "mx-auto flex w-full max-w-[800px] items-center justify-between gap-2",
-              inIframe ? "px-8" : "px-5",
+              "flex w-full flex-1 items-center justify-between gap-2",
             )}
           >
             <div className="flex items-center gap-1.5">
-              <TriangleAlert className="size-5.5! shrink-0! text-orange-500" />
+              <TriangleAlert className="size-5.5! shrink-0! text-yellow-500 dark:text-yellow-600" />
               <span className="text-primary-foreground text-sm font-medium">
                 Unlock admin access. Claim ownership now!
               </span>
