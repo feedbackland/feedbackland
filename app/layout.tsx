@@ -13,6 +13,8 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "Feedbackland",
   description: "User Feedback Platform",
+  viewport:
+    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
 };
 
 const inter = Inter({

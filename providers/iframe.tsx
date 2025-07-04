@@ -10,8 +10,6 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
   const setIframeParent = useSetAtom(iframeParentAtom);
 
   useEffect(() => {
-    console.log("zolg");
-
     const messenger = new WindowMessenger({
       remoteWindow: window.parent,
       allowedOrigins: ["*"],
