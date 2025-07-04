@@ -9,7 +9,6 @@ import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
-import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function ClaimOrgBanner({
   className,
@@ -20,7 +19,6 @@ export function ClaimOrgBanner({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
-  const inIframe = useInIframe();
   const {
     query: { data: org },
   } = useOrg();

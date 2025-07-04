@@ -267,10 +267,10 @@ export const getOverlayWidgetCodeSnippet = ({
 function FeedbackButton() {
   return (
     <OverlayWidget
-      id="${orgId}" // your Feedbackland ID
+      id="${orgId}"
       mode="system" // 'system', 'dark' or 'light'
     >
-      <button>Feedback</button> // bring your own button
+      <button>Feedback</button> {/*bring your own button */}
     </OverlayWidget>
   );
 }`;

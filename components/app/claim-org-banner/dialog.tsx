@@ -16,7 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import Link from "next/link";
+import { WidgetDocs } from "@/components/app/widget-docs";
 
 export function ClaimOrgDialog({
   orgId,
@@ -72,7 +72,10 @@ export function ClaimOrgDialog({
         }}
       >
         <DialogContent
-          className={cn("flex max-w-[400px]! flex-col")}
+          className={cn(
+            "flex max-w-[400px]! flex-col",
+            selectedStep === "success" && "top-[400px] max-w-[600px]!",
+          )}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {selectedStep === "sign-up-in" && (
@@ -100,31 +103,32 @@ export function ClaimOrgDialog({
               <DialogHeader className="mt-2 mb-3">
                 <PartyPopper className="text-primary mx-auto mb-3 size-14" />
                 <DialogTitle className="h3 mb-2 text-center">
-                  Congratulations!
+                  Congratulations
                 </DialogTitle>
-                <DialogDescription className="text-primary text-center">
-                  Your platform is officially yours.
-                  <br />
-                  Take the next step and explore your{" "}
-                  <Link href={`${platformUrl}/admin`} className="underline">
-                    Admin Panel
-                  </Link>
-                  .
+                <DialogDescription className="text-primary">
+                  <div className="mb-8 flex flex-col items-stretch space-y-1 text-center">
+                    <span>You're now the owner of this platform!</span>
+                    <span>
+                      Next step: Embed it in your app (if you haven't done so
+                      already).
+                    </span>
+                  </div>
+                  <WidgetDocs orgId={orgId} showTitle={false} />
                 </DialogDescription>
               </DialogHeader>
               <div className="flex items-center justify-center gap-2">
-                <Button asChild onClick={handleOnClose}>
+                {/* <Button asChild onClick={handleOnClose}>
                   <Link href={`${platformUrl}/admin`}>
                     Go to the Admin Panel
                   </Link>
-                </Button>
-                {/* <Button
+                </Button> */}
+                <Button
                   onClick={handleOnClose}
                   variant="secondary"
                   className=""
                 >
                   Close
-                </Button> */}
+                </Button>
               </div>
             </>
           )}

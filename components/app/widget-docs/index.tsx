@@ -4,12 +4,18 @@ import { Code } from "@/components/ui/code";
 import { CodeInstall } from "@/components/ui/code-install";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
-export function WidgetDocsContent({ orgId }: { orgId: string }) {
+export function WidgetDocs({
+  orgId,
+  showTitle = true,
+}: {
+  orgId: string;
+  showTitle?: boolean;
+}) {
   const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
 
   return (
-    <div className="flex flex-col">
-      <h2 className="h4 mb-6">Widget</h2>
+    <div className="flex flex-col text-left">
+      {showTitle && <h2 className="h4 mb-6">Widget</h2>}
       <div className="flex flex-col space-y-8">
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
