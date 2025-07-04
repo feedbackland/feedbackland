@@ -1,6 +1,5 @@
 "use client";
 
-import "@open-iframe-resizer/core";
 import { WindowMessenger, connect } from "penpal";
 import { useEffect } from "react";
 import { IframeParentAPI } from "@/lib/typings";
@@ -11,6 +10,8 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
   const setIframeParent = useSetAtom(iframeParentAtom);
 
   useEffect(() => {
+    console.log("zolg");
+
     const messenger = new WindowMessenger({
       remoteWindow: window.parent,
       allowedOrigins: ["*"],
