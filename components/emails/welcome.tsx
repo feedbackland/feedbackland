@@ -33,9 +33,9 @@ export const WelcomeEmail = ({
           <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
             <Section className="mb-5 pt-2 text-center">
               <Img
-                src="https://public.feedbackland.com/feedbackland_logo.png"
-                width="192"
-                height="25"
+                src="https://public.feedbackland.com/feedbackland_logo_2x.png"
+                width="191"
+                height="44"
                 alt="Feedbackland logo"
                 className="mx-auto"
               />
