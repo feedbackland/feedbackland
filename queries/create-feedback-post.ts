@@ -74,11 +74,14 @@ export async function createFeedbackPostQuery({
   orgId: string;
 }) {
   try {
+    console.log("description3", description);
     const plainTextDescription = getPlainText(description);
     const { title, category } = await getTitleAndCategory(plainTextDescription);
     const embedding = await generateEmbedding(
       `${title}: ${plainTextDescription}`,
     );
+
+    console.log("description4", plainTextDescription);
 
     const feedbackPost = await db
       .insertInto("feedback")
