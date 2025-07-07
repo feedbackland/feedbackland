@@ -12,6 +12,8 @@ export function AdminsLimitAlert({
     query: { data: adminLimit },
   } = useAdminLimit();
 
+  console.log(adminLimit);
+
   if (adminLimit?.limitReached) {
     return (
       <PlanLimitAlert

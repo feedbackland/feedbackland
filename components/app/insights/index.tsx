@@ -171,7 +171,7 @@ export function Insights() {
             Then generate your first roadmap.
           </div>
           {platformUrl && (
-            <Button variant="secondary" size="default" asChild className="mt-4">
+            <Button variant="outline" size="default" asChild className="mt-4">
               <Link href={platformUrl} className="flex items-center gap-1">
                 Add feedback
               </Link>
