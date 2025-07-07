@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { cn, processImagesInHTML } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { SendIcon, XIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -115,12 +115,10 @@ export function CommentForm({
       return;
     }
 
-    const content = await processImagesInHTML(value);
-
     await saveComment.mutateAsync({
       postId,
       parentCommentId,
-      content,
+      content: value,
     });
 
     onClose?.();

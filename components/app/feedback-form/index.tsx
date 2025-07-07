@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { cn, processImagesInHTML } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
@@ -84,10 +84,8 @@ export function FeedbackForm() {
 
     setIsPending(true);
 
-    const description = await processImagesInHTML(value);
-
     saveFeedback.mutate({
-      description,
+      description: value,
     });
   };
 
