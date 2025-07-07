@@ -30,7 +30,15 @@ const getTitleAndCategory = async (plainTextDescription: string) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite-preview-06-17",
+        // model: "google/gemini-2.5-pro",
+        // model: "google/gemini-2.5-flash",
+        // model: "google/gemini-2.5-flash-lite-preview-06-17",
+        model: "google/gemini-2.0-flash-001",
+        // model: "google/gemini-2.0-flash-lite-001",
+        // reasoning: {
+        //   exclude: true,
+        //   enabled: true,
+        // },
         messages: [
           {
             role: "user",
