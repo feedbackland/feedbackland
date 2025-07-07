@@ -106,15 +106,15 @@ export function ClaimOrgDialog({
                   Congratulations
                 </DialogTitle>
                 <DialogDescription className="text-primary">
-                  <span className="mb-8 flex flex-col items-stretch space-y-1 text-center">
+                  <span className="mb-8 flex flex-col items-stretch space-y-3 text-center">
                     <span>You're now the owner of this platform!</span>
                     <span>
-                      Next step: Embed it in your app (if you haven't done so
-                      already).
+                      To embed this platform in your app, Follow the steps
+                      below:
                     </span>
                   </span>
-                  <WidgetDocs orgId={orgId} showTitle={false} />
                 </DialogDescription>
+                <WidgetDocs orgId={orgId} showTitle={false} />
               </DialogHeader>
               <div className="flex items-center justify-center gap-2">
                 {/* <Button asChild onClick={handleOnClose}>

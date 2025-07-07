@@ -177,9 +177,6 @@ export function Insights() {
               </Link>
             </Button>
           )}
-          {/* <span className="text-sm">
-            Have a feature request, a suggestion, or spotted a bug? Let us know!
-          </span> */}
         </div>
       )}
 

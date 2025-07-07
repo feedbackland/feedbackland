@@ -23,29 +23,29 @@ export const AdminInviteEmail = ({
     <Html>
       <Head />
       <Tailwind>
-        <Body className="mx-auto my-auto bg-white font-sans text-base text-gray-700">
-          <Container className="mx-auto my-[40px] max-w-[465px] rounded-lg border border-solid border-gray-200 bg-white p-[20px] shadow-md">
+        <Body className="bg-gray-100 p-6 font-sans">
+          <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
             {/* Logo Section */}
-            <Section className="mt-[32px] text-center">
+            <Section className="mt-8 text-center">
               <Img
-                src="https://public.feedbackland.com/feedbackland_logo.jpg"
-                width="182"
-                height="24"
+                src="https://public.feedbackland.com/feedbackland_logo.png"
+                width="144"
+                height="19"
                 alt="Feedbackland logo"
-                className="mx-auto my-0"
+                className="mx-auto"
               />
             </Section>
 
             {/* Heading */}
-            <Heading className="mx-0 my-[30px] p-0 text-center text-[18px] leading-[28px] font-normal text-black">
+            <Heading className="mx-0 my-8 p-0 text-center text-lg font-normal text-black">
               You&apos;re Invited to be an Admin
             </Heading>
 
             {/* User Greeting */}
-            <Text className="text-[14px] leading-[24px] text-black">Hi,</Text>
+            <Text className="text-sm text-black">Hi,</Text>
 
             {/* Main Invitation Text */}
-            <Text className="text-[14px] leading-[24px] text-black">
+            <Text className="text-sm text-black">
               You&apos;ve been invited to join a Feedbackland platform as an
               administrator! This role grants you special permissions to manage
               and analyze platform feedback, and generate roadmaps.
@@ -62,7 +62,7 @@ export const AdminInviteEmail = ({
             </Section>
 
             {/* Link Fallback */}
-            <Text className="text-[14px] leading-[24px] text-black">
+            <Text className="text-sm text-black">
               Or copy and paste this URL into your browser:
               <Link href={inviteLink} className="text-brand ml-1 no-underline">
                 {inviteLink}

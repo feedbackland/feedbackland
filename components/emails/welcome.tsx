@@ -8,7 +8,6 @@ import {
   Html,
   Img,
   Link,
-  Preview,
   Section,
   Text,
   Tailwind,
@@ -25,90 +24,81 @@ export const WelcomeEmail = ({
     <Tailwind>
       <Html lang="en">
         <Head>
-          <title>Welcome to Feedbackland!</title>
+          <title>Your feedback platform is ready</title>
         </Head>
-        <Preview>Your feedback platform is ready.</Preview>
-        <Body className="bg-gray-100 font-sans">
-          <Container className="mx-auto my-10 max-w-xl rounded-lg bg-white py-5 pb-12 shadow-md">
-            <Section className="px-6 py-8 sm:px-12">
-              <Section className="mb-8 text-center">
-                <Img
-                  src="https://public.feedbackland.com/feedbackland_logo.jpg"
-                  width="182"
-                  height="24"
-                  alt="Feedbackland logo"
-                  className="mx-auto my-0"
-                />
-              </Section>
-              <Text className="mb-6 text-center text-3xl font-bold text-gray-800">
-                Welcome to Feedbackland!
+        <Body className="bg-gray-100 p-6 font-sans">
+          <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
+            <Section className="mb-5 pt-2 text-center">
+              <Img
+                src="https://public.feedbackland.com/feedbackland_logo.png"
+                width="192"
+                height="25"
+                alt="Feedbackland logo"
+                className="mx-auto"
+              />
+            </Section>
+
+            <Section className="">
+              <Text className="mb-6 text-center text-2xl font-bold text-black">
+                Your feedback platform is ready!
               </Text>
-              <Text className="text-base leading-relaxed text-black">
-                Congratulations! Your feedback platform is all set up and ready
-                for you to start collecting feedback and generating roadmaps.
+
+              <Text className="mb-6 text-base text-black">
+                Congratulations! Your Feedbackland platform is all set up and
+                ready to start collecting feedback.
               </Text>
-              <Section className="my-8 text-center">
+
+              <Section className="text-center">
                 <Button
                   href={`https://${orgId}.feedbackland.com`}
-                  className="hover:bg-opacity-80 rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
+                  className="hover:bg-opacity-80 mx-auto rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 >
                   Access Your Platform
                 </Button>
               </Section>
-              <Text className="text-base leading-relaxed text-black">
-                If you haven't done so already, go ahead and add the widget to
-                your app.
-              </Text>
-              <div>
-                <p>Step 1: Install the package</p>
-                <pre className="bg-black p-4 text-[14px] text-white">
-                  <code>npm i feedbackland-react</code>
-                </pre>
-              </div>
-              <div>
-                <p>Step 2: Paste the snippet into your codebase</p>
-                <pre className="bg-black p-4 text-[14px] text-white">
-                  <code>{overlayWidgetCodeSnippet}</code>
-                </pre>
-              </div>
             </Section>
 
-            <Hr className="my-6 border-t border-gray-300" />
+            <Hr className="my-5" />
 
-            <Section className="px-6 py-6 sm:px-12">
-              <Text className="text-base leading-relaxed text-black">
-                Have feedback about Feedbackland? We'd love to hear it! Share
-                your thoughts, suggestions, or report any issues on our feedback
-                platform.
+            <Section className="">
+              <Text className="mb-6 text-base text-black">
+                If you haven't done so already, go ahead and add it to your app:
               </Text>
-              <Section className="my-8 text-center">
-                <Button
-                  href={`https://feedback.feedbackland.com`}
-                  className="hover:bg-opacity-80 rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
-                >
-                  Share Your Feedback
-                </Button>
-              </Section>
+
+              <Text className="mb-2 text-sm text-black">
+                Step 1: Install the package
+              </Text>
+              <pre className="bg-black p-3 text-sm text-white">
+                <code>npm i feedbackland-react</code>
+              </pre>
+
+              <Text className="mb-2 text-sm text-black">
+                Step 2: Paste the snippet into your codebase
+              </Text>
+              <pre className="bg-black p-3 text-sm text-white">
+                <code>{overlayWidgetCodeSnippet}</code>
+              </pre>
             </Section>
 
-            <Hr className="my-6 border-t border-gray-300" />
+            <Hr className="my-5" />
 
-            <Section className="px-6 pt-6 pb-12 sm:px-12">
-              <Text className="text-base leading-relaxed text-black">
-                If you have any questions, need help getting started, or just
-                want to say hi, don't hesitate to reach out to us directly at{" "}
+            <Section className="">
+              <Text className="mb-6 text-base text-black">
+                If you have any questions or need help getting started, don't
+                hesitate to reach out to us directly at{" "}
                 <Link
                   href="mailto:hello@feedbackland.com"
                   className="text-black underline"
                 >
                   hello@feedbackland.com
                 </Link>
-                .
               </Text>
-              <Text className="mt-5 text-base leading-relaxed text-black">
+
+              <Text className="mb-6 text-base text-black">
                 Happy feedback collecting!
               </Text>
-              <Text className="mt-5 text-base leading-relaxed text-black">
+
+              <Text className="text-base text-black">
                 Best regards,
                 <br />
                 The Feedbackland Team
