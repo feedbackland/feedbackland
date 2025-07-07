@@ -4,16 +4,12 @@ import {
   Button,
   Container,
   Head,
-  Hr,
   Html,
   Img,
   Link,
   Section,
   Text,
   Tailwind,
-  Font,
-  CodeBlock,
-  dracula,
 } from "@react-email/components";
 
 export const WelcomeEmail = ({
@@ -31,7 +27,7 @@ export const WelcomeEmail = ({
         </Head>
         <Body className="bg-gray-100 p-6 font-sans">
           <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
-            <Section className="mb-5 pt-2 text-center">
+            <Section className="mb-3 pt-2 text-center">
               <Img
                 src="https://public.feedbackland.com/feedbackland_logo_2x.png"
                 width="191"
@@ -41,14 +37,14 @@ export const WelcomeEmail = ({
               />
             </Section>
 
-            <Section className="">
+            <Section className="mb-5">
               <Text className="mb-6 text-center text-2xl font-bold text-black">
                 Your feedback platform is ready!
               </Text>
 
               <Text className="mb-6 text-base text-black">
-                Congratulations! Your Feedbackland platform is all set up and
-                ready to start collecting feedback.
+                Congratulations! Your platform is all set up and ready to start
+                collecting feedback.
               </Text>
 
               <Section className="text-center">
@@ -61,39 +57,29 @@ export const WelcomeEmail = ({
               </Section>
             </Section>
 
-            <Hr className="my-5" />
-
-            <Section className="">
+            <Section className="mb-4">
               <Text className="mb-6 text-base text-black">
-                If you haven't done so already, go ahead and add it to your app:
+                If you haven't done so already, go ahead and add the widget to
+                your app:
               </Text>
 
               <Text className="mb-2 text-sm text-black">
                 Step 1: Install the package
               </Text>
-              <pre className="bg-black p-3 text-sm text-white">
+              <pre className="bg-black px-2 py-2 text-xs text-white">
                 <code>npm i feedbackland-react</code>
               </pre>
 
               <Text className="mb-2 text-sm text-black">
                 Step 2: Paste the snippet into your codebase
               </Text>
-              <pre className="bg-black p-3 text-sm text-white">
+              <pre className="bg-black p-3 text-xs text-white">
                 <code>{overlayWidgetCodeSnippet}</code>
               </pre>
-
-              <CodeBlock
-                code={overlayWidgetCodeSnippet}
-                fontFamily="monospace"
-                language="typescript"
-                theme={dracula}
-              />
             </Section>
 
-            <Hr className="my-5" />
-
-            <Section className="">
-              <Text className="mb-6 text-base text-black">
+            <Section>
+              <Text className="mb-5 text-base text-black">
                 If you have any questions or need help getting started, don't
                 hesitate to reach out to us directly at{" "}
                 <Link
@@ -102,10 +88,6 @@ export const WelcomeEmail = ({
                 >
                   hello@feedbackland.com
                 </Link>
-              </Text>
-
-              <Text className="mb-6 text-base text-black">
-                Happy feedback collecting!
               </Text>
 
               <Text className="text-base text-black">

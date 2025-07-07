@@ -26,7 +26,7 @@ export const AdminInviteEmail = ({
         <Body className="bg-gray-100 p-6 font-sans">
           <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
             {/* Logo Section */}
-            <Section className="mb-5 text-center">
+            <Section className="mb-3 pt-2 text-center">
               <Img
                 src="https://public.feedbackland.com/feedbackland_logo_2x.png"
                 width="191"
@@ -37,7 +37,7 @@ export const AdminInviteEmail = ({
             </Section>
 
             {/* Heading */}
-            <Heading className="mb-6 text-center text-lg font-normal text-black">
+            <Heading className="mb-6 text-center text-2xl font-bold text-black">
               You&apos;re Invited to be an Admin
             </Heading>
 
@@ -47,8 +47,8 @@ export const AdminInviteEmail = ({
             {/* Main Invitation Text */}
             <Text className="mb-6 text-sm text-black">
               You&apos;ve been invited to join a Feedbackland platform as an
-              administrator! This role grants you special permissions to manage
-              and analyze platform feedback, and generate roadmaps.
+              administrator. This role grants you special permissions to manage
+              and analyze platform feedback, as well as generate roadmaps.
             </Text>
 
             {/* Call to Action Button */}
@@ -69,7 +69,7 @@ export const AdminInviteEmail = ({
               </Link>
             </Text>
 
-            <Text className="text-muted-foreground mb-6 text-sm">
+            <Text className="mb-6 text-sm text-black">
               If you weren&apos;t expecting this invitation, you can safely
               ignore this email.
             </Text>
