@@ -29,12 +29,12 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
           value={pathname?.split("/")?.pop() || "activity"}
         >
           <TabsList className="absolute flex h-10">
-            <TabsTrigger value="activity" asChild>
-              <Link href={`${adminBasePath}/activity`}>Activity</Link>
-            </TabsTrigger>
-
             <TabsTrigger value="roadmap" asChild>
               <Link href={`${adminBasePath}/roadmap`}>Roadmap</Link>
+            </TabsTrigger>
+
+            <TabsTrigger value="activity" asChild>
+              <Link href={`${adminBasePath}/activity`}>Activity</Link>
             </TabsTrigger>
 
             <TabsTrigger value="settings" asChild>

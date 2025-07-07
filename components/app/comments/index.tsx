@@ -46,7 +46,7 @@ export function Comments({
 
       {!!(!isPending && !isError && comments.length === 0) && (
         <div className="text-muted-foreground py-2 text-center text-sm">
-          Be the first to comment!
+          Be the first to comment
         </div>
       )}
 

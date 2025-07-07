@@ -110,9 +110,7 @@ export function PlatformHeader() {
             <Button variant="ghost" size="default" asChild>
               <Link
                 className="xs:block hidden"
-                href={
-                  isAdminPage ? platformUrl : `${platformUrl}/admin/activity`
-                }
+                href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
               >
                 <span className="flex items-center gap-2">
                   {isAdminPage ? (
@@ -174,7 +172,7 @@ export function PlatformHeader() {
                   {session?.userOrg?.role === "admin" && (
                     <DropdownMenuItem asChild>
                       <Link
-                        href={`${platformUrl}/admin/activity`}
+                        href={`${platformUrl}/admin`}
                         className="flex items-center gap-2"
                       >
                         <ShieldIcon className="size-3.5!" />

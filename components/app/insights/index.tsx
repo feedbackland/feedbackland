@@ -11,6 +11,8 @@ import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
 import { InsightsLimitAlert } from "@/components/app/insights/limit-alert";
 import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
+import Link from "next/link";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -25,6 +27,7 @@ const InsightsDownloadButton = dynamic(
 export function Insights() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const platformUrl = usePlatformUrl();
 
   const generateInsightsMutation = useMutation(
     trpc.generateInsights.mutationOptions({
@@ -82,6 +85,8 @@ export function Insights() {
 
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
 
+  const isInitialEmptyState = !isGenerating && hasNoInsights;
+
   const roadmapsLeft = roadmapLimit?.left;
 
   return (
@@ -106,12 +111,12 @@ export function Insights() {
                 </p>
               )}
 
-              {!isGenerating && hasNoInsights && (
+              {/* {isInitialEmptyState && (
                 <p className="text-muted-foreground text-sm">
                   Add some feedback to your platform and generate your first
                   roadmap!
                 </p>
-              )}
+              )} */}
 
               {isGenerating && (
                 <p className="text-muted-foreground text-sm">
@@ -156,6 +161,26 @@ export function Insights() {
           description="An error occured while trying to load the roadmap. Please try again."
           className="mb-4"
         />
+      )}
+
+      {isInitialEmptyState && (
+        <div className="text-muted-foreground border-border flex w-full flex-col items-center justify-center space-y-1 rounded-xl border py-10 text-center">
+          <div className="text-base font-medium">
+            First add some feedback to your platform.
+            <br />
+            Then generate your first roadmap.
+          </div>
+          {platformUrl && (
+            <Button variant="outline" size="default" asChild className="mt-4">
+              <Link href={platformUrl} className="flex items-center gap-1">
+                Add feedback
+              </Link>
+            </Button>
+          )}
+          {/* <span className="text-sm">
+            Have a feature request, a suggestion, or spotted a bug? Let us know!
+          </span> */}
+        </div>
       )}
 
       {hasInsights && (
