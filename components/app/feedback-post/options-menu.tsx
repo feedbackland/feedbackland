@@ -39,7 +39,7 @@ import { useDeleteFeedbackPost } from "@/hooks/use-delete-feedback-post";
 export function FeedbackPostOptionsMenu({
   postId,
   authorId,
-  variant = "ghost",
+  variant = "link",
   onEdit,
   className,
 }: {
@@ -116,7 +116,10 @@ export function FeedbackPostOptionsMenu({
               variant={variant}
               size="icon"
               aria-label="Open options menu"
-              className={cn("h-fit w-fit px-1.5 py-1", className)}
+              className={cn(
+                "text-muted-foreground hover:text-primary h-fit w-fit px-1.5 py-1.5 hover:no-underline",
+                className,
+              )}
             >
               <MoreHorizontal className="size-4" />
               <span className="sr-only">Options</span>

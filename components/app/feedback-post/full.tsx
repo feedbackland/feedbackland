@@ -49,50 +49,9 @@ export function FeedbackPostFull({
     } = data;
 
     return (
-      <div className="mt-3">
-        <div className="mb-3.5 flex items-start justify-between">
-          <div className="flex items-center">
-            <GoBackButton className="mr-2.5" />
-            {/* <Avatar className="xs:block mr-1 hidden scale-90">
-              <AvatarImage
-                src={authorPhotoURL || undefined}
-                alt="User avatar image"
-              />
-              <AvatarFallback>
-                {authorName?.charAt(0) || <UserIcon className="size-4" />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col space-y-0">
-              <div className="text-primary text-xs font-normal">
-                {authorName || "Anonymous user"}
-              </div>
-              <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
-                <span>{timeAgo.format(createdAt, "mini-now")}</span>
-                <span className="text-[8px]">•</span>
-                <span className="capitalize">{category}</span>
-                {status && (
-                  <>
-                    <span className="text-[8px]">•</span>
-                    <span
-                      className={cn(
-                        "capitalize",
-                        `text-${status.replace(" ", "-")}`,
-                      )}
-                    >
-                      {status}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div> */}
-          </div>
-          <div>
-            <FeedbackPostOptionsMenu
-              postId={postId}
-              authorId={data.authorId}
-              onEdit={() => setIsEditing(true)}
-            />
-          </div>
+      <div className="mt-6">
+        <div className="mb-2.5 flex items-start justify-between">
+          <GoBackButton className="" />
         </div>
 
         {isEditing ? (
@@ -107,7 +66,16 @@ export function FeedbackPostFull({
             className={cn("flex flex-col items-stretch space-y-3", className)}
           >
             <div className="flex flex-col items-stretch gap-0.5">
-              <h2 className="text-xl font-semibold">{title}</h2>
+              <div className="flex items-center justify-between gap-3.5">
+                <h2 className="text-xl font-semibold">{title}</h2>
+                <div className="">
+                  <FeedbackPostOptionsMenu
+                    postId={postId}
+                    authorId={data.authorId}
+                    onEdit={() => setIsEditing(true)}
+                  />
+                </div>
+              </div>
               <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
                 <span>Posted by {authorName || "Anonymous user"}</span>
                 <span className="text-[8px]">•</span>

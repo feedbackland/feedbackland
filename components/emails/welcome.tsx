@@ -11,6 +11,9 @@ import {
   Section,
   Text,
   Tailwind,
+  Font,
+  CodeBlock,
+  dracula,
 } from "@react-email/components";
 
 export const WelcomeEmail = ({
@@ -78,6 +81,13 @@ export const WelcomeEmail = ({
               <pre className="bg-black p-3 text-sm text-white">
                 <code>{overlayWidgetCodeSnippet}</code>
               </pre>
+
+              <CodeBlock
+                code={overlayWidgetCodeSnippet}
+                fontFamily="monospace"
+                language="typescript"
+                theme={dracula}
+              />
             </Section>
 
             <Hr className="my-5" />

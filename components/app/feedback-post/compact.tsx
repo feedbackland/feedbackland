@@ -43,7 +43,7 @@ function Inner({
         className="group flex flex-col items-stretch space-y-1.5"
       >
         <div className="flex flex-col items-stretch">
-          <h2 className="mb-0.5 text-[17px] leading-5.5 font-semibold group-hover:underline">
+          <h2 className="mb-0.5 text-[17px] leading-5.5 font-semibold group-hover:underline hover:underline">
             {title}
           </h2>
 

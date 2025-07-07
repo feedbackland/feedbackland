@@ -29,7 +29,7 @@ export function CommentsOptionsMenu({
   postId,
   commentId,
   authorId,
-  variant = "ghost",
+  variant = "link",
   onEdit,
 }: {
   postId: string;
@@ -96,7 +96,7 @@ export function CommentsOptionsMenu({
               variant={variant}
               size="icon"
               aria-label="Open options menu"
-              className="h-fit w-fit px-1.5 py-1"
+              className="text-muted-foreground hover:text-primary h-fit w-fit px-1.5 py-1.5 hover:no-underline"
             >
               <MoreHorizontal className="size-4" />
               <span className="sr-only">Options</span>
