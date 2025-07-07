@@ -6,7 +6,8 @@ import { clean, getPlainText } from "@/lib/utils";
 import { generateEmbedding } from "@/lib/utils-server";
 
 const getTitleAndCategory = async (plainTextDescription: string) => {
-  const prompt = `
+  try {
+    const prompt = `
     You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
     Given the following description, create a short title that sounds like it was written by a human.
     Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
@@ -21,47 +22,50 @@ const getTitleAndCategory = async (plainTextDescription: string) => {
     }
   `;
 
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // model: "google/gemini-2.5-pro",
+          // model: "google/gemini-2.5-flash",
+          // model: "google/gemini-2.5-flash-lite-preview-06-17",
+          model: "google/gemini-2.0-flash-001",
+          // model: "google/gemini-2.0-flash-lite-001",
+          // reasoning: {
+          //   exclude: true,
+          //   enabled: true,
+          // },
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+        }),
       },
-      body: JSON.stringify({
-        // model: "google/gemini-2.5-pro",
-        // model: "google/gemini-2.5-flash",
-        // model: "google/gemini-2.5-flash-lite-preview-06-17",
-        model: "google/gemini-2.0-flash-001",
-        // model: "google/gemini-2.0-flash-lite-001",
-        // reasoning: {
-        //   exclude: true,
-        //   enabled: true,
-        // },
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    },
-  );
+    );
 
-  const data = await response.json();
+    const data = await response.json();
 
-  const content = data.choices[0]?.message?.content || "";
+    const content = data.choices[0]?.message?.content || "";
 
-  const parsedContent = JSON.parse(content) as {
-    title: string;
-    category: FeedbackCategory;
-  };
+    const parsedContent = JSON.parse(content) as {
+      title: string;
+      category: FeedbackCategory;
+    };
 
-  const { title, category } = parsedContent;
+    const { title, category } = parsedContent;
 
-  return { title, category };
+    return { title, category };
+  } catch (error) {
+    throw error;
+  }
 };
 
 export async function createFeedbackPostQuery({
