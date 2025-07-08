@@ -86,8 +86,6 @@ export function FeedbackForm() {
 
     const description = await processImagesInHTML(value);
 
-    console.log("description", description);
-
     saveFeedback.mutate({
       description,
     });

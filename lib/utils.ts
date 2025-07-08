@@ -131,6 +131,7 @@ export const base64ToBlob = ({
 
 export const processImagesInHTML = async (html: string) => {
   const base64Regex = /<img.*?src="(data:image\/(.*?);base64,([^"]*))"[^>]*>/g;
+
   let modifiedHTML = html; // Start with original HTML
 
   const matches = Array.from(html.matchAll(base64Regex));

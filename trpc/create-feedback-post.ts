@@ -10,8 +10,6 @@ export const createFeedbackPost = userProcedure
   )
   .mutation(async ({ input: { description }, ctx: { userId, orgId } }) => {
     try {
-      console.log("description2", description);
-
       return await createFeedbackPostQuery({
         description,
         authorId: userId,
