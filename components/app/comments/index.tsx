@@ -45,7 +45,7 @@ export function Comments({
       {isError && <Error title="Error loading comments" />}
 
       {!!(!isPending && !isError && comments.length === 0) && (
-        <div className="text-muted-foreground py-2 text-center text-sm">
+        <div className="text-muted-foreground py-1 text-center text-sm">
           Be the first to comment
         </div>
       )}

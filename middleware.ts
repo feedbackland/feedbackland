@@ -37,7 +37,6 @@ const upsertOrg = async ({ orgId }: { orgId: string }) => {
 
     return orgSubdomain;
   } catch (error) {
-    console.error("Error upserting org:", error);
     throw error;
   }
 };
