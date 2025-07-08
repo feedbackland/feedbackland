@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,11 +13,13 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "Feedbackland",
   description: "User Feedback Platform",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 const inter = Inter({
