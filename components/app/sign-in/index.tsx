@@ -8,7 +8,6 @@ import { useState } from "react";
 import { Mail, VenetianMaskIcon } from "lucide-react";
 import { Method } from "../sign-up-in";
 import { Session } from "@/hooks/use-auth";
-import { MaskOnIcon } from "@radix-ui/react-icons";
 
 export function SignIn({
   onSuccess,
