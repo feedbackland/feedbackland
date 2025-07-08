@@ -74,7 +74,7 @@ export async function createFeedbackPostQuery({
   orgId,
 }: {
   description: string;
-  authorId: string;
+  authorId: string | null;
   orgId: string;
 }) {
   try {

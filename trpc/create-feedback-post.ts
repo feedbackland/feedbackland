@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { userProcedure } from "@/lib/trpc";
+import { publicProcedure } from "@/lib/trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 
-export const createFeedbackPost = userProcedure
+export const createFeedbackPost = publicProcedure
   .input(
     z.object({
       description: z.string().trim().min(1),

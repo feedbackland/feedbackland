@@ -20,9 +20,9 @@ export const AdminInviteEmail = ({
   inviteLink: string;
 }) => {
   return (
-    <Html>
-      <Head />
-      <Tailwind>
+    <Tailwind>
+      <Html lang="en">
+        <Head />
         <Body className="bg-gray-100 p-6 font-sans">
           <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
             {/* Logo Section */}
@@ -46,9 +46,9 @@ export const AdminInviteEmail = ({
 
             {/* Main Invitation Text */}
             <Text className="mb-6 text-sm text-black">
-              You&apos;ve been invited to join a Feedbackland platform as an
-              administrator. This role grants you special permissions to manage
-              and analyze platform feedback, as well as generate roadmaps.
+              You&apos;re invited to join a Feedbackland platform as an
+              administrator. This role grants you permissions to manage and
+              analyze platform feedback, as well as generate roadmaps.
             </Text>
 
             {/* Call to Action Button */}
@@ -85,8 +85,8 @@ export const AdminInviteEmail = ({
             </Section>
           </Container>
         </Body>
-      </Tailwind>
-    </Html>
+      </Html>
+    </Tailwind>
   );
 };
 

@@ -15,10 +15,10 @@ export function SignUpIn({
 }: {
   selectedMethod: Method;
   includeAnonymous?: boolean;
-  onSuccess: (session: Session) => void;
+  onSuccess: (session: Session | null) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
-  const handleOnSuccess = async (session: Session) => {
+  const handleOnSuccess = async (session: Session | null) => {
     onSuccess(session);
   };
 
@@ -41,7 +41,6 @@ export function SignUpIn({
       <SignUp
         onSuccess={handleOnSuccess}
         onSelectedMethodChange={handleOnSelectedMethodChange}
-        includeAnonymous={includeAnonymous}
       />
     );
   }

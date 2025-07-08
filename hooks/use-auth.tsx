@@ -14,7 +14,6 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithPopup,
-  signInAnonymously as firebaseSignInAnonymously,
   GoogleAuthProvider,
   OAuthProvider,
   signOut as firebaseSignOut,
@@ -45,7 +44,6 @@ type AuthContextType = {
     email: string;
     password: string;
   }) => Promise<Session>;
-  signInAnonymously: () => Promise<Session>;
   signUpWithEmail: ({
     name,
     email,
@@ -66,7 +64,6 @@ const AuthContext = createContext<AuthContextType>({
   isLoaded: false,
   isAdmin: false,
   signInWithEmail: async () => ({}) as Session,
-  signInAnonymously: async () => ({}) as Session,
   signUpWithEmail: async () => ({}) as Session,
   signOnWithGoogle: async () => ({}) as Session,
   signOnWithMicrosoft: async () => ({}) as Session,
@@ -220,21 +217,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signInAnonymously = async () => {
-    try {
-      const { user } = await firebaseSignInAnonymously(auth);
-      const session = await createSession({
-        userId: user.uid,
-        email: user.email || `${user.uid}@no-email.com`,
-        name: user.displayName,
-        photoURL: user.photoURL,
-      });
-      return session;
-    } catch (err) {
-      throw err;
-    }
-  };
-
   const signUpWithEmail = async ({
     name,
     email,
@@ -328,7 +310,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoaded,
         isAdmin,
         signInWithEmail,
-        signInAnonymously,
         signUpWithEmail,
         signOnWithGoogle,
         signOnWithMicrosoft,

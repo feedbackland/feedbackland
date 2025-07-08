@@ -14,19 +14,21 @@ import { Session } from "@/hooks/use-auth";
 export function SignUpInDialog({
   open,
   initialSelectedMethod,
+  includeAnonymous = false,
   onClose,
   onSuccess,
 }: {
   open: boolean;
   initialSelectedMethod: "sign-up" | "sign-in";
+  includeAnonymous?: boolean;
   onClose: () => void;
-  onSuccess?: (session: Session) => void;
+  onSuccess?: (session: Session | null) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
 
-  const handleOnSuccess = (session: Session) => {
+  const handleOnSuccess = (session: Session | null) => {
     onSuccess?.(session);
     onClose();
   };
@@ -50,6 +52,7 @@ export function SignUpInDialog({
         </DialogHeader>
         <SignUpIn
           selectedMethod={selectedMethod}
+          includeAnonymous={includeAnonymous}
           onSuccess={handleOnSuccess}
           onSelectedMethodChange={(newSelectedMethod) =>
             setSelectedMethod(newSelectedMethod)

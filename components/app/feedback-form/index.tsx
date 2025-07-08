@@ -71,7 +71,16 @@ export function FeedbackForm() {
     }),
   );
 
-  const onSubmit = async (session: Session) => {
+  const onSubmit = async () => {
+    setShowSignUpInDialog(false);
+    setIsPending(true);
+    const description = await processImagesInHTML(value);
+    saveFeedback.mutate({
+      description,
+    });
+  };
+
+  const handleOnSubmitClick = async () => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter some feedback");
       return;
@@ -82,13 +91,9 @@ export function FeedbackForm() {
       return;
     }
 
-    setIsPending(true);
-
-    const description = await processImagesInHTML(value);
-
-    saveFeedback.mutate({
-      description,
-    });
+    if (session) {
+      onSubmit();
+    }
   };
 
   const hasText = value?.length > 0;
@@ -98,11 +103,9 @@ export function FeedbackForm() {
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
+        includeAnonymous={true}
         onClose={() => setShowSignUpInDialog(false)}
-        onSuccess={(newSession) => {
-          setShowSignUpInDialog(false);
-          onSubmit(newSession);
-        }}
+        onSuccess={onSubmit}
       />
 
       <div className={cn("flex flex-col gap-3")}>
@@ -125,7 +128,7 @@ export function FeedbackForm() {
                   size="icon"
                   variant="default"
                   loading={isPending}
-                  onClick={() => onSubmit(session)}
+                  onClick={handleOnSubmitClick}
                   disabled={!!(!hasText || isPending)}
                   className="size-8!"
                 >

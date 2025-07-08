@@ -107,7 +107,9 @@ export function CommentUpvoteButton({
         onClose={() => setShowSignUpInDialog(false)}
         onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          handleUpvote({ session: newSession, allowUndo: false });
+
+          if (newSession)
+            handleUpvote({ session: newSession, allowUndo: false });
         }}
       />
     </>

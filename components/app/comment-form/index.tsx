@@ -147,7 +147,7 @@ export function CommentForm({
         onClose={() => setShowSignUpInDialog(false)}
         onSuccess={(newSession) => {
           setShowSignUpInDialog(false);
-          onSubmit(newSession);
+          if (newSession) onSubmit(newSession);
         }}
       />
       <div ref={elementRef} className={cn("flex flex-col gap-3", className)}>
