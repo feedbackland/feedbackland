@@ -115,8 +115,8 @@ export function FeedbackPosts() {
 
   return (
     <div className="">
-      {!isPending && !isPlatformEmpty && (
-        <div className="relative mb-1 flex h-[40px] items-center justify-between gap-2">
+      {!!((!isPending && !isPlatformEmpty) || isSearchActive) && (
+        <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-2">
           <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}
@@ -146,9 +146,6 @@ export function FeedbackPosts() {
           <div className="text-base font-medium">
             Be the first to share feedback
           </div>
-          {/* <span className="text-sm">
-            Have a feature request, a suggestion, or spotted a bug? Let us know!
-          </span> */}
         </div>
       )}
 

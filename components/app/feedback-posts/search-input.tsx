@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useDebounce, useKey } from "react-use";
+import { useDebounce, useKey, useClickAway } from "react-use";
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,7 @@ export const FeedbackPostsSearchInput = ({
   delay?: number;
   className?: React.ComponentProps<"div">["className"];
 }) => {
+  const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -37,20 +38,22 @@ export const FeedbackPostsSearchInput = ({
     [inputValue],
   );
 
-  const reset = () => {
-    setInputValue("");
-  };
+  useClickAway(inputContainerRef, () => {
+    if (!inputValue?.length) close();
+  });
 
   useKey("Escape", () => {
-    reset();
-    inputRef.current?.blur();
+    close();
   });
+
+  const close = () => {
+    setInputValue("");
+    setIsFocused(false);
+  };
 
   useEffect(() => {
     if (isFocused) {
       inputRef?.current?.focus();
-    } else {
-      inputRef?.current?.blur();
     }
   }, [isFocused]);
 
@@ -64,9 +67,7 @@ export const FeedbackPostsSearchInput = ({
             size="icon"
             variant="link"
             className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
-            onClick={() => {
-              setIsFocused(true);
-            }}
+            onClick={() => setIsFocused(true)}
           >
             <SearchIcon className="size-4" />
             <span className="sr-only">Search feedback</span>
@@ -79,26 +80,23 @@ export const FeedbackPostsSearchInput = ({
 
   return (
     <div
+      ref={inputContainerRef}
       className={cn(
         "bg-background relative w-full max-w-52 transition-none",
         isActive && "absolute top-0 right-0 left-0 z-10 max-w-full",
         className,
       )}
     >
-      <SearchIcon className="absolute top-[0.6rem] left-2.5 size-4" />
+      <SearchIcon className="absolute top-[0.6rem] left-2.5 z-10 size-4" />
       <Input
         ref={inputRef}
         type="text"
         placeholder="Search..."
         value={inputValue}
         onChange={handleChange}
-        className={cn("bg-background! px-9 text-sm")}
-        onFocus={() => {
-          setIsFocused(true);
-        }}
-        onBlur={() => {
-          setIsFocused(false);
-        }}
+        className={cn("bg-background! relative px-9 text-sm")}
+        onFocus={() => setIsFocused(true)}
+        // onBlur={() => setIsFocused(false)}
       />
       <Button
         size="icon"
@@ -108,7 +106,7 @@ export const FeedbackPostsSearchInput = ({
           inputValue?.length > 0 && "block",
         )}
         onClick={(e) => {
-          reset();
+          setInputValue("");
           inputRef.current?.focus();
         }}
       >

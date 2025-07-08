@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function FeedbackPostsLoading() {
   return (
-    <div className="mt-[40px] space-y-8">
+    <div className="mt-2 space-y-8">
       <div className="space-y-2">
         <Skeleton className="h-4 w-[60%]" />
         <Skeleton className="h-4 w-full" />
