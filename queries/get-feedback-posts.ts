@@ -29,7 +29,7 @@ export const getFeedbackPostsQuery = async ({
 }) => {
   try {
     const isSearching = searchValue.length > 0;
-    const maxDistance = 0.4;
+    const maxDistance = 0.5;
     const searchVector = isSearching ? await generateVector(searchValue) : [];
 
     let query = db
