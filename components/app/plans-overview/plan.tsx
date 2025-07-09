@@ -28,11 +28,13 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
         <div className="mb-4 flex flex-col items-stretch gap-1">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="mb-0.5 flex items-center gap-2">
+              <div className="mb-0.5 flex items-center gap-3">
                 <h3 className="h3 capitalize">{planName}</h3>
 
                 {isActiveSubscription && (
-                  <Badge variant="outline">Your current plan</Badge>
+                  <Badge variant="outline" className="border-primary py-0.5">
+                    Your current plan
+                  </Badge>
                 )}
 
                 {isActiveSubscription && !isFreePlan && isExpired && (
@@ -76,7 +78,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                 <SubscriptionButton
                   variant={isActiveSubscription ? "outline" : "default"}
                   buttonText={isActiveSubscription ? "Manage" : "Upgrade"}
-                  size="lg"
+                  size="default"
                 />
               </div>
             )}
@@ -106,7 +108,6 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
               feedback posts.
             </span>
           </div>
-          s
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>{isFreePlan ? "Feedbackland branding" : "No branding"}</span>
