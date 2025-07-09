@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
+import { Suspense } from "react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -59,7 +60,9 @@ export default function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
-                      <ProcessModeParam />
+                      <Suspense>
+                        <ProcessModeParam />
+                      </Suspense>
                       {children}
                       <Toaster />
                     </IframeProvider>
