@@ -8,7 +8,6 @@ import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
 import { Edit2Icon } from "lucide-react";
-// import { isIOS, isAndroid } from "react-device-detect";
 
 export function SubscriptionButton({
   variant = "default",
@@ -49,13 +48,6 @@ export function SubscriptionButton({
     });
 
     if (newTab) newTab.location.href = checkoutUrl;
-
-    // if (isIOS || isAndroid) {
-    //   window.location.href = checkoutUrl;
-    //   return;
-    // }
-
-    // window.open(checkoutUrl, "_blank", "noopener,noreferrer");
   };
 
   const openCustomerPortal = async () => {
@@ -64,14 +56,7 @@ export function SubscriptionButton({
     const { customerPortalUrl } =
       await createPolarCustomerSession.mutateAsync();
 
-    // if (isIOS || isAndroid) {
-    //   window.location.href = customerPortalUrl;
-    //   return;
-    // }
-
     if (newTab) newTab.location.href = customerPortalUrl;
-
-    // window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleOnClick = () => {
