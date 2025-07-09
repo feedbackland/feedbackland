@@ -269,7 +269,7 @@ function FeedbackButton() {
   return (
     <OverlayWidget
       id="${orgId}"
-      mode="system" // 'system', 'dark' or 'light'
+      mode="dark" // light or dark, defaults to dark
     >
       <button>Feedback</button> {/*bring your own button */}
     </OverlayWidget>

@@ -49,7 +49,7 @@ export default function RootLayout({
       <body className="bg-background font-sans">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
