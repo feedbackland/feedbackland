@@ -8,7 +8,7 @@ import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
 import { Edit2Icon } from "lucide-react";
-import { isIOS, isAndroid } from "react-device-detect";
+// import { isIOS, isAndroid } from "react-device-detect";
 
 export function SubscriptionButton({
   variant = "default",
@@ -42,28 +42,36 @@ export function SubscriptionButton({
   const openCheckout = async () => {
     if (!polarProductIds || polarProductIds.length === 0) return;
 
+    const newTab = window.open("", "_blank");
+
     const { url: checkoutUrl } = await createPolarCheckoutSession.mutateAsync({
       polarProductIds,
     });
 
-    if (isIOS || isAndroid) {
-      window.location.href = checkoutUrl;
-      return;
-    }
+    if (newTab) newTab.location.href = checkoutUrl;
 
-    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+    // if (isIOS || isAndroid) {
+    //   window.location.href = checkoutUrl;
+    //   return;
+    // }
+
+    // window.open(checkoutUrl, "_blank", "noopener,noreferrer");
   };
 
   const openCustomerPortal = async () => {
+    const newTab = window.open("", "_blank");
+
     const { customerPortalUrl } =
       await createPolarCustomerSession.mutateAsync();
 
-    if (isIOS || isAndroid) {
-      window.location.href = customerPortalUrl;
-      return;
-    }
+    // if (isIOS || isAndroid) {
+    //   window.location.href = customerPortalUrl;
+    //   return;
+    // }
 
-    window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
+    if (newTab) newTab.location.href = customerPortalUrl;
+
+    // window.open(customerPortalUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleOnClick = () => {
