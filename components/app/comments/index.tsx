@@ -5,8 +5,8 @@ import { useComments } from "@/hooks/use-comments";
 import { useInView } from "react-intersection-observer";
 import { cn } from "@/lib/utils";
 import { CommentWrapper } from "../comment/wrapper";
-import { CommentsLoading } from "./loading";
 import { Error } from "@/components/ui/error";
+// import { CommentsLoading } from "./loading";
 
 export function Comments({
   postId,

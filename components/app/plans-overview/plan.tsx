@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionButton } from "@/components/app/subscription-button";
-import { adminLimit, analyzablePostLimit } from "@/lib/utils";
+import { adminLimit, analyzablePostLimit, roadmapLimit } from "@/lib/utils";
 
 export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
   const {
@@ -55,14 +55,14 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                     <>
                       {isProPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$19</span>/month or
-                          $190/year
+                          <span className="-mb-0.5 text-2xl">$29</span>/month or
+                          $290/year
                         </span>
                       )}
                       {isMaxPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$39</span>/month or
-                          $390/year
+                          <span className="-mb-0.5 text-2xl">$79</span>/month or
+                          $790/year
                         </span>
                       )}
                     </>
@@ -94,11 +94,19 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
+            <span>Generate up to {roadmapLimit(planName)} roadmaps/month</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CheckIcon className="size-4!" />
             <span>
-              AI Roadmap analyzes up to {analyzablePostLimit(planName)} feedback
-              posts
+              For each roadmap, our AI processes up to{" "}
+              {analyzablePostLimit(planName).toLocaleString("en", {
+                useGrouping: true,
+              })}{" "}
+              feedback posts.
             </span>
           </div>
+          s
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>{isFreePlan ? "Feedbackland branding" : "No branding"}</span>

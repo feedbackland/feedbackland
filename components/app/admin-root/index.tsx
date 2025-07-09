@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
+import { SparkleIcon, SparklesIcon } from "lucide-react";
 
 export default function AdminRoot({ children }: { children: ReactNode }) {
   const { isAdmin, isLoaded } = useAuth();
@@ -30,7 +31,10 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
         >
           <TabsList className="absolute flex h-10">
             <TabsTrigger value="roadmap" asChild>
-              <Link href={`${adminBasePath}/roadmap`}>Roadmap</Link>
+              <Link href={`${adminBasePath}/roadmap`}>
+                <SparklesIcon fill="currentColor" className="size-3.5!" />
+                Roadmap
+              </Link>
             </TabsTrigger>
 
             <TabsTrigger value="activity" asChild>

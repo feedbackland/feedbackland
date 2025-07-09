@@ -306,7 +306,7 @@ export const analyzablePostLimit = (plan: string) => {
   } else if (plan === "pro") {
     return 1000;
   } else if (plan === "max") {
-    return 5000;
+    return 10000;
   }
 
   return 100;

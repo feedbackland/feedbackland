@@ -108,15 +108,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            // model: "google/gemini-2.5-pro",
-            // model: "google/gemini-2.5-flash",
-            // model: "google/gemini-2.5-flash-lite-preview-06-17",
             model: "google/gemini-2.0-flash-001",
-            // model: "google/gemini-2.0-flash-lite-001",
-            // reasoning: {
-            //   exclude: true,
-            //   enabled: true,
-            // },
             messages: [
               {
                 role: "system",
@@ -137,6 +129,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                 ],
               },
             ],
+            temperature: 0.3,
             response_format: { type: "json_object" },
           }),
         },

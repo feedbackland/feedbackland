@@ -40,7 +40,7 @@ export function InsightsLimitAlert({
           className={className}
           type="alert"
           title="Your plan's monthly roadmap limit is reached"
-          description={`You've reached your monthly limit of ${roadmapLimit?.limit} roadmaps. To create more this month, please upgrade your plan.`}
+          description={`You've reached your current plan's limit of ${roadmapLimit?.limit} monthly roadmaps. To increase your limit, please upgrade your plan.`}
         />
       );
     }
@@ -51,7 +51,7 @@ export function InsightsLimitAlert({
           className={className}
           type="warning"
           title="Your plan's analyzable feedback posts limit is reached"
-          description={`You've reached your plan's limit of ${analyzablePostLimit?.limit} analyzable feedback posts. To include more feedback posts in the roadmap analysis, please upgrade your plan.`}
+          description={`You've reached your current plan's limit of ${analyzablePostLimit?.limit} analyzable feedback posts. To increase your limit, please upgrade your plan.`}
         />
       );
     }

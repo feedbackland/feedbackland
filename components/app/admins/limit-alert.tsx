@@ -17,8 +17,7 @@ export function AdminsLimitAlert({
       <PlanLimitAlert
         className={className}
         title="Admin limit reached"
-        description={`You've hit your current plan's limit of ${Number(adminLimit?.limit)} admins. Please upgrade your plan to invite
-          more admins.`}
+        description={`You've hit your current plan's limit of ${Number(adminLimit?.limit)} admins. To increase your limit, please upgrade your plan.`}
       />
     );
   }

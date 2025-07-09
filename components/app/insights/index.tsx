@@ -95,7 +95,7 @@ export function Insights() {
         <div className="flex-1 space-y-1">
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
-              <h2 className="h4 mb-1 flex flex-wrap items-center gap-2">
+              <h2 className="h4 mb-0.5 flex flex-wrap items-center gap-2">
                 {isGenerating ? `Generating Roadmap...` : `Roadmap`}
               </h2>
               {!isGenerating && hasInsights && (
@@ -110,13 +110,6 @@ export function Insights() {
                   .
                 </p>
               )}
-
-              {/* {isInitialEmptyState && (
-                <p className="text-muted-foreground text-sm">
-                  Add some feedback to your platform and generate your first
-                  roadmap!
-                </p>
-              )} */}
 
               {isGenerating && (
                 <p className="text-muted-foreground text-sm">
