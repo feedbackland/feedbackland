@@ -9,6 +9,7 @@ import { JotaiProvider } from "@/providers/jotai";
 import { ThemeProvider } from "@/providers/theme";
 import { IframeProvider } from "@/providers/iframe";
 import { Toaster } from "@/components/ui/sonner";
+import { ProcessModeParam } from "@/components/app/process-mode-param";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -58,6 +59,7 @@ export default function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
+                      <ProcessModeParam />
                       {children}
                       <Toaster />
                     </IframeProvider>
