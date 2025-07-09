@@ -26,9 +26,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
         orgId: ctx.orgId,
       });
 
-      const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
-
-      const prompt = `
+      const systemPrompt = `
         You are an AI assistant whose sole purpose is to turn a vast array of user feedback into a condensed, actionable, prioritized product roadmap.
 
         You will receive an array of feedback posts in this exact JSON format:
@@ -75,18 +73,18 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
           - No fluff. Every word must drive action.
 
         Required Output:
-        Return valid JSON: an array consisting of maximum 50 roadmap items, strictly ordered by descending 'priority', strictly following this schema:
+        An array consisting of maximum 50 roadmap items, strictly ordered by descending 'priority', strictly following the schema defined below. Do NOT include explanations, markdown, or extra text. You MUST return only valid JSON. The response will be parsed automatically. Malformed or extra output will break the system.
 
         \`\`\`json
         [
           {
             "title":        "Ultra-concise, compelling theme title",
             "description":  "1-3 sentences of user pain + specific next step",
-            "upvotes":      123,                      // total upvotes for this theme
-            "commentCount": 45,                       // total comments for this theme
-            "status":       "majorityStatusOrNull",   // or null
-            "category":     "majorityCategoryOrNull", // or null
-            "ids":          ["feedbackPostId1","feedbackPostId2","feedbackPostId3"], // original feedback post ids (of type uuidv4), directly linked to ids from the input array
+            "upvotes":      123,                      // number of total upvotes for this theme
+            "commentCount": 45,                       // number of total comments for this theme
+            "status":       "majorityStatusOrNull",   // "under consideration", "planned", "in progress", "done", "declined", or null
+            "category":     "majorityCategoryOrNull", // "feature request", "bug report", "general feedback", or null
+            "ids":          ["id1","id2","id3"],      // original feedback post ids of type uuidv4, directly linked to ids from the input array
             "priority":     95                        // 0-100 score
           }
           // …1-50 more roadmap items, sorted by priority…
@@ -97,6 +95,16 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
         - Friendly & Professional  
         - Action-Oriented: Focus on “what to build next.”  
         - Ultra-Concise: Designed for a busy product owner.
+      `;
+
+      const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+
+      const userPrompt = `
+      Here is the array of feedback posts you need to analyze and create a condensed, prioritized roadmap for:
+
+      \`\`\`json
+      ${feedbackDataJsonString}
+      \`\`\`
       `;
 
       const response = await fetch(
@@ -115,7 +123,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                 content: [
                   {
                     type: "text",
-                    text: prompt,
+                    text: systemPrompt,
                   },
                 ],
               },
@@ -124,7 +132,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                 content: [
                   {
                     type: "text",
-                    text: feedbackDataJsonString,
+                    text: userPrompt,
                   },
                 ],
               },
@@ -167,6 +175,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
 
       return result;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
