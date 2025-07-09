@@ -46,7 +46,7 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@react-email/components": "0.1.1",
+    "@react-email/components": "0.2.0",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.50.3",
     "@tanstack/react-query": "^5.81.5",
@@ -127,7 +127,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
     "@types/he": "^1.2.3",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.0.12",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/sanitize-html": "^2.16.0",
