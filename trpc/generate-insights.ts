@@ -1,32 +1,47 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getInsightsInputQuery } from "@/queries/get-insights-input";
 import { createInsightsQuery } from "@/queries/create-insights";
-import { FeedbackCategory, FeedbackStatus } from "@/db/schema";
 import { getRoadmapLimit } from "./get-roadmap-limit";
+import { z } from "zod";
 
-interface InsightsOutputItem {
-  title: string;
-  description: string;
-  upvotes: number | string;
-  commentCount: number | string;
-  status: FeedbackStatus | null;
-  category: FeedbackCategory | null;
-  ids: string[];
-  priority: number | string;
-}
+const insightsOutputSchema = z.array(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    upvotes: z.union([z.number(), z.string()]),
+    commentCount: z.union([z.number(), z.string()]),
+    status: z
+      .enum([
+        "under consideration",
+        "planned",
+        "in progress",
+        "done",
+        "declined",
+      ])
+      .nullable(),
+    category: z
+      .enum(["feature request", "bug report", "general feedback"])
+      .nullable(),
+    ids: z.array(z.string()),
+    priority: z.union([z.number(), z.string()]),
+  }),
+);
 
 export const generateInsights = adminProcedure.mutation(async (opts) => {
   const { limitReached } = await getRoadmapLimit(opts as any);
 
   if (!limitReached) {
-    try {
-      const { ctx } = opts;
+    let retries = 3;
 
-      const feedbackPosts = await getInsightsInputQuery({
-        orgId: ctx.orgId,
-      });
+    while (retries > 0) {
+      try {
+        const { ctx } = opts;
 
-      const systemPrompt = `
+        const feedbackPosts = await getInsightsInputQuery({
+          orgId: ctx.orgId,
+        });
+
+        const systemPrompt = `
         You are an AI assistant whose sole purpose is to turn a vast array of user feedback into a condensed, actionable, prioritized product roadmap.
 
         You will receive an array of feedback posts in this exact JSON format:
@@ -73,7 +88,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
           - No fluff. Every word must drive action.
 
         Required Output:
-        An array consisting of maximum 50 roadmap items, strictly ordered by descending 'priority', strictly following the schema defined below. Do NOT include explanations, markdown, or extra text. You MUST return only valid JSON. The response will be parsed automatically. Malformed or extra output will break the system.
+        A JSON array consisting of maximum 50 roadmap items, strictly ordered by descending 'priority', strictly and without exception adhering to the schema defined below. Do NOT include explanations, markdown, or extra text. You MUST return only valid JSON. The response will be parsed automatically. Malformed or extra output will break the system.
 
         \`\`\`json
         [
@@ -84,7 +99,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
             "commentCount": 45,                       // number of total comments for this theme
             "status":       "majorityStatusOrNull",   // "under consideration", "planned", "in progress", "done", "declined", or null
             "category":     "majorityCategoryOrNull", // "feature request", "bug report", "general feedback", or null
-            "ids":          ["id1","id2","id3"],      // original feedback post ids of type uuidv4, directly linked to ids from the input array
+            "ids":          ["id1","id2","id3"],      // original feedback post ids, directly linked to ids from the input array
             "priority":     95                        // 0-100 score
           }
           // …1-50 more roadmap items, sorted by priority…
@@ -95,88 +110,195 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
         - Friendly & Professional  
         - Action-Oriented: Focus on “what to build next.”  
         - Ultra-Concise: Designed for a busy product owner.
-      `;
+        `;
 
-      const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
+        const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
 
-      const userPrompt = `
-      Here is the array of feedback posts you need to analyze and create a condensed, prioritized roadmap for:
+        const userPrompt = `
+        Here is the array of feedback posts you need to analyze and create a condensed, prioritized roadmap for:
 
-      \`\`\`json
-      ${feedbackDataJsonString}
-      \`\`\`
-      `;
+        \`\`\`json
+        ${feedbackDataJsonString}
+        \`\`\`
+        `;
 
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.0-flash-001",
+              tools: [
+                {
+                  type: "function",
+                  function: {
+                    name: "insights_formatter",
+                    description:
+                      "Formats the user feedback into a structured JSON object, representing a prioritized roadmap.",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        insights: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              title: {
+                                type: "string",
+                                description:
+                                  "Ultra-concise, compelling theme title.",
+                              },
+                              description: {
+                                type: "string",
+                                description:
+                                  "1-3 sentences of user pain + specific next step.",
+                              },
+                              upvotes: {
+                                type: "number",
+                                description:
+                                  "Number of total upvotes for this theme.",
+                              },
+                              commentCount: {
+                                type: "number",
+                                description:
+                                  "Number of total comments for this theme.",
+                              },
+                              status: {
+                                type: "string",
+                                description:
+                                  "Majority status: 'under consideration', 'planned', 'in progress', 'done', 'declined', or null.",
+                                enum: [
+                                  "under consideration",
+                                  "planned",
+                                  "in progress",
+                                  "done",
+                                  "declined",
+                                  null,
+                                ],
+                              },
+                              category: {
+                                type: "string",
+                                description:
+                                  "Majority category: 'feature request', 'bug report', 'general feedback', or null.",
+                                enum: [
+                                  "feature request",
+                                  "bug report",
+                                  "general feedback",
+                                  null,
+                                ],
+                              },
+                              ids: {
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                },
+                                description:
+                                  "Original feedback post ids of type uuidv4.",
+                              },
+                              priority: {
+                                type: "number",
+                                description: "0-100 score.",
+                              },
+                            },
+                            required: [
+                              "title",
+                              "description",
+                              "upvotes",
+                              "commentCount",
+                              "status",
+                              "category",
+                              "ids",
+                              "priority",
+                            ],
+                          },
+                        },
+                      },
+                      required: ["insights"],
+                    },
+                  },
+                },
+              ],
+              tool_choice: {
+                type: "function",
+                function: {
+                  name: "insights_formatter",
+                },
+              },
+              messages: [
+                {
+                  role: "system",
+                  content: [
+                    {
+                      type: "text",
+                      text: systemPrompt,
+                    },
+                  ],
+                },
+                {
+                  role: "user",
+                  content: [
+                    {
+                      type: "text",
+                      text: userPrompt,
+                    },
+                  ],
+                },
+              ],
+              temperature: 0.1,
+            }),
           },
-          body: JSON.stringify({
-            model: "google/gemini-2.0-flash-001",
-            messages: [
-              {
-                role: "system",
-                content: [
-                  {
-                    type: "text",
-                    text: systemPrompt,
-                  },
-                ],
-              },
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: userPrompt,
-                  },
-                ],
-              },
-            ],
-            temperature: 0.3,
-            response_format: { type: "json_object" },
-          }),
-        },
-      );
+        );
 
-      const data = await response.json();
+        const data = await response.json();
 
-      const insightsOutputString = data?.choices?.[0]?.message
-        ?.content as string;
+        const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
 
-      if (!insightsOutputString || insightsOutputString.length === 0) {
-        throw new Error("insightsOutputString is empty");
+        if (!toolCall || toolCall.type !== "function") {
+          throw new Error("Invalid tool call in response");
+        }
+
+        const insightsOutputString = toolCall.function.arguments;
+
+        if (!insightsOutputString || insightsOutputString.length === 0) {
+          throw new Error("insightsOutputString is empty");
+        }
+
+        const insightsOutput = insightsOutputSchema.parse(
+          JSON.parse(insightsOutputString).insights,
+        );
+
+        if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
+          throw new Error("insightsOutput is not a valid JSON array");
+        }
+
+        const result = await createInsightsQuery(
+          insightsOutput.map((item) => ({
+            orgId: ctx.orgId,
+            title: item.title,
+            description: item.description,
+            upvotes: Number(item?.upvotes || 0),
+            commentCount: Number(item?.commentCount || 0),
+            status: item.status,
+            category: item.category,
+            ids: item.ids,
+            priority: Number(item?.priority || 0),
+          })),
+        );
+
+        return result;
+      } catch (error) {
+        console.log(error);
+
+        retries--;
+
+        if (retries === 0) {
+          throw error;
+        }
       }
-
-      const insightsOutput: InsightsOutputItem[] =
-        JSON.parse(insightsOutputString);
-
-      if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
-        throw new Error("insightsOutput is not a valid JSON array");
-      }
-
-      const result = await createInsightsQuery(
-        insightsOutput.map((item) => ({
-          orgId: ctx.orgId,
-          title: item.title,
-          description: item.description,
-          upvotes: Number(item?.upvotes || 0),
-          commentCount: Number(item?.commentCount || 0),
-          status: item.status,
-          category: item.category,
-          ids: item.ids,
-          priority: Number(item?.priority || 0),
-        })),
-      );
-
-      return result;
-    } catch (error) {
-      console.log(error);
-      throw error;
     }
   }
 });
