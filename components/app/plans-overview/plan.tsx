@@ -50,7 +50,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                   {isActiveSubscription ? (
                     <span className="flex flex-wrap items-end text-sm">
                       <span className="-mb-0.5 text-2xl">${amount}</span>/
-                      {frequency}, billed{" "}
+                      {frequency} - billed{" "}
                       {frequency === "month" ? "monthly" : "yearly"}
                     </span>
                   ) : (
@@ -96,16 +96,18 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>Generate up to {roadmapLimit(planName)} roadmaps/month</span>
+            <span>
+              Generate up to {roadmapLimit(planName)} roadmaps per month
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>
-              For each roadmap, our AI processes up to{" "}
+              Our AI analyses up to{" "}
               {analyzablePostLimit(planName).toLocaleString("en", {
                 useGrouping: true,
               })}{" "}
-              feedback posts.
+              feedback posts per roadmap
             </span>
           </div>
           <div className="flex items-center gap-1.5">
