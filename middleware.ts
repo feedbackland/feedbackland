@@ -20,9 +20,15 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
-const upsertOrg = async ({ orgId }: { orgId: string }) => {
+const upsertOrg = async ({
+  orgId,
+  origin,
+}: {
+  orgId: string;
+  origin: string;
+}) => {
   try {
-    const response = await fetch(`/api/org/upsert-org`, {
+    const response = await fetch(`${origin}/api/org/upsert-org`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,6 +62,7 @@ export async function middleware(req: NextRequest) {
 
       const orgSubdomain = await upsertOrg({
         orgId,
+        origin,
       });
 
       const redirectUrl = isLocalhost
