@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
-import { getMaindomain, getSubdomain } from "@/lib/utils";
+import { getIsLocalHost, getMaindomain, getSubdomain } from "@/lib/utils";
 
 export const config = {
   matcher: [
@@ -47,10 +47,10 @@ const upsertOrg = async ({
 export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
   const url = req.nextUrl.clone();
-  const host = req.headers.get("host");
+  // const host = req.headers.get("host");
   const { pathname, search, origin, protocol } = url;
-  const isLocalhost = host?.includes("localhost");
   const urlString = url.toString();
+  const isLocalhost = getIsLocalHost(urlString);
   const subdomain = getSubdomain(urlString);
 
   if (subdomain && subdomain.length > 0) {

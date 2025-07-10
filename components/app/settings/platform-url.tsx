@@ -14,12 +14,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, navigateToSubdomain } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useMaindomain } from "@/hooks/use-maindomain";
 import { orgSubdomainSchema } from "@/lib/schemas";
 
 const FormSchema = z.object({
@@ -34,8 +33,6 @@ export function PlatformUrl({
   const {
     query: { data },
   } = useOrg();
-
-  const maindomain = useMaindomain();
 
   const updateOrg = useUpdateOrg();
 
@@ -57,14 +54,7 @@ export function PlatformUrl({
       const { orgSubdomain: subdomain } = await updateOrg.mutateAsync({
         orgSubdomain: formData.orgSubdomain,
       });
-
-      const { protocol, port } = window.location;
-      const isLocalhost = maindomain?.includes("localhost");
-      const url = isLocalhost
-        ? `${protocol}//${maindomain}:${port}/${subdomain}/admin/settings`
-        : `${protocol}//${subdomain}.${maindomain}/admin/settings`;
-      window.location.href = url;
-
+      navigateToSubdomain({ subdomain });
       setIsEditing(false);
     } catch (error) {
       if (error instanceof Error && error?.message?.includes("duplicate key")) {

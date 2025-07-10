@@ -53,6 +53,13 @@ const getUrlObject = (urlString?: string | null) => {
   return null;
 };
 
+export const getIsLocalHost = (urlString?: string | null) => {
+  const url = getUrlObject(urlString);
+  if (!url) return false;
+  const { host } = url;
+  return host?.includes("localhost");
+};
+
 export const getSubdomain = (urlString?: string | null) => {
   const url = getUrlObject(urlString);
 
@@ -60,7 +67,9 @@ export const getSubdomain = (urlString?: string | null) => {
 
   const { hostname, pathname } = url;
 
-  if (hostname.includes("localhost")) {
+  const isLocalHost = getIsLocalHost(urlString);
+
+  if (isLocalHost) {
     const segments = pathname.split("/").filter(Boolean);
     return segments.length > 0 ? segments[0] : "";
   }
@@ -75,15 +84,15 @@ export const getMaindomain = (urlString?: string) => {
 
   if (!url) return null;
 
-  const { hostname } = url;
+  const { hostname, host } = url;
 
-  if (hostname.includes("localhost")) {
-    return "localhost";
-  }
+  const isLocalHost = getIsLocalHost(urlString);
+
+  if (isLocalHost) return host;
 
   const parts = hostname.split(".");
 
-  return parts.length <= 2 ? hostname : parts.slice(-2).join(".");
+  return parts.length > 1 ? parts.slice(-2).join(".") : hostname;
 };
 
 export const getPlatformUrl = (urlString?: string) => {
@@ -91,16 +100,28 @@ export const getPlatformUrl = (urlString?: string) => {
 
   if (!url) return null;
 
-  if (!url.hostname.includes("localhost")) {
-    return `${url.protocol}//${url.hostname}`;
-  } else {
-    const pathParts = url.pathname.split("/");
+  const { pathname, protocol, hostname, host } = url;
 
-    if (pathParts.length > 1 && pathParts[1]) {
-      return `${url.protocol}//${url.hostname}:${url.port}/${pathParts[1]}`;
-    }
+  const isLocalHost = getIsLocalHost(urlString);
 
-    return `${url.protocol}//${url.hostname}:${url.port}`;
+  if (!isLocalHost) return `${protocol}//${hostname}`;
+
+  const parts = pathname.split("/");
+
+  const orgName = parts?.[1];
+
+  return `${protocol}//${host}${orgName ? `/${orgName}` : ""}`;
+};
+
+export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
+  if (subdomain) {
+    const { protocol } = window.location;
+    const isLocalhost = getIsLocalHost();
+    const maindomain = getMaindomain();
+    const url = isLocalhost
+      ? `${protocol}//${maindomain}/${subdomain}`
+      : `${protocol}//${subdomain}.${maindomain}`;
+    window.location.href = url;
   }
 };
 
