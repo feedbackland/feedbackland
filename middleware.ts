@@ -22,16 +22,13 @@ const isUUID = (uuid: string) => {
 
 const upsertOrg = async ({ orgId }: { orgId: string }) => {
   try {
-    const response = await fetch(
-      `${process.env.API_BASE_URL}/api/org/upsert-org`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orgId }),
+    const response = await fetch(`/api/org/upsert-org`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ orgId }),
+    });
 
     const orgSubdomain: string = await response.json();
 
