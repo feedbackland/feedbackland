@@ -57,7 +57,7 @@ export const getIsLocalHost = (urlString?: string | null) => {
   const url = getUrlObject(urlString);
   if (!url) return false;
   const { host } = url;
-  return host?.includes("localhost");
+  return host?.includes("localhost") || host?.includes("vercel.app");
 };
 
 export const getSubdomain = (urlString?: string | null) => {
