@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getIsSelfHosted, getMaindomain } from "@/lib/utils";
+import { getIsSelfHosted, getOriginUrl } from "@/lib/utils";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -70,6 +70,8 @@ export function CreateOrgCard({
 
   const isSelfHosted = getIsSelfHosted();
 
+  const originUrl = getOriginUrl();
+
   return (
     <Card className="w-full max-w-[400px]">
       <CardHeader>
@@ -93,14 +95,14 @@ export function CreateOrgCard({
                   <FormLabel>Platform url</FormLabel>
                   <FormControl className="">
                     <div className="flex items-center">
-                      {isSelfHosted && typeof window !== "undefined" && (
-                        <span className="mr-2 text-sm">
-                          {window.location.origin + "/"}
-                        </span>
+                      {isSelfHosted && originUrl && (
+                        <span className="mr-2 text-sm">{originUrl + "/"}</span>
                       )}
                       <Input
                         {...field}
-                        placeholder="subdomain"
+                        placeholder={
+                          isSelfHosted ? "subdirectory" : "subdomain"
+                        }
                         className="text-sm"
                       />
                       {!isSelfHosted && (

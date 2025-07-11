@@ -113,6 +113,14 @@ export const getPlatformUrl = (urlString?: string) => {
   return `${protocol}//${host}${orgName ? `/${orgName}` : ""}`;
 };
 
+export const getOriginUrl = (urlString?: string) => {
+  const url = getUrlObject(urlString);
+
+  if (!url) return null;
+
+  return url.origin;
+};
+
 export const getVercelUrl = () => {
   if (process?.env?.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;

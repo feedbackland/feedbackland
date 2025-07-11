@@ -25,7 +25,6 @@ import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { orgSubdomainSchema } from "@/lib/schemas";
-import { Label } from "@/components/ui/label";
 
 const FormSchema = z.object({
   orgSubdomain: orgSubdomainSchema,
