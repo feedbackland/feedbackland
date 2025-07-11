@@ -63,7 +63,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "bg-primary mb-5 flex w-full items-center justify-center rounded-lg px-3 py-2",
+            "bg-primary mb-6 flex w-full items-center justify-center rounded-lg px-3 py-2",
             hideBanner && "hidden",
             className,
           )}

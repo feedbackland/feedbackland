@@ -586,6 +586,17 @@ export interface Subscriptions {
   validUntil: Timestamp | null;
 }
 
+export interface SupabaseMigrationsSchemaMigrations {
+  name: string | null;
+  statements: string[] | null;
+  version: string;
+}
+
+export interface SupabaseMigrationsSeedFiles {
+  hash: string;
+  path: string;
+}
+
 export interface User {
   createdAt: Generated<Timestamp>;
   email: string;
@@ -671,6 +682,8 @@ export interface DB {
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
   subscriptions: Subscriptions;
+  "supabase_migrations.schema_migrations": SupabaseMigrationsSchemaMigrations;
+  "supabase_migrations.seed_files": SupabaseMigrationsSeedFiles;
   user: User;
   user_org: UserOrg;
   user_upvote: UserUpvote;
