@@ -14,8 +14,9 @@ export const claimOrg = userProcedure.mutation(
 
       if (userEmail) {
         const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
+        const isSelfHosted = process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
 
-        if (process?.env?.NEXT_PUBLIC_SELF_HOSTED !== "true") {
+        if (!isSelfHosted) {
           await resend.emails.send({
             from: "Feedbackland <hello@feedbackland.com>",
             to: [userEmail],

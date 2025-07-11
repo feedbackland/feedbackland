@@ -281,13 +281,15 @@ export const getPriorityColor = (priorityScore: number) => {
 };
 
 export const getOverlayWidgetCodeSnippet = ({ orgId }: { orgId: string }) => {
-  if (process?.env?.NEXT_PUBLIC_SELF_HOSTED !== "true") {
+  const isSelfHosted = process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
+
+  if (isSelfHosted) {
     return `import { OverlayWidget } from "feedbackland-react";
 
     function FeedbackButton() {
       return (
         <OverlayWidget
-          id="${orgId}"
+          url="<YOUR FEEDBACKLAND PLATFORM URL>"
           mode="dark" // light or dark, defaults to dark
         >
           <button>Feedback</button> {/*bring your own button */}
@@ -301,7 +303,7 @@ export const getOverlayWidgetCodeSnippet = ({ orgId }: { orgId: string }) => {
   function FeedbackButton() {
     return (
       <OverlayWidget
-        url="<YOUR FEEDBACKLAND PLATFORM URL>"
+        id="${orgId}"
         mode="dark" // light or dark, defaults to dark
       >
         <button>Feedback</button> {/*bring your own button */}
