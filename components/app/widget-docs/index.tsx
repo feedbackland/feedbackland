@@ -6,12 +6,17 @@ import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export function WidgetDocs({
   orgId,
+  orgSubdomain,
   showTitle = true,
 }: {
   orgId: string;
+  orgSubdomain: string;
   showTitle?: boolean;
 }) {
-  const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
+  const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
+    orgId,
+    orgSubdomain,
+  });
 
   return (
     <div className="flex flex-col text-left">

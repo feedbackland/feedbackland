@@ -23,6 +23,7 @@ export function ClaimOrgBanner({
     query: { data: org },
   } = useOrg();
   const orgId = org?.id;
+  const orgSubdomain = org?.orgSubdomain;
   const isOrgClaimed = org?.isClaimed;
   const isSignedIn = !!session;
 
@@ -52,13 +53,16 @@ export function ClaimOrgBanner({
 
   return (
     <>
-      <ClaimOrgDialog
-        open={isDialogOpen}
-        initialSelectedStep="sign-up-in"
-        orgId={orgId || undefined}
-        onClose={handleCloseDialog}
-        onClaimed={onClaimed}
-      />
+      {orgId && orgSubdomain && (
+        <ClaimOrgDialog
+          open={isDialogOpen}
+          initialSelectedStep="sign-up-in"
+          orgId={orgId}
+          orgSubdomain={orgSubdomain}
+          onClose={handleCloseDialog}
+          onClaimed={onClaimed}
+        />
+      )}
 
       {isOrgClaimed === false && (
         <div

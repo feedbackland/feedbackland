@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getIsSelfHosted, getMaindomain } from "@/lib/utils";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -67,6 +68,8 @@ export function CreateOrgCard({
     }
   };
 
+  const isSelfHosted = getIsSelfHosted();
+
   return (
     <Card className="w-full max-w-[400px]">
       <CardHeader>
@@ -90,12 +93,19 @@ export function CreateOrgCard({
                   <FormLabel>Platform url</FormLabel>
                   <FormControl className="">
                     <div className="flex items-center">
+                      {isSelfHosted && typeof window !== "undefined" && (
+                        <span className="mr-2 text-sm">
+                          {window.location.origin + "/"}
+                        </span>
+                      )}
                       <Input
                         {...field}
                         placeholder="subdomain"
                         className="text-sm"
                       />
-                      <span className="ml-2 text-sm">.feedbackland.com</span>
+                      {!isSelfHosted && (
+                        <span className="ml-2 text-sm">.feedbackland.com</span>
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage />

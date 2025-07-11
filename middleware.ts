@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
-import { getIsLocalHost, getMaindomain, getSubdomain } from "@/lib/utils";
+import { getIsSubdirOrg, getMaindomain, getSubdomain } from "@/lib/utils";
 
 export const config = {
   matcher: [
@@ -50,7 +50,7 @@ export async function middleware(req: NextRequest) {
   // const host = req.headers.get("host");
   const { pathname, search, origin, protocol } = url;
   const urlString = url.toString();
-  const isLocalhost = getIsLocalHost(urlString);
+  const isSubdirOrg = getIsSubdirOrg(urlString);
   const subdomain = getSubdomain(urlString);
 
   if (subdomain && subdomain.length > 0) {
@@ -65,14 +65,14 @@ export async function middleware(req: NextRequest) {
         origin,
       });
 
-      const redirectUrl = isLocalhost
+      const redirectUrl = isSubdirOrg
         ? `${origin}/${orgSubdomain}${search}`
         : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;
 
       response = NextResponse.redirect(redirectUrl);
     }
 
-    if (!isUUIDSubdomain && !isLocalhost) {
+    if (!isUUIDSubdomain && !isSubdirOrg) {
       const newUrl = `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }

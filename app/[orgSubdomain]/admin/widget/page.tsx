@@ -9,6 +9,6 @@ export default function AdminWidgetPage() {
   } = useOrg();
 
   if (org && org.id) {
-    return <WidgetDocs orgId={org.id} />;
+    return <WidgetDocs orgId={org.id} orgSubdomain={org.orgSubdomain} />;
   }
 }

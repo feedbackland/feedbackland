@@ -2,7 +2,7 @@ import { userProcedure } from "@/lib/trpc";
 import { claimOrgQuery } from "@/queries/claim-org";
 import { resend } from "@/lib/resend";
 import { WelcomeEmail } from "@/components/emails/welcome";
-import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
+import { getIsSelfHosted, getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export const claimOrg = userProcedure.mutation(
   async ({ ctx: { userId, userEmail, orgId } }) => {
@@ -12,21 +12,23 @@ export const claimOrg = userProcedure.mutation(
         orgId,
       });
 
-      if (userEmail) {
-        const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
-        const isSelfHosted = process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
+      const isSelfHosted = getIsSelfHosted();
 
-        if (!isSelfHosted) {
-          await resend.emails.send({
-            from: "Feedbackland <hello@feedbackland.com>",
-            to: [userEmail],
-            subject: "Your Feedbackland platform is ready!",
-            react: WelcomeEmail({
-              orgId,
-              overlayWidgetCodeSnippet,
-            }),
-          });
-        }
+      if (userEmail && !isSelfHosted) {
+        const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
+          orgId,
+          orgSubdomain: org.orgSubdomain,
+        });
+
+        await resend.emails.send({
+          from: "Feedbackland <hello@feedbackland.com>",
+          to: [userEmail],
+          subject: "Your Feedbackland platform is ready!",
+          react: WelcomeEmail({
+            orgId,
+            overlayWidgetCodeSnippet,
+          }),
+        });
       }
 
       return org;

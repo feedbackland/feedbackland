@@ -8,7 +8,7 @@ import type { AppRouter } from "@/trpc";
 import { auth } from "@/lib/firebase/client";
 import { Auth, getIdToken } from "firebase/auth";
 import superjson from "superjson";
-import { getSubdomain } from "@/lib/utils";
+import { getSubdomain, getVercelUrl } from "@/lib/utils";
 
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();
@@ -50,11 +50,8 @@ const getBaseUrl = () => {
   // browser should use relative url
   if (typeof window !== "undefined") return "";
 
-  // use Vercel URL if deployed there
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-
-  // fallback to localhost for development
-  return `http://localhost:${process.env.PORT ?? 3000}`;
+  // fallback
+  return getVercelUrl() || `http://localhost:${process.env.PORT ?? 3000}`;
 };
 
 export const TRPCClientProvider = ({

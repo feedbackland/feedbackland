@@ -14,12 +14,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, navigateToSubdomain } from "@/lib/utils";
+import {
+  cn,
+  getIsSelfHosted,
+  getPlatformUrl,
+  navigateToSubdomain,
+} from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { orgSubdomainSchema } from "@/lib/schemas";
+import { Label } from "@/components/ui/label";
 
 const FormSchema = z.object({
   orgSubdomain: orgSubdomainSchema,
@@ -75,6 +81,12 @@ export function PlatformUrl({
     form.clearErrors();
   };
 
+  const isSelfHosted = getIsSelfHosted();
+
+  const url = !isSelfHosted
+    ? `${data?.orgSubdomain}.feedbackland.com`
+    : getPlatformUrl();
+
   return (
     <div className={cn("", className)}>
       <div className="flex items-start gap-6">
@@ -104,9 +116,7 @@ export function PlatformUrl({
                           </div>
                         </div>
                       ) : (
-                        <div className="text-primary text-sm">
-                          {`${data?.orgSubdomain}.feedbackland.com`}
-                        </div>
+                        <div className="text-primary text-sm">{url}</div>
                       )}
                     </FormControl>
                     <FormMessage />
@@ -130,29 +140,31 @@ export function PlatformUrl({
             </form>
           </Form>
         </div>
-        <div className="-mt-2.5">
-          {isEditing ? (
-            <Button
-              className=""
-              size="sm"
-              variant="outline"
-              onClick={handleOnCancel}
-            >
-              <XIcon className="size-3.5" />
-              Cancel
-            </Button>
-          ) : (
-            <Button
-              className=""
-              size="sm"
-              variant="outline"
-              onClick={() => setIsEditing(true)}
-            >
-              <PenIcon className="size-3" />
-              Edit
-            </Button>
-          )}
-        </div>
+        {!isSelfHosted && (
+          <div className="-mt-2.5">
+            {isEditing ? (
+              <Button
+                className=""
+                size="sm"
+                variant="outline"
+                onClick={handleOnCancel}
+              >
+                <XIcon className="size-3.5" />
+                Cancel
+              </Button>
+            ) : (
+              <Button
+                className=""
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+              >
+                <PenIcon className="size-3" />
+                Edit
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

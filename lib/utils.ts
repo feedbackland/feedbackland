@@ -53,7 +53,7 @@ const getUrlObject = (urlString?: string | null) => {
   return null;
 };
 
-export const getIsLocalHost = (urlString?: string | null) => {
+export const getIsSubdirOrg = (urlString?: string | null) => {
   const url = getUrlObject(urlString);
   if (!url) return false;
   const { host } = url;
@@ -67,9 +67,9 @@ export const getSubdomain = (urlString?: string | null) => {
 
   const { hostname, pathname } = url;
 
-  const isLocalHost = getIsLocalHost(urlString);
+  const isSubdirOrg = getIsSubdirOrg(urlString);
 
-  if (isLocalHost) {
+  if (isSubdirOrg) {
     const segments = pathname.split("/").filter(Boolean);
     return segments.length > 0 ? segments[0] : "";
   }
@@ -86,9 +86,9 @@ export const getMaindomain = (urlString?: string) => {
 
   const { hostname, host } = url;
 
-  const isLocalHost = getIsLocalHost(urlString);
+  const isSubdirOrg = getIsSubdirOrg(urlString);
 
-  if (isLocalHost) return host;
+  if (isSubdirOrg) return host;
 
   const parts = hostname.split(".");
 
@@ -102,9 +102,9 @@ export const getPlatformUrl = (urlString?: string) => {
 
   const { pathname, protocol, hostname, host } = url;
 
-  const isLocalHost = getIsLocalHost(urlString);
+  const isSubdirOrg = getIsSubdirOrg(urlString);
 
-  if (!isLocalHost) return `${protocol}//${hostname}`;
+  if (!isSubdirOrg) return `${protocol}//${hostname}`;
 
   const parts = pathname.split("/");
 
@@ -113,16 +113,36 @@ export const getPlatformUrl = (urlString?: string) => {
   return `${protocol}//${host}${orgName ? `/${orgName}` : ""}`;
 };
 
+export const getVercelUrl = () => {
+  if (process?.env?.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  } else if (process?.env?.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  return;
+};
+
 export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
   if (subdomain) {
     const { protocol } = window.location;
-    const isLocalhost = getIsLocalHost();
+    const isSubdirOrg = getIsSubdirOrg();
     const maindomain = getMaindomain();
-    const url = isLocalhost
+    const url = isSubdirOrg
       ? `${protocol}//${maindomain}/${subdomain}`
       : `${protocol}//${subdomain}.${maindomain}`;
     window.location.href = url;
   }
+};
+
+export const getIsSelfHosted = () => {
+  if (process?.env?.SELF_HOSTED) {
+    return process.env.SELF_HOSTED === "true";
+  } else if (process?.env?.NEXT_PUBLIC_SELF_HOSTED) {
+    return process.env.NEXT_PUBLIC_SELF_HOSTED === "true";
+  }
+
+  return false;
 };
 
 export const base64ToBlob = ({
@@ -280,16 +300,28 @@ export const getPriorityColor = (priorityScore: number) => {
   }
 };
 
-export const getOverlayWidgetCodeSnippet = ({ orgId }: { orgId: string }) => {
-  const isSelfHosted = process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
+export const getOverlayWidgetCodeSnippet = ({
+  orgId,
+  orgSubdomain,
+}: {
+  orgId: string;
+  orgSubdomain: string;
+}) => {
+  const isSelfHosted = getIsSelfHosted();
 
   if (isSelfHosted) {
+    const vercelUrl = getVercelUrl();
+
+    const url = vercelUrl
+      ? `${vercelUrl}/${orgSubdomain}`
+      : `http://localhost:${process.env.PORT ?? 3000}/${orgSubdomain}`;
+
     return `import { OverlayWidget } from "feedbackland-react";
 
     function FeedbackButton() {
       return (
         <OverlayWidget
-          url="<YOUR FEEDBACKLAND PLATFORM URL>"
+          url="${url}"
           mode="dark" // light or dark, defaults to dark
         >
           <button>Feedback</button> {/*bring your own button */}
