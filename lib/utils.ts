@@ -280,22 +280,35 @@ export const getPriorityColor = (priorityScore: number) => {
   }
 };
 
-export const getOverlayWidgetCodeSnippet = ({
-  orgId,
-}: {
-  orgId: string;
-}) => `import { OverlayWidget } from "feedbackland-react";
+export const getOverlayWidgetCodeSnippet = ({ orgId }: { orgId: string }) => {
+  if (process?.env?.NEXT_PUBLIC_SELF_HOSTED !== "true") {
+    return `import { OverlayWidget } from "feedbackland-react";
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget
-      id="${orgId}"
-      mode="dark" // light or dark, defaults to dark
-    >
-      <button>Feedback</button> {/*bring your own button */}
-    </OverlayWidget>
-  );
-}`;
+    function FeedbackButton() {
+      return (
+        <OverlayWidget
+          id="${orgId}"
+          mode="dark" // light or dark, defaults to dark
+        >
+          <button>Feedback</button> {/*bring your own button */}
+        </OverlayWidget>
+      );
+    }`;
+  }
+
+  return `import { OverlayWidget } from "feedbackland-react";
+
+  function FeedbackButton() {
+    return (
+      <OverlayWidget
+        url="<YOUR FEEDBACKLAND PLATFORM URL>"
+        mode="dark" // light or dark, defaults to dark
+      >
+        <button>Feedback</button> {/*bring your own button */}
+      </OverlayWidget>
+    );
+  }`;
+};
 
 export const roadmapLimit = (plan: string) => {
   if (plan === "free") {

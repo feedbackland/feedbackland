@@ -15,15 +15,17 @@ export const claimOrg = userProcedure.mutation(
       if (userEmail) {
         const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({ orgId });
 
-        await resend.emails.send({
-          from: "Feedbackland <hello@feedbackland.com>",
-          to: [userEmail],
-          subject: "Your Feedbackland platform is ready!",
-          react: WelcomeEmail({
-            orgId,
-            overlayWidgetCodeSnippet,
-          }),
-        });
+        if (process?.env?.NEXT_PUBLIC_SELF_HOSTED !== "true") {
+          await resend.emails.send({
+            from: "Feedbackland <hello@feedbackland.com>",
+            to: [userEmail],
+            subject: "Your Feedbackland platform is ready!",
+            react: WelcomeEmail({
+              orgId,
+              overlayWidgetCodeSnippet,
+            }),
+          });
+        }
       }
 
       return org;
