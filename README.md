@@ -1,3 +1,7 @@
+# About Feedbackland
+
+Feedbackland was born from a simple idea: product roadmaps shouldn't be based on guesswork. We saw teams drowning in user feedback, struggling to separate the signal from the noise. Our solution is an open-source feedback platform that does the heavy lifting for you. With an easily embeddable widget, you can capture valuable ideas directly in-app. But the real magic is our 'AI Roadmap' feature, which automatically analyzes, aggregates, and transforms raw feedback into a clear, prioritized plan, so you can stop guessing and start building what your users truly want with confidence.
+
 # Self-Hosting Feedbackland 🚀
 
 Welcome to the self-hosting guide for Feedbackland! Follow these steps to get your own instance of the platform up and running.
