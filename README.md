@@ -110,7 +110,7 @@ Next, you'll need to get API keys for Resend, Google AI Studio, and OpenRouter.
     * Create a Resend account and generate an API key.
     * Add this key to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
 
-* **Google AI Studio (Gemini):**
+* **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
     * Add this key to your `.env` file: `GEMINI_API_KEY=your_gemini_api_key`
 
