@@ -43,7 +43,7 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       amount: "0",
       name: isSelfHosted ? "max" : "free",
       activeSubscription: isSelfHosted ? "max" : "free",
-      frequency: "year",
+      frequency: "month",
       isExpired: false,
     } satisfies Subscription;
   } catch (error) {
