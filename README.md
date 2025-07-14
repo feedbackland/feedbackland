@@ -32,7 +32,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
     ```
 2.  **Navigate to the project directory:**
     ```bash
-    cd feedbackland-test-deploy
+    cd feedbackland
     ```
 3.  **Create your environment file:**
     Rename the example environment file as a starting point to create your own.
