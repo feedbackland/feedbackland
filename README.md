@@ -26,7 +26,7 @@ Before you begin, make sure you have accounts for the following services:
 First, you'll need to get the Feedbackland source code onto your local machine.
 
 1.  **Download the repository:**
-    You can either clone the repository or download the source code as a zip file.
+    You can either clone the repository or download the source code as a zip file at https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip.
     ```bash
     git clone [https://github.com/feedbackland/feedbackland.git](https://github.com/feedbackland/feedbackland.git)
     ```
