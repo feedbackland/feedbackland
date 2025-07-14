@@ -62,7 +62,7 @@ Next, let's configure your Supabase project for the database and file storage.
     * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
-    * In your terminal, run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete connection string:
+    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete connection string:
         ```bash
         psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
