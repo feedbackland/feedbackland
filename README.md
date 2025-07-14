@@ -1,4 +1,4 @@
-<img width="2473" height="1608" alt="Frame 581" src="https://github.com/user-attachments/assets/693f6072-9171-4b23-ac07-dc88983b53ee" />
+<img width="2473" height="1885" alt="Frame 581" src="https://github.com/user-attachments/assets/60938bfb-1cba-4a6c-bd58-eccacf701d9d" />
 
 ## About Feedbackland
 
