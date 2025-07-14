@@ -14,7 +14,7 @@ Before you begin, make sure you have accounts for the following services:
 * **Transactional Emails:**
     * [Resend](https://resend.com) (for sending emails)
 * **AI Services:**
-    * [Google AI Studio](https://aistudio.google.com/) (for generating text embeddings with Gemini)
+    * [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
     * [OpenRouter](https://openrouter.ai) (for other AI-related tasks)
 * **Code Management:**
     * [GitHub](https://github.com) (for repository management)
@@ -52,14 +52,14 @@ Next, let's configure your Supabase project for the database and file storage.
     * Navigate to **Database** > **Extensions**.
     * Search for `vector` and enable the extension.
 3.  **Disable the Data API:**
-    * Go to **Project Settings** > **API**.
+    * Go to **Project Settings** > **Data API**.
     * Under the **Config** section, toggle off **Enable Data API**.
 4.  **Create a storage bucket:**
     * Go to **Storage** from the sidebar.
     * Click on **New bucket**.
     * Name the bucket `images` and turn on **Public bucket**.
 5.  **Run the database schema script:**
-    * In your Supabase project, navigate to the **Connect** section in the top bar.
+    * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
     * In your terminal, run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete connection string:
@@ -75,7 +75,7 @@ Next, let's configure your Supabase project for the database and file storage.
         * Go to **Project Settings** > **General**.
         * Copy the **Project ID** and paste it into the `NEXT_PUBLIC_SUPABASE_PROJECT_ID` field in your `.env` file.
     * `NEXT_PUBLIC_SUPABASE_ANON_KEY`:
-        * Go to **Project Settings** > **API**.
+        * Go to **Project Settings** > **API Keys**.
         * Copy the `anon` **public** key and paste it into the `NEXT_PUBLIC_SUPABASE_ANON_KEY` field in your `.env` file.
 
 ---
@@ -91,7 +91,7 @@ Now, let's set up Firebase for user authentication.
     * Paste your Firebase config into this file.
 3.  **Enable authentication providers:**
     * In the Firebase console, go to the **Authentication** section.
-    * Enable the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
+    * Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
 4.  **Add Firebase service account credentials to your `.env` file:**
     * Go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
@@ -136,5 +136,6 @@ Finally, let's deploy your Feedbackland instance using GitHub and Vercel.
 3.  **Finalize your platform setup:**
     * Once the deployment is complete, navigate to `<your-vercel-url>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
     * Enter the name for your platform and click **Create platform**.
+    * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
 
 Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
