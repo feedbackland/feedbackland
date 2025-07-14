@@ -143,10 +143,18 @@ export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
   }
 };
 
-export const getIsSelfHosted = () => {
-  if (process?.env?.SELF_HOSTED) {
+export const getIsSelfHosted = (
+  context: "server" | "client" | "all" = "all",
+) => {
+  if (
+    process?.env?.SELF_HOSTED &&
+    (context === "server" || context === "all")
+  ) {
     return process.env.SELF_HOSTED === "true";
-  } else if (process?.env?.NEXT_PUBLIC_SELF_HOSTED) {
+  } else if (
+    process?.env?.NEXT_PUBLIC_SELF_HOSTED &&
+    (context === "client" || context === "all")
+  ) {
     return process.env.NEXT_PUBLIC_SELF_HOSTED === "true";
   }
 
@@ -291,9 +299,9 @@ export const getPriorityLabel = (priorityScore: number) => {
     return "Medium priority";
   } else if (priorityScore < 95) {
     return "High priority";
-  } else {
-    return "Critical priority";
   }
+
+  return "Critical priority";
 };
 
 export const getPriorityColor = (priorityScore: number) => {
@@ -303,9 +311,9 @@ export const getPriorityColor = (priorityScore: number) => {
     return "green";
   } else if (priorityScore < 95) {
     return "orange";
-  } else {
-    return "red";
   }
+
+  return "red";
 };
 
 export const getOverlayWidgetCodeSnippet = ({

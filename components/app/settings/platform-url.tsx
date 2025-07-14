@@ -83,7 +83,7 @@ export function PlatformUrl({
   const isSelfHosted = getIsSelfHosted();
 
   const url = !isSelfHosted
-    ? `${data?.orgSubdomain}.feedbackland.com`
+    ? `https://${data?.orgSubdomain}.feedbackland.com`
     : getPlatformUrl();
 
   return (

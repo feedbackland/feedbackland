@@ -12,7 +12,7 @@ type Subscription = Partial<Selectable<Subscriptions>> & {
 
 export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
   try {
-    const isSelfHosted = getIsSelfHosted();
+    const isSelfHosted = getIsSelfHosted("server");
 
     const subscription = await db
       .selectFrom("subscriptions")

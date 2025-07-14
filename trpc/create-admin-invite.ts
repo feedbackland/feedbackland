@@ -3,6 +3,7 @@ import { adminProcedure } from "@/lib/trpc";
 import { createAdminInviteQuery } from "@/queries/create-admin-invite";
 import { resend } from "@/lib/resend";
 import { AdminInviteEmail } from "@/components/emails/admin-invite";
+import { getAdminLimit } from "./get-admin-limit";
 
 export const createAdminInvite = adminProcedure
   .input(
@@ -12,31 +13,33 @@ export const createAdminInvite = adminProcedure
       email: z.string().email(),
     }),
   )
-  .mutation(
-    async ({
-      input: { platformUrl, invitedBy, email },
-      ctx: { orgId, userId },
-    }) => {
-      try {
-        const adminInvite = await createAdminInviteQuery({
-          email,
-          orgId,
-          userId,
-        });
+  .mutation(async (opts) => {
+    try {
+      const { limitReached } = await getAdminLimit(opts as any);
 
-        await resend.emails.send({
-          from: "Feedbackland <hello@feedbackland.com>",
-          to: [email],
-          subject: "Feedbackland - Admin invitation",
-          react: AdminInviteEmail({
-            invitedBy,
-            inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
-          }),
-        });
+      if (limitReached) throw new Error("Admin limit reached");
 
-        return adminInvite;
-      } catch (error) {
-        throw error;
-      }
-    },
-  );
+      const {
+        input: { platformUrl, invitedBy, email },
+        ctx: { orgId, userId },
+      } = opts;
+
+      const adminInvite = await createAdminInviteQuery({
+        email,
+        orgId,
+        userId,
+      });
+
+      await resend.emails.send({
+        from: "Feedbackland <hello@feedbackland.com>",
+        to: [email],
+        subject: "Feedbackland - Admin invitation",
+        react: AdminInviteEmail({
+          invitedBy,
+          inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
+        }),
+      });
+    } catch (error) {
+      throw error;
+    }
+  });

@@ -12,7 +12,7 @@ export const claimOrg = userProcedure.mutation(
         orgId,
       });
 
-      const isSelfHosted = getIsSelfHosted();
+      const isSelfHosted = getIsSelfHosted("server");
 
       if (userEmail && !isSelfHosted) {
         const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
