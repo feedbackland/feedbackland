@@ -1,6 +1,6 @@
 # About Feedbackland
 
-Every founder knows the feeling: you launch a new feature, built on weeks of hard work and gut-feeling, only to be met with silence. The truth is, building in a vacuum is a gamble that rarely pays off. Feedbackland was created to turn that gamble into a certainty. It starts with our widget, which embeds in seconds to collect feedback from your users directtly in your app. As their ideas, feature requests and bug reports flow in, our AI becomes your guide, translating their collective voice into a clear, prioritized roadmap. So you can stop guessing and start building what users truly love.
+Every founder knows the feeling: you launch a new feature, built on weeks of hard work and gut-feeling, only to be met with silence. The truth is, building in a vacuum is a gamble that rarely pays off. Feedbackland was created to turn that gamble into a certainty. It starts with our widget, which embeds in seconds to collect feedback from your users directly in-app. As their ideas, suggestions, feature requests and bug reports flow in, our AI becomes your guide, translating their collective voice into a clear, prioritized roadmap. So you can stop guessing and start building what users truly love.
 
 # Self-Hosting Feedbackland 🚀
 
