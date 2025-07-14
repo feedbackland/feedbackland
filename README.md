@@ -1,14 +1,14 @@
 <img width="1667" height="1232" alt="image" src="https://github.com/user-attachments/assets/b63a97e1-5dfc-400e-8e1c-3c9b997110f8" />
 
-# About Feedbackland
+## About Feedbackland
 
 Every founder knows the feeling: you launch a new feature, built on weeks of hard work and gut-feeling, only to be met with silence. The truth is, building in a vacuum is a gamble that rarely pays off. Feedbackland was created to turn that gamble into a certainty. It starts with our widget, which embeds in seconds to collect feedback from your users directly in-app. As their ideas, suggestions, feature requests and bug reports flow in, our AI becomes your guide, translating their collective voice into a clear, prioritized roadmap. So you can stop guessing and start building what users truly love.
 
-# Self-Hosting Feedbackland 🚀
+## Self-Hosting Feedbackland
 
 Welcome to the self-hosting guide for Feedbackland! Follow these steps to get your own instance of the platform up and running.
 
-## Prerequisites
+### Prerequisites
 
 Before you begin, make sure you have accounts for the following services:
 
@@ -27,7 +27,7 @@ Before you begin, make sure you have accounts for the following services:
 
 ---
 
-## 1. Download the Source Code 📥
+### 1. Download the Source Code 📥
 
 First, you'll need to get the Feedbackland source code onto your local machine.
 
@@ -49,7 +49,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
 
 ---
 
-## 2. Supabase Setup 🐘
+### 2. Supabase Setup 🐘
 
 Next, let's configure your Supabase project for the database and file storage.
 
@@ -86,7 +86,7 @@ Next, let's configure your Supabase project for the database and file storage.
 
 ---
 
-## 3. Firebase Setup 🔥
+### 3. Firebase Setup 🔥
 
 Now, let's set up Firebase for user authentication.
 
@@ -108,7 +108,7 @@ Now, let's set up Firebase for user authentication.
 
 ---
 
-## 4. API Key Configuration 🔑
+### 4. API Key Configuration 🔑
 
 Next, you'll need to get API keys for Resend, Google AI Studio, and OpenRouter.
 
@@ -126,7 +126,7 @@ Next, you'll need to get API keys for Resend, Google AI Studio, and OpenRouter.
 
 ---
 
-## 5. GitHub and Vercel Deployment 🌐
+### 5. GitHub and Vercel Deployment 🌐
 
 Finally, let's deploy your Feedbackland instance using GitHub and Vercel.
 
