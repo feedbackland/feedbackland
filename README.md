@@ -28,7 +28,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
 1.  **Download the repository:**
     You can either clone the repository or download the source code as a zip file at https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip.
     ```bash
-    git clone [https://github.com/feedbackland/feedbackland.git](https://github.com/feedbackland/feedbackland.git)
+    git clone https://github.com/feedbackland/feedbackland.git
     ```
 2.  **Navigate to the project directory:**
     ```bash
