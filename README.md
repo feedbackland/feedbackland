@@ -35,7 +35,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
     cd feedbackland-test-deploy
     ```
 3.  **Create your environment file:**
-    Rename the example environment file to create your own.
+    Rename the example environment file as a starting point to create your own.
     ```bash
     mv .env.example .env
     ```
