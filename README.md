@@ -7,7 +7,6 @@ Feedbackland is an open-source widget, embedded in 30 seconds, that collects fee
 
 &nbsp;
 &nbsp;
-&nbsp;
 
 ## Embed in 30 seconds 🚀
 
