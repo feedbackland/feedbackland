@@ -12,8 +12,10 @@
    npm i feedbackland-react
    ```
 
+
 2. **Generate a UUID v4**  
    Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
+
 
 3. **Embed**  
    Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with your generated UUID:
