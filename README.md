@@ -5,7 +5,7 @@
 &nbsp;
 &nbsp;
 
-## 🚀 Embed in your app in 30 seconds
+## 🚀 Embed in 30 seconds
 
 1. **Install**  
    ```bash
