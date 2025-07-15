@@ -3,8 +3,7 @@
 
 &nbsp;
 
-Feedbackland is an open-source widget, embedded in 30 seconds, that collects feedback directly in your app and with AI transforms it into a prioritized product roadmap.<br />
-[Visit our website](https://feedbackland.com) for more information and a live preview.
+Feedbackland is an open-source widget, embedded in 30 seconds, that collects feedback directly in your app and with AI transforms it into a prioritized product roadmap. [Visit our website](https://feedbackland.com) for more information and a live preview.
 
 &nbsp;
 &nbsp;
