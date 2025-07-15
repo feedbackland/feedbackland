@@ -169,7 +169,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                                 "Number of total comments for this theme.",
                             },
                             status: {
-                              type: "string",
+                              type: ["string", "null"],
                               description:
                                 "Majority status: 'under consideration', 'planned', 'in progress', 'done', 'declined', or null.",
                               enum: [
@@ -182,7 +182,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
                               ],
                             },
                             category: {
-                              type: "string",
+                              type: ["string", "null"],
                               description:
                                 "Majority category: 'feature request', 'bug report', 'general feedback', or null.",
                               enum: [
