@@ -7,7 +7,7 @@
 
 ## Get Started
 
-Visit the [Feedbackland website](feedbackland.com) to get your widget up and running in 30 seconds.
+Visit the [Feedbackland website](https://feedbackland.com) to get your widget up and running in 30 seconds.
 
 &nbsp;
 &nbsp;
