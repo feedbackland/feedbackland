@@ -2,6 +2,10 @@
 <img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/5887c1fe-df27-4753-9a1d-7a1c808b0a27" />
 
 &nbsp;
+
+[Learn more](https://feedbackland.com)
+
+&nbsp;
 &nbsp;
 &nbsp;
 
@@ -25,7 +29,6 @@ function FeedbackButton() {
   );
 }
 ```
-That's it :)
 
 &nbsp;
 &nbsp;
