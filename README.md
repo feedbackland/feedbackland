@@ -29,7 +29,7 @@ function FeedbackButton() {
 }
 ```
 
-Congratulations! You've successfully embedded the Feedbackland widget.
+Congratulations! You've successfully embedded the Feedbackland widget. 🎉
 
 Next, claim ownership of your platform by clicking the **Claim ownership** button within the widget. Once that's done, deploy your app.
 
