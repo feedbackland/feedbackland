@@ -8,9 +8,9 @@
 ## 🚀 Get up and running in 30 seconds
 
 1. **Install**  
-   \`\`\`bash
+   ```bash
    npm install feedbackland-react
-   \`\`\`
+   ```
 
 2. **Generate a UUID v4**  
    Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
@@ -18,7 +18,7 @@
 3. **Embed**  
    Wrap your button in the widget—replace \`YOUR_UUID\` with your generated ID:
 
-   \`\`\`tsx
+   ```tsx
    import { OverlayWidget } from "feedbackland-react";
 
    function FeedbackButton() {
@@ -28,7 +28,7 @@
        </OverlayWidget>
      );
    }
-   \`\`\`
+   ```
 
 &nbsp;
 &nbsp;
