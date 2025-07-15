@@ -5,13 +5,12 @@
 &nbsp;
 &nbsp;
 
-## 🚀 Embed in 30 seconds
+## Embed in 30 seconds 🚀
 
 Install the package
 ```bash
 npm i feedbackland-react
 ```
-&nbsp;
 
 Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with [your generated UUID](https://www.uuidtools.com/v4)
 
@@ -26,6 +25,7 @@ function FeedbackButton() {
   );
 }
 ```
+That's it :)
 
 &nbsp;
 &nbsp;
