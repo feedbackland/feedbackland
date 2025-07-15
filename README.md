@@ -196,7 +196,7 @@ Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
 
 ### 6. Embed The Widget In Your App
 
-For installation instructions, navigate to: Admin Panel > Widget.
+Navigate to Admin Panel > Widget to get the code snippet to embed your Feedbackland platform in your app.
 
 &nbsp;
 &nbsp;
