@@ -36,7 +36,7 @@ Before you begin, make sure you have accounts for the following services:
 
 ---
 
-### 1. Download the Source Code 📥
+### 1. Download the Source Code
 
 First, you'll need to get the Feedbackland source code onto your local machine.
 
@@ -58,7 +58,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
 
 ---
 
-### 2. Supabase Setup 🐘
+### 2. Supabase Setup
 
 Next, let's configure your Supabase project for the database and file storage.
 
@@ -77,7 +77,7 @@ Next, let's configure your Supabase project for the database and file storage.
     * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
-    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete connection string:
+    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string:
         ```bash
         psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
@@ -95,7 +95,7 @@ Next, let's configure your Supabase project for the database and file storage.
 
 ---
 
-### 3. Firebase Setup 🔥
+### 3. Firebase Setup
 
 Now, let's set up Firebase for user authentication.
 
@@ -117,9 +117,9 @@ Now, let's set up Firebase for user authentication.
 
 ---
 
-### 4. API Key Configuration 🔑
+### 4. API Key Configuration
 
-Next, you'll need to get API keys for Resend, Google AI Studio, and OpenRouter.
+Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
 * **Resend:**
     * Create a Resend account and generate an API key.
@@ -135,9 +135,9 @@ Next, you'll need to get API keys for Resend, Google AI Studio, and OpenRouter.
 
 ---
 
-### 5. GitHub and Vercel Deployment 🌐
+### 5. GitHub and Vercel Deployment
 
-Finally, let's deploy your Feedbackland instance using GitHub and Vercel.
+Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 1.  **Push your code to GitHub:**
     * Create a new repository on GitHub.
@@ -154,3 +154,10 @@ Finally, let's deploy your Feedbackland instance using GitHub and Vercel.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
 
 Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
+
+---
+
+### 6. Embed The Widget In Your App
+
+In your platform navigate to the **Widget** tab inside of the Admin Panel to find the instructions to embed your Feedbackland platform into your own app
+
