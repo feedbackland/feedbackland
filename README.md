@@ -43,7 +43,7 @@ Before you begin, make sure you have accounts for the following services:
 * **Code Management:**
     * [GitHub](https://github.com) (for repository management)
 
----
+&nbsp;
 
 ### 1. Download the Source Code
 
@@ -65,7 +65,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
     ```
     You will populate this `.env` file with the necessary keys and credentials as you set up the required services.
 
----
+&nbsp;
 
 ### 2. Supabase Setup
 
@@ -102,7 +102,7 @@ Next, let's configure your Supabase project for the database and file storage.
         * Go to **Project Settings** > **API Keys**.
         * Copy the `anon` **public** key and paste it into the `NEXT_PUBLIC_SUPABASE_ANON_KEY` field in your `.env` file.
 
----
+&nbsp;
 
 ### 3. Firebase Setup
 
@@ -124,7 +124,7 @@ Now, let's set up Firebase for user authentication.
         * `client_email` → `FIREBASE_CLIENT_EMAIL`
         * `private_key` → `FIREBASE_PRIVATE_KEY`
 
----
+&nbsp;
 
 ### 4. API Key Configuration
 
@@ -142,7 +142,7 @@ Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
     * Create an OpenRouter account and generate an API key.
     * Add this key to your `.env` file: `OPENROUTER_API_KEY=your_openrouter_api_key`
 
----
+&nbsp;
 
 ### 5. GitHub and Vercel Deployment
 
@@ -164,7 +164,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
 
----
+&nbsp;
 
 ### 6. Embed The Widget In Your App
 
