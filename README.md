@@ -10,20 +10,19 @@
 [Embed the Feedbackland widget with 8 lines of code](https://feedbackland.com) to start collecting feedback in your app. When you've gathered some feedback, go to the Admin Panel and generate your first roadmap.
 
 1. `npm i feedbackland-react`
-2. Generate a UUIDv4 using any service, for example: [https://www.uuidtools.com/v4](https://www.uuidtools.com/v4)
-3. Paste the code snippet into your app and replace `"YOUR_GENERATED_UUIDV4"` with your generated UUID
-```tsx
-`import { OverlayWidget } from "feedbackland-react";
+2. [Generate a UUID v4](https://www.uuidtools.com/v4)
+3. Paste the snippet into your app and replace `"YOUR_GENERATED_UUIDV4"` with your generated UUID
+```ts
+import { OverlayWidget } from "feedbackland-react";
 
-  function FeedbackButton() {
-    return (
-      <OverlayWidget id="YOUR_GENERATED_UUIDV4">
-        <button>Feedback</button> {/*bring your own button */}
-      </OverlayWidget>
-    );
-  }`
+function FeedbackButton() {
+  return (
+    <OverlayWidget id="YOUR_GENERATED_UUIDV4">
+      <button>Feedback</button> {/*bring your own button */}
+    </OverlayWidget>
+  );
+}
 ```
-4. Open the widget and claim ownership
 
 &nbsp;
 &nbsp;
