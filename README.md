@@ -16,14 +16,14 @@
    Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
 
 3. **Embed**  
-   Wrap your button in the widget—replace \`YOUR_UUID\` with your generated ID:
+   Paste the snippet and replace `YOUR_UUID_v4` with your generated UUID:
 
    ```tsx
    import { OverlayWidget } from "feedbackland-react";
 
    function FeedbackButton() {
      return (
-       <OverlayWidget id="YOUR_UUID">
+       <OverlayWidget id="YOUR_UUID_v4">
          <button>Feedback</button> {/* use your own button */}
        </OverlayWidget>
      );
