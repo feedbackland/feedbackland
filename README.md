@@ -7,7 +7,7 @@
 
 ## Get Started in 30 seconds
 
-[Embed the Feedbackland widget with 8 line sof code](https://feedbackland.com) to start collecting feedback in your app. When you've gathered some feedback, go to the Admin Panel and generate your first roadmap.
+[Embed the Feedbackland widget with 8 lines of code](https://feedbackland.com) to start collecting feedback in your app. When you've gathered some feedback, go to the Admin Panel and generate your first roadmap.
 
 &nbsp;
 &nbsp;
