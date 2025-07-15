@@ -5,9 +5,9 @@
 &nbsp;
 &nbsp;
 
-## Get Started
+## Get Started in 30 seconds
 
-Visit the [Feedbackland website](https://feedbackland.com) to get your widget up and running in 30 seconds.
+[Embed the Feedbackland widget with 8 line sof code](https://feedbackland.com) to start collecting feedback in your app. When you've gathered some feedback, go to the Admin Panel and generate your first roadmap.
 
 &nbsp;
 &nbsp;
