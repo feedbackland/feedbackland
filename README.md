@@ -1,5 +1,5 @@
 
-<img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/5887c1fe-df27-4753-9a1d-7a1c808b0a27" />
+<img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/388580cb-f8ba-4774-8f0a-85977fa1da41" />
 
 &nbsp;
 
@@ -196,7 +196,7 @@ Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
 
 ### 6. Embed The Widget In Your App
 
-For installation instructions, navigate to: Admin Panel > Widget.
+Navigate to Admin Panel > Widget to get the code snippet to embed your Feedbackland platform in your app.
 
 &nbsp;
 &nbsp;
