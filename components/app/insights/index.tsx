@@ -12,7 +12,6 @@ import dynamic from "next/dynamic";
 import { InsightsLimitAlert } from "@/components/app/insights/limit-alert";
 import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import Link from "next/link";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -164,10 +163,15 @@ export function Insights() {
             Then generate your first roadmap.
           </div>
           {platformUrl && (
-            <Button variant="outline" size="default" asChild className="mt-4">
-              <Link href={platformUrl} className="flex items-center gap-1">
-                Add feedback
-              </Link>
+            <Button
+              size="default"
+              variant="outline"
+              onClick={handleGenerateClick}
+              loading={isGenerating}
+              disabled={roadmapLimit?.limitReached}
+              className="mt-4"
+            >
+              Generate your first roadmap
             </Button>
           )}
         </div>
