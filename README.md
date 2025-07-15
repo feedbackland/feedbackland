@@ -1,8 +1,6 @@
 
 <img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/2780c93b-755f-4d72-bd33-7f64db5ad453" />
 
-<img width="2473" height="1861" alt="Frame 582" src="https://github.com/user-attachments/assets/a92302ad-3072-47c7-9f83-905c5b38d2b1" />
-
 &nbsp;
 &nbsp;
 &nbsp;
