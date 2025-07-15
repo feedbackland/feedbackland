@@ -3,7 +3,7 @@
 
 &nbsp;
 
-[Visit our website](https://feedbackland.com) to test-drive the widget!
+[Visit our website](https://feedbackland.com) to try out the widget!
 
 &nbsp;
 &nbsp;
