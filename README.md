@@ -1,107 +1,207 @@
-# Feedbackland
 
-Feedbackland is a platform for collecting and managing user feedback. It allows organizations to create their own dedicated spaces to gather insights, interact with their users, and improve their products or services.
+<img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/5887c1fe-df27-4753-9a1d-7a1c808b0a27" />
 
-## Main Features
+&nbsp;
 
-*   **User Authentication:** Secure sign-up, sign-in, password reset, and Single Sign-On (SSO) options (e.g., Google, Microsoft).
-*   **Organization Management:** Users can create or claim organizations, manage organization settings, and define user roles.
-*   **Feedback Collection:** Create, view, edit, and manage feedback posts. Users can upvote and comment on posts.
-*   **Activity Feed:** A real-time feed of activities within an organization's feedback space.
-*   **Insights & Analytics:** (Likely) Provides insights and analytics based on the collected feedback.
-*   **Admin Dashboard:** A dedicated interface for administrators to manage the platform and organization-specific settings.
-*   **Embeddable Widget:** Functionality to embed feedback collection forms or displays on external websites.
-*   **Rich Text Editing:** Advanced text editor for creating and editing posts and comments.
-*   **Email Notifications:** Integration with Resend for sending email notifications (e.g., password resets).
-*   **AI-Powered Features:** Utilizes Google Generative AI for potential enhancements (e.g., summarizing feedback, generating insights).
+Feedbackland is an open-source widget that collects feedback directly in your app and with AI transforms it into a prioritized product roadmap. [Visit our website](https://feedbackland.com) for more information and a live demo.
 
-## Setup and Run Locally
+&nbsp;
+&nbsp;
 
-To set up and run Feedbackland locally, follow these steps:
+## Embed Feedbackland in 30 seconds 🚀
 
-1.  **Prerequisites:**
-    *   Node.js (refer to `.nvmrc` or project documentation for specific version, if available. A `package-lock.json` exists, so npm is likely the primary package manager.)
-    *   npm
+Install the package
+```bash
+npm i feedbackland-react
+```
 
-2.  **Clone the repository:**
+Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with [your generated UUID](https://www.uuidtools.com/v4)
+
+```tsx
+import { OverlayWidget } from "feedbackland-react";
+
+function FeedbackButton() {
+  return (
+    <OverlayWidget id="YOUR_UUID_v4">
+      <button>Feedback</button> {/* use your own button */}
+    </OverlayWidget>
+  );
+}
+```
+
+Congratulations! You've successfully embedded the Feedbackland widget. 🎉
+
+Next, claim ownership of your platform by clicking the **Claim ownership** button within the widget. Once that's done, deploy your app.
+
+After deployment, you'll start receiving feedback through the widget. When you've collected some feedback, head over to the **Roadmap** tab in the Admin Panel to generate your first roadmap!
+
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+
+## About Feedbackland
+
+Founders know the pain: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
+Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. No more guessing. Just building what users love.
+
+&nbsp;
+&nbsp;
+&nbsp;
+
+## Self-Hosting Feedbackland
+
+Welcome to the self-hosting guide for Feedbackland! Follow these steps to get your own instance of the platform up and running.
+
+### Prerequisites
+
+Before you begin, make sure you have accounts for the following services:
+
+* **Hosting & Database:**
+    * [Vercel](https://vercel.com) (for hosting the application)
+    * [Supabase](https://supabase.com) (for PostgreSQL database and image storage)
+* **Authentication:**
+    * [Firebase](https://firebase.google.com) (for user authentication)
+* **Transactional Emails:**
+    * [Resend](https://resend.com) (for sending emails)
+* **AI Services:**
+    * [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
+    * [OpenRouter](https://openrouter.ai) (for other AI-related tasks)
+* **Code Management:**
+    * [GitHub](https://github.com) (for repository management)
+
+&nbsp;
+
+### 1. Download the Source Code
+
+First, you'll need to get the Feedbackland source code onto your local machine.
+
+1.  **Download the repository:**
+    You can either clone the repository or download the source code as a zip file at https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip.
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/feedbackland/feedbackland.git
+    ```
+2.  **Navigate to the project directory:**
+    ```bash
     cd feedbackland
     ```
-
-3.  **Install dependencies:**
+3.  **Create your environment file:**
+    Rename the example environment file as a starting point to create your own.
     ```bash
-    npm install
+    mv .env.example .env
     ```
+    You will populate this `.env` file with the necessary keys and credentials as you set up the required services.
 
-4.  **Set up environment variables:**
-    *   This project likely requires environment variables for database connections (Supabase, PostgreSQL), authentication providers (Firebase, Google SSO), and other services (Resend, Google Generative AI).
-    *   Look for a `.env.example` or similar file in the repository. If it exists, copy it to `.env` and fill in the necessary values.
-    *   `cp .env.example .env` (if applicable)
+&nbsp;
 
-5.  **Database Setup:**
-    *   The project uses Kysely for database migrations with a PostgreSQL database.
-    *   Ensure your PostgreSQL database server is running and configured according to the environment variables.
-    *   Run database migrations:
+### 2. Supabase Setup
+
+Next, let's configure your Supabase project for the database and file storage.
+
+1.  **Create a new Supabase project.**
+2.  **Enable the pgvector extension:**
+    * Navigate to **Database** > **Extensions**.
+    * Search for `vector` and enable the extension.
+3.  **Disable the Data API:**
+    * Go to **Project Settings** > **Data API**.
+    * Under the **Config** section, toggle off **Enable Data API**.
+4.  **Create a storage bucket:**
+    * Go to **Storage** from the sidebar.
+    * Click on **New bucket**.
+    * Name the bucket `images` and turn on **Public bucket**.
+5.  **Run the database schema script:**
+    * In your Supabase project, click on the **Connect** button in the top bar.
+    * Copy the **Direct connection** string.
+    * Replace `[YOUR-PASSWORD]` with your actual database password.
+    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string:
         ```bash
-        npm run migrate-up
+        psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
-    *   To create new migrations:
-        ```bash
-        npm run migrate-make -- <migration_name>
-        ```
-        *(Note: Added `--` before migration_name as is common practice with npm run scripts to pass arguments)*
-    *   To generate Kysely schema types after database changes:
-        ```bash
-        npm run kysely-codegen
-        ```
+6.  **Add Supabase credentials to your `.env` file:**
+    * `DATABASE_URL`:
+        * In the **Connect** section of your Supabase project, copy the **Transaction pooler** connection string.
+        * Replace `[YOUR-PASSWORD]` with your database password.
+        * Paste this into the `DATABASE_URL` field in your `.env` file.
+    * `NEXT_PUBLIC_SUPABASE_PROJECT_ID`:
+        * Go to **Project Settings** > **General**.
+        * Copy the **Project ID** and paste it into the `NEXT_PUBLIC_SUPABASE_PROJECT_ID` field in your `.env` file.
+    * `NEXT_PUBLIC_SUPABASE_ANON_KEY`:
+        * Go to **Project Settings** > **API Keys**.
+        * Copy the `anon` **public** key and paste it into the `NEXT_PUBLIC_SUPABASE_ANON_KEY` field in your `.env` file.
 
-6.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-    This will start the Next.js development server (using Turbopack as specified in `package.json`), typically on `http://localhost:3000`.
+&nbsp;
 
-7.  **Other available scripts (from `package.json`):**
-    *   Build for production: `npm run build`
-    *   Start production server: `npm run start`
-    *   Lint the code: `npm run lint`
-    *   Rollback the last migration: `npm run migrate-down`
+### 3. Firebase Setup
 
-## Technologies Used
+Now, let's set up Firebase for user authentication.
 
-*   **Framework:** Next.js (v15.3.2, with Turbopack)
-*   **Language:** TypeScript
-*   **UI:** React (v19.1.0), Tailwind CSS (v4.1.7), Shadcn/ui (inferred from component structure and common usage: `components/ui/`)
-*   **State Management:** Jotai
-*   **API/RPC:** tRPC
-*   **Database:** PostgreSQL
-*   **ORM/Query Builder:** Kysely
-*   **Database & Auth Provider (likely):** Supabase
-*   **Authentication (additional):** Firebase (for SSO)
-*   **Email:** Resend
-*   **AI:** Google Generative AI (`@google/generative-ai`)
-*   **Rich Text Editor:** Tiptap (`@tiptap/*`)
-*   **Forms:** React Hook Form (`react-hook-form`), Zod (`zod`)
-*   **Styling/UI Libraries:** `lucide-react` (icons), `class-variance-authority`, `clsx`, `tailwind-merge`, `tailwindcss-animate`
-*   **Code Quality:** ESLint, Prettier
-*   **Other notable libraries:** `next-safe-action` (for server actions), `javascript-time-ago`, `recharts` (charts), `sonner` (toasts/notifications).
+1.  **Create a new Firebase project.**
+2.  **Configure your web app:**
+    * From your Firebase project, obtain your web app configuration object.
+    * Open the `firebaseConfig.ts` file in the root of your Feedbackland project.
+    * Paste your Firebase config into this file.
+3.  **Enable authentication providers:**
+    * In the Firebase console, go to the **Authentication** section.
+    * Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
+4.  **Add Firebase service account credentials to your `.env` file:**
+    * Go to **Project Settings** > **Service accounts**.
+    * Click on **Generate new private key**.
+    * A JSON file will be downloaded. Open this file and copy the following values into your `.env` file:
+        * `project_id` → `FIREBASE_PROJECT_ID`
+        * `client_email` → `FIREBASE_CLIENT_EMAIL`
+        * `private_key` → `FIREBASE_PRIVATE_KEY`
 
-## Contributing
+&nbsp;
 
-Contributions are welcome! If you'd like to contribute to Feedbackland, please follow these general guidelines:
+### 4. API Key Configuration
 
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix: `git checkout -b feature/your-feature-name` or `bugfix/issue-number`.
-3.  Make your changes, adhering to the project's coding style and conventions (ESLint and Prettier are used).
-4.  Ensure your changes pass linting checks: `npm run lint`.
-5.  Commit your changes with clear and descriptive messages.
-6.  Push your branch to your forked repository.
-7.  Open a pull request to the main repository, detailing the changes you've made.
+Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
-Please also consider opening an issue first to discuss any significant changes or new features.
+* **Resend:**
+    * Create a Resend account and generate an API key.
+    * Add this key to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+
+* **Google AI Studio (Gemini API):**
+    * Create a Google AI Studio account and generate an API key.
+    * Add this key to your `.env` file: `GEMINI_API_KEY=your_gemini_api_key`
+
+* **OpenRouter:**
+    * Create an OpenRouter account and generate an API key.
+    * Add this key to your `.env` file: `OPENROUTER_API_KEY=your_openrouter_api_key`
+
+&nbsp;
+
+### 5. GitHub and Vercel Deployment
+
+Now let's deploy your Feedbackland instance using GitHub and Vercel.
+
+1.  **Push your code to GitHub:**
+    * Create a new repository on GitHub.
+    * Push your local Feedbackland codebase to the new repository.
+2.  **Deploy with Vercel:**
+    * On the Vercel dashboard, create a **New Project**.
+    * Import your Feedbackland repository from GitHub.
+    * In the project settings, navigate to the **Environment Variables** section.
+    * Copy and paste all the environment variables from your local `.env` file into Vercel.
+    * Click **Deploy**.
+3.  **Finalize your platform setup:**
+    * Once the deployment is complete, navigate to `<your-vercel-url>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
+    * Enter the name for your platform and click **Create platform**.
+    * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
+
+Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
+
+&nbsp;
+
+### 6. Embed The Widget In Your App
+
+For installation instructions, navigate to: Admin Panel > Widget.
+
+&nbsp;
+&nbsp;
+&nbsp;
 
 ## License
+Feedbackland is licensed under [AGPL 3.0.](https://github.com/feedbackland/feedbackland?tab=AGPL-3.0-1-ov-file)
 
-This project is licensed under the terms of the [LICENSE](LICENSE) file.
-(The `ls()` command showed a `LICENSE` file. Typically this would be MIT or Apache 2.0 for such projects, but linking directly to it is the safest.)
