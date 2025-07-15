@@ -4,156 +4,333 @@ import { createInsightsQuery } from "@/queries/create-insights";
 import { getRoadmapLimit } from "./get-roadmap-limit";
 import { z } from "zod";
 
-const insightsOutputSchema = z
-  .array(
-    z.object({
-      title: z.string().min(1, "Title is required").max(200, "Title too long"),
-      description: z
-        .string()
-        .min(1, "Description is required")
-        .max(1000, "Description too long"),
-      upvotes: z.number().min(0, "Upvotes must be non-negative"),
-      commentCount: z.number().min(0, "Comment count must be non-negative"),
-      status: z
-        .enum([
-          "under consideration",
-          "planned",
-          "in progress",
-          "done",
-          "declined",
-        ])
-        .nullable(),
-      category: z
-        .enum(["feature request", "bug report", "general feedback"])
-        .nullable(),
-      ids: z
-        .array(z.string().uuid("Invalid UUID format"))
-        .min(1, "At least one ID required"),
-      priority: z
-        .number()
-        .min(0, "Priority must be non-negative")
-        .max(100, "Priority must be <= 100"),
-    }),
-  )
-  .min(1, "At least one insight required")
-  .max(50, "Maximum 50 insights allowed");
-
-// Validation helper function
-function validateAndSanitizeInsights(rawInsights: any[]): any[] {
-  return rawInsights
-    .map((insight, index) => {
-      try {
-        return {
-          title: String(insight.title || `Insight ${index + 1}`)
-            .trim()
-            .slice(0, 200),
-          description: String(insight.description || "No description provided")
-            .trim()
-            .slice(0, 1000),
-          upvotes: Math.max(0, Number(insight.upvotes) || 0),
-          commentCount: Math.max(0, Number(insight.commentCount) || 0),
-          status: insight.status || null,
-          category: insight.category || null,
-          ids: Array.isArray(insight.ids)
-            ? insight.ids.filter(
-                (id: any) => typeof id === "string" && id.length > 0,
-              )
-            : [],
-          priority: Math.min(100, Math.max(0, Number(insight.priority) || 0)),
-        };
-      } catch (error) {
-        console.warn(`Failed to sanitize insight at index ${index}:`, error);
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
+const insightsOutputSchema = z.array(
+  z.object({
+    title: z.string(),
+    description: z.string(),
+    upvotes: z.number(),
+    commentCount: z.number(),
+    status: z
+      .enum([
+        "under consideration",
+        "planned",
+        "in progress",
+        "done",
+        "declined",
+      ])
+      .nullable(),
+    category: z
+      .enum(["feature request", "bug report", "general feedback"])
+      .nullable(),
+    ids: z.array(z.string()),
+    priority: z.number(),
+  }),
+);
 
 export const generateInsights = adminProcedure.mutation(async (opts) => {
-  const maxRetries = 3;
-  let lastError: Error | null = null;
+  let retries = 3;
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const { limitReached } = await getRoadmapLimit(opts as any);
+  try {
+    const { limitReached } = await getRoadmapLimit(opts as any);
 
-      if (limitReached) throw new Error("Roadmap limit reached");
+    if (limitReached) throw new Error("Roadmap limit reached");
 
+    while (retries > 0) {
       const { ctx } = opts;
 
       const feedbackPosts = await getInsightsInputQuery({
         orgId: ctx.orgId,
       });
 
-      if (!feedbackPosts || feedbackPosts.length === 0) {
-        throw new Error("No feedback posts found");
-      }
-
       const systemPrompt = `
-You are an AI assistant whose sole purpose is to turn a vast array of user feedback into a condensed, actionable, prioritized product roadmap.
+        You are an AI assistant whose sole purpose is to turn a vast array of user feedback into a condensed, actionable, prioritized product roadmap.
 
-CRITICAL: You MUST use the insights_formatter function to structure your response. Do NOT return raw JSON or any other format.
+        You will receive an array of feedback posts in this exact JSON format:
+         \`\`\`json
+        [
+          {
+            "id": "uuidv4",         // Unique identifier for the feedback post
+            "title": "string",      // Feedback title
+            "description": "string",// Full feedback text
+            "upvotes": number,      // Number of upvotes
+            "commentCount": number, // Number of comments
+            "status": "string|null",// "under consideration", "planned", "in progress", "done", "declined"
+            "category": "string",   // "feature request", "bug report", "general feedback"
+            "createdAt": "string"   // ISO 8601 timestamp of creation
+          }
+          // ...potentially hundreds or thousands more posts...
+        ]
+        \`\`\`
 
-You will receive an array of feedback posts in this exact JSON format:
+        ## Your Mission
+        Transform hundreds or thousands of posts into 1-50 well-scoped roadmap items, each small enough to ship in a sprint and ordered by impact:
 
-\`\`\`json
-[
-  {
-    "id": "uuidv4",         // Unique identifier for the feedback post
-    "title": "string",      // Feedback title
-    "description": "string",// Full feedback text
-    "upvotes": number,      // Number of upvotes
-    "commentCount": number, // Number of comments
-    "status": "string|null",// "under consideration", "planned", "in progress", "done", "declined"
-    "category": "string",   // "feature request", "bug report", "general feedback"
-    "createdAt": "string"   // ISO 8601 timestamp of creation
-  }
-]
-\`\`\`
+        1. Bundle & Scope Precisely
+          - Merge duplicate needs into one theme (e.g. “dark mode,” “night theme,” “black background” → “Dark Mode”).
+          - Group related bug reports into a single, scoping-limited fix (e.g. “loading freeze,” “timeout,” “slow render” → “Optimize Widget Load Performance”).
+          - Ensure each roadmap item maps to a single, deliverable feature.
 
-## Your Mission
-Transform feedback into 1-50 well-scoped roadmap items, each small enough to ship in a sprint and ordered by impact:
+        2. Summarize for Action
+          - title: Ultra-concise, compelling phrase.
+          - description: 1-3 sentences: user pain/opportunity + specific next step.
+          - upvotes & commentCount: summed across bundled posts.
+          - status & category: majority value (or null if none).
 
-1. Bundle & Scope Precisely  
-  - Merge duplicate needs into one theme (e.g. "dark mode," "night theme," "black background" → "Dark Mode").  
-  - Group related bug reports into a single, scoping-limited fix.  
-  - Ensure each roadmap item maps to a single, deliverable feature.
+        3. Prioritize by Impact
+          - Assign a priority (0-100) and sort descending.
+          - Weight by:
+            1. Engagement (volume, upvotes, comments)
+            2. Severity (critical bugs, usability blocks)
+            3. Category Boost (higher weight to 'bug report')
 
-2. Summarize for Action  
-  - title: Ultra-concise, compelling phrase (max 200 chars).  
-  - description: 1-3 sentences: user pain/opportunity + specific next step (max 1000 chars).  
-  - upvotes & commentCount: summed across bundled posts.  
-  - status & category: majority value (or null if none).
+        4. Be Ruthlessly Concise
+          - Only top themes that will move the needle.
+          - No fluff. Every word must drive action.
 
-3. Prioritize by Impact  
-  - Assign a priority (0-100) and sort descending.  
-  - Weight by:  
-    1. Engagement (volume, upvotes, comments)  
-    2. Severity (critical bugs, usability blocks)  
-    3. Category Boost (higher weight to 'bug report')
+        ## Required Output Format
 
-4. VALIDATION REQUIREMENTS:
-  - Each insight MUST have at least one valid UUID in the ids array
-  - Title and description MUST be non-empty strings
-  - Numbers MUST be valid integers >= 0
-  - Priority MUST be between 0-100
-  - Status MUST be one of: "under consideration", "planned", "in progress", "done", "declined", or null
-  - Category MUST be one of: "feature request", "bug report", "general feedback", or null
+        You must return a single, valid JSON array containing a maximum of 50 roadmap items. The array must be strictly ordered by the 'priority' field in descending order. Adhere precisely to the provided JSON schema. No additional text, explanations, or markdown are permitted outside of the JSON array. Any deviation from the schema will result in a processing failure.
 
-You MUST call the insights_formatter function with your analysis. Do not return raw JSON.
-`;
+        ### Output JSON Schema:
+        \`\`\`json
+        {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Ultra-concise, compelling phrase."
+              },
+              "description": {
+                "type": "string",
+                "description": "1-3 sentences: user pain/opportunity + specific next step."
+              },
+              "upvotes": {
+                "type": "number",
+                "description": "Summed upvotes across all bundled posts."
+              },
+              "commentCount": {
+                "type": "number",
+                "description": "Summed comment count across all bundled posts."
+              },
+              "status": {
+                "type": ["string", "null"],
+                "enum": ["under consideration", "planned", "in progress", "done", "declined", null]
+              },
+              "category": {
+                "type": ["string", "null"],
+                "enum": ["feature request", "bug report", "general feedback", null]
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of original feedback post IDs bundled into this item."
+              },
+              "priority": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Calculated priority score (0-100)."
+              }
+            },
+            "required": [
+              "title",
+              "description",
+              "upvotes",
+              "commentCount",
+              "status",
+              "category",
+              "ids",
+              "priority"
+            ]
+          }
+        }
+        \`\`\`
+
+        ### Output JSON Example:
+        \`\`\`json
+        [
+          {
+            "title": "Fix Critical Login Failures",
+            "description": "Multiple users are reporting being unable to log in, blocking all application access. This requires an immediate investigation into the authentication service.",
+            "upvotes": 88,
+            "commentCount": 112,
+            "status": "under consideration",
+            "category": "bug report",
+            "ids": ["d4a1b3f2-1c8e-4a9f-8b2c-3e5f7a1d9c0b", "e5b2c4g3-2d9f-5b0g-9c3d-4f6g8b2e0d1c"],
+            "priority": 98
+          },
+          {
+            "title": "Implement Dark Mode",
+            "description": "Users consistently request a dark mode to reduce eye strain in low-light environments. Implement a switch in the UI to enable a dark theme.",
+            "upvotes": 254,
+            "commentCount": 97,
+            "status": "under consideration",
+            "category": "feature request",
+            "ids": ["35ee85f0-3f37-4c06-b5fe-1a2a4dc983a3", "2c174bb9-1771-4bce-b7e9-ddad35525fbd", "f8d9e0a1-4b1a-5c3e-ad5b-6g9h1i2j3k4l"],
+            "priority": 95
+          }
+        ]
+        \`\`\`
+
+        Remember: Your final output must be **only** the JSON array, correctly formatted and sorted.
+      `;
+
+      const systemPrompt2 = `
+        You are a senior product analyst AI. Your mission is to meticulously analyze raw user feedback and transform it into a strategic, prioritized product roadmap. You are an expert at identifying underlying themes, quantifying user needs, and translating them into actionable development items.
+
+        You will be provided with an array of user feedback posts in the following JSON format:
+
+        \`\`\`json
+        [
+          {
+            "id": "uuidv4",         // Unique identifier for the feedback post
+            "title": "string",      // Feedback title
+            "description": "string",// Full feedback text
+            "upvotes": number,      // Number of upvotes
+            "commentCount": number, // Number of comments
+            "status": "string|null",// "under consideration", "planned", "in progress", "done", "declined"
+            "category": "string",   // "feature request", "bug report", "general feedback"
+            "createdAt": "string"   // ISO 8601 timestamp of creation
+          }
+          // ...potentially hundreds or thousands more posts...
+        ]
+        \`\`\`
+
+        ## Your Core Directives
+
+        Your task is to synthesize this raw feedback into 1-50 high-impact roadmap items, each scoped for a single development sprint and ordered by strategic priority.
+
+        ### 1. Thematic Bundling & Precise Scoping
+        - **Synthesize Themes:** Aggressively merge feedback posts that describe the same underlying need into a single, coherent theme. For example, user requests for “dark mode,” “night theme,” and “a black background” should be consolidated into a single theme: “Implement Dark Mode.”
+        - **Group Related Issues:** Combine related bug reports into a single, well-defined fix. For instance, reports of “application freezes on load,” “data fetch timeouts,” and “slow component rendering” should be grouped into an actionable item like “Optimize Widget Loading Performance.”
+        - **Ensure Actionability:** Every roadmap item must represent a single, deliverable feature or fix. Avoid overly broad or ambiguous items.
+
+        ### 2. Action-Oriented Summarization
+        For each bundled roadmap item, you will generate the following:
+        - **title:** A concise, compelling, and action-oriented title.
+        - **description:** A 1-3 sentence summary that clearly articulates the user pain point or opportunity and proposes a specific, actionable solution.
+        - **upvotes & commentCount:** The sum of 'upvotes' and 'commentCount' from all bundled feedback posts.
+        - **status & category:** The most common value for 'status' and 'category' among the bundled posts. If no clear majority exists, default to 'null'.
+        - **ids:** An array of the original 'id' strings from all included feedback posts.
+
+        ### 3. Impact-Based Prioritization
+        - **Assign Priority Score:** Calculate a priority score from 0 to 100 for each roadmap item and sort the final output in descending order of this score.
+        - **Prioritization Formula:** Your prioritization should be heavily weighted by the following factors, in order:
+          1.  **Severity & Urgency:** Critical bug reports and usability blockers that prevent users from completing core tasks must be given the highest weight.
+          2.  **User Engagement:** Quantify impact using the volume of posts, total upvotes, and total comments for a theme. Higher engagement signifies a more widespread need.
+          3.  **Category Boost:** Apply a significant boost to items categorized as 'bug report' over 'feature request' or 'general feedback'.
+
+        ### 4. Ruthless Conciseness
+        - **Focus on Impact:** Your output should only include the most critical themes that will meaningfully improve the product.
+        - **Eliminate Fluff:** Every word must serve the purpose of driving action. Be direct and to the point.
+
+        ## Required Output Format
+
+        You must return a single, valid JSON array containing a maximum of 50 roadmap items. The array must be strictly ordered by the 'priority' field in descending order. Adhere precisely to the provided JSON schema. No additional text, explanations, or markdown are permitted outside of the JSON array. Any deviation from the schema will result in a processing failure.
+
+        ### Output JSON Schema:
+        \`\`\`json
+        {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Ultra-concise, compelling phrase."
+              },
+              "description": {
+                "type": "string",
+                "description": "1-3 sentences: user pain/opportunity + specific next step."
+              },
+              "upvotes": {
+                "type": "number",
+                "description": "Summed upvotes across all bundled posts."
+              },
+              "commentCount": {
+                "type": "number",
+                "description": "Summed comment count across all bundled posts."
+              },
+              "status": {
+                "type": ["string", "null"],
+                "enum": ["under consideration", "planned", "in progress", "done", "declined", null]
+              },
+              "category": {
+                "type": ["string", "null"],
+                "enum": ["feature request", "bug report", "general feedback", null]
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of original feedback post IDs bundled into this item."
+              },
+              "priority": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Calculated priority score (0-100)."
+              }
+            },
+            "required": [
+              "title",
+              "description",
+              "upvotes",
+              "commentCount",
+              "status",
+              "category",
+              "ids",
+              "priority"
+            ]
+          }
+        }
+        \`\`\`
+
+        ### Output JSON Example:
+        \`\`\`json
+        [
+          {
+            "title": "Fix Critical Login Failures",
+            "description": "Multiple users are reporting being unable to log in, blocking all application access. This requires an immediate investigation into the authentication service.",
+            "upvotes": 88,
+            "commentCount": 112,
+            "status": "under consideration",
+            "category": "bug report",
+            "ids": ["d4a1b3f2-1c8e-4a9f-8b2c-3e5f7a1d9c0b", "e5b2c4g3-2d9f-5b0g-9c3d-4f6g8b2e0d1c"],
+            "priority": 98
+          },
+          {
+            "title": "Implement Dark Mode",
+            "description": "Users consistently request a dark mode to reduce eye strain in low-light environments. We should add a UI toggle to enable a dark theme.",
+            "upvotes": 254,
+            "commentCount": 97,
+            "status": "under consideration",
+            "category": "feature request",
+            "ids": ["35ee85f0-3f37-4c06-b5fe-1a2a4dc983a3", "2c174bb9-1771-4bce-b7e9-ddad35525fbd", "f8d9e0a1-4b1a-5c3e-ad5b-6g9h1i2j3k4l"],
+            "priority": 95
+          }
+        ]
+        \`\`\`
+
+        Remember: Your final output must be **only** the JSON array, correctly formatted and sorted, and containing a maximum of 50 items.
+      `;
 
       const feedbackDataJsonString = JSON.stringify(feedbackPosts, null, 2);
 
       const userPrompt = `
-Here is the array of feedback posts you need to analyze and create a condensed, prioritized roadmap for:
+        Here is the JSON array of feedback posts you need to analyze and create a condensed, prioritized roadmap for:
 
-\`\`\`json
-${feedbackDataJsonString}
-\`\`\`
+        ${feedbackDataJsonString}
 
-Remember: You MUST use the insights_formatter function to structure your response. Validate all data types and ensure all required fields are present.
-`;
+        Remember: Your final output must be **only** the JSON array, correctly formatted and sorted, and containing a maximum of 50 items.
+      `;
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -165,123 +342,20 @@ Remember: You MUST use the insights_formatter function to structure your respons
           },
           body: JSON.stringify({
             model: "google/gemini-2.0-flash-001",
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "insights_formatter",
-                  description:
-                    "REQUIRED: Formats the user feedback into a structured JSON object, representing a prioritized roadmap. This function MUST be called - do not return raw JSON.",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      insights: {
-                        type: "array",
-                        minItems: 1,
-                        maxItems: 50,
-                        items: {
-                          type: "object",
-                          properties: {
-                            title: {
-                              type: "string",
-                              minLength: 1,
-                              maxLength: 200,
-                              description:
-                                "Ultra-concise, compelling theme title.",
-                            },
-                            description: {
-                              type: "string",
-                              minLength: 1,
-                              maxLength: 1000,
-                              description:
-                                "1-3 sentences of user pain + specific next step.",
-                            },
-                            upvotes: {
-                              type: "integer",
-                              minimum: 0,
-                              description:
-                                "Number of total upvotes for this theme.",
-                            },
-                            commentCount: {
-                              type: "integer",
-                              minimum: 0,
-                              description:
-                                "Number of total comments for this theme.",
-                            },
-                            status: {
-                              type: ["string", "null"],
-                              enum: [
-                                "under consideration",
-                                "planned",
-                                "in progress",
-                                "done",
-                                "declined",
-                                null,
-                              ],
-                              description: "Majority status or null.",
-                            },
-                            category: {
-                              type: ["string", "null"],
-                              enum: [
-                                "feature request",
-                                "bug report",
-                                "general feedback",
-                                null,
-                              ],
-                              description: "Majority category or null.",
-                            },
-                            ids: {
-                              type: "array",
-                              minItems: 1,
-                              items: {
-                                type: "string",
-                                pattern:
-                                  "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                                description: "Valid UUID v4 format",
-                              },
-                              description:
-                                "Original feedback post ids (UUIDs).",
-                            },
-                            priority: {
-                              type: "integer",
-                              minimum: 0,
-                              maximum: 100,
-                              description: "Priority score 0-100.",
-                            },
-                          },
-                          required: [
-                            "title",
-                            "description",
-                            "upvotes",
-                            "commentCount",
-                            "status",
-                            "category",
-                            "ids",
-                            "priority",
-                          ],
-                          additionalProperties: false,
-                        },
-                      },
-                    },
-                    required: ["insights"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-            ],
-            tool_choice: {
-              type: "function",
-              function: {
-                name: "insights_formatter",
-              },
-            },
+            // model: "google/gemini-2.5-pro",
+            // reasoning: {
+            //   effort: "high",
+            //   exclude: true,
+            //   enabled: true,
+            // },
+            response_format: { type: "json_object" },
             messages: [
               {
                 role: "system",
                 content: [
                   {
                     type: "text",
-                    text: systemPrompt,
+                    text: systemPrompt2,
                   },
                 ],
               },
@@ -296,108 +370,55 @@ Remember: You MUST use the insights_formatter function to structure your respons
               },
             ],
             temperature: 0.1,
-            // max_tokens: 4000, // Ensure enough tokens for complete response
           }),
         },
       );
 
-      if (!response.ok) {
-        throw new Error(
-          `OpenRouter API error: ${response.status} ${response.statusText}`,
-        );
-      }
-
       const data = await response.json();
 
-      // Enhanced error checking
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error("No choices in API response");
+      const responseText = data?.choices?.[0]?.message?.content;
+
+      if (!responseText || responseText.length === 0) {
+        throw new Error("Invalid or empty response from the LLM");
       }
 
-      const choice = data.choices[0];
-      if (!choice.message) {
-        throw new Error("No message in API response");
-      }
-
-      // Check for finish_reason that might indicate incomplete response
-      if (choice.finish_reason === "length") {
-        console.warn("Response may be truncated due to length limit");
-      }
-
-      const toolCall = choice.message.tool_calls?.[0];
-
-      if (
-        !toolCall ||
-        toolCall.type !== "function" ||
-        toolCall.function.name !== "insights_formatter"
-      ) {
-        console.log(
-          "Invalid tool call:",
-          JSON.stringify(choice.message, null, 2),
-        );
-        throw new Error("Invalid or missing tool call in response");
-      }
-
-      const insightsOutputString = toolCall.function.arguments;
-
-      if (!insightsOutputString || insightsOutputString.length === 0) {
-        throw new Error("Empty function arguments");
-      }
-
-      let parsedOutput;
-      try {
-        parsedOutput = JSON.parse(insightsOutputString);
-      } catch (parseError) {
-        console.error("JSON parse error:", parseError);
-        console.error("Raw arguments:", insightsOutputString);
-        throw new Error("Failed to parse function arguments as JSON");
-      }
-
-      if (!parsedOutput.insights || !Array.isArray(parsedOutput.insights)) {
-        throw new Error("Invalid insights structure in response");
-      }
-
-      // Sanitize and validate the insights
-      const sanitizedInsights = validateAndSanitizeInsights(
-        parsedOutput.insights,
+      const parsedResult = insightsOutputSchema.safeParse(
+        JSON.parse(responseText),
       );
 
-      if (sanitizedInsights.length === 0) {
-        throw new Error("No valid insights after sanitization");
+      if (!parsedResult.success) {
+        throw new Error("insightsOutputSchema validation failed.");
       }
 
-      // Final schema validation
-      const insightsOutput = insightsOutputSchema.parse(sanitizedInsights);
+      const insightsOutput = parsedResult.data;
+
+      if (!Array.isArray(insightsOutput) || insightsOutput.length === 0) {
+        throw new Error("insightsOutput is not a valid non-empty array");
+      }
 
       const result = await createInsightsQuery(
         insightsOutput.map((item) => ({
           orgId: ctx.orgId,
           title: item.title,
           description: item.description,
-          upvotes: Number(item.upvotes || 0),
-          commentCount: Number(item.commentCount || 0),
+          upvotes: Number(item?.upvotes || 0),
+          commentCount: Number(item?.commentCount || 0),
           status: item.status,
           category: item.category,
           ids: item.ids,
-          priority: Number(item.priority || 0),
+          priority: Number(item?.priority || 0),
         })),
       );
 
       return result;
-    } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, error);
-      lastError = error as Error;
+    }
+  } catch (error) {
+    console.log(error);
 
-      if (attempt === maxRetries) {
-        // Log final attempt details for debugging
-        console.error("All retry attempts failed. Final error:", lastError);
-      } else {
-        // Wait before retry (exponential backoff)
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
-      }
+    retries--;
+
+    if (retries === 0) {
+      throw error;
     }
   }
-
-  // If we get here, all retries failed
-  throw lastError || new Error("Unknown error after all retries");
 });
