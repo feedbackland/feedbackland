@@ -7,20 +7,15 @@
 
 ## 🚀 Embed in 30 seconds
 
-1. **Install**  
-   ```bash
-   npm i feedbackland-react
-   ```
+1. **Install the package**:  `npm i feedbackland-react`
 
 &nbsp;
 
-2. **Generate a UUID v4**  
-   Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
+2. **Generate a UUID v4** : Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
 
 &nbsp;
 
-3. **Embed**  
-   Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with your generated UUID:
+3. **Embed**: Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with your generated UUID
 
    ```tsx
    import { OverlayWidget } from "feedbackland-react";
