@@ -1,6 +1,5 @@
 
-
-<img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/e19f138f-4ec6-46c3-8959-77a1e80a1902" />
+<img width="2473" height="1766" alt="Frame 583" src="https://github.com/user-attachments/assets/6bc39630-dc9c-4732-aff1-964117a8b8be" />
 
 &nbsp;
 
