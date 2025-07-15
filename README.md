@@ -5,24 +5,30 @@
 &nbsp;
 &nbsp;
 
-## Get Started in 30 seconds
+## 🚀 Get up and running in 30 seconds
 
-[Embed the Feedbackland widget with 8 lines of code](https://feedbackland.com) to start collecting feedback in your app. When you've gathered some feedback, go to the Admin Panel and generate your first roadmap.
+1. **Install**  
+   \`\`\`bash
+   npm install feedbackland-react
+   \`\`\`
 
-1. `npm i feedbackland-react`
-2. [Generate a UUID v4](https://www.uuidtools.com/v4)
-3. Paste the snippet into your app and replace `"YOUR_GENERATED_UUIDV4"` with your generated UUID
-```ts
-import { OverlayWidget } from "feedbackland-react";
+2. **Generate a UUID v4**  
+   Grab one from [uuidtools.com/v4](https://www.uuidtools.com/v4).
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget id="YOUR_GENERATED_UUIDV4">
-      <button>Feedback</button> {/*bring your own button */}
-    </OverlayWidget>
-  );
-}
-```
+3. **Embed**  
+   Wrap your button in the widget—replace \`YOUR_UUID\` with your generated ID:
+
+   \`\`\`tsx
+   import { OverlayWidget } from "feedbackland-react";
+
+   function FeedbackButton() {
+     return (
+       <OverlayWidget id="YOUR_UUID">
+         <button>Feedback</button> {/* use your own button */}
+       </OverlayWidget>
+     );
+   }
+   \`\`\`
 
 &nbsp;
 &nbsp;
