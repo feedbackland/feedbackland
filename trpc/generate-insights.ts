@@ -256,6 +256,9 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
 
       const data = await response.json();
 
+      console.log(data);
+      console.log(JSON.stringify(data, null, 2));
+
       const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
 
       if (!toolCall || toolCall.type !== "function") {
