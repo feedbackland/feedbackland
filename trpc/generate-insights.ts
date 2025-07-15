@@ -8,8 +8,8 @@ const insightsOutputSchema = z.array(
   z.object({
     title: z.string(),
     description: z.string(),
-    upvotes: z.union([z.number(), z.string()]),
-    commentCount: z.union([z.number(), z.string()]),
+    upvotes: z.number(),
+    commentCount: z.number(),
     status: z
       .enum([
         "under consideration",
@@ -23,7 +23,7 @@ const insightsOutputSchema = z.array(
       .enum(["feature request", "bug report", "general feedback"])
       .nullable(),
     ids: z.array(z.string()),
-    priority: z.union([z.number(), z.string()]),
+    priority: z.number(),
   }),
 );
 
