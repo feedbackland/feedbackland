@@ -188,3 +188,10 @@ Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
 
 In your platform navigate to the **Widget** tab inside of the Admin Panel to find the instructions to embed your Feedbackland platform into your own app
 
+&nbsp;
+&nbsp;
+&nbsp;
+
+## License
+Feedbackland is licensed under [AGPL 3.0.](https://github.com/feedbackland/feedbackland?tab=AGPL-3.0-1-ov-file)
+
