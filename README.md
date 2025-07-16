@@ -25,7 +25,7 @@ import { OverlayWidget } from "feedbackland-react";
 
 function FeedbackButton() {
   return (
-    <OverlayWidget id="YOUR_UUID_v4">
+    <OverlayWidget id="YOUR_UUID_v4"> {/* replace "YOUR_UUID_v4" with a randomly generated UUID v4 */}
       <button>Feedback</button> {/* use your own button */}
     </OverlayWidget>
   );
