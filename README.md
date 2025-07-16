@@ -13,19 +13,24 @@
 ```bash
 npm install feedbackland-react
 ```
-**Step 2: Add the widget to your app**
+
+**Step 2: [Generate an ID](https://www.uuidtools.com/v4){:target="_blank"}**
+
+**Step 3: Add the widget to your app and replace `YOUR_GENERATED_ID` with the one you generated**
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
 
 export const FeedbackButton = () => (
-  <OverlayWidget id="YOUR_UUID_V4"> {/* generate your UUID: www.uuidtools.com/v4 */}
-    <button>Feedback</button> {/* replace with your own button component, or style it */}
+  <OverlayWidget id="YOUR_GENERATED_ID">
+    {/* customize the button, or replace with your own button component */}
+    <button>Feedback</button>
   </OverlayWidget>
 );
 ```
-**Step 3: Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.)**
 
-**Step 4: Open the widget, claim ownership and deploy your app to start collecting feedback**
+**Step 4: Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.)**
+
+**Step 5: Open the widget, claim ownership and deploy your app to start collecting feedback**
 
 &nbsp;
 &nbsp;
