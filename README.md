@@ -31,10 +31,9 @@ function FeedbackButton() {
 
 Congratulations! You've successfully embedded the Feedbackland widget. 🎉
 
-Next, claim ownership of your platform by clicking the **Claim ownership** button within the widget. Once that's done, deploy your app.
+Next, claim ownership of your platform by clicking the **Claim Ownership** button within the widget. Once that's done, deploy your app.
 
-After deployment, you'll start receiving feedback through the widget. When you've collected some feedback, head over to the **Roadmap** tab in the Admin Panel to generate your first roadmap!
-
+After deployment, the widget will begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
 
 &nbsp;
 &nbsp;
