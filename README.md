@@ -36,7 +36,7 @@ Step 4: Customize the `<button>`, or replace it with your own button.
 
 Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app (e.g. inside of a menu, sidebar, footer, ...).
 
-Step 6: Open the widget by clicking the Feedback button. Then click **Claim Ownership** and sign up to claim ownership of your platform and get admin access.
+Step 6: Open the widget by clicking the Feedback button. Then click **Claim Ownership** and sign up to claim ownership of your Feedbackland platform and get admin access.
 
 Step 7: Deploy your app
 
