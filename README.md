@@ -14,7 +14,7 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
    npm install feedbackland-react
    ```
 
-2. **Create**  
+2. **Create Your Feedback Button Component**  
    ```tsx
    import { OverlayWidget } from "feedbackland-react";
 
@@ -25,14 +25,12 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
    );
    ```
 
-3. **Configure**  
+3. **Configure & Use**  
    - Replace `YOUR_UUID_V4` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
-   - Replace the button element with in your own button component, or styleit to your liking.
+   - Replace the button element with in your own button component, or style it to your liking.
+   - Place `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
 
-4. **Embed**  
-   Drop `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
-
-5. **Claim & Deploy**  
+4. **Claim & Deploy**  
    - Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
    - Push to production to start collecting feedback.
 
