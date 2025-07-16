@@ -16,7 +16,7 @@ Step 1: Install the package
 npm i feedbackland-react
 ```
 
-Step 2: Paste the snippet anywhere in your codebase 
+Step 2: Paste the snippet in your codebase 
 
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
@@ -32,7 +32,7 @@ function FeedbackButton() {
 
 Step 3: Replace `YOUR_UUID_v4` with [a generated UUID](https://www.uuidtools.com/v4)
 
-Step 4: Customize the `<button>`, or replace it with your own button component.
+Step 4: Customize the `<button>`, or replace it with your own button.
 
 Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app.
 
