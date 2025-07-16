@@ -12,11 +12,11 @@ Feedbackland is an open-source widget that collects feedback and transforms it w
 
 ## Embed Feedbackland In 30 Seconds
 
-**Step 1: Install The Package**  
+**Step 1: Install the package**  
 ```bash
 npm install feedbackland-react
 ```
-**Step 2: Add The Widget To Your App**
+**Step 2: Add the widget to your app**
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
 
@@ -27,6 +27,7 @@ export const FeedbackButton = () => (
 );
 ```
 **Step 3: Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.)**
+**Step 4: Open the widget, claim ownership, deploy your app and start collecting feedback**
 
 &nbsp;
 &nbsp;
