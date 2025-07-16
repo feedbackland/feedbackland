@@ -2,7 +2,8 @@
 
 &nbsp;
 
-Feedbackland is an open-source widget that collects feedback and transforms it with AI into a prioritized product roadmap. [Visit our website](https://feedbackland.com) for more information and a live demo.
+Feedbackland is an open-source widget that collects feedback and transforms it with AI into a prioritized product roadmap.
+[Visit our website](https://feedbackland.com) for more information and a live demo.
 
 &nbsp;
 &nbsp;
