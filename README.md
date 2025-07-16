@@ -33,15 +33,15 @@ function FeedbackButton() {
 
 Step 3: Replace `YOUR_UUID_v4` with [a randomly generated UUID](https://www.uuidtools.com/v4)
 
-Step 4: Replace the `<button>` element with your own button component, or style it to your liking using a framework like Tailwind.
+Step 4: Replace the `<button>` element with your own button component, or style it to your liking.
 
-Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app (e.g. inside of a menu, sidebar, footer, ...).
+Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app.
 
-Step 6: Open the widget by clicking the Feedback button. Then click **Claim Ownership** to get admin access of your platform.
+Step 6: Open the widget by clicking the Feedback button. Then click **Claim Ownership** to get admin access.
 
-Step 7: Deploy your app
+Step 7: Deploy your app.
 
-Congratulations, you've successfully embedded the Feedbackland widget! It will now begin collecting user feedback. Once a sufficient amount is gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
+Congratulations, you've successfully embedded the Feedbackland widget! It will now start collecting user feedback. Once a sufficient amount is gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
 
 &nbsp;
 &nbsp;
