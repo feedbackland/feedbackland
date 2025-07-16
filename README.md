@@ -11,6 +11,8 @@ Feedbackland is an open-source widget that collects feedback and transforms it w
 
 ## Embed Feedbackland
 
+No prior steps required! Simply follow the instructions below to get Feedbackland up and running in your app.
+
 1. **Install**  
    ```bash
    npm install feedbackland-react
