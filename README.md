@@ -8,7 +8,7 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 &nbsp;
 &nbsp;
 
-## Embed Feedbackland
+## Embed Feedbackland with 8 lines of code
 
 Step 1: Install the package
 
