@@ -1,5 +1,4 @@
-
-<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/7477e98e-2770-478e-9f2b-89262ac2321e" />
+<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/83008619-64d5-44ba-81ea-6b2bf65b6890" />
 
 &nbsp;
 
