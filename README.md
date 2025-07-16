@@ -38,7 +38,7 @@ Step 5: Add the `<FeedbackButton />` component anywhere in your app (e.g. inside
 
 Step 6: Open the widget by clicking on the Feedback button. Then click **Claim Ownership** and sign up to claim ownership of your platform and get admin access.
 
-Step7: Deploy your app.
+Step 7: Deploy your app
 
 Congratulations, you've successfully embedded the Feedbackland widget! The widget will now begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
 
