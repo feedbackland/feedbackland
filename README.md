@@ -17,7 +17,7 @@ Step 1: Install the package
 npm i feedbackland-react
 ```
 
-Step 2: Add the following component to your codebase
+Step 2: Add the FeedbackButton component to your codebase
 
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
