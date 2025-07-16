@@ -25,7 +25,7 @@ export const FeedbackButton = () => (
 ```
 **Step 3: Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.)**
 
-**Step 4: Open the widget, claim ownership, deploy your app and start collecting feedback**
+**Step 4: Open the widget, claim ownership and deploy your app to start collecting feedback**
 
 &nbsp;
 &nbsp;
