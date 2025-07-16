@@ -10,7 +10,7 @@ Feedbackland is an open-source widget that collects feedback and transforms it w
 &nbsp;
 &nbsp;
 
-## Embed Feedbackland
+## Embed Feedbackland In 30 Seconds
 
 **Step 1: Install The Package**  
 ```bash
