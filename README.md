@@ -14,7 +14,7 @@
 npm install feedbackland-react
 ```
 
-**Step 2: [Generate an ID](https://www.uuidtools.com/v4){:target="_blank"}**
+**Step 2: [Generate an ID](https://www.uuidtools.com/v4)**
 
 **Step 3: Add the widget to your app and replace `YOUR_GENERATED_ID` with the one you generated**
 ```tsx
