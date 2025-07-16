@@ -34,9 +34,7 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
    - Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
    - Push to production to start collecting feedback.
 
----
-
-Once you have feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
+Once you have collected some feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
 
 &nbsp;
 &nbsp;
