@@ -58,7 +58,7 @@ Our widget embeds in seconds to capture real user feedback: ideas, requests, and
 
 ## Self-Hosting Feedbackland
 
-Welcome to the self-hosting guide for Feedbackland! Follow these steps to get your own instance of the platform up and running.
+Follow these steps to get your own instance of the platform up and running.
 
 ### Prerequisites
 
