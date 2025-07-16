@@ -10,12 +10,12 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 ## Embed Feedbackland
 
 1. **Install**  
-   \`\`\`bash
+   ```bash
    npm install feedbackland-react
-   \`\`\`
+   ```
 
 2. **Create**  
-   \`\`\`tsx
+   ```tsx
    import { OverlayWidget } from "feedbackland-react";
 
    export const FeedbackButton = () => (
@@ -23,14 +23,14 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
        <button>Feedback</button>
      </OverlayWidget>
    );
-   \`\`\`
+   ```
 
 3. **Configure**  
-   - Replace \`YOUR_UUID_V4\` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
+   - Replace `YOUR_UUID_V4` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
    - Replace the button element with in your own button component, or styleit to your liking.
 
 4. **Embed**  
-   Drop \`<FeedbackButton />\` anywhere in your layout (sidebar, footer, etc.).
+   Drop `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
 
 5. **Claim & Deploy**  
    - Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
