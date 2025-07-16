@@ -10,12 +10,13 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 
 ## Embed Feedbackland in 30 seconds 🚀
 
-Install the package
+Step 1: Install the package
+
 ```bash
 npm i feedbackland-react
 ```
 
-Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with [your generated UUID](https://www.uuidtools.com/v4)
+Step 2: Paste the snippet anywhere in your codebase 
 
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
@@ -28,6 +29,10 @@ function FeedbackButton() {
   );
 }
 ```
+
+Step 3: Replace `YOUR_UUID_v4` with [a generated UUID](https://www.uuidtools.com/v4)
+
+Step 4: Customize or change the `<button>` and use the `<FeedbackButton />` component anywhere in your app.
 
 Congratulations! You've successfully embedded the Feedbackland widget. 🎉
 
