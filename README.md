@@ -43,7 +43,7 @@ After deployment, the widget will begin collecting user feedback. Once a suffici
 ## About Feedbackland
 
 Founders know the pain: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
-Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. No more guessing. Just building what users love.
+Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
 
 &nbsp;
 &nbsp;
