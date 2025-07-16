@@ -32,7 +32,7 @@ function FeedbackButton() {
 
 Step 3: Replace `YOUR_UUID_v4` with [a randomly generated UUID](https://www.uuidtools.com/v4)
 
-Step 4: Customize the `<button>`, or replace it with your own button.
+Step 4: Replace the `<button>` element with your own button component, or style it to your liking using a framework like Tailwind.
 
 Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app (e.g. inside of a menu, sidebar, footer, ...).
 
