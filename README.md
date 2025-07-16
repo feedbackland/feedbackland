@@ -25,7 +25,7 @@ import { OverlayWidget } from "feedbackland-react";
 function FeedbackButton() {
   return (
     <OverlayWidget id="YOUR_UUID_v4"> {/* replace "YOUR_UUID_v4" with a randomly generated UUID v4 */}
-      <button>Feedback</button> {/* use your own button */}
+      <button>Feedback</button> {/* customize or replace with your own button component */}
     </OverlayWidget>
   );
 }
@@ -93,7 +93,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
     cd feedbackland
     ```
 3.  **Create your environment file:**
-    Rename the example environment file as a starting point to create your own.
+    Rename the example environment file
     ```bash
     mv .env.example .env
     ```
