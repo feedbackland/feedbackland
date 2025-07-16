@@ -14,7 +14,7 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
    npm install feedbackland-react
    ```
 
-2. **Create Your Feedback Button Component**  
+2. **Create Your `FeedbackButton` Component**  
    ```tsx
    import { OverlayWidget } from "feedbackland-react";
 
