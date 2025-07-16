@@ -7,41 +7,38 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 &nbsp;
 &nbsp;
 
-## Embed Feedbackland with 8 lines of code
+## Embed Feedbackland
 
-Getting Feedbackland set up in your app is extremely straightforward. There's no need to sign up first. Just follow the steps below to get started!
+1. **Install**  
+   \`\`\`bash
+   npm install feedbackland-react
+   \`\`\`
 
-Step 1: Install the package
+2. **Create**  
+   \`\`\`tsx
+   import { OverlayWidget } from "feedbackland-react";
 
-```bash
-npm i feedbackland-react
-```
+   export const FeedbackButton = () => (
+     <OverlayWidget id="YOUR_UUID_V4">
+       <button>Feedback</button>
+     </OverlayWidget>
+   );
+   \`\`\`
 
-Step 2: Add the FeedbackButton component to your codebase
+3. **Configure**  
+   - Replace \`YOUR_UUID_V4\` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
+   - Replace the button element with in your own button component, or styleit to your liking.
 
-```tsx
-import { OverlayWidget } from "feedbackland-react";
+4. **Embed**  
+   Drop \`<FeedbackButton />\` anywhere in your layout (sidebar, footer, etc.).
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget id="YOUR_UUID_v4"> {/* replace "YOUR_UUID_v4" with a randomly generated UUID v4 */}
-      <button>Feedback</button> {/* customize or replace with your own button component */}
-    </OverlayWidget>
-  );
-}
-```
+5. **Claim & Deploy**  
+   - Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
+   - Push to production to start collecting feedback.
 
-Step 3: Replace `YOUR_UUID_v4` with [a randomly generated UUID](https://www.uuidtools.com/v4)
+---
 
-Step 4: Replace the `<button>` element with your own button component, or style it to your liking.
-
-Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app.
-
-Step 6: Open the widget by clicking the Feedback button. Then click **Claim Ownership** to get admin access.
-
-Step 7: Deploy your app.
-
-Congratulations, you've successfully embedded the Feedbackland widget! It will now start collecting user feedback. Once a sufficient amount is gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
+Once you have feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
 
 &nbsp;
 &nbsp;
