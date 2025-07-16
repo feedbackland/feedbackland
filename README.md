@@ -23,17 +23,12 @@ npm install feedbackland-react
 import { OverlayWidget } from "feedbackland-react";
 
 export const FeedbackButton = () => (
-  <OverlayWidget id="YOUR_UUID_V4">
-    <button>Feedback</button>
+  <OverlayWidget id="YOUR_UUID_V4"> {/* generate your UUID: www.uuidtools.com/v4 */}
+    <button>Feedback</button> {/* replace with your own button component, or style it */}
   </OverlayWidget>
 );
 ```
-- Replace `YOUR_UUID_V4` with a randomly generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
-- Replace the `button` element with your own button component, or style it to your liking.
-- Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.).
-- Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
-- Push to production to start collecting feedback.
-- When you've collected some feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
+**Place the `<FeedbackButton />` component anywhere in your layout (sidebar, footer, etc.)**
 
 &nbsp;
 &nbsp;
