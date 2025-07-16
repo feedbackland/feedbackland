@@ -10,6 +10,8 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 
 ## Embed Feedbackland with 8 lines of code
 
+Getting Feedbackland set up in your app is extremely straightforward. There's no need to sign up first. Just follow the steps below to get started!
+
 Step 1: Install the package
 
 ```bash
