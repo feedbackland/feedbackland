@@ -32,7 +32,9 @@ function FeedbackButton() {
 
 Step 3: Replace `YOUR_UUID_v4` with [a generated UUID](https://www.uuidtools.com/v4)
 
-Step 4: Customize or change the `<button>` and use the `<FeedbackButton />` component anywhere in your app.
+Step 4: Customize or change the `<button>` and use the newly added `<FeedbackButton />` component anywhere in your app.
+
+&nbsp;
 
 Congratulations! You've successfully embedded the Feedbackland widget. 🎉
 
