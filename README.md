@@ -27,7 +27,7 @@ Feedbackland is an open-source widget that collects feedback directly in your ap
 
 3. **Configure & Use**  
    - Replace `YOUR_UUID_V4` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
-   - Replace the button element with in your own button component, or style it to your liking.
+   - Replace the button element with your own button component, or style it to your liking.
    - Place `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
 
 4. **Claim & Deploy**  
