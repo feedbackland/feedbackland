@@ -30,7 +30,7 @@ No prior steps required! Simply follow the instructions below to get Feedbacklan
    ```
 
 3. **Configure & Use**  
-   - Replace `YOUR_UUID_V4` with a generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
+   - Replace `YOUR_UUID_V4` with a randomly generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
    - Replace the button element with your own button component, or style it to your liking.
    - Place `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
 
