@@ -34,13 +34,15 @@ Step 3: Replace `YOUR_UUID_v4` with [a generated UUID](https://www.uuidtools.com
 
 Step 4: Customize the `<button>`, or replace it with your own button.
 
-Step 5: Use the newly added `<FeedbackButton />` component anywhere in your app.
+Step 5: Add the `<FeedbackButton />` component anywhere in your app (e.g. inside of a menu, sidebar, footer, ...).
 
 &nbsp;
 
 Congratulations! You've successfully embedded the Feedbackland widget. 🎉
 
-Next, claim ownership of your platform by clicking the **Claim Ownership** button within the widget. Once that's done, deploy your app.
+&nbsp;
+
+Next, claim ownership of your platform by opening the widget and clicking the **Claim Ownership** button. Once that's done, deploy your app.
 
 After deployment, the widget will begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
 
