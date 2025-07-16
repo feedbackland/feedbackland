@@ -16,7 +16,7 @@ Step 1: Install the package
 npm i feedbackland-react
 ```
 
-Step 2: Paste the snippet in your codebase 
+Step 2: Import the following component 
 
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
@@ -30,26 +30,21 @@ function FeedbackButton() {
 }
 ```
 
-Step 3: Replace `YOUR_UUID_v4` with [a generated UUID](https://www.uuidtools.com/v4)
+Step 3: Replace `YOUR_UUID_v4` with [a randomly generated UUID](https://www.uuidtools.com/v4)
 
 Step 4: Customize the `<button>`, or replace it with your own button.
 
 Step 5: Add the `<FeedbackButton />` component anywhere in your app (e.g. inside of a menu, sidebar, footer, ...).
 
-&nbsp;
+Step 6: Open the widget by clicking on the Feedback button. Then click **Claim Ownership** and sign up to claim ownership of your platform and get admin access.
 
-Congratulations! You've successfully embedded the Feedbackland widget. 🎉
+Step7: Deploy your app.
 
-&nbsp;
-
-Next, claim ownership of your platform by opening the widget and clicking the **Claim Ownership** button. Once that's done, deploy your app.
-
-After deployment, the widget will begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
+Congratulations, you've successfully embedded the Feedbackland widget! The widget will now begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
 
 &nbsp;
 &nbsp;
 &nbsp;
-
 
 ## About Feedbackland
 
