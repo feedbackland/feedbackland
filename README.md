@@ -12,33 +12,28 @@ Feedbackland is an open-source widget that collects feedback and transforms it w
 
 ## Embed Feedbackland
 
-Follow the instructions below to get the Feedbackland widget up and running in your app.
+Follow the instructions below to get the Feedbackland widget up and running in your app, and start collecting feedback.
 
-1. **Install**  
-   ```bash
-   npm install feedbackland-react
-   ```
+**Install The Package**  
+```bash
+npm install feedbackland-react
+```
+**Add The Widget To Your App**
+```tsx
+import { OverlayWidget } from "feedbackland-react";
 
-2. **Create Your `FeedbackButton` Component**  
-   ```tsx
-   import { OverlayWidget } from "feedbackland-react";
-
-   export const FeedbackButton = () => (
-     <OverlayWidget id="YOUR_UUID_V4">
-       <button>Feedback</button>
-     </OverlayWidget>
-   );
-   ```
-
-3. **Configure & Use**  
-   - Replace `YOUR_UUID_V4` with a randomly generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
-   - Replace the button element with your own button component, or style it to your liking.
-   - Place `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
-
-4. **Claim, Deploy & Generate Your First Roadmap**  
-   - Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
-   - Push to production to start collecting feedback.
-   - When you've collected some feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
+export const FeedbackButton = () => (
+  <OverlayWidget id="YOUR_UUID_V4">
+    <button>Feedback</button>
+  </OverlayWidget>
+);
+```
+- Replace `YOUR_UUID_V4` with a randomly generated UUID v4 (e.g. via https://www.uuidtools.com/v4).  
+- Replace the button element with your own button component, or style it to your liking.
+- Place `<FeedbackButton />` anywhere in your layout (sidebar, footer, etc.).
+- Run locally, click “Feedback” → **Claim Ownership** → sign up for Admin access.  
+- Push to production to start collecting feedback.
+- When you've collected some feedback, visit **Admin Panel → Roadmap** to generate your first roadmap.
 
 &nbsp;
 &nbsp;
