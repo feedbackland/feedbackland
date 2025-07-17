@@ -10,7 +10,7 @@
 ## Embed Feedbackland In 30 Seconds
 
 > [!NOTE]
-> Our widget integrates with any React app, and we're actively adding support for more frameworks. If you don't use React or prefer to use Feedbackland as a standalone webiste, you can [start here](https://get-started.feedbackland.com).
+> Our widget integrates with any React app, and we're actively adding support for more frameworks. If you don't use React or prefer to use Feedbackland as a standalone website, you can [start here](https://get-started.feedbackland.com).
 
 **Step 1: Install the package**  
 ```bash
