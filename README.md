@@ -186,7 +186,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
       ```
     * Push your local Feedbackland codebase include all changes to the new repository:
       ```bash
-      gat add -A
+      git add -A
       git commit -m "init"
       git push -u origin main
       ```
