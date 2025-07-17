@@ -180,7 +180,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
       ```bash
       git remote rm origin
       ```
-    * Add the remote origin from your newly created repository:
+    * Add the remote origin from your newly created GitHub repository:
       ```bash
       git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git
       ```
