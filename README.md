@@ -176,8 +176,14 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 1.  **Push your code to GitHub:**
     * Create a new repository on GitHub.
-    * Remove any existing remote origin from your feedbackland project: `git remote rm origin`
-    * Add the remote origin from your newly created repository: `git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git`.
+    * Remove any existing remote origin from your feedbackland project:
+      ```bash
+      git remote rm origin
+      ```
+    * Add the remote origin from your newly created repository:
+      ```bash
+      git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git
+      ```
     * Push your local Feedbackland codebase include all changes to the new repository:
       ```bash
       gat add -A
