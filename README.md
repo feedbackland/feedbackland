@@ -136,7 +136,7 @@ Now, let's set up Firebase for user authentication.
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
-    * From your Firebase project, obtain your web app configuration object.
+    * From your Firebase project, obtain your web app configuration object: "Get started by adding Firebase to your app" > Web > complete the wizard > copy `firebaseConfig`.
     * Open the `firebaseConfig.ts` file in the root of your Feedbackland project.
     * Paste your Firebase config into this file.
 3.  **Enable authentication providers:**
