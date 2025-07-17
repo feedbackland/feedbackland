@@ -190,7 +190,8 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
 
-Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
+
+Congratulations! 🎉 Your self-hosted Feedbackland platform is now live!
 
 &nbsp;
 
