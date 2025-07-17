@@ -76,7 +76,7 @@ Before you begin, make sure you have accounts for the following services:
 First, you'll need to get the Feedbackland source code onto your local machine.
 
 1.  **Download the repository:**
-    You can either clone the repository or download the source code as a zip file at https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip.
+    You can either clone the repository, or (download the source code as a zip file)[https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip].
     ```bash
     git clone https://github.com/feedbackland/feedbackland.git
     ```
@@ -176,7 +176,9 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 1.  **Push your code to GitHub:**
     * Create a new repository on GitHub.
-    * Push your local Feedbackland codebase to the new repository.
+    * Remove any existing remote origin from your feedbackland project: `git remote rm origin`
+    * Add the remote origin from your newly created repository: `git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git`.
+    * Push your local Feedbackland codebase to the new repository: `git push -u origin main`.
 2.  **Deploy with Vercel:**
     * On the Vercel dashboard, create a **New Project**.
     * Import your Feedbackland repository from GitHub.
