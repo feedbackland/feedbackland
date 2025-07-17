@@ -3,7 +3,7 @@
 
 &nbsp;
 
-[Feedbackland](https://feedbackland.com)  is an open-source widget that collects feedback and transforms it with AI into your crystal-clear, prioritized product roadmap.
+[Feedbackland](https://feedbackland.com)  is an open-source widget that collects feedback in-app and transforms it with AI into your crystal-clear, prioritized product roadmap. So you always know exactly what to build next.
 
 &nbsp;
 
