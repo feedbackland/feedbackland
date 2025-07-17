@@ -197,6 +197,8 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * Copy and paste all the environment variables from your local `.env` file into Vercel.
     * Click **Deploy**.
 3.  **Finalize your platform setup:**
+    * IMPORTANT: When your deployment is complete, grab the Vercel url (e.g. `my-feedbackland-platform.vercel.app`) and add it as authorized domain to Firebase:
+      Firebase Console > Authentication > Settings > Authorized domains > click 'Add domain' > add your Vercel URL
     * Once the deployment is complete, navigate to `<YOUR_VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
