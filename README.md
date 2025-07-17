@@ -145,7 +145,7 @@ Now, let's set up Firebase for user authentication.
 4.  **Add Firebase service account credentials to your `.env` file:**
     * Go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
-    * A JSON file will be downloaded. Open this file and copy the following values into your `.env` file:
+    * A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
         * `project_id` → `FIREBASE_PROJECT_ID`
         * `client_email` → `FIREBASE_CLIENT_EMAIL`
         * `private_key` → `FIREBASE_PRIVATE_KEY`
