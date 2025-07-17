@@ -10,7 +10,7 @@
 ## Embed Feedbackland In 30 Seconds
 
 > [!NOTE]
-> The widget is currently available for React applications, with support for more frameworks coming soon.<br />As an alternative, you can [begin with a standalone platform](https://get-started.feedbackland.com).
+> The widget is currently available for React applications, with support for more frameworks coming soon.<br />Don't have a React app, or not interested in embedding the widget? [Start with a standalone platform](https://get-started.feedbackland.com).
 
 **Step 1: Install the package**  
 ```bash
