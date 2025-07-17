@@ -9,6 +9,9 @@
 
 ## Embed Feedbackland In 30 Seconds
 
+> [!NOTE]
+> The widget can currently be embedded in any React app. More frameworks will be added soon.
+
 **Step 1: Install the package**  
 ```bash
 npm install feedbackland-react
@@ -28,7 +31,7 @@ export const FeedbackButton = () => (
 
 **Step 3: Replace `YOUR_GENERATED_ID` with a newly [generated ID](https://www.uuidtools.com/v4)**
 
-**Step 4: Place the `<FeedbackButton />` component anywhere in your UI (sidebar, footer, etc.)**
+**Step 4: Place the newly added `<FeedbackButton />` component anywhere in your UI (sidebar, footer, etc.)**
 
 **Step 5: Open the widget, claim ownership and deploy your app to start collecting feedback**
 
