@@ -202,7 +202,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
    * Navigate to Authentication > Settings > Authorized domains.
    * Click **Add domain** and paste your Vercel URL to authorize it.
 5.  **Finalize your platform setup:**
-    * Now navigate to `<YOUR_VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
+    * Now navigate to `<YOUR-VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
 
