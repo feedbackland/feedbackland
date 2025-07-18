@@ -9,10 +9,7 @@
 
 ## Get Started
 
-1. [Create your free Feedbackland platform](https://get-started.feedbackland.com)
-2. Navigate to Admin panel > Widget for instructions on how to embed your newly created platform
-3. After having followed the instructions, deploy your app to start collecting in-app feedback.
-4. When you've collected some feedback, go to Admin Panel > Roadmap to generate your first roadmap.
+[Embed in your app in just 30 seconds](https://feedbackland.com#embed) or alternatively [start with a standalone platform](https://get-started.feedbackland.com)
 
 &nbsp;
 &nbsp;
