@@ -9,7 +9,7 @@
 
 ## Get Started
 
-[Preview Your Widget]() and [embed it in your app in just 30 seconds]().
+[Preview your free widget]() and [embed it in your app in just 30 seconds]().
 
 &nbsp;
 &nbsp;
