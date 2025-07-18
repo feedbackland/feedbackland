@@ -14,14 +14,14 @@ export const claimOrg = userProcedure.mutation(
 
       const isSelfHosted = getIsSelfHosted("server");
 
-      if (userEmail && !isSelfHosted) {
+      if (!isSelfHosted && userEmail && process.env.RESEND_EMAIL_SENDER) {
         const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
           orgId,
           orgSubdomain: org.orgSubdomain,
         });
 
         await resend.emails.send({
-          from: "Feedbackland <hello@feedbackland.com>",
+          from: `Feedbackland <${`Feedbackland <${process.env.RESEND_EMAIL_SENDER}>`}>`,
           to: [userEmail],
           subject: "Your Feedbackland platform is ready!",
           react: WelcomeEmail({

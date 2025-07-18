@@ -4,6 +4,7 @@ import { createAdminInviteQuery } from "@/queries/create-admin-invite";
 import { resend } from "@/lib/resend";
 import { AdminInviteEmail } from "@/components/emails/admin-invite";
 import { getAdminLimit } from "./get-admin-limit";
+import { getIsSelfHosted } from "@/lib/utils";
 
 export const createAdminInvite = adminProcedure
   .input(
@@ -30,15 +31,21 @@ export const createAdminInvite = adminProcedure
         userId,
       });
 
-      await resend.emails.send({
-        from: "Feedbackland <hello@feedbackland.com>",
-        to: [email],
-        subject: "Feedbackland - Admin invitation",
-        react: AdminInviteEmail({
-          invitedBy,
-          inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
-        }),
-      });
+      const isSelfHosted = getIsSelfHosted("server");
+
+      if (email && process.env.RESEND_EMAIL_SENDER) {
+        await resend.emails.send({
+          from: isSelfHosted
+            ? process.env.RESEND_EMAIL_SENDER
+            : `Feedbackland <${process.env.RESEND_EMAIL_SENDER}>`,
+          to: [email],
+          subject: "Feedbackland - Admin invitation",
+          react: AdminInviteEmail({
+            invitedBy,
+            inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
+          }),
+        });
+      }
     } catch (error) {
       throw error;
     }

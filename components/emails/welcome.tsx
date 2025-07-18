@@ -83,10 +83,10 @@ export const WelcomeEmail = ({
                 If you have any questions or need help getting started, don't
                 hesitate to reach out to us directly at{" "}
                 <Link
-                  href="mailto:hello@feedbackland.com"
+                  href={`mailto:${process.env.RESEND_EMAIL_SENDER}`}
                   className="text-black underline"
                 >
-                  hello@feedbackland.com
+                  {process.env.RESEND_EMAIL_SENDER}
                 </Link>
               </Text>
 
