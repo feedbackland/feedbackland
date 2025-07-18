@@ -7,33 +7,13 @@
 
 &nbsp;
 
-## Embed Feedbackland In 30 Seconds
+## Get Started
 
-> [!NOTE]
-> The Feedbackland widget currently embeds in React apps, with support for other frameworks coming soon. If you don’t use React, or don't want to embed Feedbackland as a widget, you can [start with a standalone platform](https://get-started.feedbackland.com).
-
-**Step 1: Install the package**  
-```bash
-npm install feedbackland-react
-```
-
-**Step 2: Add the widget to your app**
-```tsx
-import { OverlayWidget } from "feedbackland-react";
-
-export const FeedbackButton = () => (
-  <OverlayWidget id="YOUR_GENERATED_ID">
-    {/* customize the button, or replace with your own button component */}
-    <button>Feedback</button>
-  </OverlayWidget>
-);
-```
-
-**Step 3: Replace `YOUR_GENERATED_ID` with a newly [generated ID](https://www.uuidtools.com/v4)**
-
-**Step 4: Place the newly added `<FeedbackButton />` component anywhere in your UI (sidebar, footer, etc.)**
-
-**Step 5: Open the widget, claim ownership and deploy your app to start collecting feedback**
+1. [Create your free Feedbackland platform](https://get-started.feedbackland.com)
+2. Click on `Claim Ownership` in the top banner to get admin access
+3. Navigate to Admin Panel > Widget and follow the instructions to embed the widget into your app
+4. Deploy your app to start collecting feedback
+5. When you've collected some feedback, go to Admin Panel > Roadmap to generate your first roadmap
 
 &nbsp;
 &nbsp;
