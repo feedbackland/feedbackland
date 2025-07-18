@@ -11,7 +11,7 @@
 
 1. [Create your free Feedbackland platform](https://get-started.feedbackland.com)
 2. Click on `Claim Ownership` in the top banner to get admin access
-3. Navigate to Admin Panel > Widget and follow the instructions to embed the widget into your app
+3. Navigate to Admin Panel > Widget and follow the instructions to embed the widget in your app
 4. Deploy your app to start collecting feedback
 5. When you've collected some feedback, go to Admin Panel > Roadmap to generate your first roadmap
 
