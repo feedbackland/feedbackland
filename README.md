@@ -1,48 +1,47 @@
 
-<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/7477e98e-2770-478e-9f2b-89262ac2321e" />
+<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/a8529258-4625-4965-bc38-53538c5e291d" />
 
 &nbsp;
 
-Feedbackland is an open-source widget that collects feedback directly in your app and with AI transforms it into a prioritized product roadmap. [Visit our website](https://feedbackland.com) for more information and a live demo.
+[Feedbackland](https://feedbackland.com)'s open-source widget collects user feedback, votes and comments directly in your app, and uses AI to transform it all into a prioritized product roadmap, so you know exactly what to build next.
 
 &nbsp;
-&nbsp;
 
-## Embed Feedbackland in 30 seconds 🚀
+## Embed Feedbackland In 30 Seconds
 
-Install the package
+> [!NOTE]
+> The Feedbackland widget currently embeds in React apps, with support for other frameworks coming soon. If you don’t use React, or don't want to embed Feedbackland as a widget, you can [start with a standalone platform](https://get-started.feedbackland.com).
+
+**Step 1: Install the package**  
 ```bash
-npm i feedbackland-react
+npm install feedbackland-react
 ```
 
-Paste the snippet anywhere in your codebase and replace `YOUR_UUID_v4` with [your generated UUID](https://www.uuidtools.com/v4)
-
+**Step 2: Add the widget to your app**
 ```tsx
 import { OverlayWidget } from "feedbackland-react";
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget id="YOUR_UUID_v4">
-      <button>Feedback</button> {/* use your own button */}
-    </OverlayWidget>
-  );
-}
+export const FeedbackButton = () => (
+  <OverlayWidget id="YOUR_GENERATED_ID">
+    {/* customize the button, or replace with your own button component */}
+    <button>Feedback</button>
+  </OverlayWidget>
+);
 ```
 
-Congratulations! You've successfully embedded the Feedbackland widget. 🎉
+**Step 3: Replace `YOUR_GENERATED_ID` with a newly [generated ID](https://www.uuidtools.com/v4)**
 
-Next, claim ownership of your platform by clicking the **Claim Ownership** button within the widget. Once that's done, deploy your app.
+**Step 4: Place the newly added `<FeedbackButton />` component anywhere in your UI (sidebar, footer, etc.)**
 
-After deployment, the widget will begin collecting user feedback. Once a sufficient amount has been gathered, you can generate your first roadmap in the **Roadmap** tab of the Admin Panel.
+**Step 5: Open the widget, claim ownership and deploy your app to start collecting feedback**
 
 &nbsp;
 &nbsp;
 &nbsp;
-
 
 ## About Feedbackland
 
-Founders know the pain: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
+Founders know the struggle: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
 Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
 
 &nbsp;
@@ -51,7 +50,7 @@ Our widget embeds in seconds to capture real user feedback: ideas, requests, and
 
 ## Self-Hosting Feedbackland
 
-Welcome to the self-hosting guide for Feedbackland! Follow these steps to get your own instance of the platform up and running.
+Follow these steps to get your own instance of the platform up and running.
 
 ### Prerequisites
 
@@ -77,16 +76,16 @@ Before you begin, make sure you have accounts for the following services:
 First, you'll need to get the Feedbackland source code onto your local machine.
 
 1.  **Download the repository:**
-    You can either clone the repository or download the source code as a zip file at https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip.
+    You can either clone the repository, or [download the source code as a zip file](https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip).
     ```bash
-    git clone https://github.com/feedbackland/feedbackland.git
+    git clone https://github.com/feedbackland/feedbackland.git feedbackland
     ```
 2.  **Navigate to the project directory:**
     ```bash
     cd feedbackland
     ```
 3.  **Create your environment file:**
-    Rename the example environment file as a starting point to create your own.
+    Rename the example environment file
     ```bash
     mv .env.example .env
     ```
@@ -113,7 +112,7 @@ Next, let's configure your Supabase project for the database and file storage.
     * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
-    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string:
+    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string (i.e. "postgresql://postgres:`<password>`@db.`<project-id>`.supabase.co:5432/postgres"):
         ```bash
         psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
@@ -137,7 +136,7 @@ Now, let's set up Firebase for user authentication.
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
-    * From your Firebase project, obtain your web app configuration object.
+    * From your Firebase project, obtain your web app configuration object: "Get started by adding Firebase to your app" > Web > complete the wizard > copy `firebaseConfig`.
     * Open the `firebaseConfig.ts` file in the root of your Feedbackland project.
     * Paste your Firebase config into this file.
 3.  **Enable authentication providers:**
@@ -146,7 +145,7 @@ Now, let's set up Firebase for user authentication.
 4.  **Add Firebase service account credentials to your `.env` file:**
     * Go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
-    * A JSON file will be downloaded. Open this file and copy the following values into your `.env` file:
+    * A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
         * `project_id` → `FIREBASE_PROJECT_ID`
         * `client_email` → `FIREBASE_CLIENT_EMAIL`
         * `private_key` → `FIREBASE_PRIVATE_KEY`
@@ -177,25 +176,44 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 1.  **Push your code to GitHub:**
     * Create a new repository on GitHub.
-    * Push your local Feedbackland codebase to the new repository.
+    * Remove any existing remote origin from your feedbackland project:
+      ```bash
+      git remote rm origin
+      ```
+    * Add the remote origin from your newly created GitHub repository:
+      ```bash
+      git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git
+      ```
+    * Push your local Feedbackland codebase, including all changes, to the new repository:
+      ```bash
+      git add -A
+      git commit -m "init"
+      git push -u origin main
+      ```
 2.  **Deploy with Vercel:**
     * On the Vercel dashboard, create a **New Project**.
     * Import your Feedbackland repository from GitHub.
     * In the project settings, navigate to the **Environment Variables** section.
     * Copy and paste all the environment variables from your local `.env` file into Vercel.
-    * Click **Deploy**.
-3.  **Finalize your platform setup:**
-    * Once the deployment is complete, navigate to `<your-vercel-url>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
+    * Click **Deploy** and wait for it co complete.
+3. **Add Vercel URL to Firebase:**
+   * Once your deployment on Vercel is complete, copy its URL (e.g., my-feedbackland-platform.vercel.app).
+   * Open your project in the Firebase Console.
+   * Navigate to Authentication > Settings > Authorized domains.
+   * Click **Add domain** and paste your Vercel URL to authorize it.
+5.  **Finalize your platform setup:**
+    * Now navigate to `<YOUR-VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
 
-Congratulations! 🎉 Your self-hosted Feedbackland platform should now be live.
+
+Congratulations! 🎉 Your self-hosted Feedbackland platform is now live!
 
 &nbsp;
 
 ### 6. Embed The Widget In Your App
 
-Navigate to Admin Panel > Widget to get the code snippet to embed your Feedbackland platform in your app.
+Congratulations on launching your platform! You can now add it to your app by following the widget installation instructions described in your platform's Admin Panel **Widget** tab.
 
 &nbsp;
 &nbsp;
