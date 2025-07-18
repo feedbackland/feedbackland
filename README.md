@@ -9,10 +9,7 @@
 
 ## Get Started
 
-1. [Create your free Feedbackland platform](https://get-started.feedbackland.com)
-2. Navigate to Admin panel > Widget for instructions on how to embed your newly created platform
-3. After having followed the instructions, deploy your app to start collecting in-app feedback.
-4. When you've collected some feedback, go to Admin Panel > Roadmap to generate your first roadmap.
+[Embed Feedbackland in 30 seconds]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
@@ -29,7 +26,7 @@ Our widget embeds in seconds to capture real user feedback: ideas, requests, and
 
 ## Self-Hosting Feedbackland
 
-Follow these steps to get your own instance of the platform up and running.
+Follow these steps to get your own instance of the platform up and running. It shouldn't take more than 30  min of your time!
 
 ### Prerequisites
 
@@ -91,7 +88,7 @@ Next, let's configure your Supabase project for the database and file storage.
     * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
-    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string (i.e. "postgresql://postgres:`<password>`@db.`<project-id>`.supabase.co:5432/postgres"):
+    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string (i.e. `postgresql://postgres:<YOUR SUPABASE DATABASE PASSWORD>@db.<YOUR SUPABASE PROJECT ID>.supabase.co:5432/postgres`):
         ```bash
         psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
@@ -174,25 +171,26 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * Import your Feedbackland repository from GitHub.
     * In the project settings, navigate to the **Environment Variables** section.
     * Copy and paste all the environment variables from your local `.env` file into Vercel.
-    * Click **Deploy** and wait for it co complete.
+    * Click **Deploy** and wait for it to complete.
 3. **Add Vercel URL to Firebase:**
    * Once your deployment on Vercel is complete, copy its URL (e.g., my-feedbackland-platform.vercel.app).
-   * Open your project in the Firebase Console.
-   * Navigate to Authentication > Settings > Authorized domains.
+   * In the browser go to your Firebase Console and navigate to Authentication > Settings > Authorized domains.
    * Click **Add domain** and paste your Vercel URL to authorize it.
 5.  **Finalize your platform setup:**
-    * Now navigate to `<YOUR-VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
+    * Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
     * Enter the name for your platform and click **Create platform**.
-    * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
-
-
-Congratulations! 🎉 Your self-hosted Feedbackland platform is now live!
+    * You'll get redirect to your platform.
+    * Now claim ownership by clicking the **Claim Ownership** button in the top banner and sign up with your account (Google, Microsoft or Email)
+6. **Embed your self-hosted Feedbackland platform in your app**
+    * In your Feedbackland platform navigate to Admin Panel > Widget.
+    * Follow the instructions described on the Widget page to embed your platform into your React app
 
 &nbsp;
 
-### 6. Embed The Widget In Your App
-
-Congratulations on launching your platform! You can now add it to your app by following the widget installation instructions described in your platform's Admin Panel **Widget** tab.
+Congratulations, your Feedbackland platform is live and fully embedded in your app! 🎉 Now go ahead and:
+* Deploy your app to your users.
+* Collect in-app feedback automatically.
+* Generate your first roadmap based on real user insights!
 
 &nbsp;
 &nbsp;
