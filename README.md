@@ -9,7 +9,8 @@
 
 ## Embed Feedbackland In 30 Seconds
 
-> [!NOTE] Embedding Feedbackland is available for React today, with other frameworks coming soon. If you don’t use React, you can [set up a standalone Feedbackland platform](https://get-started.feedbackland.com).
+> [!NOTE]
+> Embedding Feedbackland is available for React today, with other frameworks coming soon. If you don’t use React, you can [set up a standalone Feedbackland platform](https://get-started.feedbackland.com).
 
 **Step 1: Install the package**  
 ```bash
