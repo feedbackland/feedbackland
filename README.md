@@ -9,7 +9,7 @@
 
 ## Get Started
 
-[Embed Feedbackland in your app]() or [start with a standalone platform]().
+[Embed Feedbackland in your app in 30 seconds]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
