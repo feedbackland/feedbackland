@@ -72,7 +72,7 @@ export function ClaimOrgDialog({
       <DialogContent
         className={cn(
           "flex max-w-[400px]! flex-col",
-          selectedStep === "success" && "top-[400px] max-w-[600px]!",
+          selectedStep === "success" && "top-[40px] max-w-[600px]!",
         )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -104,10 +104,10 @@ export function ClaimOrgDialog({
                 Congratulations
               </DialogTitle>
               <DialogDescription className="text-primary">
-                <span className="mb-8 flex flex-col items-stretch space-y-3 text-center">
+                <span className="mb-8 flex flex-col items-stretch space-y-2 text-center">
                   <span>You're now the owner of this platform!</span>
                   <span>
-                    To embed this platform in your app, Follow the steps below:
+                    To embed this platform in your app, follow the steps below:
                   </span>
                 </span>
               </DialogDescription>

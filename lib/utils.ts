@@ -334,30 +334,30 @@ export const getOverlayWidgetCodeSnippet = ({
 
     return `import { OverlayWidget } from "feedbackland-react";
 
-    function FeedbackButton() {
-      return (
-        <OverlayWidget
-          url="${url}"
-          mode="dark" // light or dark, defaults to dark
-        >
-          <button>Feedback</button> {/*bring your own button */}
-        </OverlayWidget>
-      );
-    }`;
+function FeedbackButton() {
+  return (
+    <OverlayWidget
+      url="${url}"
+      mode="dark" // 'light' or 'dark', defaults to 'dark'
+    >
+      <button>Feedback</button> {/* bring your own button */}
+    </OverlayWidget>
+  );
+}`;
   }
 
   return `import { OverlayWidget } from "feedbackland-react";
 
-  function FeedbackButton() {
-    return (
-      <OverlayWidget
-        id="${orgId}"
-        mode="dark" // light or dark, defaults to dark
-      >
-        <button>Feedback</button> {/*bring your own button */}
-      </OverlayWidget>
-    );
-  }`;
+function FeedbackButton() {
+  return (
+    <OverlayWidget
+      id="${orgId}"
+      mode="dark" // 'light' or 'dark', defaults to 'dark'
+    >
+      <button>Feedback</button> {/* bring your own button */}
+    </OverlayWidget>
+  );
+}`;
 };
 
 export const roadmapLimit = (plan: string) => {

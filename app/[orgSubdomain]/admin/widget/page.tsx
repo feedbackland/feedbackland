@@ -9,6 +9,19 @@ export default function AdminWidgetPage() {
   } = useOrg();
 
   if (org && org.id) {
-    return <WidgetDocs orgId={org.id} orgSubdomain={org.orgSubdomain} />;
+    return (
+      <div>
+        <h2 className="h4 mb-4">Widget</h2>
+        <p className="text-muted-foreground mb-6 text-base">
+          Follow these steps to embed the platform in your React app and start
+          collecting in-app feedback.
+        </p>
+        <WidgetDocs
+          showTitle={false}
+          orgId={org.id}
+          orgSubdomain={org.orgSubdomain}
+        />
+      </div>
+    );
   }
 }

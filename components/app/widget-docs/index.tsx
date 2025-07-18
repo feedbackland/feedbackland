@@ -30,7 +30,7 @@ export function WidgetDocs({
         </div>
         <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 2 - Copy-paste in your app
+            Step 2 - Add this component to your app
           </h3>
           <Code
             code={overlayWidgetCodeSnippet}
@@ -38,6 +38,13 @@ export function WidgetDocs({
             language="tsx"
             className=""
           />
+        </div>
+        <div>
+          <h3 className="text-primary mb-3 text-sm font-medium">
+            Step 3 - Import and add{" "}
+            <code className="bg-muted relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`<FeedbackButton />`}</code>{" "}
+            anywhere in your UI
+          </h3>
         </div>
       </div>
     </div>
