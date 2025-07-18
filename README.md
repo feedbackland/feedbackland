@@ -171,25 +171,20 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * Import your Feedbackland repository from GitHub.
     * In the project settings, navigate to the **Environment Variables** section.
     * Copy and paste all the environment variables from your local `.env` file into Vercel.
-    * Click **Deploy** and wait for it co complete.
+    * Click **Deploy** and wait for it to complete.
 3. **Add Vercel URL to Firebase:**
    * Once your deployment on Vercel is complete, copy its URL (e.g., my-feedbackland-platform.vercel.app).
-   * Open your project in the Firebase Console.
-   * Navigate to Authentication > Settings > Authorized domains.
+   * In the browser go to your Firebase Console and navigate to Authentication > Settings > Authorized domains.
    * Click **Add domain** and paste your Vercel URL to authorize it.
 5.  **Finalize your platform setup:**
-    * Now navigate to `<YOUR-VERCEL-URL>/get-started` (e.g., `my-feedbackland-platform.vercel.app/get-started`).
+    * Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform. As a final step claim ownership by clicking the **Claim Ownership** button in the top banner
+6. **Embed your self-hosted Feedbackland platform in your app**
+    * In your Feedbackland platform navigate to Admin Panel > Widget (`<YOUR-PROJECT-NAME>.vercel.app/admin/widget`).
+    * Follow the instructions described on the Widget page to embed your platform into your React app
 
-
-Congratulations! 🎉 Your self-hosted Feedbackland platform is now live!
-
-&nbsp;
-
-### 6. Embed The Widget In Your App
-
-Congratulations on launching your platform! You can now add it to your app by following the widget installation instructions described in your platform's Admin Panel **Widget** tab.
+Congratulations 🎉! Your self-hosted Feedbackland platform is now live and embedded in your app.
 
 &nbsp;
 &nbsp;
