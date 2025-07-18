@@ -9,7 +9,7 @@
 
 ## Get Started
 
-[Embed in your app in just 30 seconds](https://feedbackland.com#embed) or alternatively [start with a standalone platform](https://get-started.feedbackland.com)
+[Embed the widget in your app in just 30 seconds](https://feedbackland.com#embed) or alternatively [start with a standalone platform](https://get-started.feedbackland.com)
 
 &nbsp;
 &nbsp;
