@@ -185,7 +185,10 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * In your Feedbackland platform navigate to Admin Panel > Widget.
     * Follow the instructions described on the Widget page to embed your platform into your React app
 
-Congratulations 🎉! Your self-hosted Feedbackland platform is now live and embedded in your app. When you deploy your app you'll start collecting in-app feedback after which you can generate your first roadmap!
+Congratulations, your Feedbackland platform is live! 🎉 Here's what's next:
+* Deploy your app to your users.
+* Collect in-app feedback automatically.
+* Generate your first roadmap based on real user insights!
 
 &nbsp;
 &nbsp;
