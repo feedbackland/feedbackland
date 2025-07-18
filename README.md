@@ -9,7 +9,7 @@
 
 ## Get Started
 
-[Preview your free widget]() and [embed it in your app in just 30 seconds]().
+[Embed Feedbackland in your app]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
