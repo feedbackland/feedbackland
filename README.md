@@ -133,8 +133,10 @@ Now, let's set up Firebase for user authentication.
 Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
 * **Resend:**
-    * Create a Resend account and generate an API key.
-    * Add this key to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+    * Create a Resend account.
+    * Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+    * Add your email domain (e.g. mycompany.com) to Resend (Note: public domains suchs as gmail are not supported)
+    * Add the email from your email domain you want to use for sending transactional mails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Currently this is only used for sending out admin invite mails. If you don't plan on inviting admins, you can leave the Resend .env variables empty.
 
 * **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
