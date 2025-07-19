@@ -5,8 +5,12 @@
 
 # Feedbackland - The open-source widget that collects feedback and with AI turns it into your roadmap
 
-Founders know the struggle: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
-Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
+Feedbackland is an open-source platform that eliminates the guesswork in product development. Stop building features based on gut-feeling and start listening to your users.
+
+How it Works:
+* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
+* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback and automatically transforms it into a clear, prioritized roadmap.
+* 🚀 Ship with Confidence: Know exactly what to build next, backed by real user data.
 
 &nbsp;
 &nbsp;
