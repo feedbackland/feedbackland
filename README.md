@@ -26,7 +26,7 @@ Our widget embeds in seconds to capture real user feedback: ideas, requests, and
 
 ## Self-Hosting Feedbackland
 
-Follow these steps to get your own instance of the platform up and running. It shouldn't take more than 30  min of your time!
+Follow these steps to get your own self-hosted instance of the platform up and running.
 
 ### Prerequisites
 
@@ -135,8 +135,8 @@ Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 * **Resend:**
     * Create a Resend account.
     * Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
-    * Add your email domain (e.g. mycompany.com) to Resend (Note: public domains such as gmail are not supported)
-    * Add the email from your email domain you want to use for sending transactional mails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Currently this is only used for sending out admin invite mails. If you don't plan on inviting admins, you can leave the Resend .env variables empty.
+    * Add your email domain (e.g. mycompany.com): Resend > Domains > Add domain.
+    * Add the full email address you want to use for sending transactional emails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
 
 * **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
