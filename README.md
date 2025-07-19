@@ -3,7 +3,7 @@
 
 &nbsp;
 
-# Feedbackland - The open-source widget that collects feedback and with AI turns it into your roadmap
+## About Feedbackland
 
 Feedbackland is an open-source platform that eliminates the guesswork in product development. Stop building features based on gut-feeling and start listening to your users.
 
