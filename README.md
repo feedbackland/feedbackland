@@ -3,22 +3,18 @@
 
 &nbsp;
 
-[Feedbackland](https://feedbackland.com)'s open-source widget collects user feedback, votes and comments directly in your app, and uses AI to transform it all into a prioritized product roadmap, so you know exactly what to build next.
+## Feedbackland - The open-source widget that collects feedback and turns into your roadmap
 
+Founders know the struggle: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
+Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
+
+&nbsp;
+&nbsp;
 &nbsp;
 
 ## Get Started
 
 [Embed Feedbackland in 30 seconds]() or [start with a standalone platform]().
-
-&nbsp;
-&nbsp;
-&nbsp;
-
-## About Feedbackland
-
-Founders know the struggle: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
-Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
 
 &nbsp;
 &nbsp;
