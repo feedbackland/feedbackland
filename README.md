@@ -94,9 +94,10 @@ Next, let's configure your Supabase project for the database and file storage.
         ```
 6.  **Add Supabase credentials to your `.env` file:**
     * `DATABASE_URL`:
-        * In the **Connect** section of your Supabase project, copy the **Transaction pooler** connection string.
+        * In your Supabase project, click on the **Connect** button in the top bar.
+        * Copy the **Transaction pooler** connection string.
         * Replace `[YOUR-PASSWORD]` with your database password.
-        * Paste this into the `DATABASE_URL` field in your `.env` file.
+        * Copy-paste this string into the `DATABASE_URL` field in your `.env` file.
     * `NEXT_PUBLIC_SUPABASE_PROJECT_ID`:
         * Go to **Project Settings** > **General**.
         * Copy the **Project ID** and paste it into the `NEXT_PUBLIC_SUPABASE_PROJECT_ID` field in your `.env` file.
@@ -136,7 +137,7 @@ Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
     * Create a Resend account.
     * Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
     * Add your email domain (e.g. `mycompany.com`) to Resend
-    * Add the full email address you want to use for sending transactional emails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must use to the domain you added on Resend.
+    * Add the full email address you want to use for sending transactional emails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
 
 * **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
