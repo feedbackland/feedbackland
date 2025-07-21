@@ -26,7 +26,7 @@ How it Works:
 
 ## Self-Hosting Feedbackland
 
-Follow these steps to get your own self-hosted instance of the platform up and running.
+Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
 ### Prerequisites
 
