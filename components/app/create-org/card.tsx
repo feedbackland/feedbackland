@@ -17,8 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getOriginUrl } from "@/lib/utils";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
+import { cn } from "@/lib/utils";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -71,8 +71,6 @@ export function CreateOrgCard({
     }
   };
 
-  const originUrl = getOriginUrl();
-
   return (
     <Card className="w-full max-w-[400px]">
       <CardHeader>
@@ -94,20 +92,26 @@ export function CreateOrgCard({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Platform url</FormLabel>
-                  <FormControl className="">
-                    <div className="flex items-center">
-                      {isSelfHosted && originUrl && (
-                        <span className="mr-2 text-sm">{originUrl + "/"}</span>
+                  <FormControl>
+                    <div className="tems-center flex">
+                      {isSelfHosted && process?.env?.NEXT_PUBLIC_VERCEL_URL && (
+                        <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-md rounded-r-none border px-3 text-sm">
+                          <span>{`${process.env.NEXT_PUBLIC_VERCEL_URL}/`}</span>
+                        </div>
                       )}
                       <Input
+                        autoFocus={true}
+                        className={cn("z-10 w-full text-sm", {
+                          "rounded-r-none": !isSelfHosted,
+                          "rounded-l-none": isSelfHosted,
+                        })}
+                        placeholder="subdomain"
                         {...field}
-                        placeholder={
-                          isSelfHosted ? "subdirectory" : "subdomain"
-                        }
-                        className="text-sm"
                       />
                       {!isSelfHosted && (
-                        <span className="ml-2 text-sm">.feedbackland.com</span>
+                        <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm">
+                          <span>.feedbackland.com</span>
+                        </div>
                       )}
                     </div>
                   </FormControl>

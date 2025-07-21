@@ -22,7 +22,7 @@ export const reservedSubdomains = [
   "get-started",
 ];
 
-export const slugifySubdomain = (text: string) => {
+export const convertToSubdomain = (text: string) => {
   return text
     .toLowerCase()
     .replace(/\s+/g, "-") // Replace spaces with hyphens
@@ -113,14 +113,6 @@ export const getPlatformUrl = (urlString?: string) => {
   return `${protocol}//${host}${orgName ? `/${orgName}` : ""}`;
 };
 
-export const getOriginUrl = (urlString?: string) => {
-  const url = getUrlObject(urlString);
-
-  if (!url) return null;
-
-  return url.origin;
-};
-
 export const getVercelUrl = () => {
   if (process?.env?.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
@@ -146,16 +138,19 @@ export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
 export const getIsSelfHosted = (
   context: "server" | "client" | "all" = "all",
 ) => {
-  if (
-    process?.env?.SELF_HOSTED &&
-    (context === "server" || context === "all")
-  ) {
-    return process.env.SELF_HOSTED === "true";
-  } else if (
-    process?.env?.NEXT_PUBLIC_SELF_HOSTED &&
-    (context === "client" || context === "all")
-  ) {
-    return process.env.NEXT_PUBLIC_SELF_HOSTED === "true";
+  if (context === "server") {
+    return process?.env?.SELF_HOSTED === "true";
+  }
+
+  if (context === "client") {
+    return process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
+  }
+
+  if (context === "all") {
+    return !!(
+      process?.env?.SELF_HOSTED === "true" ||
+      process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true"
+    );
   }
 
   return false;

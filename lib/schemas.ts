@@ -56,15 +56,15 @@ export const orgSubdomainSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .min(1, "Please provide a URL")
-  .max(63, "URL must be at most 63 characters")
+  .min(1, "Please provide a subdomain")
+  .max(63, "subdomain must be at most 63 characters")
   .regex(
     subdomainRegex,
-    "URL is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
+    "subdomain is invalid. It can only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen or contain periods.",
   )
   .refine(
     (value) => !reservedSubdomains.includes(value),
-    "This URL is reserved for internal use",
+    "This subdomain is reserved for internal use.",
   )
   .refine(
     (value) => {
@@ -74,6 +74,6 @@ export const orgSubdomainSchema = z
       return !isUuidV4;
     },
     {
-      message: "Subdomain must not be a UUID v4.",
+      message: "Subdomain cannot be a UUID v4.",
     },
   );

@@ -102,10 +102,10 @@ export function PlatformUrl({
                           <Input
                             autoFocus={true}
                             className="z-10 w-full rounded-r-none text-sm"
-                            placeholder="The URL of your feedback platform"
+                            placeholder="subdomain"
                             {...field}
                           />
-                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-2 text-sm">
+                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm">
                             <span>.feedbackland.com</span>
                           </div>
                         </div>
