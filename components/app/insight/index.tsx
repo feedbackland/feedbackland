@@ -44,7 +44,7 @@ export function Insight({ item, index }: { item: Item; index: number }) {
               "text-blue-800 dark:text-blue-400": priorityScore < 40,
               "text-green-700 dark:text-green-400":
                 priorityScore >= 40 && priorityScore < 70,
-              "text-orange-600 dark:text-orange-400":
+              "text-yellow-600 dark:text-yellow-400":
                 priorityScore >= 70 && priorityScore < 95,
               "text-red-700 dark:text-red-500": priorityScore >= 95,
             })}
