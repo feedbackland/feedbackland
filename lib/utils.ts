@@ -332,8 +332,9 @@ export const getOverlayWidgetCodeSnippet = ({
 function FeedbackButton() {
   return (
     <OverlayWidget
+      id="${orgId}"
       url="${url}"
-      mode="dark" // 'light' or 'dark', defaults to 'dark'
+      mode="dark" // 'light' or 'dark'
     >
       <button>Feedback</button> {/* bring your own button */}
     </OverlayWidget>
@@ -347,7 +348,7 @@ function FeedbackButton() {
   return (
     <OverlayWidget
       id="${orgId}"
-      mode="dark" // 'light' or 'dark', defaults to 'dark'
+      mode="dark" // 'light' or 'dark'
     >
       <button>Feedback</button> {/* bring your own button */}
     </OverlayWidget>
