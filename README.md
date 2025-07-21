@@ -120,7 +120,7 @@ Now, let's set up Firebase for user authentication.
     * In the Firebase console, go to the **Authentication** section.
     * Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
 4.  **Add Firebase service account credentials to your `.env` file:**
-    * In the Firebase COnsole, go to **Project Settings** > **Service accounts**.
+    * In the Firebase Console, go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
     * A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
         * `project_id` → `FIREBASE_PROJECT_ID`
