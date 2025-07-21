@@ -31,21 +31,19 @@ export const createAdminInvite = adminProcedure
         userId,
       });
 
+      const sender = process.env.RESEND_EMAIL_SENDER!;
       const isSelfHosted = getIsSelfHosted("server");
+      const from = isSelfHosted ? `Feedbackland <${sender}>` : sender;
 
-      if (email && process.env.RESEND_EMAIL_SENDER) {
-        await resend.emails.send({
-          from: isSelfHosted
-            ? process.env.RESEND_EMAIL_SENDER
-            : `Feedbackland <${process.env.RESEND_EMAIL_SENDER}>`,
-          to: [email],
-          subject: "Feedbackland - Admin invitation",
-          react: AdminInviteEmail({
-            invitedBy,
-            inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
-          }),
-        });
-      }
+      await resend?.emails.send({
+        from,
+        to: [email],
+        subject: "Feedbackland - Admin invitation",
+        react: AdminInviteEmail({
+          invitedBy,
+          inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
+        }),
+      });
     } catch (error) {
       throw error;
     }

@@ -12,16 +12,18 @@ export const claimOrg = userProcedure.mutation(
         orgId,
       });
 
-      const isSelfHosted = getIsSelfHosted("server");
-
-      if (!isSelfHosted && userEmail && process.env.RESEND_EMAIL_SENDER) {
+      if (userEmail) {
         const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
           orgId,
           orgSubdomain: org.orgSubdomain,
         });
 
-        await resend.emails.send({
-          from: `Feedbackland <${`Feedbackland <${process.env.RESEND_EMAIL_SENDER}>`}>`,
+        const sender = process.env.RESEND_EMAIL_SENDER!;
+        const isSelfHosted = getIsSelfHosted("server");
+        const from = isSelfHosted ? `Feedbackland <${sender}>` : sender;
+
+        await resend?.emails.send({
+          from,
           to: [userEmail],
           subject: "Your Feedbackland platform is ready!",
           react: WelcomeEmail({
