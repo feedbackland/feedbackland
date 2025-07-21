@@ -5,7 +5,7 @@
 
 ## About Feedbackland
 
-Feedbackland is an open-source platform that eliminates the guesswork in product development by automatically generating your clear, prioritized product roadmap based on real user feedback. So you can confidently build what your users crave. No guesswork involved.
+Feedbackland is an open-source feedback platform that easily embeds in your app, collects user feedback and with AI automatically transforms it into a clear, prioritized product roadmap. So you can stop guessing which feature to work on next, and confidently ship what your users love.
 
 How it Works:
 * 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
