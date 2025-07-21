@@ -79,7 +79,7 @@ Next, let's configure your Supabase project for the database and file storage.
     * Search for `vector` and enable the extension.
 3.  **Disable the Data API:**
     * Go to **Project Settings** > **Data API**.
-    * Under the **Config** section, toggle off **Enable Data API**.
+    * Under the **Config** section, toggle OFF **Enable Data API**.
 4.  **Create a storage bucket:**
     * Go to **Storage** from the sidebar.
     * Click on **New bucket**.
