@@ -32,9 +32,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                 <h3 className="h3 capitalize">{planName}</h3>
 
                 {isActiveSubscription && (
-                  <Badge variant="outline" className="border-primary py-0.5">
-                    Your current plan
-                  </Badge>
+                  <Badge variant="outline">Your current plan</Badge>
                 )}
 
                 {isActiveSubscription && !isFreePlan && isExpired && (
