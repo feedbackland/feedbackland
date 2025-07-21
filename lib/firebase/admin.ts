@@ -12,12 +12,13 @@ const adminApp =
             String.raw`\n`,
           ).join("\n"),
         }),
-        databaseURL: `https://feedbackland-5bf9e-default-rtdb.firebaseio.com/`,
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
       })
     : getApps()[0];
 
 const adminAuth = getAuth(adminApp);
 
-const adminDatabase = getDatabase(adminApp);
+const adminDatabase =
+  process?.env?.SELF_HOSTED !== "true" ? getDatabase(adminApp) : undefined;
 
 export { adminAuth, adminDatabase };

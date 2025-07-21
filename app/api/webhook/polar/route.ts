@@ -45,8 +45,8 @@ export const POST = Webhooks({
         });
 
         await adminDatabase
-          .ref(`subscriptions/${orgId}`)
-          .set(database.ServerValue.TIMESTAMP);
+          ?.ref(`subscriptions/${orgId}`)
+          ?.set(database.ServerValue.TIMESTAMP);
       }
     }
   },
