@@ -33,7 +33,7 @@ export const createAdminInvite = adminProcedure
 
       const sender = process.env.RESEND_EMAIL_SENDER!;
       const isSelfHosted = getIsSelfHosted("server");
-      const from = isSelfHosted ? `Feedbackland <${sender}>` : sender;
+      const from = !isSelfHosted ? `Feedbackland <${sender}>` : sender;
 
       await resend?.emails.send({
         from,

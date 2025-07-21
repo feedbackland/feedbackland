@@ -2,7 +2,11 @@ import { userProcedure } from "@/lib/trpc";
 import { claimOrgQuery } from "@/queries/claim-org";
 import { resend } from "@/lib/resend";
 import { WelcomeEmail } from "@/components/emails/welcome";
-import { getIsSelfHosted, getOverlayWidgetCodeSnippet } from "@/lib/utils";
+import {
+  getIsSelfHosted,
+  getOverlayWidgetCodeSnippet,
+  getVercelUrl,
+} from "@/lib/utils";
 
 export const claimOrg = userProcedure.mutation(
   async ({ ctx: { userId, userEmail, orgId } }) => {
@@ -20,7 +24,11 @@ export const claimOrg = userProcedure.mutation(
 
         const sender = process.env.RESEND_EMAIL_SENDER!;
         const isSelfHosted = getIsSelfHosted("server");
-        const from = isSelfHosted ? `Feedbackland <${sender}>` : sender;
+        const vercelUrl = getVercelUrl();
+        const from = !isSelfHosted ? `Feedbackland <${sender}>` : sender;
+        const platformUrl = !isSelfHosted
+          ? `https://${orgId}.feedbackland.com`
+          : `${vercelUrl}/${org.orgSubdomain}`;
 
         await resend?.emails.send({
           from,
@@ -29,6 +37,7 @@ export const claimOrg = userProcedure.mutation(
           react: WelcomeEmail({
             orgId,
             overlayWidgetCodeSnippet,
+            platformUrl,
           }),
         });
       }

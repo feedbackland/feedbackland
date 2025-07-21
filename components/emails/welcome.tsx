@@ -15,9 +15,11 @@ import {
 export const WelcomeEmail = ({
   orgId,
   overlayWidgetCodeSnippet,
+  platformUrl,
 }: {
   orgId: string;
   overlayWidgetCodeSnippet: string;
+  platformUrl: string;
 }) => {
   return (
     <Tailwind>
@@ -49,7 +51,7 @@ export const WelcomeEmail = ({
 
               <Section className="text-center">
                 <Button
-                  href={`https://${orgId}.feedbackland.com`}
+                  href={platformUrl}
                   className="hover:bg-opacity-80 mx-auto rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 >
                   Access Your Platform

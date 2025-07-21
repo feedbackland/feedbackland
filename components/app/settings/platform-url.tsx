@@ -99,15 +99,26 @@ export function PlatformUrl({
                     <FormControl>
                       {isEditing ? (
                         <div className="flex w-full max-w-[450px] items-center">
+                          {isSelfHosted &&
+                            process?.env?.NEXT_PUBLIC_VERCEL_URL && (
+                              <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-md rounded-r-none border px-3 text-sm">
+                                <span>{`${process.env.NEXT_PUBLIC_VERCEL_URL}/`}</span>
+                              </div>
+                            )}
                           <Input
                             autoFocus={true}
-                            className="z-10 w-full rounded-r-none text-sm"
+                            className={cn("z-10 w-full text-sm", {
+                              "rounded-r-none": !isSelfHosted,
+                              "rounded-l-none": isSelfHosted,
+                            })}
                             placeholder="subdomain"
                             {...field}
                           />
-                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm">
-                            <span>.feedbackland.com</span>
-                          </div>
+                          {!isSelfHosted && (
+                            <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm">
+                              <span>.feedbackland.com</span>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="text-primary text-sm">
@@ -136,31 +147,29 @@ export function PlatformUrl({
             </form>
           </Form>
         </div>
-        {!isSelfHosted && (
-          <div className="-mt-2.5">
-            {isEditing ? (
-              <Button
-                className=""
-                size="sm"
-                variant="outline"
-                onClick={handleOnCancel}
-              >
-                <XIcon className="size-3.5" />
-                Cancel
-              </Button>
-            ) : (
-              <Button
-                className=""
-                size="sm"
-                variant="outline"
-                onClick={() => setIsEditing(true)}
-              >
-                <PenIcon className="size-3" />
-                Edit
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="-mt-2.5">
+          {isEditing ? (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={handleOnCancel}
+            >
+              <XIcon className="size-3.5" />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              <PenIcon className="size-3" />
+              Edit
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
