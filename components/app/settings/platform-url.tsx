@@ -14,17 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  cn,
-  getIsSelfHosted,
-  getPlatformUrl,
-  navigateToSubdomain,
-} from "@/lib/utils";
+import { cn, navigateToSubdomain } from "@/lib/utils";
 import { useOrg } from "@/hooks/use-org";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { orgSubdomainSchema } from "@/lib/schemas";
+import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 const FormSchema = z.object({
   orgSubdomain: orgSubdomainSchema,
@@ -35,6 +32,10 @@ export function PlatformUrl({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const isSelfHosted = useIsSelfHosted();
+
+  const platformUrl = usePlatformUrl();
+
   const {
     query: { data },
   } = useOrg();
@@ -80,12 +81,6 @@ export function PlatformUrl({
     form.clearErrors();
   };
 
-  const isSelfHosted = getIsSelfHosted();
-
-  const url = !isSelfHosted
-    ? `https://${data?.orgSubdomain}.feedbackland.com`
-    : getPlatformUrl();
-
   return (
     <div className={cn("", className)}>
       <div className="flex items-start gap-6">
@@ -115,7 +110,9 @@ export function PlatformUrl({
                           </div>
                         </div>
                       ) : (
-                        <div className="text-primary text-sm">{url}</div>
+                        <div className="text-primary text-sm">
+                          {platformUrl}
+                        </div>
                       )}
                     </FormControl>
                     <FormMessage />

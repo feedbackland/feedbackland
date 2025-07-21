@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 import dynamic from "next/dynamic";
 
 const SubscriptionListenerInner = dynamic(
@@ -14,9 +15,10 @@ const SubscriptionListenerInner = dynamic(
 );
 
 export const SubscriptionListener = () => {
+  const isSelfHosted = useIsSelfHosted();
   const { isAdmin } = useAuth();
 
-  if (isAdmin) {
+  if (isAdmin && !isSelfHosted) {
     return <SubscriptionListenerInner />;
   }
 

@@ -17,7 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getIsSelfHosted, getOriginUrl } from "@/lib/utils";
+import { getOriginUrl } from "@/lib/utils";
+import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -32,6 +33,8 @@ export function CreateOrgCard({
     orgSubdomain: string;
   }) => void;
 }) {
+  const isSelfHosted = useIsSelfHosted();
+
   const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
 
   const form = useForm<FormData>({
@@ -67,8 +70,6 @@ export function CreateOrgCard({
       });
     }
   };
-
-  const isSelfHosted = getIsSelfHosted();
 
   const originUrl = getOriginUrl();
 

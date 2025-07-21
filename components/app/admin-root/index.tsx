@@ -7,15 +7,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
 import { SparklesIcon } from "lucide-react";
-import { getIsSelfHosted } from "@/lib/utils";
+import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 
 export default function AdminRoot({ children }: { children: ReactNode }) {
   const { isAdmin, isLoaded } = useAuth();
   const platformUrl = usePlatformUrl();
   const router = useRouter();
   const pathname = usePathname();
-
-  const isSelfHosted = getIsSelfHosted();
+  const isSelfHosted = useIsSelfHosted();
 
   useEffect(() => {
     if (platformUrl && isLoaded && !isAdmin) {
