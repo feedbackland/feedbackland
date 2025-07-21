@@ -94,7 +94,7 @@ export function PlatformUrl({
                   <FormItem>
                     <FormLabel>Platform URL</FormLabel>
                     <FormDescription className="sr-only">
-                      The URL through which your feedback platform is accessible
+                      The full URL for your feedback platform
                     </FormDescription>
                     <FormControl>
                       {isEditing ? (
