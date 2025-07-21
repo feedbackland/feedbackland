@@ -3,22 +3,22 @@
 
 &nbsp;
 
-[Feedbackland](https://feedbackland.com)'s open-source widget collects user feedback, votes and comments directly in your app, and uses AI to transform it all into a prioritized product roadmap, so you know exactly what to build next.
+## About Feedbackland
 
+Feedbackland is an open-source feedback platform that easily embeds in your app, collects user feedback and with AI automatically transforms it into a clear, prioritized product roadmap. So you can stop guessing which feature to work on next, and confidently ship what your users love.
+
+How it Works:
+* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
+* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback, votes and comment, and automatically transforms everything into a clear, prioritized roadmap.
+* 🚀 Ship with Confidence: Know exactly what to build next, backed by real user data and powerful AI analysis.
+
+&nbsp;
+&nbsp;
 &nbsp;
 
 ## Get Started
 
-[Embed Feedbackland in 30 seconds]() or [start with a standalone platform]().
-
-&nbsp;
-&nbsp;
-&nbsp;
-
-## About Feedbackland
-
-Founders know the struggle: you launch a feature built on instinct and hard work, and... nothing. Building in a vacuum is a risky bet. Feedbackland makes it a sure thing.
-Our widget embeds in seconds to capture real user feedback: ideas, requests, and bugs. Then our AI turns it all into a clear, prioritized roadmap. So you always know exactly what to build next. No guessing involved!
+[Embed Feedbackland for free in 30 seconds]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
@@ -26,7 +26,7 @@ Our widget embeds in seconds to capture real user feedback: ideas, requests, and
 
 ## Self-Hosting Feedbackland
 
-Follow these steps to get your own instance of the platform up and running. It shouldn't take more than 30  min of your time!
+Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
 ### Prerequisites
 
@@ -38,7 +38,7 @@ Before you begin, make sure you have accounts for the following services:
 * **Authentication:**
     * [Firebase](https://firebase.google.com) (for user authentication)
 * **Transactional Emails:**
-    * [Resend](https://resend.com) (for sending emails)
+    * [Resend](https://resend.com) (for sending transactional emails)
 * **AI Services:**
     * [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
     * [OpenRouter](https://openrouter.ai) (for other AI-related tasks)
@@ -88,15 +88,16 @@ Next, let's configure your Supabase project for the database and file storage.
     * In your Supabase project, click on the **Connect** button in the top bar.
     * Copy the **Direct connection** string.
     * Replace `[YOUR-PASSWORD]` with your actual database password.
-    * In your terminal go to the feedbackland root folder and run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string (i.e. `postgresql://postgres:<YOUR SUPABASE DATABASE PASSWORD>@db.<YOUR SUPABASE PROJECT ID>.supabase.co:5432/postgres`):
+    * In your terminal run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string:
         ```bash
         psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
         ```
 6.  **Add Supabase credentials to your `.env` file:**
     * `DATABASE_URL`:
-        * In the **Connect** section of your Supabase project, copy the **Transaction pooler** connection string.
+        * In your Supabase project, click on the **Connect** button in the top bar.
+        * Copy the **Transaction pooler** connection string.
         * Replace `[YOUR-PASSWORD]` with your database password.
-        * Paste this into the `DATABASE_URL` field in your `.env` file.
+        * Copy-paste this string into the `DATABASE_URL` field in your `.env` file.
     * `NEXT_PUBLIC_SUPABASE_PROJECT_ID`:
         * Go to **Project Settings** > **General**.
         * Copy the **Project ID** and paste it into the `NEXT_PUBLIC_SUPABASE_PROJECT_ID` field in your `.env` file.
@@ -112,14 +113,14 @@ Now, let's set up Firebase for user authentication.
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
-    * From your Firebase project, obtain your web app configuration object: "Get started by adding Firebase to your app" > Web > complete the wizard > copy `firebaseConfig`.
+    * In the Firebase console, create and copy your web app configuration object.
     * Open the `firebaseConfig.ts` file in the root of your Feedbackland project.
-    * Paste your Firebase config into this file.
+    * Paste your Firebase config into this file, overwriting the existing object.
 3.  **Enable authentication providers:**
     * In the Firebase console, go to the **Authentication** section.
     * Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
 4.  **Add Firebase service account credentials to your `.env` file:**
-    * Go to **Project Settings** > **Service accounts**.
+    * In the Firebase Console, go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
     * A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
         * `project_id` → `FIREBASE_PROJECT_ID`
@@ -133,8 +134,10 @@ Now, let's set up Firebase for user authentication.
 Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
 * **Resend:**
-    * Create a Resend account and generate an API key.
-    * Add this key to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+    * Create a Resend account.
+    * Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+    * Add your email domain (e.g. `mycompany.com`) to Resend
+    * Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
 
 * **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
@@ -180,7 +183,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     * Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
     * Enter the name for your platform and click **Create platform**.
     * You'll get redirect to your platform.
-    * Now claim ownership by clicking the **Claim Ownership** button in the top banner and sign up with your account (Google, Microsoft or Email)
+    * Now claim ownership by clicking the **Claim Ownership** button in the top banner and sign up.
 6. **Embed your self-hosted Feedbackland platform in your app**
     * In your Feedbackland platform navigate to Admin Panel > Widget.
     * Follow the instructions described on the Widget page to embed your platform into your React app
@@ -188,7 +191,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 &nbsp;
 
 Congratulations, your Feedbackland platform is live and fully embedded in your app! 🎉 Now go ahead and:
-* Deploy your app to your users.
+* Deploy your app.
 * Collect in-app feedback automatically.
 * Generate your first roadmap based on real user insights!
 
