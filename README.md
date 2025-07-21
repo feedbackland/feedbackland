@@ -113,14 +113,14 @@ Now, let's set up Firebase for user authentication.
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
-    * From your Firebase project, obtain your web app configuration object: "Get started by adding Firebase to your app" > Web > complete the wizard > copy `firebaseConfig`.
+    * In the Firebase console, create and copy your web app configuration object.
     * Open the `firebaseConfig.ts` file in the root of your Feedbackland project.
     * Paste your Firebase config into this file.
 3.  **Enable authentication providers:**
     * In the Firebase console, go to the **Authentication** section.
     * Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
 4.  **Add Firebase service account credentials to your `.env` file:**
-    * Go to **Project Settings** > **Service accounts**.
+    * In the Firebase COnsole, go to **Project Settings** > **Service accounts**.
     * Click on **Generate new private key**.
     * A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
         * `project_id` → `FIREBASE_PROJECT_ID`
@@ -137,7 +137,7 @@ Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
     * Create a Resend account.
     * Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
     * Add your email domain (e.g. `mycompany.com`) to Resend
-    * Add the full email address you want to use for sending transactional emails (e.g. info@mycompany.com) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
+    * Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
 
 * **Google AI Studio (Gemini API):**
     * Create a Google AI Studio account and generate an API key.
@@ -191,7 +191,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 &nbsp;
 
 Congratulations, your Feedbackland platform is live and fully embedded in your app! 🎉 Now go ahead and:
-* Deploy your app to your users.
+* Deploy your app.
 * Collect in-app feedback automatically.
 * Generate your first roadmap based on real user insights!
 
