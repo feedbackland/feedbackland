@@ -72,7 +72,7 @@ export function ClaimOrgDialog({
       <DialogContent
         className={cn(
           "flex max-w-[400px]! flex-col",
-          selectedStep === "success" && "top-[400px] max-w-[600px]!",
+          selectedStep === "success" && "top-[450px] max-w-[600px]!",
         )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
