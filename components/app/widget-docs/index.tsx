@@ -36,7 +36,7 @@ export function WidgetDocs({
             code={overlayWidgetCodeSnippet}
             showLineNumbers={true}
             language="tsx"
-            className=""
+            className="min-h-[225px]"
           />
         </div>
         <div>
