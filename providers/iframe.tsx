@@ -21,6 +21,7 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
 
     connection.promise.then((parent) => {
       setIframeParent(parent);
+      parent.setLoaded(true);
     });
 
     return () => {
