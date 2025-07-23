@@ -47,7 +47,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
-      <body className="bg-background font-sans">
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
