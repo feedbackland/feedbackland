@@ -1,9 +1,12 @@
+# About Feedbackland
 
-<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/3d104b07-b07b-4127-8f6e-5ed8c374221e" />
+Embed our open‑source widget, capture every bit of feedback, and let our AI automatically turn the noise into your prioritized roadmap. Confidently build what users love. No guessing involved.
+
+<img width="2473" height="1105" alt="Frame 589" src="https://github.com/user-attachments/assets/d93f40da-1664-4852-b2c8-bf3241d642e7" />
 
 &nbsp;
 
-## About Feedbackland
+## About
 
 Feedbackland is an open-source feedback platform that effortlessly embeds in your app, collects user feedback and with AI automatically transforms it into a clear, prioritized product roadmap. So you can stop guessing and confidently build what your users love.
 
@@ -24,7 +27,7 @@ How it Works:
 &nbsp;
 &nbsp;
 
-## Self-Hosting Feedbackland
+## Self-Hosting
 
 Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
