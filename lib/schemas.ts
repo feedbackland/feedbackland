@@ -13,7 +13,11 @@ export const feedbackCategorySchema = z
   .enum(["feature request", "bug report", "general feedback"])
   .nullable();
 
-export const feedbackCategoriesSchema = z.tuple([z.enum(["feature request", "bug report", "general feedback"])], z.enum(["feature request", "bug report", "general feedback"]))
+export const feedbackCategoriesSchema = z
+  .tuple(
+    [z.enum(["feature request", "bug report", "general feedback"])],
+    z.enum(["feature request", "bug report", "general feedback"]),
+  )
   .nullable();
 
 export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
@@ -35,7 +39,7 @@ export const userRoleSchema = z.enum(["user", "admin"]);
 export const feedbackPostsCursorSchema = z
   .object({
     id: z.string(),
-    createdAt: z.string().datetime({ offset: true }),
+    createdAt: z.iso.datetime({ offset: true }),
     commentCount: z.number().min(0),
     upvotes: z.number().min(0),
     distance: z.number().optional(),
@@ -45,12 +49,13 @@ export const feedbackPostsCursorSchema = z
 export const insightsCursorSchema = z
   .object({
     id: z.string(),
-    createdAt: z.string().datetime({ offset: true }),
+    createdAt: z.iso.datetime({ offset: true }),
     priority: z.number().min(0),
   })
   .nullish();
 
-export const orgSubdomainSchema = z.uuid()
+export const orgSubdomainSchema = z
+  .string()
   .trim()
   .toLowerCase()
   .min(1, "Please provide a subdomain")
@@ -71,6 +76,6 @@ export const orgSubdomainSchema = z.uuid()
       return !isUuidV4;
     },
     {
-        error: "Subdomain cannot be a UUID v4."
+      error: "Subdomain cannot be a UUID v4.",
     },
   );

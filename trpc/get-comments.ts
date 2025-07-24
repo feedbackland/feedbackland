@@ -10,7 +10,7 @@ export const getComments = publicProcedure
       cursor: z
         .object({
           id: z.string(),
-          createdAt: z.string().datetime({ offset: true }),
+          createdAt: z.iso.datetime({ offset: true }),
         })
         .nullish(),
     }),

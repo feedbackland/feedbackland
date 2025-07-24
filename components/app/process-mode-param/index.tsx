@@ -9,6 +9,8 @@ export function ProcessModeParam() {
   const [mode, setMode] = useQueryState("mode");
 
   useEffect(() => {
+    if (!mode) return;
+
     if (mode && !!(mode === "light" || mode === "dark" || mode === "system")) {
       setTheme(mode);
       setMode(null);

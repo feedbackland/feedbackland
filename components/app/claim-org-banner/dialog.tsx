@@ -15,11 +15,13 @@ import { PartyPopper } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { useAuth } from "@/hooks/use-auth";
-import { WidgetDocs } from "@/components/app/widget-docs";
+import { useAtomValue } from "jotai";
+import { isPlatformPreviewAtom } from "@/lib/atoms";
+import { useInIframe } from "@/hooks/use-in-iframe";
+import Link from "next/link";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 export function ClaimOrgDialog({
-  orgId,
-  orgSubdomain,
   open,
   initialSelectedStep,
   onClaimed,
@@ -34,13 +36,19 @@ export function ClaimOrgDialog({
 }) {
   const trpc = useTRPC();
 
+  const platformUrl = usePlatformUrl();
+
   const { refreshSession } = useAuth();
+
+  const inIframe = useInIframe();
 
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
   );
 
   const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
+
+  const isPlatformPreview = useAtomValue(isPlatformPreviewAtom);
 
   const claimOrg = useMutation(
     trpc.claimOrg.mutationOptions({
@@ -62,6 +70,8 @@ export function ClaimOrgDialog({
     onClose?.();
   };
 
+  const showWidgetLink = !inIframe || isPlatformPreview;
+
   return (
     <Dialog
       open={open}
@@ -70,10 +80,7 @@ export function ClaimOrgDialog({
       }}
     >
       <DialogContent
-        className={cn(
-          "flex max-w-[400px]! flex-col",
-          selectedStep === "success" && "top-[450px] max-w-[600px]!",
-        )}
+        className={cn("flex max-w-[420px]! flex-col")}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {selectedStep === "sign-up-in" && (
@@ -104,28 +111,30 @@ export function ClaimOrgDialog({
                 Congratulations
               </DialogTitle>
               <DialogDescription className="text-primary">
-                <span className="mb-8 flex flex-col items-stretch space-y-2 text-center">
+                <span className="flex flex-col items-stretch space-y-2 text-center">
                   <span>You're now the owner of this platform!</span>
                   <span>
-                    To embed this platform in your app, follow the steps below:
+                    {showWidgetLink
+                      ? `Next step: Embed the widget to collect in-app feedback.`
+                      : `Next step: Check out the admin panel.`}
                   </span>
                 </span>
               </DialogDescription>
-              <WidgetDocs
-                orgId={orgId}
-                orgSubdomain={orgSubdomain}
-                showTitle={false}
-              />
             </DialogHeader>
             <div className="flex items-center justify-center gap-2">
-              {/* <Button asChild onClick={handleOnClose}>
-                  <Link href={`${platformUrl}/admin`}>
-                    Go to the Admin Panel
+              {showWidgetLink ? (
+                <Button asChild onClick={handleOnClose}>
+                  <Link href={`${platformUrl}/admin/widget`}>
+                    Embed the widget
                   </Link>
-                </Button> */}
-              <Button onClick={handleOnClose} variant="secondary" className="">
-                Close
-              </Button>
+                </Button>
+              ) : (
+                <Button asChild onClick={handleOnClose}>
+                  <Link href={`${platformUrl}/admin`}>
+                    Go to the admin panel
+                  </Link>
+                </Button>
+              )}
             </div>
           </>
         )}
