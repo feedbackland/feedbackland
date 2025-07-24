@@ -1,4 +1,4 @@
-# About Feedbackland
+# Feedbackland
 
 Embed our open‑source widget, capture every bit of feedback, and let our AI automatically turn the noise into your prioritized roadmap. Confidently build what users love. No guessing involved.
 
