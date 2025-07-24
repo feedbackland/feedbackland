@@ -1,6 +1,6 @@
 # Feedbackland
 
-Embed our open‑source widget in seconds, capture every bit of feedback, and let our AI automatically turn the noise into your prioritized roadmap. Confidently build what users love. No guessing involved.
+Embed our open‑source widget in seconds, capture every bit of feedback, and let our AI automatically turn the noise into your prioritized product roadmap. Confidently build what users love. No guessing involved.
 
 <img width="2473" height="1342" alt="Frame 589" src="https://github.com/user-attachments/assets/6f41b7b5-28b2-4db6-8ee2-35c0d1115609" />
 
