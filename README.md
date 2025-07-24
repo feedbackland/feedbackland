@@ -30,7 +30,7 @@ Follow these steps to get your own self-hosted instance of Feedbackland up and r
 
 ### Prerequisites
 
-Before you begin, make sure you have accounts for the following services:
+Before you begin, make sure you have accounts for the following services, which can all be used for free:
 
 * **Hosting & Database:**
     * [Vercel](https://vercel.com) (for hosting the application)
@@ -192,7 +192,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 Congratulations, your Feedbackland platform is live and fully embedded in your app! 🎉 Now go ahead and:
 * Deploy your app.
-* Collect in-app feedback automatically.
+* Start collecting in-app feedback automatically.
 * Generate your first roadmap based on real user insights!
 
 &nbsp;
