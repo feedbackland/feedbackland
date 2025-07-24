@@ -6,16 +6,19 @@ import { useTheme } from "next-themes";
 
 export function ProcessModeParam() {
   const { setTheme } = useTheme();
-  const [mode, setMode] = useQueryState("mode");
+  const [modeParam, setModeParam] = useQueryState("mode");
 
   useEffect(() => {
-    if (!mode) return;
+    if (!modeParam) return;
 
-    if (mode && !!(mode === "light" || mode === "dark" || mode === "system")) {
-      setTheme(mode);
-      setMode(null);
+    if (modeParam) {
+      if (modeParam === "light" || modeParam === "dark") {
+        setTheme(modeParam);
+      }
+
+      setModeParam(null);
     }
-  }, [mode, setTheme, setMode]);
+  }, [modeParam, setTheme, setModeParam]);
 
   return null;
 }

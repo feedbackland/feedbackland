@@ -6,17 +6,17 @@ import { useSetAtom } from "jotai";
 import { isPlatformPreviewAtom } from "@/lib/atoms";
 
 export function ProcessPreviewParam() {
-  const [preview, setPreview] = useQueryState("preview");
+  const [previewParam, setPreviewParam] = useQueryState("preview");
   const setIsPlatformPreview = useSetAtom(isPlatformPreviewAtom);
 
   useEffect(() => {
-    if (!preview) return;
+    if (!previewParam) return;
 
-    if (preview === "true") {
-      setPreview(null);
+    if (previewParam === "true") {
+      setPreviewParam(null);
       setIsPlatformPreview(true);
     }
-  }, [preview, setPreview, setIsPlatformPreview]);
+  }, [previewParam, setPreviewParam, setIsPlatformPreview]);
 
   return null;
 }

@@ -17,7 +17,6 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useAuth } from "@/hooks/use-auth";
 import { useAtomValue } from "jotai";
 import { isPlatformPreviewAtom } from "@/lib/atoms";
-import { useInIframe } from "@/hooks/use-in-iframe";
 import Link from "next/link";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 
@@ -39,8 +38,6 @@ export function ClaimOrgDialog({
   const platformUrl = usePlatformUrl();
 
   const { refreshSession } = useAuth();
-
-  const inIframe = useInIframe();
 
   const [selectedStep, setSelectedStep] = useState<"sign-up-in" | "success">(
     initialSelectedStep,
@@ -69,8 +66,6 @@ export function ClaimOrgDialog({
   const handleOnClose = () => {
     onClose?.();
   };
-
-  const showWidgetLink = !inIframe || isPlatformPreview;
 
   return (
     <Dialog
@@ -114,7 +109,7 @@ export function ClaimOrgDialog({
                 <span className="flex flex-col items-stretch space-y-2 text-center">
                   <span>You're now the owner of this platform!</span>
                   <span>
-                    {showWidgetLink
+                    {isPlatformPreview
                       ? `Next step: Embed the widget to collect in-app feedback.`
                       : `Next step: Check out the admin panel.`}
                   </span>
@@ -122,14 +117,14 @@ export function ClaimOrgDialog({
               </DialogDescription>
             </DialogHeader>
             <div className="flex items-center justify-center gap-2">
-              {showWidgetLink ? (
-                <Button asChild onClick={handleOnClose}>
+              {isPlatformPreview ? (
+                <Button asChild>
                   <Link href={`${platformUrl}/admin/widget`}>
                     Embed the widget
                   </Link>
                 </Button>
               ) : (
-                <Button asChild onClick={handleOnClose}>
+                <Button asChild>
                   <Link href={`${platformUrl}/admin`}>
                     Go to the admin panel
                   </Link>
