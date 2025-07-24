@@ -3,7 +3,7 @@
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { cn } from "@/lib/utils";
 import { PlatformHeader } from "@/components/app/platform-header";
-import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
+// import { ClaimOrgBanner } from "@/components/app/claim-org-banner";
 
 export default function PlatformRoot({
   children,
@@ -21,7 +21,7 @@ export default function PlatformRoot({
         )}
       >
         <div>
-          <ClaimOrgBanner />
+          {/* <ClaimOrgBanner /> */}
           <PlatformHeader />
           {children}
         </div>

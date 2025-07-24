@@ -74,4 +74,5 @@ export type InsightData = {
 export type IframeParentAPI = {
   setColorMode: (colorMode: "light" | "dark") => void;
   setLoaded: (loaded: boolean) => void;
+  setIsClaimed: (isClaimed: boolean) => void;
 };
