@@ -13,7 +13,7 @@ export default function AdminWidgetPage() {
       <div>
         <h2 className="h4 mb-4">Widget</h2>
         <p className="text-muted-foreground mb-6 text-base">
-          Embed the platform in your React app with these steps.
+          Embed the widget in your React app with these steps.
         </p>
         <WidgetDocs
           showTitle={false}

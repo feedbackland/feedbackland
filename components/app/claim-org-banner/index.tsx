@@ -88,8 +88,8 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-2">
               <TriangleAlert className="size-5! shrink-0! text-black" />
               <span className="text-primary-foreground text-sm font-medium">
-                This is an unclaimed demo platform. Claim it to make it yours
-                and unlock admin access.
+                This is an unclaimed platform. Claim it to make it yours and
+                unlock admin access.
               </span>
             </div>
             <Button
