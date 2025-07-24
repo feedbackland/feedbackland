@@ -110,7 +110,7 @@ export function ClaimOrgDialog({
                   <span>You're now the owner of this platform!</span>
                   <span>
                     {isPlatformPreview
-                      ? `Next step: Embed the widget to collect in-app feedback.`
+                      ? `Next step: Embed the widget in your app.`
                       : `Next step: Check out the admin panel.`}
                   </span>
                 </span>
