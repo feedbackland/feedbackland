@@ -80,16 +80,16 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-1.5">
               {/* <TriangleAlert className="size-5.5! shrink-0! text-yellow-500 dark:text-yellow-600" /> */}
               <span className="text-primary-foreground text-sm font-medium">
-                Claim owernship and unlock admin access
+                Claim ownership and unlock admin access!
               </span>
             </div>
             <Button
               onClick={handleOpenDialog}
               variant="secondary"
               size="sm"
-              className="font-semibold capitalize"
+              className="font-semibold"
             >
-              Claim ownership
+              Claim this platform
             </Button>
           </div>
         </div>
