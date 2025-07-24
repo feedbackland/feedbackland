@@ -118,13 +118,13 @@ export function ClaimOrgDialog({
             </DialogHeader>
             <div className="flex items-center justify-center gap-2">
               {isPlatformPreview ? (
-                <Button asChild>
+                <Button asChild onClick={handleOnClose}>
                   <Link href={`${platformUrl}/admin/widget`}>
                     Embed the widget
                   </Link>
                 </Button>
               ) : (
-                <Button asChild>
+                <Button asChild onClick={handleOnClose}>
                   <Link href={`${platformUrl}/admin`}>
                     Go to the admin panel
                   </Link>
