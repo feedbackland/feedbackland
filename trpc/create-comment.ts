@@ -1,12 +1,12 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { createCommentQuery } from "@/queries/create-comment";
 
 export const createComment = userProcedure
   .input(
     z.object({
-      postId: z.string().uuid(),
-      parentCommentId: z.string().uuid().nullable(),
+      postId: z.uuid(),
+      parentCommentId: z.uuid().nullable(),
       content: z.string().trim().min(1),
     }),
   )

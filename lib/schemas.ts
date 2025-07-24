@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { subdomainRegex, reservedSubdomains } from "@/lib/utils";
 
 export const feedbackStatusSchema = z
@@ -13,9 +13,7 @@ export const feedbackCategorySchema = z
   .enum(["feature request", "bug report", "general feedback"])
   .nullable();
 
-export const feedbackCategoriesSchema = z
-  .array(z.enum(["feature request", "bug report", "general feedback"]))
-  .nonempty()
+export const feedbackCategoriesSchema = z.tuple([z.enum(["feature request", "bug report", "general feedback"])], z.enum(["feature request", "bug report", "general feedback"]))
   .nullable();
 
 export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
@@ -23,13 +21,13 @@ export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
 export const upsertUserSchema = z.object({
   orgSubdomain: z.string().min(1),
   userId: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(1).nullable(),
   photoURL: z.string().min(1).nullable(),
 });
 
 export const upsertOrgSchema = z.object({
-  orgId: z.string().uuid(),
+  orgId: z.uuid(),
 });
 
 export const userRoleSchema = z.enum(["user", "admin"]);
@@ -52,8 +50,7 @@ export const insightsCursorSchema = z
   })
   .nullish();
 
-export const orgSubdomainSchema = z
-  .string()
+export const orgSubdomainSchema = z.uuid()
   .trim()
   .toLowerCase()
   .min(1, "Please provide a subdomain")
@@ -69,11 +66,11 @@ export const orgSubdomainSchema = z
   .refine(
     (value) => {
       // Check if the value IS a valid UUID v4
-      const isUuidV4 = z.string().uuid().safeParse(value).success;
+      const isUuidV4 = z.uuid().safeParse(value).success;
       // We want the validation to pass if it's NOT a UUID v4
       return !isUuidV4;
     },
     {
-      message: "Subdomain cannot be a UUID v4.",
+        error: "Subdomain cannot be a UUID v4."
     },
   );

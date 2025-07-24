@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
   Form,
   FormControl,
@@ -20,11 +20,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { Session } from "@/hooks/use-auth";
 
 export const signInSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, "Please enter your email")
-    .email("Invalid email address"),
+  email: z.email()
+        .trim()
+        .min(1, "Please enter your email"),
   password: z
     .string()
     .trim()

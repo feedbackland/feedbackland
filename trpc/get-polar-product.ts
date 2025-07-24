@@ -1,6 +1,6 @@
 import { publicProcedure } from "@/lib/trpc";
 import { polar } from "@/lib/polar";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const getPolarProduct = publicProcedure
   .input(

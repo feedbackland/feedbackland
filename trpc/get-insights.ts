@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { insightsCursorSchema } from "@/lib/schemas";
 import { getInsightsQuery, getAllInsightsQuery } from "@/queries/get-insights"; // Import getAllInsightsQuery

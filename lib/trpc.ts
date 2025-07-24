@@ -1,7 +1,7 @@
 import superjson from "superjson";
 import { adminAuth } from "@/lib/firebase/admin";
 import { initTRPC, TRPCError } from "@trpc/server";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod/v4";
 import { getUserWithRoleAndOrgQuery } from "@/queries/get-user-with-role-and-org";
 import { getOrgQuery } from "@/queries/get-org";
 import { UserRole } from "@/lib/typings";
@@ -62,7 +62,7 @@ const t = initTRPC.context<Context>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          error.cause instanceof ZodError ? z.flattenError(error.cause) : null,
       },
     };
   },

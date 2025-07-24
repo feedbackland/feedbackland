@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedQuery } from "@/queries/get-activity-feed";
 import {

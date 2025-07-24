@@ -1,6 +1,6 @@
 import { userProcedure } from "@/lib/trpc";
 import { getUserSessionQuery } from "@/queries/get-user-session";
-import z from "zod";
+import z from "zod/v4";
 
 export const getUserSession = userProcedure
   .input(z.object({}))

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createOrgAction } from "./actions";
 import { createOrgSchema } from "./validations";
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
   Form,
   FormControl,

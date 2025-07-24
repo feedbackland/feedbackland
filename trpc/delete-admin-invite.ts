@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { deleteAdminInviteQuery } from "@/queries/delete-admin-invite";
 
 export const deleteAdminInvite = adminProcedure
   .input(
     z.object({
-      adminInviteId: z.string().uuid(),
+      adminInviteId: z.uuid(),
     }),
   )
   .mutation(async ({ input: { adminInviteId }, ctx: { userId, orgId } }) => {

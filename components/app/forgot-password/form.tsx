@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ import { ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/firebase/client";
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.email(),
 });
 
 type FormData = z.infer<typeof formSchema>;

@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { deleteCommentQuery } from "@/queries/delete-comment";
 
 export const deleteComment = userProcedure
   .input(
     z.object({
-      commentId: z.string().uuid(),
+      commentId: z.uuid(),
     }),
   )
   .mutation(async ({ input: { commentId }, ctx: { userId, orgId } }) => {

@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { setActivitiesSeenQuery } from "@/queries/set-activities-seen";
 
 export const setActivitiesSeen = adminProcedure
   .input(
     z.object({
-      itemIds: z.array(z.string().uuid()),
+      itemIds: z.array(z.uuid()),
     }),
   )
   .mutation(async ({ input: { itemIds }, ctx: { userId } }) => {

@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { updateCommentQuery } from "@/queries/update-comment";
 
 export const updateComment = userProcedure
   .input(
     z.object({
-      commentId: z.string().uuid(),
+      commentId: z.uuid(),
       content: z.string().trim().min(1),
     }),
   )

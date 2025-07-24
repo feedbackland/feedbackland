@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { createAdminInviteQuery } from "@/queries/create-admin-invite";
 import { resend } from "@/lib/resend";
@@ -11,7 +11,7 @@ export const createAdminInvite = adminProcedure
     z.object({
       platformUrl: z.string().min(1),
       invitedBy: z.string().min(1),
-      email: z.string().email(),
+      email: z.email(),
     }),
   )
   .mutation(async (opts) => {

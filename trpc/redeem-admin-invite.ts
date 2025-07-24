@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { redeemAdminInviteQuery } from "@/queries/redeem-admin-invite";
 
 export const redeemAdminInvite = userProcedure
   .input(
     z.object({
-      adminInviteToken: z.string().uuid(),
+      adminInviteToken: z.uuid(),
     }),
   )
   .mutation(async ({ input: { adminInviteToken }, ctx: { userId, orgId } }) => {

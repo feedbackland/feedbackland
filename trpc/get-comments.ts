@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
 import { getCommentsQuery } from "@/queries/get-comments";
 
 export const getComments = publicProcedure
   .input(
     z.object({
-      postId: z.string().uuid(),
+      postId: z.uuid(),
       limit: z.number().min(1).max(100),
       cursor: z
         .object({

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
   Form,
   FormControl,
@@ -22,7 +22,7 @@ import { AdminsLimitAlert } from "@/components/app/admins/limit-alert";
 import { useAdminLimit } from "@/hooks/use-admin-limit";
 
 const FormSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export function AdminsInvite() {

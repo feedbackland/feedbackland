@@ -2,7 +2,7 @@ import { adminProcedure } from "@/lib/trpc";
 import { getInsightsInputQuery } from "@/queries/get-insights-input";
 import { createInsightsQuery } from "@/queries/create-insights";
 import { getRoadmapLimit } from "./get-roadmap-limit";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const insightsOutputSchema = z.array(
   z.object({

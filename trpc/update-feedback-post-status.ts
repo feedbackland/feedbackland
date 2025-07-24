@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
 import { feedbackStatusSchema } from "@/lib/schemas";
@@ -6,7 +6,7 @@ import { feedbackStatusSchema } from "@/lib/schemas";
 export const updateFeedbackPostStatus = adminProcedure
   .input(
     z.object({
-      postId: z.string().uuid(),
+      postId: z.uuid(),
       status: feedbackStatusSchema,
     }),
   )

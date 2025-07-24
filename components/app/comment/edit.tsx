@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Tiptap } from "@/components/ui/tiptap";
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
   Form,
   FormControl,

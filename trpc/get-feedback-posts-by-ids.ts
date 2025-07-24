@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
 import { getFeedbackPostsByIdsQuery } from "@/queries/get-feedback-posts-by-ids";
 
