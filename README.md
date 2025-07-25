@@ -8,7 +8,7 @@ Embed our open‑source widget in seconds, capture every bit of feedback, and le
 
 ## About
 
-Feedbackland is an open-source feedback platform that effortlessly embeds in your app, collects user feedback and with AI automatically transforms it into a clear, prioritized product roadmap.
+Feedbackland is an open-source feedback platform that collects user feedback in your app and with AI automatically transforms it into a clear, prioritized product roadmap.
 
 How it Works:
 * 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
