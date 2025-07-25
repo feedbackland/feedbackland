@@ -1,11 +1,10 @@
-
-<img width="2473" height="1766" alt="Frame 586" src="https://github.com/user-attachments/assets/3d104b07-b07b-4127-8f6e-5ed8c374221e" />
+<img width="2473" height="1826" alt="Frame 589" src="https://github.com/user-attachments/assets/4bd039dd-7e22-4d6f-825f-fef97287a72a" />
 
 &nbsp;
 
 ## About Feedbackland
 
-Feedbackland is an open-source feedback platform that effortlessly embeds in your app, collects user feedback and with AI automatically transforms it into a clear, prioritized product roadmap. So you can stop guessing and confidently build what your users love.
+Feedbackland is an open-source feedback platform that collects user feedback in your app and with AI automatically transforms it into a clear, prioritized product roadmap.
 
 How it Works:
 * 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
@@ -24,7 +23,7 @@ How it Works:
 &nbsp;
 &nbsp;
 
-## Self-Hosting Feedbackland
+## Self-Hosting
 
 Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
