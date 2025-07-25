@@ -15,6 +15,14 @@ import { ProcessModeParam } from "@/components/app/process-mode-param";
 export const metadata: Metadata = {
   title: "Feedbackland",
   description: "User Feedback Platform",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
 };
 
 export const viewport: Viewport = {
