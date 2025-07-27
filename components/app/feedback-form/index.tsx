@@ -10,7 +10,6 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { Session } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Tooltip,
@@ -62,8 +61,15 @@ export function FeedbackForm() {
           queryKey: trpc.getActivityFeedMetaData.queryKey(),
         });
       },
-      onError: () => {
-        setErrormessage("Something went wrong. Please try again.");
+      onError: (error) => {
+        console.log(error);
+        if (error?.message?.includes("inappropriate-content")) {
+          setErrormessage(
+            "Your post could not be published because it appears to violate our community guidelines.",
+          );
+        } else {
+          setErrormessage("Something went wrong. Please try again.");
+        }
       },
       onSettled: () => {
         setIsPending(false);
