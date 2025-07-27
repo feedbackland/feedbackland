@@ -26,17 +26,16 @@ const getTitleAndCategory = async ({
   try {
     const prompt = `
       You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
-      Given the following description, create a short title that sounds like it was written by a human.
+      Given a description provided by a user, create a short title that sounds like it was written by a human.
       Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
 
-      Description:
-      ${plainTextDescription}
-
-      Respond with a valid JSON object that follows this structure exactly:
+      Respond ONLY with a valid JSON object that follows this structure exactly:
+      \`\`\`json
       {
         "title": "brief human-like title here",
         "category": "one of: feature request, bug report, general feedback"
       }
+      \`\`\`
     `;
 
     const response = await fetch(
@@ -51,8 +50,12 @@ const getTitleAndCategory = async ({
           model: "google/gemini-2.5-flash-lite",
           messages: [
             {
-              role: "user",
+              role: "system",
               content: prompt,
+            },
+            {
+              role: "user",
+              content: plainTextDescription,
             },
           ],
           response_format: { type: "json_object" },
@@ -88,7 +91,7 @@ const isInappropriateCheck = async ({
     const prompt = `
       You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
 
-      Respond ONLY with a JSON object in this exact format:
+      Respond ONLY with a valid JSON object that follows this structure exactly:
       \`\`\`json
       {
         "isInappropriate": boolean, // true being inappropriate, false being safe
@@ -105,16 +108,19 @@ const isInappropriateCheck = async ({
 
     const messages: any = [
       {
+        role: "system",
+        content: prompt,
+      },
+      {
         role: "user",
         content: [
-          { type: "text", text: prompt },
           { type: "text", text: `User Text: "${plainTextDescription}"` },
         ],
       },
     ];
 
     imageUrls.forEach((url) => {
-      messages[0].content.push({
+      messages[1].content.push({
         type: "image_url",
         image_url: { url },
       });
