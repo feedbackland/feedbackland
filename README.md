@@ -15,7 +15,7 @@ How it Works:
 &nbsp;
 &nbsp;
 
-## Get Started
+## Get Started In 30 Seconds
 
 [Embed Feedbackland for free in 30 seconds]() or [start with a standalone platform]().
 
