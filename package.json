@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@google/genai": "^1.11.0",
-    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.0",
     "@next/bundle-analyzer": "^15.4.4",
     "@polar-sh/nextjs": "^0.4.4",

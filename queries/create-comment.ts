@@ -24,16 +24,17 @@ export async function createCommentQuery({
     const imageUrls = getImageUrls(content);
     const plainText = getPlainText(content);
 
-    const isInappropriate = await isInappropriateCheck({
-      plainText,
-      imageUrls,
-    });
+    const [isInappropriate, embedding] = await Promise.all([
+      isInappropriateCheck({
+        plainText,
+        imageUrls,
+      }),
+      generateEmbedding(plainText),
+    ]);
 
     if (isInappropriate) {
       throw new Error("inappropriate-content");
     }
-
-    const embedding = await generateEmbedding(plainText);
 
     const comment = await db
       .insertInto("comment")

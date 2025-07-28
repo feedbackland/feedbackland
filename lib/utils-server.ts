@@ -1,4 +1,4 @@
-import { textEmbeddingModel } from "@/lib/gemini";
+import { gemini } from "@/lib/gemini";
 import pgvector from "pgvector/pg";
 import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
@@ -6,8 +6,15 @@ import sanitizeHtml from "sanitize-html";
 
 export const generateVector = async (text: string) => {
   try {
-    const result = await textEmbeddingModel.embedContent(text);
-    return result.embedding.values;
+    const response = await gemini.models.embedContent({
+      model: "gemini-embedding-001",
+      contents: text,
+      config: {
+        outputDimensionality: 768,
+      },
+    });
+
+    return response?.embeddings?.values;
   } catch {
     throw new Error("Failed to generate vector");
   }
