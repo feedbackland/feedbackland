@@ -1,8 +1,13 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { clean, getPlainText } from "@/lib/utils";
-import { generateEmbedding } from "@/lib/utils-server";
+import {
+  clean,
+  generateEmbedding,
+  getImageUrls,
+  getPlainText,
+  isInappropriateCheck,
+} from "@/lib/utils-server";
 
 export const updateFeedbackPostQuery = async ({
   postId,
@@ -35,11 +40,19 @@ export const updateFeedbackPostQuery = async ({
         .executeTakeFirstOrThrow();
 
       if (role === "admin" || authorId === userId) {
-        const plainTextDescription = getPlainText(description);
+        const imageUrls = getImageUrls(description);
+        const plainText = getPlainText(description);
 
-        const embedding = await generateEmbedding(
-          `${title}: ${plainTextDescription}`,
-        );
+        const isInappropriate = await isInappropriateCheck({
+          plainText: `${title}: ${plainText}`,
+          imageUrls,
+        });
+
+        if (isInappropriate) {
+          throw new Error("inappropriate-content");
+        }
+
+        const embedding = await generateEmbedding(`${title}: ${plainText}`);
 
         return await trx
           .updateTable("feedback")

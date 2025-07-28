@@ -2,8 +2,6 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
-import { convert } from "html-to-text";
-import sanitizeHtml from "sanitize-html";
 import imageSize from "image-size";
 import { validate as uuidValidate, version as uuidVersion } from "uuid";
 
@@ -256,35 +254,6 @@ export const processImagesInHTML = async (html: string) => {
   });
 
   return modifiedHTML; // Return the final modified HTML
-};
-
-export const clean = (htmlString: string) => {
-  return sanitizeHtml(htmlString, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "a", "span"]),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      span: ["data-type", "data-id", "data-label"],
-      img: ["src", "width", "height", "alt"],
-    },
-    allowedClasses: {
-      span: ["mention"],
-    },
-  });
-};
-
-export const getPlainText = (htmlString: string) => {
-  const plainText = convert(sanitizeHtml(htmlString), {
-    wordwrap: false,
-    selectors: [
-      { selector: "a", options: { hideLinkHrefIfSameAsText: true } },
-      { selector: "table", format: "inline" },
-    ],
-  })
-    .replace(/\s+/g, " ")
-    .replace(/ *\n */g, "\n")
-    .trim();
-
-  return plainText;
 };
 
 export const getPriorityLabel = (priorityScore: number) => {

@@ -2,27 +2,15 @@
 
 import { db } from "@/db/db";
 import { FeedbackCategory } from "@/lib/typings";
-import { clean, getPlainText } from "@/lib/utils";
-import { generateEmbedding } from "@/lib/utils-server";
-import { parse, HTMLElement } from "node-html-parser";
+import {
+  clean,
+  generateEmbedding,
+  getImageUrls,
+  getPlainText,
+  isInappropriateCheck,
+} from "@/lib/utils-server";
 
-const getImageUrls = (htmlContent: string) => {
-  const root = parse(htmlContent);
-
-  const imageElements: HTMLElement[] = root.querySelectorAll("img");
-
-  const imageUrls = imageElements
-    .map((imgElement) => imgElement.getAttribute("src"))
-    .filter((src): src is string => !!src);
-
-  return imageUrls;
-};
-
-const getTitleAndCategory = async ({
-  plainTextDescription,
-}: {
-  plainTextDescription: string;
-}) => {
+const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
   try {
     const prompt = `
       You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
@@ -55,7 +43,7 @@ const getTitleAndCategory = async ({
             },
             {
               role: "user",
-              content: plainTextDescription,
+              content: plainText,
             },
           ],
           response_format: { type: "json_object" },
@@ -80,89 +68,6 @@ const getTitleAndCategory = async ({
   }
 };
 
-const isInappropriateCheck = async ({
-  plainTextDescription,
-  imageUrls,
-}: {
-  plainTextDescription: string;
-  imageUrls: string[];
-}) => {
-  try {
-    const prompt = `
-      You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
-
-      Respond ONLY with a valid JSON object that follows this structure exactly:
-      \`\`\`json
-      {
-        "isInappropriate": boolean, // true being inappropriate, false being safe
-        "confidenceScore": number // 0.0 to 1.0, where 1.0 is very confident
-      }
-      \`\`\`
-
-      For example:
-      {
-        "isInappropriate": true,
-        "confidenceScore": 0.9
-      }
-    `;
-
-    const messages: any = [
-      {
-        role: "system",
-        content: prompt,
-      },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: `User Text: "${plainTextDescription}"` },
-        ],
-      },
-    ];
-
-    imageUrls.forEach((url) => {
-      messages[1].content.push({
-        type: "image_url",
-        image_url: { url },
-      });
-    });
-
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages,
-          response_format: { type: "json_object" },
-        }),
-      },
-    );
-
-    const data = await response.json();
-
-    const content = data.choices[0]?.message?.content;
-
-    if (!content) {
-      return { isInappropriate: true, confidenceScore: 1.0 };
-    }
-
-    const parsedContent = JSON.parse(content) as {
-      isInappropriate: boolean;
-      confidenceScore: number;
-    };
-
-    const { isInappropriate, confidenceScore } = parsedContent;
-
-    return { isInappropriate, confidenceScore };
-  } catch (error) {
-    throw error;
-  }
-};
-
 export async function createFeedbackPostQuery({
   description,
   authorId,
@@ -174,26 +79,23 @@ export async function createFeedbackPostQuery({
 }) {
   try {
     const imageUrls = getImageUrls(description);
-    const plainTextDescription = getPlainText(description);
+    const plainText = getPlainText(description);
 
-    const [{ isInappropriate, confidenceScore }, { title, category }] =
-      await Promise.all([
-        isInappropriateCheck({
-          plainTextDescription,
-          imageUrls,
-        }),
-        getTitleAndCategory({
-          plainTextDescription,
-        }),
-      ]);
+    const [isInappropriate, { title, category }] = await Promise.all([
+      isInappropriateCheck({
+        plainText,
+        imageUrls,
+      }),
+      getTitleAndCategory({
+        plainText,
+      }),
+    ]);
 
-    if (isInappropriate && confidenceScore > 0.7) {
+    if (isInappropriate) {
       throw new Error("inappropriate-content");
     }
 
-    const embedding = await generateEmbedding(
-      `${title}: ${plainTextDescription}`,
-    );
+    const embedding = await generateEmbedding(`${title}: ${plainText}`);
 
     const feedbackPost = await db
       .insertInto("feedback")
