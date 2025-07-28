@@ -48,7 +48,7 @@ export async function createCommentQuery({
       .executeTakeFirstOrThrow();
 
     return comment;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 }
