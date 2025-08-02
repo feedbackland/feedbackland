@@ -40,7 +40,7 @@ Before you begin, make sure you have accounts for the following services, which 
     * [Resend](https://resend.com) (for sending transactional emails)
 * **AI Services:**
     * [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
-    * [OpenRouter](https://openrouter.ai) (for other AI-related tasks)
+    * [OpenRouter](https://openrouter.ai) (for all other AI-related tasks)
 * **Code Management:**
     * [GitHub](https://github.com) (for repository management)
 
