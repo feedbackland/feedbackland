@@ -189,7 +189,8 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 &nbsp;
 
-Congratulations, your Feedbackland platform is live and directly accessible your app! 🎉
+Congratulations, your Feedbackland platform is now live and directly accessible your app! 🎉
+
 Now go ahead and:
 * Deploy your app.
 * Start collecting in-app feedback.
