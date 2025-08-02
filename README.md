@@ -25,7 +25,7 @@ How it Works:
 
 ## Self-Hosting
 
-Follow these steps to get your own self-hosted instance of Feedbackland up and running. All listed services can be used for free.
+Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
 ### Prerequisites
 
