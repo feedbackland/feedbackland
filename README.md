@@ -7,8 +7,8 @@
 Feedbackland is an open-source feedback platform that embeds effortlessly in your app, collects user feedback and with AI automatically transforms it into your prioritized product roadmap. So you always know exactly what to build next, based on real user insights. No guesswork involved!
 
 How it Works:
-* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
-* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback, votes and comment, and automatically transforms everything into a clear, prioritized roadmap.
+* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas from your users directly in your app (or as a standalone website).
+* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback, votes and comments, and automatically analyses and transforms everything into a clear, prioritized roadmap.
 * 🚀 Ship with Confidence: Know exactly what to build next, backed by real user data and powerful AI analysis.
 
 &nbsp;
