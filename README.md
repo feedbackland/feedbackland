@@ -17,7 +17,7 @@ How it Works:
 
 ## Get Started In 30 Seconds
 
-[Embed Feedbackland for free in 30 seconds]() or [start with a standalone platform]().
+[Embed the Feedbackland widget for free in 30 seconds]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
