@@ -4,12 +4,12 @@
 
 ## About Feedbackland
 
-Feedbackland is an open-source feedback platform that embeds seamlessly in your app, collects user feedback, and with AI transforms it into your prioritized product roadmap. So you always know exactly what to build next, based on real user insights. No more guessing which feature to build next!
+Feedbackland is an open-source, in-app feedback widget for React that captures feature requests, bug reports, votes, and comments — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you build what users actually want, without the guesswork.
 
 How it Works:
-* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas from your users directly in your app (or as a standalone website).
-* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback, votes and comments, and automatically analyses and transforms everything into a clear, prioritized roadmap.
-* 🚀 Ship with Confidence: Know exactly what to build next, backed by real user data and powerful AI analysis.
+* 🗣️ Capture Feedback – Embed the widget in your app (or standalone) to collect feature requests, bug reports, and ideas directly from your users.
+* 🤖 Let AI Generate Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates a prioritized roadmap automatically.
+* 🚀 Decide & Ship — use the roadmap to plan sprints, share priorities, and close the feedback loop with users.
 
 &nbsp;
 &nbsp;
