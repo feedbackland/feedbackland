@@ -86,7 +86,8 @@ export function ClaimOrgBanner({
           >
             <div className="flex items-center gap-2">
               <span className="text-primary-foreground text-sm font-medium">
-                Claim ownership of this feedback platform to unlock admin access
+                This is an unclaimed platform. Claim ownership to make it yours
+                and unlock admin access.
               </span>
             </div>
             <Button
