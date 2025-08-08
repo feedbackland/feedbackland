@@ -15,7 +15,7 @@ How it Works:
 &nbsp;
 &nbsp;
 
-## Get Started In 30 Seconds
+## Add Feedbackland to your app in 30 seconds
 
 [Embed the Feedbackland widget for free in 30 seconds]() or [start with a standalone platform]().
 
