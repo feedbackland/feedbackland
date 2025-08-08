@@ -86,7 +86,8 @@ export function ClaimOrgBanner({
           >
             <div className="flex items-center gap-2">
               <span className="text-primary-foreground text-sm font-medium">
-                This is an unclaimed platform. Claim it to make it yours.
+                Looks like this platform doesn't have an owner yet. Make it
+                yours now and unlock admin access!
               </span>
             </div>
             <Button
