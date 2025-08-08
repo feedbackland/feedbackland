@@ -9,7 +9,7 @@ Feedbackland is an open-source feedback platform that captures feature requests,
 How it Works:
 * 🗣️ Capture Feedback – Embed the platform in your app, or use it as a standalone website, to collect feature requests, bug reports, and ideas directly from your users.
 * 🤖 Let AI Generate Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap automatically.
-* 🚀 Decide & Ship — Use the roadmap to plan sprints, build features, and ship the product your users love.
+* 🚀 Build & Ship — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
 &nbsp;
 &nbsp;
