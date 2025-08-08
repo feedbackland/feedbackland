@@ -16,7 +16,6 @@ export const generateVector = async (text: string) => {
 
     return response?.embeddings?.[0]?.values;
   } catch (error) {
-    console.log(error);
     throw new Error("Failed to generate vector");
   }
 };
@@ -26,7 +25,6 @@ export const generateEmbedding = async (text: string) => {
     const vector = await generateVector(text);
     return pgvector.toSql(vector);
   } catch (error) {
-    console.log(error);
     throw new Error("Failed to generate embedding");
   }
 };

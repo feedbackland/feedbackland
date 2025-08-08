@@ -1,7 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { ExpressionBuilder, sql } from "kysely";
+import { sql } from "kysely";
 import { cosineDistance } from "pgvector/kysely";
 import {
   ActivityFeedItem,
@@ -39,7 +39,7 @@ export async function getActivityFeedQuery({
     const offset = (page - 1) * pageSize;
     const isSearching = searchValue.length > 0;
     const maxDistance = 0.4;
-    let searchVector: number[] = [];
+    let searchVector: number[] | undefined = undefined;
 
     if (isSearching) {
       searchVector = await generateVector(searchValue);

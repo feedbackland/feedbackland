@@ -86,10 +86,9 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-2">
-              <TriangleAlert className="size-5! shrink-0! text-black" />
+              {/* <TriangleAlert className="size-5! shrink-0! text-black" /> */}
               <span className="text-primary-foreground text-sm font-medium">
-                This is an unclaimed platform. Claim it to make it yours and
-                unlock admin access.
+                Take ownership of this preview platform to unlock admin access
               </span>
             </div>
             <Button
@@ -98,7 +97,7 @@ export function ClaimOrgBanner({
               size="sm"
               className="bg-black font-semibold text-white hover:bg-black/85 hover:text-white"
             >
-              Claim this platform
+              Claim ownership
             </Button>
           </div>
         </div>
