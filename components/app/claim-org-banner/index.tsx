@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TriangleAlert } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
@@ -88,7 +87,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-2">
               {/* <TriangleAlert className="size-5! shrink-0! text-black" /> */}
               <span className="text-primary-foreground text-sm font-medium">
-                Take ownership of this preview platform to unlock admin access
+                Take ownership of this platform to unlock admin access
               </span>
             </div>
             <Button
