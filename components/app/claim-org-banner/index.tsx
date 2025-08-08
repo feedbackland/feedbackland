@@ -85,9 +85,8 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-2">
-              {/* <TriangleAlert className="size-5! shrink-0! text-black" /> */}
               <span className="text-primary-foreground text-sm font-medium">
-                Claim ownership to make it yours and unlock admin access
+                Claim ownership of this feedback platform to unlock admin access
               </span>
             </div>
             <Button
