@@ -1,10 +1,11 @@
-<img width="2473" height="1826" alt="Frame 589" src="https://github.com/user-attachments/assets/4bd039dd-7e22-4d6f-825f-fef97287a72a" />
+
+<img width="1920" height="1080" alt="feedbackland_github_banner_1" src="https://github.com/user-attachments/assets/d477f9aa-f98a-4003-a3f4-cb56196e05a8" />
 
 &nbsp;
 
 ## About Feedbackland
 
-Feedbackland is an open-source, in-app feedback widget for React that captures feature requests, bug reports, votes, and comments — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you build what users actually want, without the guesswork.
+Feedbackland is an open-source, in-app feedback widget that captures feature requests, bug reports, votes, and comments — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you build what users actually want, without the guesswork.
 
 How it Works:
 * 🗣️ Capture Feedback – Embed the widget in your app (or standalone) to collect feature requests, bug reports, and ideas directly from your users.
