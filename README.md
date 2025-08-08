@@ -1,23 +1,23 @@
-<img width="2473" height="1826" alt="Frame 589" src="https://github.com/user-attachments/assets/4bd039dd-7e22-4d6f-825f-fef97287a72a" />
+<img width="1920" height="1080" alt="feedbackland_github_banner_1" src="https://github.com/user-attachments/assets/31eea233-a87b-4225-99bf-299f7c90ee76" />
 
 &nbsp;
 
 ## About Feedbackland
 
-Feedbackland is an open-source feedback platform that embeds effortlessly in your app, collects user feedback and with AI automatically and instantly transforms it into your clear, prioritized product roadmap. So you always know exactly what to build next, based on real user insights. No guesswork involved!
+Feedbackland is an open-source feedback platform that captures feature requests, bug reports, votes, and comments directly in-app (or as a standalone platform) — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you always know exactly what to build next, without the guesswork.
 
 How it Works:
-* 🗣️ Capture Feedback: An easy-to-embed widget captures feature requests, bug reports, and ideas directly in your app.
-* 🤖 Generate Roadmap: Our AI analyzes all incoming feedback, votes and comment, and automatically transforms everything into a clear, prioritized roadmap.
-* 🚀 Ship with Confidence: Know exactly what to build next, backed by real user data and powerful AI analysis.
+* 🗣️ Capture Feedback – Embed the platform in your app, or use it as a standalone website, to collect feature requests, bug reports, and ideas directly from your users.
+* 🤖 Let AI Generate Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap automatically.
+* 🚀 Build & Ship — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
 &nbsp;
 &nbsp;
 &nbsp;
 
-## Get Started In 30 Seconds
+## Get started
 
-[Embed Feedbackland for free in 30 seconds]() or [start with a standalone platform]().
+[Embed Feedbackland in 30 seconds]() or [start with a standalone platform]().
 
 &nbsp;
 &nbsp;
@@ -40,7 +40,7 @@ Before you begin, make sure you have accounts for the following services, which 
     * [Resend](https://resend.com) (for sending transactional emails)
 * **AI Services:**
     * [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
-    * [OpenRouter](https://openrouter.ai) (for other AI-related tasks)
+    * [OpenRouter](https://openrouter.ai) (for all other AI-related tasks)
 * **Code Management:**
     * [GitHub](https://github.com) (for repository management)
 
@@ -189,10 +189,12 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 &nbsp;
 
-Congratulations, your Feedbackland platform is live and fully embedded in your app! 🎉 Now go ahead and:
+Congratulations, your Feedbackland platform is now live and directly accessible your app! 🎉
+
+Now go ahead and:
 * Deploy your app.
-* Start collecting in-app feedback automatically.
-* Generate your first roadmap based on real user insights!
+* Start collecting in-app feedback.
+* Generate your first roadmap!
 
 &nbsp;
 &nbsp;
