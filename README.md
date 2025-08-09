@@ -1,12 +1,10 @@
 # Feedbackland
 
-Embed Feedbackland's open-source widget, capture every bit of feedback, and let AI generate your prioritized roadmap. Always know exactly what to build next. No guesswork involved.
-
 <img width="2473" height="1345" alt="feedbackland_github_banner_2" src="https://github.com/user-attachments/assets/ec9235c0-3f51-4f14-9696-9c6b08ab37b6" />
 
 &nbsp;
 
-## About Feedbackland
+## About
 
 Feedbackland is an open-source feedback platform that captures feature requests, bug reports, votes, and comments directly in-app (or as a standalone platform) — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you always know exactly what to build next, without the guesswork.
 
