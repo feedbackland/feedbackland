@@ -1,15 +1,17 @@
-<img width="1920" height="1080" alt="feedbackland_github_banner_1" src="https://github.com/user-attachments/assets/31eea233-a87b-4225-99bf-299f7c90ee76" />
+# Feedbackland
+
+<img width="2473" height="1345" alt="feedbackland_github_banner_2" src="https://github.com/user-attachments/assets/ec9235c0-3f51-4f14-9696-9c6b08ab37b6" />
 
 &nbsp;
 
-## About Feedbackland
+## About
 
-Feedbackland is an open-source feedback platform that captures feature requests, bug reports, votes, and comments directly in-app (or as a standalone platform) — then uses AI to aggregate, prioritize, and turn that feedback into a clear, actionable product roadmap. So you always know exactly what to build next, without the guesswork.
+Feedbackland is an open-source feedback platform that captures feature requests, bug reports, and ideas directly in-app (or as a standalone platform) — then uses AI to aggregate, prioritize, and turn all feedback into your clear, actionable product roadmap. So you always know exactly what to build next, without the guesswork.
 
 How it Works:
-* 🗣️ Capture Feedback – Embed the platform in your app, or use it as a standalone website, to collect feature requests, bug reports, and ideas directly from your users.
-* 🤖 Let AI Generate Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap automatically.
-* 🚀 Build & Ship — Use the roadmap to plan sprints, build features, and ship the product your users love.
+* 🗣️ The Widget Captures Feedback – Embed the platform in your app, or use it as a standalone website, to collect feature requests, bug reports, and ideas directly from your users.
+* 🤖 AI Generates Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap automatically.
+* 🚀 You Ship What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
 &nbsp;
 &nbsp;
