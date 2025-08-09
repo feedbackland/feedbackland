@@ -1,4 +1,8 @@
-<img width="1920" height="1080" alt="feedbackland_github_banner_1" src="https://github.com/user-attachments/assets/31eea233-a87b-4225-99bf-299f7c90ee76" />
+# Feedbackland
+
+Embed Feedbackland's open-source widget, capture every bit of feedback, and let AI generate your prioritized roadmap. Always know exactly what to build next. No guesswork involved.
+
+<img width="2473" height="1345" alt="feedbackland_github_banner_2" src="https://github.com/user-attachments/assets/ec9235c0-3f51-4f14-9696-9c6b08ab37b6" />
 
 &nbsp;
 
