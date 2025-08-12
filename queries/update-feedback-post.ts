@@ -44,6 +44,7 @@ export const updateFeedbackPostQuery = async ({
         const plainText = getPlainText(description);
 
         const isInappropriate = await isInappropriateCheck({
+          orgId,
           plainText: `${title}: ${plainText}`,
           imageUrls,
         });

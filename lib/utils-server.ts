@@ -3,6 +3,7 @@ import pgvector from "pgvector/pg";
 import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
+import { getSubscriptionQuery } from "@/queries/get-subscription";
 
 export const generateVector = async (text: string) => {
   try {
@@ -15,7 +16,7 @@ export const generateVector = async (text: string) => {
     });
 
     return response?.embeddings?.[0]?.values;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to generate vector");
   }
 };
@@ -24,21 +25,27 @@ export const generateEmbedding = async (text: string) => {
   try {
     const vector = await generateVector(text);
     return pgvector.toSql(vector);
-  } catch (error) {
+  } catch {
     throw new Error("Failed to generate embedding");
   }
 };
 
 export const isInappropriateCheck = async ({
+  orgId,
   plainText,
   imageUrls,
 }: {
+  orgId: string;
   plainText: string;
   imageUrls?: string[];
 }) => {
   try {
+    const { activeSubscription } = await getSubscriptionQuery({ orgId });
+
+    if (activeSubscription === "free") return false;
+
     const prompt = `
-      You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
+      You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including spam, violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
 
       Respond ONLY with a valid JSON object that follows this structure exactly:
       \`\`\`json
@@ -91,11 +98,9 @@ export const isInappropriateCheck = async ({
 
     const data = await response.json();
 
-    const content = data.choices[0]?.message?.content;
+    const content = data?.choices?.[0]?.message?.content;
 
-    if (!content) {
-      return true;
-    }
+    if (!content) return true;
 
     const parsedContent = JSON.parse(content) as {
       isInappropriate: boolean;

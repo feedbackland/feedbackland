@@ -83,6 +83,7 @@ export async function createFeedbackPostQuery({
 
     const [isInappropriate, { title, category }] = await Promise.all([
       isInappropriateCheck({
+        orgId,
         plainText,
         imageUrls,
       }),

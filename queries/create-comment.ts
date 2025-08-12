@@ -10,11 +10,13 @@ import {
 } from "@/lib/utils-server";
 
 export async function createCommentQuery({
+  orgId,
   content,
   authorId,
   postId,
   parentCommentId,
 }: {
+  orgId: string;
   content: string;
   authorId: string;
   postId: string;
@@ -26,6 +28,7 @@ export async function createCommentQuery({
 
     const [isInappropriate, embedding] = await Promise.all([
       isInappropriateCheck({
+        orgId,
         plainText,
         imageUrls,
       }),

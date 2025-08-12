@@ -41,6 +41,7 @@ export const updateCommentQuery = async ({
         const plainText = getPlainText(content);
 
         const isInappropriate = await isInappropriateCheck({
+          orgId,
           plainText,
           imageUrls,
         });

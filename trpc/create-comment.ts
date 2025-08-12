@@ -13,10 +13,11 @@ export const createComment = userProcedure
   .mutation(
     async ({
       input: { postId, parentCommentId, content },
-      ctx: { userId },
+      ctx: { userId, orgId },
     }) => {
       try {
         return await createCommentQuery({
+          orgId,
           content,
           authorId: userId,
           postId,
