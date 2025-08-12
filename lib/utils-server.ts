@@ -22,16 +22,21 @@ export const generateVector = async (text: string) => {
 
     return response?.embeddings?.[0]?.values || null;
   } catch {
-    throw new Error("Failed to generate vector");
+    return null;
   }
 };
 
 export const generateEmbedding = async (text: string) => {
   try {
     const vector = await generateVector(text);
-    return pgvector.toSql(vector);
+
+    if (vector) {
+      return pgvector.toSql(vector);
+    }
+
+    return null;
   } catch {
-    throw new Error("Failed to generate embedding");
+    return null;
   }
 };
 
