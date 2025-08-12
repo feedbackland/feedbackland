@@ -22,6 +22,12 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
     const isProPlan = planName === "pro";
     const isMaxPlan = planName === "max";
     const isActiveSubscription = planName === subscriptionName;
+    const postsLimit = analyzablePostLimit(planName).toLocaleString("en", {
+      useGrouping: true,
+    });
+    const roadmapsLimit =
+      planName === "max" ? "Unlimited" : roadmapLimit(planName);
+    const adminsLimit = planName === "max" ? "Unlimited" : adminLimit(planName);
 
     return (
       <div className="border-border flex w-full max-w-full flex-col items-stretch space-y-4 rounded-lg border p-4 shadow-sm">
@@ -83,35 +89,39 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
         </div>
 
-        <div className="text-primary flex flex-col items-stretch space-y-1 text-sm font-medium">
+        <div className="text-primary flex flex-col items-stretch space-y-1 text-sm font-medium capitalize">
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>Unlimited feedback posts</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{adminLimit(planName) || "Unlimited"} admins</span>
+            <span>Unlimited end-users</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>
-              Generate up to {roadmapLimit(planName)} roadmaps per month
-            </span>
+            <span>{adminsLimit} admins</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>
-              Our AI analyses up to{" "}
-              {analyzablePostLimit(planName).toLocaleString("en", {
-                useGrouping: true,
-              })}{" "}
-              feedback posts per roadmap
-            </span>
+            <span>{roadmapsLimit} Roadmaps/Month</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{isFreePlan ? "Feedbackland branding" : "No branding"}</span>
+            <span>AI analyses up to {postsLimit} posts</span>
           </div>
+          {!isFreePlan && (
+            <div className="flex items-center gap-1.5">
+              <CheckIcon className="size-4!" />
+              <span>Automatic Content Moderation</span>
+            </div>
+          )}
+          {!isFreePlan && (
+            <div className="flex items-center gap-1.5">
+              <CheckIcon className="size-4!" />
+              <span>White labeled</span>
+            </div>
+          )}
         </div>
       </div>
     );

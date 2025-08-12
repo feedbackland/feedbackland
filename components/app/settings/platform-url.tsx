@@ -34,9 +34,7 @@ export function PlatformUrl({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const isSelfHosted = useIsSelfHosted();
-
   const platformUrl = usePlatformUrl();
-
   const vercelUrl = useVercelUrl();
 
   const {

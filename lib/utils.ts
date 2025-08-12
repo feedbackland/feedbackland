@@ -334,7 +334,7 @@ export const roadmapLimit = (plan: string) => {
   } else if (plan === "pro") {
     return 20;
   } else if (plan === "max") {
-    return 100;
+    return 1000;
   }
 
   return 5;
@@ -346,7 +346,7 @@ export const adminLimit = (plan: string) => {
   } else if (plan === "pro") {
     return 5;
   } else if (plan === "max") {
-    return undefined;
+    return 100;
   }
 
   return 2;
