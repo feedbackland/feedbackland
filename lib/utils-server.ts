@@ -5,12 +5,28 @@ import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
 import { textEmbeddingRateLimit } from "./upstash";
+import { resend } from "./resend";
+import { getIsSelfHosted } from "./utils";
 
 export const generateVector = async (text: string) => {
   try {
-    const { success } = await textEmbeddingRateLimit.limit("generateVector");
+    const isSelfHosted = getIsSelfHosted("server");
 
-    if (!success) return null;
+    if (!isSelfHosted) {
+      const { success, remaining } =
+        await textEmbeddingRateLimit.limit("generateVector");
+
+      if (!success) return null;
+
+      if (remaining === 1) {
+        await resend?.emails.send({
+          from: "hello@feedbackland.com",
+          to: ["hello@feedbackland.com"],
+          subject: "Text embedding rate limit reached",
+          text: "Text embedding rate limit reached",
+        });
+      }
+    }
 
     const response = await gemini.models.embedContent({
       model: "gemini-embedding-001",

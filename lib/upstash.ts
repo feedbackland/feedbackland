@@ -8,7 +8,7 @@ export const redis = new Redis({
 
 export const textEmbeddingRateLimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(100, "60 s"), // max. 100 calls per 60 seconds
+  limiter: Ratelimit.fixedWindow(5000, "1 d"), // 5000 requests per 1 day
   analytics: true,
   prefix: "textEmbeddingRateLimit",
 });

@@ -1,6 +1,9 @@
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
+import { getIsSelfHosted } from "../utils";
+
+const isSelfHosted = getIsSelfHosted("server");
 
 const adminApp =
   getApps().length === 0
@@ -18,7 +21,6 @@ const adminApp =
 
 const adminAuth = getAuth(adminApp);
 
-const adminDatabase =
-  process?.env?.SELF_HOSTED !== "true" ? getDatabase(adminApp) : undefined;
+const adminDatabase = !isSelfHosted ? getDatabase(adminApp) : undefined;
 
 export { adminAuth, adminDatabase };
