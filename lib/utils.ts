@@ -53,8 +53,11 @@ const getUrlObject = (urlString?: string | null) => {
 
 export const getIsSubdirOrg = (urlString?: string | null) => {
   const url = getUrlObject(urlString);
+
   if (!url) return false;
+
   const { host } = url;
+
   return host?.includes("localhost") || host?.includes("vercel.app");
 };
 
@@ -118,7 +121,7 @@ export const getVercelUrl = () => {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
 
-  return;
+  return null;
 };
 
 export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {

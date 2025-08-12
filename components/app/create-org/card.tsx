@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 import { cn } from "@/lib/utils";
+import { useVercelUrl } from "@/hooks/use-vercel-url";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
@@ -34,6 +35,7 @@ export function CreateOrgCard({
   }) => void;
 }) {
   const isSelfHosted = useIsSelfHosted();
+  const vercelUrl = useVercelUrl();
 
   const { executeAsync: createOrg, isPending } = useAction(createOrgAction);
 
@@ -94,9 +96,9 @@ export function CreateOrgCard({
                   <FormLabel>Platform url</FormLabel>
                   <FormControl>
                     <div className="tems-center flex">
-                      {isSelfHosted && process?.env?.NEXT_PUBLIC_VERCEL_URL && (
+                      {isSelfHosted && vercelUrl && (
                         <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-md rounded-r-none border px-3 text-sm">
-                          <span>{`${process.env.NEXT_PUBLIC_VERCEL_URL}/`}</span>
+                          <span>{vercelUrl}/</span>
                         </div>
                       )}
                       <Input

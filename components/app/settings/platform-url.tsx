@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { orgSubdomainSchema } from "@/lib/schemas";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useVercelUrl } from "@/hooks/use-vercel-url";
 
 const FormSchema = z.object({
   orgSubdomain: orgSubdomainSchema,
@@ -35,6 +36,8 @@ export function PlatformUrl({
   const isSelfHosted = useIsSelfHosted();
 
   const platformUrl = usePlatformUrl();
+
+  const vercelUrl = useVercelUrl();
 
   const {
     query: { data },
@@ -99,12 +102,11 @@ export function PlatformUrl({
                     <FormControl>
                       {isEditing ? (
                         <div className="flex w-full max-w-[450px] items-center">
-                          {isSelfHosted &&
-                            process?.env?.NEXT_PUBLIC_VERCEL_URL && (
-                              <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-md rounded-r-none border px-3 text-sm">
-                                <span>{`${process.env.NEXT_PUBLIC_VERCEL_URL}/`}</span>
-                              </div>
-                            )}
+                          {isSelfHosted && vercelUrl && (
+                            <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-md rounded-r-none border px-3 text-sm">
+                              <span>{vercelUrl}/</span>
+                            </div>
+                          )}
                           <Input
                             autoFocus={true}
                             className={cn("z-10 w-full text-sm", {

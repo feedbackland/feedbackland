@@ -24,11 +24,15 @@ export const GlobalOrgState = memo(() => {
   const subdomain = useSubdomain();
 
   useEffect(() => {
-    const prevPage = prevPathname?.split("/")?.pop()?.replace(subdomain, "");
+    const prevPage = prevPathname
+      ?.split("/")
+      ?.pop()
+      ?.replace(subdomain || "", "");
+
     const nextPage = pathname
       ?.split("/")
       ?.pop()
-      ?.replace(subdomain, "") as string;
+      ?.replace(subdomain || "", "") as string;
 
     setPreviousPathnameAtom(prevPathname);
 
