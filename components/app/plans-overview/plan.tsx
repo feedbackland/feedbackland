@@ -82,45 +82,51 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                 <SubscriptionButton
                   variant={isActiveSubscription ? "outline" : "default"}
                   buttonText={isActiveSubscription ? "Manage" : "Upgrade"}
-                  size="default"
+                  size="lg"
                 />
               </div>
             )}
           </div>
         </div>
 
-        <div className="text-primary flex flex-col items-stretch space-y-1 text-sm font-medium capitalize">
-          <div className="flex items-center gap-1.5">
+        <div className="text-primary flex flex-col items-stretch space-y-1.5 text-sm font-normal capitalize">
+          {/* <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>Unlimited feedback posts</span>
           </div>
+
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>Unlimited end-users</span>
-          </div>
+          </div> */}
+
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>{adminsLimit} admins</span>
           </div>
+
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>{roadmapsLimit} Roadmaps/Month</span>
           </div>
+
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>AI analyses up to {postsLimit} posts</span>
           </div>
+
           {!isFreePlan && (
-            <div className="flex items-center gap-1.5">
-              <CheckIcon className="size-4!" />
-              <span>Automatic Content Moderation</span>
-            </div>
-          )}
-          {!isFreePlan && (
-            <div className="flex items-center gap-1.5">
-              <CheckIcon className="size-4!" />
-              <span>White labeled</span>
-            </div>
+            <>
+              <div className="flex items-center gap-1.5">
+                <CheckIcon className="size-4!" />
+                <span>Automatic Content Moderation</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <CheckIcon className="size-4!" />
+                <span>White labeled</span>
+              </div>
+            </>
           )}
         </div>
       </div>

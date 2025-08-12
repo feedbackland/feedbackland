@@ -14,6 +14,14 @@ export function PlansOverview() {
     const isProPlan = name === "pro";
     const isMaxPlan = name === "max";
 
+    // return (
+    //   <div className="flex flex-nowrap gap-2">
+    //     <Plan planName="free" />
+    //     <Plan planName="pro" />
+    //     <Plan planName="max" />
+    //   </div>
+    // );
+
     return (
       <div className="">
         <h3 className="mb-3 text-sm font-medium">Your current plan</h3>
