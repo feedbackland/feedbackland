@@ -4,10 +4,14 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
-import { inappropriateCheckRateLimit } from "./upstash";
+import { textEmbeddingRateLimit } from "./upstash";
 
 export const generateVector = async (text: string) => {
   try {
+    const { success } = await textEmbeddingRateLimit.limit("generateVector");
+
+    if (!success) return undefined;
+
     const response = await gemini.models.embedContent({
       model: "gemini-embedding-001",
       contents: text,
@@ -45,12 +49,8 @@ export const isInappropriateCheck = async ({
 
     if (activeSubscription === "free") return false;
 
-    const { success } = await inappropriateCheckRateLimit.limit(orgId);
-
-    if (!success) return false;
-
     const prompt = `
-      You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including spam, violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
+      You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including spam, nonsensical rambling, violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
 
       Respond ONLY with a valid JSON object that follows this structure exactly:
       \`\`\`json

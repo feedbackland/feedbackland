@@ -6,8 +6,8 @@ export const updateFeedbackPost = userProcedure
   .input(
     z.object({
       postId: z.uuid(),
-      title: z.string().trim().min(1),
-      description: z.string().trim().min(1),
+      title: z.string().trim().min(1).max(300),
+      description: z.string().trim().min(1).max(10000),
     }),
   )
   .mutation(

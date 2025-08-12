@@ -7,7 +7,7 @@ export const createComment = userProcedure
     z.object({
       postId: z.uuid(),
       parentCommentId: z.uuid().nullable(),
-      content: z.string().trim().min(1),
+      content: z.string().trim().min(1).max(10000),
     }),
   )
   .mutation(

@@ -6,7 +6,7 @@ export const updateComment = userProcedure
   .input(
     z.object({
       commentId: z.uuid(),
-      content: z.string().trim().min(1),
+      content: z.string().trim().min(1).max(10000),
     }),
   )
   .mutation(

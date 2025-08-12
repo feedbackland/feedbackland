@@ -6,9 +6,9 @@ export const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-export const inappropriateCheckRateLimit = new Ratelimit({
+export const textEmbeddingRateLimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(100, "1 h"), // 100 calls per hour
+  limiter: Ratelimit.fixedWindow(100, "60 s"), // max. 100 calls per 60 seconds
   analytics: true,
-  prefix: "inappropriateCheckRateLimit",
+  prefix: "textEmbeddingRateLimit",
 });

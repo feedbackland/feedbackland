@@ -5,7 +5,7 @@ import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 export const createFeedbackPost = publicProcedure
   .input(
     z.object({
-      description: z.string().trim().min(1),
+      description: z.string().trim().min(1).max(10000),
     }),
   )
   .mutation(async ({ input: { description }, ctx: { userId, orgId } }) => {
