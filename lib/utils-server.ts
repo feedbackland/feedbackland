@@ -10,7 +10,7 @@ export const generateVector = async (text: string) => {
   try {
     const { success } = await textEmbeddingRateLimit.limit("generateVector");
 
-    if (!success) return undefined;
+    if (!success) return null;
 
     const response = await gemini.models.embedContent({
       model: "gemini-embedding-001",
@@ -20,7 +20,7 @@ export const generateVector = async (text: string) => {
       },
     });
 
-    return response?.embeddings?.[0]?.values;
+    return response?.embeddings?.[0]?.values || null;
   } catch {
     throw new Error("Failed to generate vector");
   }
