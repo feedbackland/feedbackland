@@ -4,6 +4,7 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import { getSubscriptionQuery } from "@/queries/get-subscription";
+import { inappropriateCheckRateLimit } from "./upstash";
 
 export const generateVector = async (text: string) => {
   try {
@@ -43,6 +44,10 @@ export const isInappropriateCheck = async ({
     const { activeSubscription } = await getSubscriptionQuery({ orgId });
 
     if (activeSubscription === "free") return false;
+
+    const { success } = await inappropriateCheckRateLimit.limit(orgId);
+
+    if (!success) return false;
 
     const prompt = `
       You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including spam, violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.

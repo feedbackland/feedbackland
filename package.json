@@ -44,6 +44,8 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/html-to-text": "^9.0.4",
     "@types/pg": "^8.15.5",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.3",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
