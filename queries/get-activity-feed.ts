@@ -39,7 +39,7 @@ export async function getActivityFeedQuery({
     const offset = (page - 1) * pageSize;
     const isSearching = searchValue.length > 0;
     const maxDistance = 0.4;
-    let searchVector: number[] | undefined = undefined;
+    let searchVector: number[] | null = null;
 
     if (isSearching) {
       searchVector = await generateVector(searchValue);
