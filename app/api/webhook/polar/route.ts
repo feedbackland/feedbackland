@@ -19,6 +19,8 @@ export const POST = Webhooks({
   onPayload: async (payload) => {
     const type = payload?.type;
 
+    console.log("payload", payload);
+
     if (
       type === "subscription.created" ||
       type === "subscription.active" ||
