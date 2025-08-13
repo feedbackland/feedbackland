@@ -14,11 +14,13 @@ export function SubscriptionButton({
   size = "default",
   className = "",
   buttonText = "Upgrade",
+  subscriptionName,
 }: {
   variant?: "default" | "secondary" | "outline" | "link" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   className?: React.ComponentProps<"div">["className"];
   buttonText?: string;
+  subscriptionName?: "pro" | "max";
 }) {
   const { isAdmin } = useAuth();
 
@@ -36,7 +38,12 @@ export function SubscriptionButton({
 
   const isPending = !!(isSubscriptionPending || isPolarProductsPending);
 
-  const polarProductIds = polarProducts?.map((product) => product.id);
+  const polarProductIds = polarProducts
+    ?.filter((product) => {
+      if (!subscriptionName) return true;
+      return product?.name?.toLowerCase().includes(subscriptionName);
+    })
+    .map((product) => product.id);
 
   const openCheckout = async () => {
     if (!polarProductIds || polarProductIds.length === 0) return;

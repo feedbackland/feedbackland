@@ -198,7 +198,7 @@ Now go ahead and:
 
 - Deploy your app.
 - Start collecting in-app feedback.
-- Generate your first AI roadmap!
+- Generate your first AI Roadmap!
 
 &nbsp;
 &nbsp;

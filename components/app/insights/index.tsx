@@ -162,7 +162,7 @@ export function Insights() {
           <div className="text-base font-medium">
             First add some feedback to your platform.
             <br />
-            Then generate your first roadmap.
+            Then generate your first AI Roadmap.
           </div>
           {platformUrl && (
             <Button
@@ -173,7 +173,7 @@ export function Insights() {
               disabled={roadmapLimit?.limitReached}
               className="mt-4"
             >
-              Generate your first AI roadmap
+              Generate your first AI Roadmap
             </Button>
           )}
         </div>

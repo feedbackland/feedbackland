@@ -85,6 +85,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                 <SubscriptionButton
                   variant={isActiveSubscription ? "outline" : "default"}
                   buttonText={isActiveSubscription ? "Manage" : "Upgrade"}
+                  subscriptionName={planName}
                   size="lg"
                 />
               </div>
