@@ -16,9 +16,6 @@ export const generateVector = async (text: string) => {
       const { success, remaining } =
         await textEmbeddingRateLimit.limit("generateVector");
 
-      console.log("success", success);
-      console.log("remaining", remaining);
-
       if (!success) return null;
 
       if (remaining === 1) {
