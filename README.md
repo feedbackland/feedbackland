@@ -11,8 +11,8 @@ Feedbackland's open-source widget easily embeds in your app to capture feature r
 How it Works:
 
 - 🗣️ The Widget Captures Feedback – Embed the platform in your app to collect feature requests, bug reports, and ideas directly from your users.
-- 🤖 AI Generates Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap automatically.
-- 🚀 You Ship What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
+- 🤖 AI Writes Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap.
+- 🚀 You Build What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
 &nbsp;
 &nbsp;
