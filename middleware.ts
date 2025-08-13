@@ -52,16 +52,8 @@ export async function middleware(req: NextRequest) {
   const isSubdirOrg = getIsSubdirOrg(urlString);
   const subdomain = getSubdomain(urlString);
 
-  console.log("middleware called");
-  console.log("req", req);
-  console.log("url", url);
-  console.log("subdomain", subdomain);
-  console.log("isSubdirOrg", isSubdirOrg);
-
   if (subdomain && subdomain.length > 0) {
     const isUUIDSubdomain = isUUID(subdomain);
-
-    console.log("isUUIDSubdomain", isUUIDSubdomain);
 
     if (isUUIDSubdomain) {
       const mainDomain = getMaindomain(urlString);
@@ -84,8 +76,6 @@ export async function middleware(req: NextRequest) {
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }
-
-  console.log("response", response);
 
   return response;
 }
