@@ -23,14 +23,14 @@ export const AdminInviteEmail = ({
     <Tailwind>
       <Html lang="en">
         <Head />
-        <Body className="bg-gray-100 p-6 font-sans">
+        <Body className="bg-gray-50 p-6 font-sans">
           <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
             {/* Logo Section */}
             <Section className="mb-3 pt-2 text-center">
               <Img
-                src="https://public.feedbackland.com/feedbackland_logo_2x.png"
-                width="191"
-                height="44"
+                src="https://zfk6n7wmgpfhtlwc.public.blob.vercel-storage.com/feedbackland_logo_email.jpg"
+                width="190"
+                height="42"
                 alt="Feedbackland logo"
                 className="mx-auto"
               />
@@ -38,7 +38,7 @@ export const AdminInviteEmail = ({
 
             {/* Heading */}
             <Heading className="mb-6 text-center text-2xl font-bold text-black">
-              You&apos;re Invited to be an Admin
+              You&apos;re invited to be an Admin
             </Heading>
 
             {/* User Greeting */}
@@ -48,8 +48,8 @@ export const AdminInviteEmail = ({
             <Text className="mb-6 text-sm text-black">
               You&apos;re invited to join a Feedbackland platform as an
               administrator. This role grants you permissions to manage and
-              analyze platform feedback, as well as generate AI-powered
-              roadmaps.
+              analyze platform feedback, as well as view and generate AI
+              Roadmaps.
             </Text>
 
             {/* Call to Action Button */}

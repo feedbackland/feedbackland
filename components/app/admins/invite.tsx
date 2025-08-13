@@ -81,7 +81,7 @@ export function AdminsInvite() {
     <div className="mt-8">
       <Label className="mb-2">Invite</Label>
       <div className="border-border rounded-md border p-4 shadow-xs">
-        <AdminsLimitAlert className="border-0 p-1" />
+        <AdminsLimitAlert className="border-0 bg-transparent p-1" />
         {!adminLimit?.limitReached && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="">

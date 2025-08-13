@@ -3,9 +3,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
-import { Button } from "@/components/ui//button";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
-import Link from "next/link";
+import { SubscriptionButton } from "../app/subscription-button";
 
 export function PlanLimitAlert({
   title,
@@ -18,8 +16,6 @@ export function PlanLimitAlert({
   className?: React.ComponentProps<"div">["className"];
   type?: "alert" | "warning";
 }) {
-  const platformUrl = usePlatformUrl();
-
   return (
     <Alert
       className={cn(
@@ -27,7 +23,7 @@ export function PlanLimitAlert({
         className,
       )}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <AlertTriangleIcon
           className={cn("text-primary hidden size-6 shrink-0 sm:block")}
         />
@@ -36,9 +32,7 @@ export function PlanLimitAlert({
           {description && <AlertDescription>{description}</AlertDescription>}
         </div>
       </div>
-      <Button size="sm" variant="default">
-        <Link href={`${platformUrl}/admin/plan`}>Upgrade Now</Link>
-      </Button>
+      <SubscriptionButton />
     </Alert>
   );
 }
