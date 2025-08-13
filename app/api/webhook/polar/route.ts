@@ -19,6 +19,7 @@ export const POST = Webhooks({
   onPayload: async (payload) => {
     const type = payload?.type;
 
+    console.log("webhook called");
     console.log("payload", payload);
 
     if (
