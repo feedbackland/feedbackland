@@ -44,45 +44,45 @@ const upsertOrg = async ({
   }
 };
 
-// export async function middleware(req: NextRequest) {
-//   let response = NextResponse.next();
-//   const url = req.nextUrl.clone();
-//   const { pathname, search, origin, protocol } = url;
-//   const urlString = url.toString();
-//   const isSubdirOrg = getIsSubdirOrg(urlString);
-//   const subdomain = getSubdomain(urlString);
+export async function middleware(req: NextRequest) {
+  const response = NextResponse.next();
+  // const url = req.nextUrl.clone();
+  // const { pathname, search, origin, protocol } = url;
+  // const urlString = url.toString();
+  // const isSubdirOrg = getIsSubdirOrg(urlString);
+  // const subdomain = getSubdomain(urlString);
 
-//   console.log("middleware called");
-//   console.log("req", req);
-//   console.log("url", url);
-//   console.log("subdomain", subdomain);
+  // console.log("middleware called");
+  // console.log("req", req);
+  // console.log("url", url);
+  // console.log("subdomain", subdomain);
 
-//   if (subdomain && subdomain.length > 0) {
-//     const isUUIDSubdomain = isUUID(subdomain);
+  // if (subdomain && subdomain.length > 0) {
+  //   const isUUIDSubdomain = isUUID(subdomain);
 
-//     if (isUUIDSubdomain) {
-//       const mainDomain = getMaindomain(urlString);
-//       const orgId = subdomain;
+  //   if (isUUIDSubdomain) {
+  //     const mainDomain = getMaindomain(urlString);
+  //     const orgId = subdomain;
 
-//       const orgSubdomain = await upsertOrg({
-//         orgId,
-//         origin,
-//       });
+  //     const orgSubdomain = await upsertOrg({
+  //       orgId,
+  //       origin,
+  //     });
 
-//       const redirectUrl = isSubdirOrg
-//         ? `${origin}/${orgSubdomain}${search}`
-//         : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;
+  //     const redirectUrl = isSubdirOrg
+  //       ? `${origin}/${orgSubdomain}${search}`
+  //       : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;
 
-//       response = NextResponse.redirect(redirectUrl);
-//     }
+  //     response = NextResponse.redirect(redirectUrl);
+  //   }
 
-//     if (!isUUIDSubdomain && !isSubdirOrg) {
-//       const newUrl = `/${subdomain}${pathname}${search}`;
-//       response = NextResponse.rewrite(new URL(newUrl, req.url));
-//     }
-//   }
+  //   if (!isUUIDSubdomain && !isSubdirOrg) {
+  //     const newUrl = `/${subdomain}${pathname}${search}`;
+  //     response = NextResponse.rewrite(new URL(newUrl, req.url));
+  //   }
+  // }
 
-//   console.log("response", response);
+  // console.log("response", response);
 
-//   return response;
-// }
+  return response;
+}
