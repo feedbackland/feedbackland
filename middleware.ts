@@ -56,9 +56,12 @@ export async function middleware(req: NextRequest) {
   console.log("req", req);
   console.log("url", url);
   console.log("subdomain", subdomain);
+  console.log("isSubdirOrg", isSubdirOrg);
 
   if (subdomain && subdomain.length > 0) {
     const isUUIDSubdomain = isUUID(subdomain);
+
+    console.log("isUUIDSubdomain", isUUIDSubdomain);
 
     if (isUUIDSubdomain) {
       const mainDomain = getMaindomain(urlString);
