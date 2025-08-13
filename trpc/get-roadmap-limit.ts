@@ -18,6 +18,7 @@ export const getRoadmapLimit = adminProcedure.query(
       const limitReached = Number(left) <= 0;
 
       return {
+        activeSubscription,
         limit,
         limitReached,
         left,

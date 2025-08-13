@@ -44,11 +44,16 @@ export function Comments({
 
       {isError && <Error title="Error loading comments" />}
 
-      {/* {!!(!isPending && !isError && comments.length === 0) && (
-        <div className="text-muted-foreground py-1 text-center text-sm">
-          Be the first to comment
+      {!!(!isPending && !isError && comments.length === 0) && (
+        <div className="flex flex-col space-y-1 py-1 text-center">
+          <span className="text-primary text-base font-medium">
+            No comments yet
+          </span>
+          <span className="text-muted-foreground text-sm font-light">
+            Be the first to comment
+          </span>
         </div>
-      )} */}
+      )}
 
       {!!(!isPending && !isError && comments.length > 0) && (
         <div className="space-y-4">

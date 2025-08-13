@@ -88,6 +88,8 @@ export function Insights() {
 
   const roadmapsLeft = roadmapLimit?.left;
 
+  const activeSubscription = roadmapLimit?.activeSubscription;
+
   return (
     <div className="space-y-1">
       <div className="mb-6 flex items-start justify-between gap-8">
@@ -127,7 +129,7 @@ export function Insights() {
               >
                 Generate
                 {roadmapsLeft !== undefined &&
-                  roadmapsLeft < 4 &&
+                  activeSubscription !== "max" &&
                   ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left this month)`}
               </Button>
             </div>
