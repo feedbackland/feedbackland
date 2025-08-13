@@ -2,7 +2,6 @@ import { Webhooks } from "@polar-sh/nextjs";
 import { upsertSubscriptionQuery } from "@/queries/upsert-subscription";
 import { adminDatabase } from "@/lib/firebase/admin";
 import { database } from "firebase-admin";
-// import { NextResponse, type NextRequest } from "next/server";
 
 const getName = (inputName: string) => {
   if (inputName.toLowerCase().includes("pro")) {
@@ -14,19 +13,11 @@ const getName = (inputName: string) => {
   return "free";
 };
 
-// export async function POST(request: NextRequest) {
-//   console.log("webhook called");
-//   return NextResponse.json({ success: true });
-// }
-
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
   onPayload: async (payload) => {
     const type = payload?.type;
-
-    console.log("webhook called");
-    console.log("payload", payload);
 
     if (
       type === "subscription.created" ||
