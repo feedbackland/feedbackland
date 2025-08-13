@@ -1,6 +1,6 @@
 # Feedbackland
 
-<img width="2473" height="1310" alt="Figma image" src="https://github.com/user-attachments/assets/d2c7cf1e-296f-4a40-afbb-0c2fcbeeb696" />
+<img width="2473" height="1310" alt="feedbackland_github_banner_4" src="https://github.com/user-attachments/assets/d3fea9d9-c553-4ed8-840c-5356add388e8" />
 
 &nbsp;
 
