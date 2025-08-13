@@ -95,7 +95,7 @@ export function Insights() {
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
               <h2 className="h4 mb-0.5 flex flex-wrap items-center gap-2">
-                {isGenerating ? `Generating Roadmap...` : `Roadmap`}
+                {isGenerating ? `Generating Roadmap...` : `AI Roadmap`}
               </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
@@ -171,7 +171,7 @@ export function Insights() {
               disabled={roadmapLimit?.limitReached}
               className="mt-4"
             >
-              Generate your first roadmap
+              Generate your first AI roadmap
             </Button>
           )}
         </div>

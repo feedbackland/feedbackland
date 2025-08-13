@@ -39,8 +39,8 @@ export function InsightsLimitAlert({
         <PlanLimitAlert
           className={className}
           type="alert"
-          title="Your plan's monthly roadmap limit is reached"
-          description={`You've reached your current plan's limit of ${roadmapLimit?.limit} monthly roadmaps. To increase your limit, please upgrade your plan.`}
+          title="Your plan's monthly AI roadmap limit is reached"
+          description={`You've reached your current plan's limit of ${roadmapLimit?.limit} monthly AI roadmaps. To increase your limit, please upgrade your plan.`}
         />
       );
     }

@@ -35,7 +35,7 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
             <TabsTrigger value="roadmap" asChild>
               <Link href={`${adminBasePath}/roadmap`}>
                 <SparklesIcon fill="currentColor" className="size-3.5!" />
-                Roadmap
+                AI Roadmap
               </Link>
             </TabsTrigger>
 

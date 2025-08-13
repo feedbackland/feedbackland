@@ -72,10 +72,7 @@ export async function middleware(req: NextRequest) {
     }
 
     if (!isUUIDSubdomain && !isSubdirOrg) {
-      const newUrl =
-        subdomain === "api"
-          ? `/${pathname}${search}`
-          : `/${subdomain}${pathname}${search}`;
+      const newUrl = `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }

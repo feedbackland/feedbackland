@@ -107,12 +107,12 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
 
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{roadmapsLimit} Roadmaps/Month</span>
+            <span>{roadmapsLimit} AI Roadmaps/Month</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>AI analyses up to {postsLimit} posts</span>
+            <span>AI roadmap analyses up to {postsLimit} posts</span>
           </div>
 
           {!isFreePlan && (

@@ -48,7 +48,8 @@ export const AdminInviteEmail = ({
             <Text className="mb-6 text-sm text-black">
               You&apos;re invited to join a Feedbackland platform as an
               administrator. This role grants you permissions to manage and
-              analyze platform feedback, as well as generate roadmaps.
+              analyze platform feedback, as well as generate AI-powered
+              roadmaps.
             </Text>
 
             {/* Call to Action Button */}

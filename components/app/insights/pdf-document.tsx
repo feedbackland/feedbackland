@@ -52,7 +52,7 @@ export const InsightsPdfDocument = ({
       <Document>
         <Page size="A4" style={styles.page}>
           <View style={styles.section}>
-            <Text style={styles.title}>Roadmap</Text>
+            <Text style={styles.title}>AI Roadmap</Text>
             <Text style={styles.generatedOn}>
               Generated on{" "}
               {new Date(insights?.[0]?.createdAt).toLocaleDateString("en-US", {
