@@ -81,5 +81,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  console.log("response", subdomain);
+
   return response;
 }
