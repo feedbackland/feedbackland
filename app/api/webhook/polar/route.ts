@@ -15,6 +15,7 @@ const getName = (inputName: string) => {
 };
 
 export async function POST(request: NextRequest) {
+  console.log("webhook called");
   return NextResponse.json({ success: true });
 }
 
