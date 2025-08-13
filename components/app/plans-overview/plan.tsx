@@ -22,9 +22,12 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
     const isProPlan = planName === "pro";
     const isMaxPlan = planName === "max";
     const isActiveSubscription = planName === subscriptionName;
-    const postsLimit = analyzablePostLimit(planName).toLocaleString("en", {
-      useGrouping: true,
-    });
+    const postsLimit =
+      planName === "max"
+        ? "Unlimited"
+        : analyzablePostLimit(planName).toLocaleString("en", {
+            useGrouping: true,
+          });
     const roadmapsLimit =
       planName === "max" ? "Unlimited" : roadmapLimit(planName);
     const adminsLimit = planName === "max" ? "Unlimited" : adminLimit(planName);
@@ -107,19 +110,22 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
 
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>{roadmapsLimit} AI Roadmaps/Month</span>
+            <span>{roadmapsLimit} AI roadmaps/month</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>AI roadmap analyses up to {postsLimit} posts</span>
+            <span>
+              {postsLimit === "Unlimited" ? "Unlimited" : `Up to ${postsLimit}`}{" "}
+              posts analyzed per AI roadmap
+            </span>
           </div>
 
           {!isFreePlan && (
             <>
               <div className="flex items-center gap-1.5">
                 <CheckIcon className="size-4!" />
-                <span>Automatic Content Moderation</span>
+                <span>Automatic content moderation</span>
               </div>
 
               <div className="flex items-center gap-1.5">
