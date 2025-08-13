@@ -6,7 +6,7 @@
 
 ## About
 
-Feedbackland is an open-source feedback platform that writes your roadmap for you. Embed it in your app to capture feature requests and bug reports. Our AI then aggregates and prioritizes all feedback, votes, and comments, turning raw user input into a clean, actionable roadmap. So you know precisely what to build next.
+Feedbackland's open-source widget easily embeds in your app to capture feature requests and bug reports. Our AI then aggregates and prioritizes all feedback, votes, and comments, turning raw user input into a clean, actionable roadmap. So you know precisely what to build next.
 
 How it Works:
 
