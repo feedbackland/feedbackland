@@ -47,7 +47,6 @@ const upsertOrg = async ({
 export async function middleware(req: NextRequest) {
   let response = NextResponse.next();
   const url = req.nextUrl.clone();
-  // const host = req.headers.get("host");
   const { pathname, search, origin, protocol } = url;
   const urlString = url.toString();
   const isSubdirOrg = getIsSubdirOrg(urlString);
@@ -73,7 +72,10 @@ export async function middleware(req: NextRequest) {
     }
 
     if (!isUUIDSubdomain && !isSubdirOrg) {
-      const newUrl = `/${subdomain}${pathname}${search}`;
+      const newUrl =
+        subdomain === "api"
+          ? `/${pathname}${search}`
+          : `/${subdomain}${pathname}${search}`;
       response = NextResponse.rewrite(new URL(newUrl, req.url));
     }
   }
