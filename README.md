@@ -20,7 +20,7 @@ How it Works:
 
 ## Get started
 
-[Embed the widget in 30 seconds]()
+[Embed the widget in 30 seconds](http://feedbackland.com/#embed)
 
 &nbsp;
 &nbsp;
