@@ -20,7 +20,7 @@ How it Works:
 
 ## Get started
 
-[Embed Feedbackland in 30 seconds]() or [start with a standalone platform]().
+[Embed the widget in 30 seconds]()
 
 &nbsp;
 &nbsp;
