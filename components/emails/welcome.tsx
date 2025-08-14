@@ -28,7 +28,7 @@ export const WelcomeEmail = ({
           <title>Your feedback platform is ready</title>
         </Head>
         <Body className="bg-gray-50 p-6 font-sans">
-          <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
+          <Container className="mx-auto max-w-xl rounded-md border border-solid border-gray-300 bg-white p-6 shadow-md">
             <Section className="mb-3 pt-2 text-center">
               <Img
                 src="https://zfk6n7wmgpfhtlwc.public.blob.vercel-storage.com/feedbackland_logo_email.jpg"
@@ -52,7 +52,7 @@ export const WelcomeEmail = ({
               <Section className="text-center">
                 <Button
                   href={platformUrl}
-                  className="hover:bg-opacity-80 mx-auto rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
+                  className="hover:bg-opacity-80 mx-auto rounded-md bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 >
                   Access Your Platform
                 </Button>
@@ -73,11 +73,15 @@ export const WelcomeEmail = ({
               </pre>
 
               <Text className="mb-2 text-sm text-black">
-                Step 2: Paste the snippet into your codebase
+                Step 2: Add the component to your app
               </Text>
               <pre className="bg-black p-3 text-xs text-white">
                 <code>{overlayWidgetCodeSnippet}</code>
               </pre>
+
+              <Text className="mb-2 text-sm text-black">
+                Step 3: Place it anywhere in your UI
+              </Text>
             </Section>
 
             <Section>

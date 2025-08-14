@@ -24,7 +24,7 @@ export const AdminInviteEmail = ({
       <Html lang="en">
         <Head />
         <Body className="bg-gray-50 p-6 font-sans">
-          <Container className="mx-auto max-w-xl border border-solid border-gray-300 bg-white p-6 shadow-md">
+          <Container className="mx-auto max-w-xl rounded-md border border-solid border-gray-300 bg-white p-6 shadow-md">
             {/* Logo Section */}
             <Section className="mb-3 pt-2 text-center">
               <Img
@@ -55,7 +55,7 @@ export const AdminInviteEmail = ({
             {/* Call to Action Button */}
             <Section className="mb-6 text-center">
               <Button
-                className="hover:bg-opacity-80 rounded-sm bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
+                className="hover:bg-opacity-80 rounded-md bg-black px-5 py-3 text-center text-[14px] font-semibold text-white no-underline"
                 href={inviteLink}
               >
                 Accept Invitation
