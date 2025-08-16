@@ -11,7 +11,7 @@ Embed our open-source widget in your React app in seconds. It opens at the click
 How it Works:
 
 - 🗣️ The Widget Captures Feedback – Embed the platform in your app to collect feature requests, bug reports, and ideas directly from your users.
-- 🤖 AI Writes Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap.
+- 🤖 AI Analyses and Writes Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap.
 - 🚀 You Build What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
 &nbsp;
