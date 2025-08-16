@@ -8,7 +8,7 @@ Open‑source React widget that captures in-app user feedback and with AI transf
 
 ## How it Works:
 
-- 🗣️ The Widget Captures Feedback – Embed the platform in your app to collect feature requests, bug reports, and ideas directly from your users.
+- 🗣️ The Widget Captures Feedback – Embed the widget in your React app to collect feature requests, bug reports, and ideas directly from your users.
 - 🤖 AI Analyses and Writes Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap.
 - 🚀 You Build What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
 
