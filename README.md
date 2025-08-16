@@ -6,7 +6,7 @@
 
 ## About
 
-Feedbackland's open-source feedback platform embeds in your app in seconds, opens at the click of a button and captures your users' feature requests, bug reports, ideas and suggestions. Our AI then aggregates and prioritizes all feedback, votes, and comments, instantly turning raw user input into a clean, actionable roadmap. So you always know precisely what to build next.
+Feedbackland's open-source feedback platform embeds in your app in seconds, opens at the click of a button and captures your users' feature requests, bug reports, ideas and suggestions. Our AI then aggregates and prioritizes all feedback, votes, and comments, instantly turning raw user input into a clean, actionable roadmap. So you always know precisely what to build next. No guesswork needed!
 
 How it Works:
 
