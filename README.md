@@ -1,14 +1,12 @@
 # Feedbackland
 
-<img width="2473" height="1310" alt="feedbackland_github_banner_4" src="https://github.com/user-attachments/assets/d3fea9d9-c553-4ed8-840c-5356add388e8" />
+Open‑source React widget that captures in-app user feedback and with AI transforms it into a prioritized roadmap.
+
+<img width="2473" height="1096" alt="Frame 589" src="https://github.com/user-attachments/assets/36b4f5bc-ed40-4f9b-b780-c5a058bba0ce" />
 
 &nbsp;
 
-## About
-
-Embed our open-source widget in your React app in seconds. It opens at the click of a button to capture your users' feature requests, bug reports, ideas and suggestions. Then our AI aggregates and prioritizes all feedback, instantly turning the noise into a crystal-clear, actionable roadmap. So you always know precisely what to build next. No guesswork needed!
-
-How it Works:
+## How it Works:
 
 - 🗣️ The Widget Captures Feedback – Embed the platform in your app to collect feature requests, bug reports, and ideas directly from your users.
 - 🤖 AI Analyses and Writes Your Roadmap – Feedbackland’s AI aggregates feedback, votes, and comments, then generates your prioritized roadmap.
