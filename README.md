@@ -1,6 +1,6 @@
 # Feedbackland
 
-Open-source React widget that collects in-app feedback and transforms it with AI into your prioritized roadmap.
+Open-source React widget that collects in-app feedback and transforms it with AI into your prioritized roadmap
 
 <img width="2473" height="1096" alt="Frame 589" src="https://github.com/user-attachments/assets/fcdcf2aa-8f95-4ff0-9930-bdc4e0eb3090" />
 
