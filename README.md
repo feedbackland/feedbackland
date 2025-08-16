@@ -6,7 +6,7 @@
 
 ## About
 
-Feedbackland's open-source widget easily embeds in your app to capture feature requests and bug reports. Our AI then aggregates and prioritizes all feedback, votes, and comments, turning raw user input into a clean, actionable roadmap. So you always know precisely what to build next.
+Feedbackland's open-source feedback platform easily embeds in your app to capture your users' feature requests, bug reports, ideas and suggestions. Our AI then aggregates and prioritizes all feedback, votes, and comments, turning raw user input into a clean, actionable roadmap. So you always know precisely what to build next.
 
 How it Works:
 
