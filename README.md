@@ -1,8 +1,8 @@
-# Feedbackland
+# Feedbackland - Widget in. Roadmap out.
 
-Open‑source React widget that captures in-app user feedback and with AI transforms it into a prioritized roadmap.
+Open-source React widget that collects in-app feedback and lets AI compile your prioritized roadmap
 
-<img width="2473" height="1096" alt="Frame 589" src="https://github.com/user-attachments/assets/36b4f5bc-ed40-4f9b-b780-c5a058bba0ce" />
+<img width="2473" height="1078" alt="Frame 589" src="https://github.com/user-attachments/assets/ea77b34b-31dd-4ec3-8154-676a33cd063e" />
 
 &nbsp;
 
