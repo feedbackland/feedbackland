@@ -2,7 +2,7 @@
 
 Open-source React widget that collects in-app feedback and lets AI compile your prioritized roadmap
 
-<img width="2473" height="1096" alt="Frame 589" src="https://github.com/user-attachments/assets/fcdcf2aa-8f95-4ff0-9930-bdc4e0eb3090" />
+<img width="2473" height="1078" alt="Frame 589" src="https://github.com/user-attachments/assets/ea77b34b-31dd-4ec3-8154-676a33cd063e" />
 
 &nbsp;
 
