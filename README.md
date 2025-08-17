@@ -2,7 +2,7 @@
 
 Open-source React widget that collects in-app feedback and analyzes it with AI to build your roadmap.
 
-<img width="2473" height="1078" alt="Frame 589" src="https://github.com/user-attachments/assets/ea77b34b-31dd-4ec3-8154-676a33cd063e" />
+<img width="2473" height="1069" alt="Frame 589" src="https://github.com/user-attachments/assets/9c43ff05-1f8f-49d9-b22b-26c129c3202a" />
 
 &nbsp;
 
