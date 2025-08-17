@@ -90,7 +90,7 @@ export function PlatformHeader() {
                   {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
                 </Link>
               </h1>
-              {!isAdminPage && isFreePlan && (
+              {/* {!isAdminPage && isFreePlan && (
                 <p className="text-muted-foreground mt-0.5 text-xs">
                   Powered by{" "}
                   <a
@@ -101,7 +101,7 @@ export function PlatformHeader() {
                     Feedbackland
                   </a>
                 </p>
-              )}
+              )} */}
             </>
           )}
         </div>
