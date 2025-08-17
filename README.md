@@ -1,8 +1,4 @@
-# Feedbackland - Widget in. Roadmap out.
-
-Embed our open-source React widget, collect feedback directly in-app, and let AI build the prioritized roadmap you actually need.
-
-<img width="2473" height="1069" alt="Frame 589" src="https://github.com/user-attachments/assets/9c43ff05-1f8f-49d9-b22b-26c129c3202a" />
+<img width="2473" height="1310" alt="Frame 590" src="https://github.com/user-attachments/assets/417ed17a-0ad3-4fd3-b371-8ec44a2677a6" />
 
 &nbsp;
 
