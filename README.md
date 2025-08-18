@@ -17,7 +17,7 @@
 
 ## Get started
 
-[Embed Feedbackland in 30 seconds](http://feedbackland.com/#embed)
+[Embed the React widget in 30 seconds](http://feedbackland.com/#embed) or [Start with a standalone platform](https://get-started.feedbackland.com/)
 
 &nbsp;
 &nbsp;
