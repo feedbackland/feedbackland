@@ -1,4 +1,4 @@
-## Self-Hosting
+# Self-Hosting Feedbackland
 
 Follow these steps to get your own self-hosted instance of Feedbackland up and running.
 
@@ -21,7 +21,7 @@ Before you begin, make sure you have accounts for the following services, which 
 
 &nbsp;
 
-### 1. Download the Source Code
+## 1. Download the Source Code
 
 First, you'll need to get the Feedbackland source code onto your local machine.
 
@@ -43,7 +43,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
 
 &nbsp;
 
-### 2. Supabase Setup
+## 2. Supabase Setup
 
 Next, let's configure your Supabase project for the database and file storage.
 
@@ -81,7 +81,7 @@ Next, let's configure your Supabase project for the database and file storage.
 
 &nbsp;
 
-### 3. Firebase Setup
+## 3. Firebase Setup
 
 Now, let's set up Firebase for user authentication.
 
@@ -103,7 +103,7 @@ Now, let's set up Firebase for user authentication.
 
 &nbsp;
 
-### 4. API Key Configuration
+## 4. API Key Configuration
 
 Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
@@ -123,7 +123,7 @@ Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
 
 &nbsp;
 
-### 5. GitHub and Vercel Deployment
+## 5. GitHub and Vercel Deployment
 
 Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
