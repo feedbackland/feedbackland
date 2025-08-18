@@ -22,7 +22,7 @@
 &nbsp;
 &nbsp;
 
-## Self-Hosting
+## Self-Host it
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
