@@ -4,7 +4,7 @@
 
 &nbsp;
 
-## How it Works:
+## How it Works
 
 - 🗣️ The Widget Captures Feedback – Embed the widget in your React app to collect feature requests, bug reports, and ideas directly from your users.
 - 🤖 AI Writes Your Roadmap – Feedbackland’s AI analyzes, aggregates and clusters feedback, votes, and comments, then generates your prioritized roadmap.
