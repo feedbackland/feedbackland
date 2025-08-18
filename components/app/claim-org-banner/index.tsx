@@ -87,7 +87,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-2">
               <span className="text-primary-foreground text-sm font-medium">
                 Looks like this platform doesn't have an owner yet. Make it
-                yours now and unlock admin access!
+                yours!
               </span>
             </div>
             <Button
