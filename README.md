@@ -16,7 +16,7 @@
 
 ## Get started
 
-[Embed the React widget in 30 seconds](http://feedbackland.com/#embed) or [Start with a standalone platform](https://get-started.feedbackland.com/)
+Get started by [embedding the React widget in your app](http://feedbackland.com/#embed) or by [creating a standalone platform](https://get-started.feedbackland.com/)
 
 &nbsp;
 &nbsp;
