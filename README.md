@@ -7,8 +7,8 @@
 
 ## How it Works
 
-- 🗣️ The Platform Captures Feedback – Embed the widget in your React app, or use a standalone platform, to collect feature requests, bug reports, and ideas from your users.
-- 🤖 AI Writes Your Roadmap – AI analyzes, aggregates and clusters feedback, votes, and comments, then generates your prioritized roadmap.
+- 🗣️ The Platform Captures Feedback – Embed the widget in your React app, or use a standalone platform, to collect feedback.
+- 🤖 AI Writes Your Roadmap – AI analyzes, aggregates and clusters feedback, then generates your prioritized roadmap.
 - 🚀 You Build What Users Love — Use the roadmap to build the features and ship the product your users love.
 
 &nbsp;
