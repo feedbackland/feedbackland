@@ -15,8 +15,6 @@ import { PartyPopper } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { useAuth } from "@/hooks/use-auth";
-import { useAtomValue } from "jotai";
-import { isPlatformPreviewAtom } from "@/lib/atoms";
 import Link from "next/link";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 
@@ -44,8 +42,6 @@ export function ClaimOrgDialog({
   );
 
   const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
-
-  const isPlatformPreview = useAtomValue(isPlatformPreviewAtom);
 
   const claimOrg = useMutation(
     trpc.claimOrg.mutationOptions({
@@ -108,28 +104,14 @@ export function ClaimOrgDialog({
               <DialogDescription className="text-primary">
                 <span className="flex flex-col items-stretch space-y-2 text-center">
                   <span>You're now the owner of this platform!</span>
-                  <span>
-                    {isPlatformPreview
-                      ? `Next step: Embed the widget in your app.`
-                      : `Next step: Check out the admin panel.`}
-                  </span>
+                  <span>Next step: Check out the admin panel.</span>
                 </span>
               </DialogDescription>
             </DialogHeader>
             <div className="flex items-center justify-center gap-2">
-              {isPlatformPreview ? (
-                <Button asChild onClick={handleOnClose}>
-                  <Link href={`${platformUrl}/admin/widget`}>
-                    Embed the widget
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild onClick={handleOnClose}>
-                  <Link href={`${platformUrl}/admin`}>
-                    Go to the admin panel
-                  </Link>
-                </Button>
-              )}
+              <Button asChild onClick={handleOnClose}>
+                <Link href={`${platformUrl}/admin`}>Go to the admin panel</Link>
+              </Button>
             </div>
           </>
         )}

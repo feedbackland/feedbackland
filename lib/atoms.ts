@@ -2,13 +2,10 @@ import { atomWithReset } from "jotai/utils";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { RemoteProxy } from "penpal";
 import { IframeParentAPI } from "@/lib/typings";
-import { atom } from "jotai";
 
 export const previousPathnameAtom = atomWithReset<string | undefined>(
   undefined,
 );
-
-export const isPlatformPreviewAtom = atom(false);
 
 export const activtyFeedStateAtom = atomWithReset<{
   searchValue: string;

@@ -64,7 +64,7 @@ export function PlatformHeader() {
     setIsAccountSettingsDialogOpen(false);
   };
 
-  const isFreePlan = subscription?.activeSubscription === "free";
+  // const isFreePlan = subscription?.activeSubscription === "free";
 
   return (
     <div className="mb-5">
