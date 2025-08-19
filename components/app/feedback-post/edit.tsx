@@ -110,7 +110,7 @@ export function FeedbackPostEdit({
               <FormItem>
                 <FormControl>
                   <Input
-                    autoFocus
+                    autoFocus={true}
                     type="text"
                     placeholder="Title"
                     {...field}

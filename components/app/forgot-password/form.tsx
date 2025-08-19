@@ -86,7 +86,7 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
                 <FormItem>
                   <FormControl>
                     <Input
-                      autoFocus
+                      autoFocus={true}
                       type="email"
                       placeholder="Email"
                       {...field}

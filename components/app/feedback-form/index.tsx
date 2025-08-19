@@ -124,7 +124,7 @@ export function FeedbackForm() {
             placeholder={`Share your feature request, bug report, or any other feedback...`}
             value={value}
             onChange={onChange}
-            autofocus={false}
+            autofocus={true}
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
             <Tooltip>
