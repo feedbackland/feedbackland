@@ -1,16 +1,16 @@
 # Feedbackland
 
-<img width="2473" height="1251" alt="Frame 593" src="https://github.com/user-attachments/assets/5ec7fd85-75a6-4752-b6f7-188afa7a6b1e" />
+Open-source widget that captures feedback and automatically transforms it into your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
+
+<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/b57b0bb0-103d-4377-b364-7df7b15e9b86" />
 
 &nbsp;
 
 ## How it Works
 
-- 🗣️ The Widget Captures Feedback – Embed the widget in your React app to collect feature requests, bug reports, and ideas directly from your users.
-
-- 🤖 AI Writes Your Roadmap – Feedbackland’s AI analyzes, aggregates and clusters feedback, votes, and comments, then generates your prioritized roadmap.
-
-- 🚀 You Build What Users Love — Use the roadmap to plan sprints, build features, and ship the product your users love.
+- 🗣️ The Widget Captures Feedback – Embed our widget in your React app to capture user feedback directly in-app.
+- 🤖 AI Writes Your Roadmap – AI analyzes, aggregates and clusters feedback, then generates your prioritized roadmap.
+- 🚀 You Build What Your Users Truly Want — Use the roadmap to build the features and ship the product your users will love.
 
 &nbsp;
 &nbsp;
@@ -18,7 +18,7 @@
 
 ## Get started
 
-[Embed Feedbackland in 30 seconds](http://feedbackland.com/#embed)
+Get started by [embedding the React widget in your app](http://feedbackland.com/#embed) or by [creating a standalone platform](https://get-started.feedbackland.com/)
 
 &nbsp;
 &nbsp;
