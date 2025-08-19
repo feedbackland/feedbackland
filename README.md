@@ -2,7 +2,7 @@
 
 Feedbackland provides a free and open-source React widget that captures in-app feedback and automatically transforms it into your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
 
-<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/b57b0bb0-103d-4377-b364-7df7b15e9b86" />
+<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/5f580b63-d298-4fcc-805a-91e1af1c24b3" />
 
 &nbsp;
 
