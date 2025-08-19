@@ -8,7 +8,7 @@ Feedbackland provides a free and open-source React widget that captures feedback
 
 ## How it Works
 
-- 🗣️ The Widget Captures Feedback – Embed our widget in your React app to capture user feedback directly in-app.
+- 🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
 - 🤖 AI Writes Your Roadmap – AI analyzes, aggregates and clusters feedback, then generates your prioritized roadmap.
 - 🚀 You Build What Your Users Truly Want — Use the roadmap to build the features and ship the product your users will love.
 
