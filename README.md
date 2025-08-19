@@ -1,6 +1,6 @@
 # Feedbackland
 
-Open-source widget that captures feedback and automatically transforms it into your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
+Feedbackland provides a free and open-source React widget that captures feedback and automatically transforms it into your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
 
 <img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/b57b0bb0-103d-4377-b364-7df7b15e9b86" />
 
