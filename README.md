@@ -1,5 +1,7 @@
 # Feedbackland
 
+Open-source widget that captures feedback and automatically transforms it into your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
+
 <img width="2473" height="1304" alt="Frame 596" src="https://github.com/user-attachments/assets/49840e1f-1231-4039-b9ea-e89c3ac90348" />
 
 &nbsp;
