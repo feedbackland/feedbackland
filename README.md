@@ -10,7 +10,7 @@ Open-source widget that captures feedback and automatically transforms it into y
 
 - 🗣️ The Widget Captures Feedback – Embed our widget in your React app to capture user feedback directly in-app.
 - 🤖 AI Writes Your Roadmap – AI analyzes, aggregates and clusters feedback, then generates your prioritized roadmap.
-- 🚀 You Build What Users Love — Use the roadmap to build the features and ship the product your users love.
+- 🚀 You Build What Your Users Truly Want — Use the roadmap to build the features and ship the product your users will love.
 
 &nbsp;
 &nbsp;
