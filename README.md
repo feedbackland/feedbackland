@@ -19,7 +19,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 
 ## Get started
 
-[Embed the React widget in 30 seconds](http://feedbackland.com/#embed) or [start with a standalone platform](https://get-started.feedbackland.com/)
+[Embed the React widget in 30 seconds](http://feedbackland.com/#embed)
 
 &nbsp;
 &nbsp;
