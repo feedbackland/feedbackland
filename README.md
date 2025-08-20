@@ -8,11 +8,11 @@ Open-source React widget that captures in-app feedback and auto-generate your pr
 
 ## How it Works
 
-- 🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
+🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
 
-- 🤖 AI Writes Your Roadmap – AI analyzes, clusters and transforms feedback into your prioritized roadmap.
+🤖 AI Writes Your Roadmap – AI analyzes, clusters and transforms feedback into your prioritized roadmap.
 
-- 🚀 You Build What Your Users Love — Use the roadmap to build the features your users will love.
+🚀 You Build What Your Users Love — Use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
