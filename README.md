@@ -16,13 +16,11 @@ Open-source React widget that captures in-app feedback and auto-generate your pr
 
 &nbsp;
 &nbsp;
-&nbsp;
 
 ## Get started
 
 Get started by [embedding the React widget in 30 seconds](http://feedbackland.com/#embed) or by [creating a standalone platform](https://get-started.feedbackland.com/)
 
-&nbsp;
 &nbsp;
 &nbsp;
 
@@ -32,15 +30,20 @@ Get started by [embedding the React widget in 30 seconds](http://feedbackland.co
 
 &nbsp;
 &nbsp;
-&nbsp;
 
 ## Contact us
 
 Feel free to reach out to us anytime: [hello@feedbackland.com](hello@feedbackland.com)
 
+&nbsp;
+&nbsp;
+
 ## Provide feedback
 
 We love your feedback, and love to dogfood our own feedback platform 🙂: [Share your feedback on Feedbackland](https://dogfood.feedbackland.com)! 
+
+&nbsp;
+&nbsp;
 
 ## License
 
