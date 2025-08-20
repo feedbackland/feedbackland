@@ -2,7 +2,7 @@
 
 Open-source React widget that captures in-app feedback and auto-generate your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
 
-<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/9c3f54ca-1bde-400d-adaf-c01fcd47d115" />
+<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/5f6c2667-9eb1-4402-a2a8-7c348ada1a58" />
 
 &nbsp;
 
