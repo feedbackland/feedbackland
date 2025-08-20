@@ -40,7 +40,7 @@ Feel free to reach out to us anytime: [hello@feedbackland.com](hello@feedbacklan
 
 ## Provide feedback
 
-We love your feedback, and love to dogfood our own feedback platform 🙂: [Share your feedback on Feedbackland](https://dogfood.feedbackland.com)! 
+[Share your feedback about Feedbackland on Feedbackland](https://dogfood.feedbackland.com) 🙂
 
 &nbsp;
 &nbsp;
