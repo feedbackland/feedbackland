@@ -34,6 +34,14 @@ Get started by [embedding the React widget in 30 seconds](http://feedbackland.co
 &nbsp;
 &nbsp;
 
+## Contact us
+
+Feel free to reach out to us anytime: [hello@feedbackland.com](hello@feedbackland.com)
+
+## Provide feedback
+
+We love your feedback, and love to dogfood our own feedback platform 🙂: [Share your feedback on Feedbackland](https://dogfood.feedbackland.com)! 
+
 ## License
 
 Feedbackland is licensed under [AGPL 3.0.](https://github.com/feedbackland/feedbackland?tab=AGPL-3.0-1-ov-file)
