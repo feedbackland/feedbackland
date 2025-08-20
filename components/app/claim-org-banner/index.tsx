@@ -74,7 +74,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center bg-yellow-600 px-3 py-2.5",
+            "flex w-full items-center justify-center bg-yellow-600 px-3 py-2",
             hideBanner && "hidden",
             className,
           )}
@@ -86,8 +86,7 @@ export function ClaimOrgBanner({
           >
             <div className="flex items-center gap-2">
               <span className="text-primary-foreground text-sm font-medium">
-                Looks like this platform doesn't have an owner yet. Make it
-                yours!
+                Looks like this platform doesn't have an owner yet.
               </span>
             </div>
             <Button
