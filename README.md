@@ -33,7 +33,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 
 ## Contact us
 
-Feel free to reach out to us anytime: [hello@feedbackland.com](hello@feedbackland.com)
+[hello@feedbackland.com](hello@feedbackland.com)
 
 &nbsp;
 &nbsp;
