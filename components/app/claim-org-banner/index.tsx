@@ -86,7 +86,7 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <TriangleAlertIcon className="text-primary size-4.5! dark:text-yellow-500" />
+              <TriangleAlertIcon className="text-primary hidden size-4.5! sm:block dark:text-yellow-500" />
               <span className="text-primary text-sm font-medium dark:text-yellow-500">
                 This platform doesn’t have an owner yet. Make it yours!
               </span>
