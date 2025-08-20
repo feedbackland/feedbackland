@@ -1,6 +1,6 @@
 # Feedbackland
 
-Open-source React widget that captures in-app feedback and auto-generate your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
+Stop guessing what to build. Our open-source React widget collects in-app feedback, and our AI instantly turns it into your prioritized roadmap. So you ship exactly what users want.
 
 <img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/5f6c2667-9eb1-4402-a2a8-7c348ada1a58" />
 
