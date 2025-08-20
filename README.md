@@ -19,7 +19,7 @@ Open-source React widget that captures in-app feedback and auto-generate your pr
 
 ## Get started
 
-[Embed the React widget in 30 seconds](http://feedbackland.com/#embed) or [create a standalone platform](https://get-started.feedbackland.com/)
+[Embed the React widget in 30 seconds](http://feedbackland.com/#embed) or [start with a standalone platform](https://get-started.feedbackland.com/)
 
 &nbsp;
 &nbsp;
