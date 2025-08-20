@@ -75,7 +75,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center border border-yellow-500 bg-yellow-500 px-2.5 py-2.5 dark:bg-yellow-500/10",
+            "flex w-full items-center justify-center bg-yellow-500 px-2.5 py-2.5 dark:bg-yellow-500/10",
             hideBanner && "hidden",
             className,
           )}
@@ -85,7 +85,7 @@ export function ClaimOrgBanner({
               "flex w-full flex-1 items-center justify-between gap-2",
             )}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <TriangleAlertIcon className="text-primary size-4.5! dark:text-yellow-500" />
               <span className="text-primary text-sm font-medium dark:text-yellow-500">
                 This platform doesn’t have an owner yet. Make it yours!
