@@ -18,7 +18,7 @@ Feedbackland provides a free and open-source React widget that captures in-app f
 
 ## Get started
 
-Get started by [embedding the React widget in your app](http://feedbackland.com/#embed) or by [creating a standalone platform](https://get-started.feedbackland.com/)
+Get started by [embedding the React widget in your app in 30 seconds](http://feedbackland.com/#embed) or by [creating a standalone platform](https://get-started.feedbackland.com/)
 
 &nbsp;
 &nbsp;
