@@ -17,7 +17,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 &nbsp;
 &nbsp;
 
-## Embed the widget
+## Embed the widget in 30 seconds
    
 1. Install the `feedbackland-react` package
 ```
