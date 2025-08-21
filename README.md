@@ -17,9 +17,25 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 &nbsp;
 &nbsp;
 
-## Get started
+## Embed the widget
+   
+1. Copy-paste the FeedbackButton snippet into your React app (e.g. inside of a sidebar or menu), and replace `platformID` with your generated UUIDv4
 
-[Embed the React widget in 30 seconds](http://feedbackland.com/#embed)
+```
+import { FeedbackButton } from 'feedbackland-react';
+
+<FeedbackButton
+  platformId="<YOUR-GENERATED-UUID-V4>" // Your generated UUIDv4 (visit www.uuidtools.com/v4 to generate your ID)
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style="" // or style it with native CSS
+  button={} // or bring your own button
+/>
+```
+2. [Generate a UUID v4](www.uuidtools.com/v4) and copy-paste it into the `platformId` prop
+
+Alternatively visit our website to get a code snippet that already contains a platformID [get a code snippet that already contains a platformI](http://feedbackland.com/#embed)
 
 &nbsp;
 &nbsp;
