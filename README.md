@@ -23,7 +23,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 ```
 npm i feedbackland-react
 ```
-2. Copy-paste the `FeedbackButton` snippet into your React app (e.g. inside of a sidebar or menu)
+2. Copy-paste the `FeedbackButton` snippet into your React app (e.g. inside of your UI's sidebar or menu)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
