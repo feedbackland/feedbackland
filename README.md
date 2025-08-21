@@ -36,7 +36,7 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
-3. Replace the value of the `platformId` prop with a [randomly generated UUID v4]([www.uuidtools.com/v4](https://www.uuidtools.com/v4)) that will serve as the identifier of your platform
+3. Replace the value of the `platformId` prop with a [randomly generated UUID v4](https://www.uuidtools.com/v4) that will serve as the identifier of your platform
 
 &nbsp;
 
@@ -54,7 +54,7 @@ Want to self-host your Feedbackland platform? [Visit the self-hosting docs](http
 
 ## Contact us
 
-Have a question or need support? We're here to help. [hello@feedbackland.com](hello@feedbackland.com)
+Have a question or need support? We're here to help. [hello@feedbackland.com](mailto:hello@feedbackland.com)
 
 &nbsp;
 &nbsp;
