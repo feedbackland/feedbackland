@@ -54,7 +54,7 @@ Alternatively visit our website to [get a code snippet that already contains a p
 
 ## Contact us
 
-[hello@feedbackland.com](hello@feedbackland.com)
+Have a question or need support? We're here to help. [hello@feedbackland.com](hello@feedbackland.com)
 
 &nbsp;
 &nbsp;
