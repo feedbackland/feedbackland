@@ -6,7 +6,7 @@
 
 🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
 
-⬆️ Your users vote and comment - Users vote and comment on feedback to identify the most important ideas, issues and requests.
+⬆️ Your users surface what matters most - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
 🤖 AI writes your roadmap – AI analyzes and clusters feedback, votes, and comments, then turns them into a prioritized roadmap.
 
