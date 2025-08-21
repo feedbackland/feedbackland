@@ -1,46 +1,75 @@
 # Feedbackland
 
-Stop guessing what to build. Our open-source React widget collects in-app feedback, and our AI instantly turns it into your prioritized roadmap. So you ship exactly what users want.
+<img width="2473" height="1263" alt="Frame 596" src="https://github.com/user-attachments/assets/e3021fd6-c606-4a2f-984f-3ff8cc2f3e1e" />
 
-<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/8c972e35-b4ab-4868-9a6f-147818ac9ec8" />
+## How it works
 
-&nbsp;
+🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
 
-## How it Works
+⬆️ Your users surface top ideas - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
-🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
+🤖 AI writes your roadmap – AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
 
-🤖 AI Writes Your Roadmap – AI analyzes, clusters and transforms feedback into your prioritized roadmap.
-
-🚀 You Build What Your Users Love — Use the roadmap to build the features your users will love.
+🚀 You build what users love — Use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
 
 ## Get started
 
-[Embed the React widget in 30 seconds](http://feedbackland.com/#embed)
+Embed the widget in your React app in seconds:
+
+1. Install the `feedbackland-react` package
+```
+npm i feedbackland-react
+```
+2. Place the `FeedbackButton` anywhere in your app (for example, in your UI's sidebar or top menu bar)
+```tsx
+import { FeedbackButton } from 'feedbackland-react';
+
+<FeedbackButton
+  platformId="<YOUR-GENERATED-UUID-V4>" //go to www.uuidtools.com/v4 to generate your UUID
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style="" // or style it with native CSS
+  button={} // or bring your own button
+/>
+```
+3. Set the `platformId` prop to a new [randomly generated UUID v4](https://www.uuidtools.com/v4). This will be your platform's identifier.
+
+4. Deploy your app, start collecting feedback and generate your first roadmap!
+
+&nbsp;
+
+Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
+
+&nbsp;
+
+## Preview
+
+[Visit our website](https://www.feedbackland.com) to test-drive the widget
 
 &nbsp;
 &nbsp;
 
-## Self-Host it
+## Self-host it
 
-[Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+Want to self-host your Feedbackland platform? [Visit the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 &nbsp;
 &nbsp;
 
 ## Contact us
 
-[hello@feedbackland.com](hello@feedbackland.com)
+Have a question or need support? We're here to help. [hello@feedbackland.com](mailto:hello@feedbackland.com)
 
 &nbsp;
 &nbsp;
 
 ## Provide feedback
 
-[Share your feedback about Feedbackland on Feedbackland](https://dogfood.feedbackland.com) 🙂
+Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com)
 
 &nbsp;
 &nbsp;
