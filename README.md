@@ -22,13 +22,15 @@ FeedbackLand is an open-source, self-hostable feedback platform. Use it as an em
 &nbsp;
 &nbsp;
 
-## Embed the widget in 30 seconds
+## Get started
+
+You can easily get started with Feedbackland's cloud-hosted version by embedding the widget in your React app. All you need to do is follow the steps below.
    
 1. Install the `feedbackland-react` package
 ```
 npm i feedbackland-react
 ```
-2. Copy-paste the `FeedbackButton` snippet into your React app (e.g. inside of your UI's sidebar or menu)
+2. Copy-paste the `FeedbackButton` snippet into your React app (for example, inside of your UI's sidebar or menu)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
@@ -46,9 +48,6 @@ import { FeedbackButton } from 'feedbackland-react';
 4. Deploy your app, start collecting feedback and generate your first roadmap!
 
 &nbsp;
-&nbsp;
-
-## Standalone platform
 
 Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com), and embed it using the widget at any time in the future.
 
