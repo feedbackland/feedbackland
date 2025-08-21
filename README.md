@@ -4,11 +4,13 @@
 
 ## How it works
 
-🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
+🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
 
-🤖 AI Writes Your Roadmap – AI analyzes, clusters and transforms all feedback (including upvotes and comments) into your prioritized roadmap.
+⬆️ Your users vote and comment - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
-🚀 You Build What Your Users Love — Use the roadmap to build the features your users will love.
+🤖 AI writes your roadmap – AI analyzes, clusters and transforms all feedback (including upvotes and comments) into your prioritized roadmap.
+
+🚀 You build what users love — Use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
