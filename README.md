@@ -1,6 +1,6 @@
 # Feedbackland
 
-Open-source & self-hostable feedback platforms that captures in-app feedback and transforms it with AI into a prioritized roadmap.
+Open-source & self-hostable feedback platforms that embeds in seconds, captures in-app feedback and transforms it with AI into a prioritized roadmap.
 
 &nbsp;
 
