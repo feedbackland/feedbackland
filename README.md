@@ -47,7 +47,7 @@ Alternatively visit our website to [get a code snippet that already contains a p
 
 ## Self-host it
 
-[Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+Want to self-host your Feedbackland platform? [Visit the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 &nbsp;
 &nbsp;
