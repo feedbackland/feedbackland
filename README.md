@@ -25,7 +25,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 import { FeedbackButton } from 'feedbackland-react';
 
 <FeedbackButton
-  platformId="<YOUR-GENERATED-UUID-V4>" // Your generated UUIDv4 (visit www.uuidtools.com/v4 to generate your ID)
+  platformId="<YOUR-GENERATED-UUID-V4>" // Your generated UUID v4 (go to www.uuidtools.com/v4 to generate your UUID)
   mode="" // 'dark' or 'light', defaults to 'dark'
   text="" // the copy text of the button, defaults to 'Feedback'
   className="" // style the button with Tailwind
