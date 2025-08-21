@@ -300,33 +300,29 @@ export const getOverlayWidgetCodeSnippet = ({
       ? `${vercelUrl}/${orgSubdomain}`
       : `http://localhost:${process.env.PORT ?? 3000}/${orgSubdomain}`;
 
-    return `import { OverlayWidget } from "feedbackland-react";
+    return `import { FeedbackButton } from 'feedbackland-react';
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget
-      id="${orgId}"
-      url="${url}"
-      mode="dark" // 'light' or 'dark'
-    >
-      <button>Feedback</button> {/* bring your own button */}
-    </OverlayWidget>
-  );
-}`;
+<FeedbackButton
+  platformId="${orgId}" // your platform's ID
+  url="${url}" your platform's URL
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style="" // or style it with native CSS
+  button={} // or bring your own button
+/>`;
   }
 
-  return `import { OverlayWidget } from "feedbackland-react";
+  return `import { FeedbackButton } from 'feedbackland-react';
 
-function FeedbackButton() {
-  return (
-    <OverlayWidget
-      id="${orgId}"
-      mode="dark" // 'light' or 'dark'
-    >
-      <button>Feedback</button> {/* bring your own button */}
-    </OverlayWidget>
-  );
-}`;
+<FeedbackButton
+  platformId="${orgId}" // your platform's ID
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style="" // or style it with native CSS
+  button={} // or bring your own button
+/>`;
 };
 
 export const roadmapLimit = (plan: string) => {

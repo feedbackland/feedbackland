@@ -23,29 +23,31 @@ export function WidgetDocs({
       {showTitle && <h2 className="h4 mb-6">Widget</h2>}
       <div className="flex flex-col space-y-8">
         <div>
-          <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 1 - Install the package
+          <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+            Install the package
           </h3>
           <CodeInstall packageName="feedbackland-react" />
         </div>
         <div>
-          <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 2 - Add the FeedbackButton component to your React app
+          <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+            Place the{" "}
+            <code className="bg-muted text-primary relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`FeedbackButton`}</code>{" "}
+            anywhere in your React app (e.g. inside of a menu or sidebar)
           </h3>
           <Code
             code={overlayWidgetCodeSnippet}
             showLineNumbers={true}
             language="tsx"
-            className="min-h-[225px]"
+            className=""
           />
         </div>
-        <div>
+        {/* <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
             Step 3 - Use{" "}
             <code className="bg-muted relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`<FeedbackButton />`}</code>{" "}
             anywhere in your UI (e.g. inside of a sidebar or menu)
           </h3>
-        </div>
+        </div> */}
       </div>
     </div>
   );
