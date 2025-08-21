@@ -50,7 +50,10 @@ import { FeedbackButton } from 'feedbackland-react';
 
 ## Standalone platform
 
-Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
+Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com), and embed it using the widget at any time in the future.
+
+&nbsp;
+&nbsp;
 
 ## Self-host it
 
