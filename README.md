@@ -13,9 +13,7 @@
 &nbsp;
 &nbsp;
 
-## Get started
-
-Embed the widget in your React app in seconds:
+## Embed the widget in your React app in 30 seconds
 
 1. Install the `feedbackland-react` package
 ```
