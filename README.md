@@ -19,8 +19,11 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 
 ## Embed the widget
    
-[Generate a UUID v4](www.uuidtools.com/v4), paste the `FeedbackButton` snippet into your React app (e.g. inside of a sidebar or menu), and replace the value of the `platformId` prop with your generated UUID v4
-
+1. Install the `feedbackland-react` package
+```
+npm i feedbackland-react
+```
+2. Copy-paste the `FeedbackButton` snippet into your React app (e.g. inside of a sidebar or menu)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
@@ -33,6 +36,9 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
+3. Replace the value of the `platformId` prop with your [generated UUID v4](www.uuidtools.com/v4)
+
+&nbsp;
 
 Alternatively visit our website to [get a code snippet that already contains a generated platformId](http://feedbackland.com/#embed)
 
