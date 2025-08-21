@@ -15,7 +15,7 @@
 &nbsp;
 &nbsp;
 
-## Get started
+## Get started by embedding the widget in your app
 
 1. Install the `feedbackland-react` package
 ```
