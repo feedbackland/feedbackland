@@ -36,11 +36,11 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
-3. Replace the value of the `platformId` prop with your [generated UUID v4](www.uuidtools.com/v4)
+3. Replace the value of the `platformId` prop with a [randomly generated UUID v4]([www.uuidtools.com/v4](https://www.uuidtools.com/v4))
 
 &nbsp;
 
-Alternatively visit our website to [get a code snippet that already contains a generated platformId](http://feedbackland.com/#embed)
+Alternatively visit our website to [get a code snippet that already contains a pre-filled platformId](http://feedbackland.com/#embed)
 
 &nbsp;
 &nbsp;
