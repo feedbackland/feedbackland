@@ -2,7 +2,7 @@
 
 Stop guessing what to build. Our open-source React widget collects in-app feedback, and our AI instantly turns it into your prioritized roadmap. So you ship exactly what users want.
 
-<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/8c972e35-b4ab-4868-9a6f-147818ac9ec8" />
+<img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/25409d1f-bc95-4888-b84d-836c1179edc3" />
 
 &nbsp;
 
