@@ -2,15 +2,6 @@
 
 <img width="2473" height="1221" alt="Frame 596" src="https://github.com/user-attachments/assets/ef993b79-1d91-45a0-9b01-92530df90093" />
 
-&nbsp;
-
-## About
-
-FeedbackLand is an open-source, self-hostable feedback platform. Use it as an embeddable React widget or a standalone website to collect feedback; AI then generates a prioritized roadmap highlighting the features and bug fixes your users request.
-
-&nbsp;
-&nbsp;
-
 ## How it works
 
 🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
@@ -24,8 +15,6 @@ FeedbackLand is an open-source, self-hostable feedback platform. Use it as an em
 
 ## Get started
 
-You can easily get started with Feedbackland's cloud-hosted version by embedding the widget in your React app. All you need to do is follow the steps below.
-   
 1. Install the `feedbackland-react` package
 ```
 npm i feedbackland-react
@@ -49,7 +38,7 @@ import { FeedbackButton } from 'feedbackland-react';
 
 &nbsp;
 
-Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com), and embed it using the widget at any time in the future.
+Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
 
 &nbsp;
 &nbsp;
