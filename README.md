@@ -47,6 +47,10 @@ Not interested in the widget? No problem, you can also [start with the standalon
 &nbsp;
 &nbsp;
 
+## Preview
+
+[Visit our website](https://www.feedbackland.com) to test-drive the widget
+
 ## Self-host it
 
 Want to self-host your Feedbackland platform? [Visit the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
