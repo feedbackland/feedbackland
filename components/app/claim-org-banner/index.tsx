@@ -75,7 +75,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center bg-yellow-500/15 px-2 py-2 dark:bg-yellow-500/10",
+            "flex w-full items-center justify-center bg-[#1F1F1F] px-3 py-2",
             hideBanner && "hidden",
             className,
           )}
@@ -86,8 +86,11 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <BadgeAlertIcon className="hidden size-5! text-black sm:block dark:text-yellow-500" />
-              <span className="text-sm font-medium text-black dark:text-yellow-500">
+              <BadgeAlertIcon
+                fill="var(--color-yellow-500)"
+                className="hidden size-5! text-[#1F1F1F] sm:block"
+              />
+              <span className="0 text-sm font-medium text-white">
                 Make this platform yours and gain admin access
               </span>
             </div>

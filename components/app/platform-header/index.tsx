@@ -67,7 +67,7 @@ export function PlatformHeader() {
   // const isFreePlan = subscription?.activeSubscription === "free";
 
   return (
-    <div className="space-y-2 pb-4">
+    <div className="space-y-1 pb-3">
       <AccountSettings
         open={isAccountSettingsDialogOpen}
         onClose={closeAccountSettings}
@@ -218,7 +218,7 @@ export function PlatformHeader() {
       {!isAdminPage &&
         orgData?.platformDescription &&
         orgData?.platformDescription?.length > 0 && (
-          <div className="text-muted-foreground text-sm font-normal">
+          <div className="text-muted-foreground pb-1 text-sm font-normal">
             {orgData.platformDescription}
           </div>
         )}

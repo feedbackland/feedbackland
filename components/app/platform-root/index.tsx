@@ -21,7 +21,7 @@ export default function PlatformRoot({
         )}
       >
         <div>
-          <ClaimOrgBanner className="mb-5 rounded-md" />
+          <ClaimOrgBanner className="mb-6 rounded-md" />
           <PlatformHeader />
           {children}
         </div>
