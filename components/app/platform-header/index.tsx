@@ -67,7 +67,7 @@ export function PlatformHeader() {
   // const isFreePlan = subscription?.activeSubscription === "free";
 
   return (
-    <div className="mb-3.5">
+    <div className="space-y-2 pb-4">
       <AccountSettings
         open={isAccountSettingsDialogOpen}
         onClose={closeAccountSettings}
@@ -85,7 +85,7 @@ export function PlatformHeader() {
             <Skeleton className="h-[32px] w-[230px]" />
           ) : (
             <>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-2xl font-bold tracking-tight">
                 <Link href={`${platformUrl}`}>
                   {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
                 </Link>
@@ -218,7 +218,7 @@ export function PlatformHeader() {
       {!isAdminPage &&
         orgData?.platformDescription &&
         orgData?.platformDescription?.length > 0 && (
-          <div className="text-muted-foreground mt-2.5 text-sm font-normal">
+          <div className="text-muted-foreground text-sm font-normal">
             {orgData.platformDescription}
           </div>
         )}
