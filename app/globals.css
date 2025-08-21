@@ -176,12 +176,12 @@
 
 .h1,
 .tiptap-output h1 {
-  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+  @apply scroll-m-20 text-4xl font-bold tracking-tight;
 }
 
 .h2,
 .tiptap-output h2 {
-  @apply scroll-m-20 border-b pb-2 text-3xl font-bold tracking-tight transition-colors first:mt-0;
+  @apply scroll-m-20 text-3xl font-bold tracking-tight;
 }
 
 .h3,

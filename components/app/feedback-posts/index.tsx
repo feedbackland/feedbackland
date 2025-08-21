@@ -142,10 +142,19 @@ export function FeedbackPosts() {
       )}
 
       {isPlatformEmpty && (
-        <div className="text-muted-foreground border-border flex w-full flex-col items-center justify-center space-y-1 rounded-xl border py-10 text-center">
-          <div className="text-base font-medium">
+        // <div className="text-muted-foreground border-border flex w-full flex-col items-center justify-center space-y-1 rounded-xl border py-10 text-center">
+        //   <div className="text-base font-medium">
+        //     Be the first to share feedback
+        //   </div>
+        // </div>
+
+        <div className="flex flex-col space-y-1 py-3 text-center">
+          <span className="text-primary text-base font-medium">
+            No feedback yet
+          </span>
+          <span className="text-muted-foreground text-sm font-light">
             Be the first to share feedback
-          </div>
+          </span>
         </div>
       )}
 

@@ -10,7 +10,7 @@ import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
-import { TriangleAlertIcon } from "lucide-react";
+import { BadgeAlertIcon, TriangleAlertIcon } from "lucide-react";
 
 export function ClaimOrgBanner({
   className,
@@ -75,7 +75,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center bg-yellow-500 px-2.5 py-2.5 dark:bg-yellow-500/10",
+            "flex w-full items-center justify-center bg-yellow-500/15 px-2 py-2 dark:bg-yellow-500/10",
             hideBanner && "hidden",
             className,
           )}
@@ -86,16 +86,16 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <TriangleAlertIcon className="text-primary hidden size-4.5! sm:block dark:text-yellow-500" />
-              <span className="text-primary text-sm font-medium dark:text-yellow-500">
-                This platform doesn’t have an owner yet. Make it yours!
+              <BadgeAlertIcon className="hidden size-5! text-black sm:block dark:text-yellow-500" />
+              <span className="text-sm font-medium text-black dark:text-yellow-500">
+                Make this platform yours and gain admin access
               </span>
             </div>
             <Button
               onClick={handleOpenDialog}
               variant="default"
               size="sm"
-              className=""
+              className="bg-yellow-500 text-black hover:bg-yellow-600"
             >
               Claim ownership
             </Button>
