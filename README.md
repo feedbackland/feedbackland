@@ -1,6 +1,6 @@
 # Feedbackland
 
-<img width="2473" height="1307" alt="Frame 597" src="https://github.com/user-attachments/assets/7bc42c63-38c2-4f14-8804-2c32cdca5489" />
+<img width="2473" height="1307" alt="Frame 597" src="https://github.com/user-attachments/assets/bced34b3-bb55-4368-bf92-c7e99e747959" />
 
 ## How it works
 
