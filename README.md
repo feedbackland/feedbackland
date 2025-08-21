@@ -41,10 +41,6 @@ import { FeedbackButton } from 'feedbackland-react';
 4. Deploy your app, start collecting feedback and generate your first roadmap!
 
 &nbsp;
-
-Alternatively visit our website to [get a code snippet that already contains a pre-filled platformId](http://feedbackland.com/#embed)
-
-&nbsp;
 &nbsp;
 
 ## Self-host it
