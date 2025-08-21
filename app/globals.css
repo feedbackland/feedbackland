@@ -247,6 +247,10 @@
   }
 }
 
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-primary/70!;
+}
+
 @theme inline {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
