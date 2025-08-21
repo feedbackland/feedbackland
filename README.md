@@ -36,7 +36,7 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
-3. Replace the value of the `platformId` prop with a [randomly generated UUID v4](https://www.uuidtools.com/v4) that will serve as your platform's identifier
+3. Set the `platformId` prop to a new [randomly generated UUID v4](https://www.uuidtools.com/v4). This will be your platform's identifier.
 
 4. Deploy your app, start collecting feedback and generate your first roadmap!
 
