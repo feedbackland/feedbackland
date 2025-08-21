@@ -2,6 +2,8 @@
 
 Open-source & self-hostable feedback platforms that captures in-app feedback and transforms it with AI into a prioritized roadmap.
 
+&nbsp;
+
 <img width="2473" height="1296" alt="Frame 596" src="https://github.com/user-attachments/assets/6e464261-2203-418a-9086-ee117b754c8a" />
 
 &nbsp;
