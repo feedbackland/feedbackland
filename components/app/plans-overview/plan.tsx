@@ -38,7 +38,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="mb-0.5 flex items-center gap-3">
-                <h3 className="h3 capitalize">{planName}</h3>
+                <h3 className="h4 capitalize">{planName}</h3>
 
                 {isActiveSubscription && (
                   <Badge variant="outline">Your current plan</Badge>
@@ -93,17 +93,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
         </div>
 
-        <div className="text-primary flex flex-col items-stretch space-y-1.5 text-sm font-normal capitalize">
-          {/* <div className="flex items-center gap-1.5">
-            <CheckIcon className="size-4!" />
-            <span>Unlimited feedback posts</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <CheckIcon className="size-4!" />
-            <span>Unlimited end-users</span>
-          </div> */}
-
+        <div className="text-primary flex flex-col items-stretch space-y-1.5 text-sm font-normal">
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
             <span>{adminsLimit} admins</span>
@@ -123,17 +113,17 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
           </div>
 
           {!isFreePlan && (
-            <>
-              <div className="flex items-center gap-1.5">
-                <CheckIcon className="size-4!" />
-                <span>Automatic content moderation</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <CheckIcon className="size-4!" />
+              <span>No Feedbackland branding</span>
+            </div>
+          )}
 
-              <div className="flex items-center gap-1.5">
-                <CheckIcon className="size-4!" />
-                <span>White labeled</span>
-              </div>
-            </>
+          {isMaxPlan && (
+            <div className="flex items-center gap-1.5">
+              <CheckIcon className="size-4!" />
+              <span>Automatic content moderation</span>
+            </div>
           )}
         </div>
       </div>
