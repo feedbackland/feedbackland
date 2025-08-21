@@ -19,7 +19,7 @@
 ```
 npm i feedbackland-react
 ```
-2. Copy-paste the `FeedbackButton` snippet into your React app (for example, inside of your UI's sidebar or menu)
+2. Place the `FeedbackButton` anywhere in your app (for example, in a sidebar or top menu bar)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
