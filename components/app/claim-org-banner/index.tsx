@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
 import { BadgeAlertIcon } from "lucide-react";
+import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function ClaimOrgBanner({
   className,
