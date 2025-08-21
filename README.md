@@ -4,6 +4,13 @@
 
 &nbsp;
 
+## About
+
+FeedbackLand is an open-source, self-hostable feedback platform. It includes a React widget to capture feedback directly in your app and uses AI to produce a prioritized roadmap that shows exactly which features and bug fixes your users want.
+
+&nbsp;
+&nbsp;
+
 ## How it works
 
 🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
