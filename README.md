@@ -17,7 +17,7 @@
 
 ## Get started
 
-Embed the widget in your React app in a matter of seconds
+Follow the step below to embed the widget in your React app in a matter of seconds
 
 1. Install the `feedbackland-react` package
 ```
