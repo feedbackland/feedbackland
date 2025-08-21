@@ -8,7 +8,7 @@
 
 ⬆️ Your users vote and comment - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
-🤖 AI writes your roadmap – AI analyzes, clusters and transforms all feedback (including upvotes and comments) into your prioritized roadmap.
+🤖 AI writes your roadmap – AI analyzes and clusters feedback, votes, and comments, then turns them into a prioritized roadmap.
 
 🚀 You build what users love — Use the roadmap to build the features your users will love.
 
