@@ -23,7 +23,7 @@ Embed the widget in your React app in seconds:
 ```
 npm i feedbackland-react
 ```
-2. Place the `FeedbackButton` anywhere in your app (for example, in a sidebar or top menu bar)
+2. Place the `FeedbackButton` anywhere in your app (for example, in your UI's sidebar or top menu bar)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
