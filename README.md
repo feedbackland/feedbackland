@@ -40,7 +40,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 
 ## Provide feedback
 
-Have a feature request, bug report, idea, suggesion or any other feedback? [Share it on our own platform](https://dogfood.feedbackland.com)
+Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com)
 
 &nbsp;
 &nbsp;
