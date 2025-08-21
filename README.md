@@ -6,7 +6,7 @@ Stop guessing what to build. Our open-source React widget collects in-app feedba
 
 &nbsp;
 
-## How it Works
+## How it works
 
 🗣️ The Widget Captures Feedback – Embed our React widget and capture user feedback directly in-app.
 
@@ -39,7 +39,7 @@ Alternatively visit our website to [get a code snippet that already contains a g
 &nbsp;
 &nbsp;
 
-## Self-Host it
+## Self-host it
 
 [Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
