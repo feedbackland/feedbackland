@@ -48,7 +48,7 @@ export const createOrgQuery = async (args?: args) => {
         .insertInto("feedback")
         .values([
           {
-            title: "Add dark mode",
+            title: "Example post - Add a dark mode to the IU",
             description:
               "I often use the platform late at night, and the bright white interface can be quite harsh on the eyes in a dark room. So having the option to toggle on a dark mode would be great!",
             category: "feature request",
@@ -57,7 +57,7 @@ export const createOrgQuery = async (args?: args) => {
             embedding: null,
           },
           {
-            title: "Make search more powerful",
+            title: "Example post - Make search more powerful",
             description:
               "It would be a huge improvement if the search could also index and find keywords within the description of the feedback posts.",
             category: "general feedback",
