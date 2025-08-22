@@ -2,10 +2,7 @@
 
 Feedbackland is an easy-to-use, open-source feedback platform designed to be embedded directly into your React app. It collects user feedback, then uses AI to transform it into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
-<img width="2473" height="1270" alt="Frame 598" src="https://github.com/user-attachments/assets/2ae53ebc-9982-4788-8faa-a84a4fe2c0cb" />
-
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
-
 
 ## How it works
 
