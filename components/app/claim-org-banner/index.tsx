@@ -11,7 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
 import { BadgeAlertIcon } from "lucide-react";
-import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function ClaimOrgBanner({
   className,
@@ -19,7 +18,6 @@ export function ClaimOrgBanner({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const queryClient = useQueryClient();
-  const inIframe = useInIframe();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
@@ -93,9 +91,7 @@ export function ClaimOrgBanner({
                 className="hidden size-5! text-[#1F1F1F] sm:block"
               />
               <span className="0 text-sm font-medium text-white">
-                {inIframe
-                  ? `Make this widget yours and unlock admin access`
-                  : `Make this platform yours and unlock admin access`}
+                Claim ownership and unlock admin access
               </span>
             </div>
             <Button
@@ -104,7 +100,7 @@ export function ClaimOrgBanner({
               size="sm"
               className="bg-yellow-500 text-black hover:bg-yellow-600"
             >
-              Claim ownership
+              Unlock admin access
             </Button>
           </div>
         </div>
