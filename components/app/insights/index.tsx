@@ -164,7 +164,7 @@ export function Insights() {
             <br />
             Then generate your first AI Roadmap.
           </div>
-          {platformUrl && (
+          {/* {platformUrl && (
             <Button
               size="default"
               variant="outline"
@@ -175,7 +175,7 @@ export function Insights() {
             >
               Generate your first AI Roadmap
             </Button>
-          )}
+          )} */}
         </div>
       )}
 

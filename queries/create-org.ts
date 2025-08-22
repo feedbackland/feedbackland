@@ -46,15 +46,26 @@ export const createOrgQuery = async (args?: args) => {
 
       await trx
         .insertInto("feedback")
-        .values({
-          title: "An example feedback post",
-          description:
-            "Just an example of a feedback post. Feel free to delete it.",
-          category: "general feedback",
-          authorId: null,
-          orgId: org.id,
-          embedding: null,
-        })
+        .values([
+          {
+            title: "Add dark mode",
+            description:
+              "I often use the platform late at night, and the bright white interface can be quite harsh on the eyes in a dark room. So having the option ot toggle on a dark mode would be great!",
+            category: "general feedback",
+            authorId: null,
+            orgId: org.id,
+            embedding: null,
+          },
+          {
+            title: "Make search more powerful",
+            description:
+              "It would be a huge improvement if the search could also index and find keywords within the description of the feedback posts.",
+            category: "general feedback",
+            authorId: null,
+            orgId: org.id,
+            embedding: null,
+          },
+        ])
         .execute();
 
       return org;
