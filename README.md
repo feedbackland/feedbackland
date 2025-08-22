@@ -42,7 +42,7 @@ import { FeedbackButton } from 'feedbackland-react';
 
 &nbsp;
 
-Not interested in the widget or not using React? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
+Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
 &nbsp;
 
