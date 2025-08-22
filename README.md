@@ -4,6 +4,9 @@ Feedbackland is an easy-to-use, open-source feedback platform designed to be emb
 
 <img width="2473" height="1270" alt="Frame 598" src="https://github.com/user-attachments/assets/2ae53ebc-9982-4788-8faa-a84a4fe2c0cb" />
 
+https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
+
+
 ## How it works
 
 🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
