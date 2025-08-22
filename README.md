@@ -1,14 +1,16 @@
+Feedbackland is a simple, easy-to-use feedback platform designed to be embedded directly into your React app. In a matter of seconds you can start collecting valuable user feedback directly in-app. Then, we apply our AI magic and transform the feedback noise into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
+
 <img width="2473" height="1270" alt="Frame 598" src="https://github.com/user-attachments/assets/2ae53ebc-9982-4788-8faa-a84a4fe2c0cb" />
 
 ## How it works
 
 🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
 
-⬆️ Your users surface top ideas - Users vote and comment on feedback to identify the most important ideas, issues and requests.
+⬆️ Your users surface top ideas - Users vote and comment to identify the most important ideas, issues and requests.
 
-🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
+🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear, prioritized roadmap.
 
-🚀 You build what users want — Use the roadmap to build the features your users will love.
+🚀 You build what users want — You use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
