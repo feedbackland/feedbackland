@@ -1,6 +1,4 @@
-# Feedbackland
-
-<img width="2473" height="1263" alt="Frame 596" src="https://github.com/user-attachments/assets/e3021fd6-c606-4a2f-984f-3ff8cc2f3e1e" />
+<img width="2473" height="1270" alt="Frame 598" src="https://github.com/user-attachments/assets/a73f37d1-3613-4401-8e0d-271289c1f428" />
 
 ## How it works
 
@@ -8,22 +6,20 @@
 
 ⬆️ Your users surface top ideas - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
-🤖 AI writes your roadmap – AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
+🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
 
-🚀 You build what users love — Use the roadmap to build the features your users will love.
+🚀 You build what users want — Use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
 
-## Get started
-
-Embed the widget in your React app in seconds:
+## Embed the widget in 30 seconds
 
 1. Install the `feedbackland-react` package
 ```
 npm i feedbackland-react
 ```
-2. Place the `FeedbackButton` anywhere in your app (for example, in your UI's sidebar or top menu bar)
+2. Place the `FeedbackButton` anywhere in your app (for example, a sidebar or menu)
 ```tsx
 import { FeedbackButton } from 'feedbackland-react';
 
@@ -36,13 +32,13 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
-3. Set the `platformId` prop to a new [randomly generated UUID v4](https://www.uuidtools.com/v4). This will be your platform's identifier.
+3. Set the `platformId` to a new [randomly generated UUID v4](https://www.uuidtools.com/v4) that acts as your platform's identifier.
 
 4. Deploy your app, start collecting feedback and generate your first roadmap!
 
 &nbsp;
 
-Not interested in the widget? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
+Not interested in the widget or not using React? No problem, you can also [start with the standalone platform](https://get-started.feedbackland.com).
 
 &nbsp;
 
