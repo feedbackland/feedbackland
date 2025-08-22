@@ -1,4 +1,6 @@
-Feedbackland is a simple, easy-to-use feedback platform designed to be embedded directly into your React app. In a matter of seconds you can start collecting valuable user feedback directly in-app. Then, we apply our AI magic and transform the feedback noise into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
+# Feedbackland
+
+Feedbackland is a simple, easy-to-use, open-source feedback platform designed to be embedded directly into your React app. Start collecting valuable user feedback directly in-app in seconds. Then, we apply our AI magic and transform the feedback noise into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
 <img width="2473" height="1270" alt="Frame 598" src="https://github.com/user-attachments/assets/2ae53ebc-9982-4788-8faa-a84a4fe2c0cb" />
 
