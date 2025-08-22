@@ -6,9 +6,9 @@
 
 ⬆️ Your users surface top ideas - Users vote and comment on feedback to identify the most important ideas, issues and requests.
 
-🤖 AI writes your roadmap – AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
+🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear and prioritized roadmap.
 
-🚀 You build what users love — Use the roadmap to build the features your users will love.
+🚀 You build what users want — Use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
