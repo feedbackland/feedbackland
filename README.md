@@ -17,6 +17,13 @@ Feedbackland is an easy-to-use, open-source feedback platform designed to be emb
 &nbsp;
 &nbsp;
 
+## Preview the widget
+
+[Visit Feedbackland's website](https://www.feedbackland.com) to preview & test-drive the widget.
+
+&nbsp;
+&nbsp;
+
 ## Embed the widget in 30 seconds
 
 1. Install the `feedbackland-react` package
@@ -43,12 +50,6 @@ import { FeedbackButton } from 'feedbackland-react';
 &nbsp;
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
-
-&nbsp;
-
-## Preview
-
-[Visit Feedbackland's website](https://www.feedbackland.com) to preview & test-drive the widget.
 
 &nbsp;
 &nbsp;
