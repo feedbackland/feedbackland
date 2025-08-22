@@ -51,7 +51,7 @@ export const createOrgQuery = async (args?: args) => {
             title: "Add dark mode",
             description:
               "I often use the platform late at night, and the bright white interface can be quite harsh on the eyes in a dark room. So having the option to toggle on a dark mode would be great!",
-            category: "general feedback",
+            category: "feature request",
             authorId: null,
             orgId: org.id,
             embedding: null,
