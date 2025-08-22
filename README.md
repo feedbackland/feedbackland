@@ -24,7 +24,7 @@ Feedbackland is an easy-to-use, open-source feedback platform designed to be emb
 &nbsp;
 &nbsp;
 
-## Embed the widget in 30 seconds
+## Embed the widget
 
 1. Install the `feedbackland-react` package
 ```
