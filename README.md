@@ -48,7 +48,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Preview
 
-[Visit our website](https://www.feedbackland.com) to test-drive the widget
+[Visit our website](https://www.feedbackland.com) to preview & test-drive the widget.
 
 &nbsp;
 &nbsp;
