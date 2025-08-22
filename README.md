@@ -12,7 +12,7 @@ Feedbackland is an easy-to-use, open-source feedback platform designed to be emb
 
 🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear, prioritized roadmap.
 
-🚀 You build what users want — You use the roadmap to build the features your users will love.
+🚀 You build what users want – You use the roadmap to build the features your users will love.
 
 &nbsp;
 &nbsp;
