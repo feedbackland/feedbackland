@@ -24,7 +24,7 @@ https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
 ## Embed the widget
 
-[Get your code snippet](https://www.feedbackland.com/#embed) and embed the widget in 30 seconds.
+[Get your code snippet](https://www.feedbackland.com/#embed) and embed the widget in 30 seconds into your app.
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
