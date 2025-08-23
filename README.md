@@ -15,43 +15,21 @@ https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 🚀 You build what users want – You use the roadmap to build the features your users will love.
 
 &nbsp;
-&nbsp;
 
 ## Preview the widget
 
 [Visit Feedbackland's website](https://www.feedbackland.com) to preview & test-drive the widget.
 
 &nbsp;
-&nbsp;
 
 ## Embed the widget
 
-1. Install the `feedbackland-react` package
-```
-npm i feedbackland-react
-```
-2. Place the `FeedbackButton` anywhere in your app (for example, a sidebar or menu)
-```tsx
-import { FeedbackButton } from 'feedbackland-react';
-
-<FeedbackButton
-  platformId="<YOUR-GENERATED-UUID-V4>" //go to www.uuidtools.com/v4 to generate your UUID
-  mode="" // 'dark' or 'light', defaults to 'dark'
-  text="" // the copy text of the button, defaults to 'Feedback'
-  className="" // style the button with Tailwind
-  style="" // or style it with native CSS
-  button={} // or bring your own button
-/>
-```
-3. Set the `platformId` to a new [randomly generated UUID v4](https://www.uuidtools.com/v4) that acts as your platform's identifier.
-
-4. Deploy your app, start collecting feedback and generate your first roadmap!
+[Get your code snippet and embed the widget in 30 seconds](https://www.feedbackland.com/#embed)
 
 &nbsp;
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
-&nbsp;
 &nbsp;
 
 ## Self-host it
@@ -59,20 +37,17 @@ Not interested in the widget or not using React? No problem, [start with the sta
 Want to self-host your Feedbackland platform? [Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 &nbsp;
-&nbsp;
 
 ## Contact us
 
 Have a question or need support? We're here to help. [hello@feedbackland.com](mailto:hello@feedbackland.com)
 
 &nbsp;
-&nbsp;
 
 ## Provide feedback
 
 Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com)
 
-&nbsp;
 &nbsp;
 
 ## License
