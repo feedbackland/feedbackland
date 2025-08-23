@@ -1,4 +1,4 @@
-# Feedbackland - Feedback to Roadmap, Instantly
+# Feedbackland - From Feedback to Roadmap, Instantly
 
 Feedbackland embeds directly into your React app, captures user feedback, then uses AI to transform it into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
