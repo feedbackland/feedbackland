@@ -1,6 +1,6 @@
 # Feedbackland - Your self-writing roadmap
 
-Feedbackland is an easy-to-use, open-source feedback platform that embeds directly into your React app, collects user feedback, then uses AI to transform the noise into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
+Feedbackland embeds directly into your React app, captures user feedback, then uses AI to transform it into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
