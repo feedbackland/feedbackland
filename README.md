@@ -1,4 +1,4 @@
-# Feedbackland - AI roadmap powered by user feedback
+# Feedbackland - Auto-generate your roadmap from user feedback
 
 Feedbackland embeds directly into your React app, captures user feedback, then uses AI to transform it into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
