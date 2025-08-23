@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
 🤖 AI writes your roadmap – Our AI analyzes and clusters feedback, votes, and comments, then turns them into a clear, prioritized roadmap.
 
-🚀 You build what users want – You use the roadmap to build the features your users will love.
+🚀 You build what users crave – You use the roadmap to build the features your users will love.
 
 &nbsp;
 
