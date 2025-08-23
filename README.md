@@ -1,4 +1,4 @@
-# Feedbackland - Widget in. Roadmap out.
+# Feedbackland - The self-writing roadmap
 
 Feedbackland is an easy-to-use, open-source feedback platform designed to be embedded directly into your React app. It collects user feedback, then uses AI to transform it into a crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
