@@ -4,7 +4,7 @@ Feedbackland's widget embeds directly into your React app, captures every bit of
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
-## How it works
+### How it works
 
 🗣️ The widget collects feedback – Embed our React widget and capture user feedback directly in-app.
 
@@ -14,40 +14,28 @@ https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
 🚀 You build what users crave – You use the roadmap to build the features your users will love.
 
-&nbsp;
-
-## Preview the widget
+### Preview the widget
 
 [Visit Feedbackland's website](https://www.feedbackland.com) to preview & test-drive the widget.
 
-&nbsp;
-
-## Embed the widget
+### Embed the widget
 
 [Get your code snippet](https://www.feedbackland.com/#embed) and embed the widget in 30 seconds into your app.
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
-&nbsp;
-
-## Self-host it
+### Self-host it
 
 Want to self-host your Feedbackland platform? [Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
-&nbsp;
-
-## Contact us
+### Contact us
 
 Have a question or need support? We're here to help. [hello@feedbackland.com](mailto:hello@feedbackland.com)
 
-&nbsp;
-
-## Provide feedback
+### Provide feedback
 
 Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com)
 
-&nbsp;
-
-## License
+### License
 
 Feedbackland is licensed under [AGPL 3.0.](https://github.com/feedbackland/feedbackland?tab=AGPL-3.0-1-ov-file)
