@@ -51,7 +51,8 @@ Have a question or need support? We're here to help. [hello@feedbackland.com](ma
 
 ## Provide feedback
 
-Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com)
+Have a feature request, bug report, or any other feedback? [Share it on our own platform!](https://dogfood.feedbackland.com).
+For technical and code-related issues, ideas & discussions, please feel free to use this repository's [Issues section](https://github.com/feedbackland/feedbackland/issues).
 
 ## License
 
