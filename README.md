@@ -1,10 +1,8 @@
 # Feedbackland - Know exactly what to build next
 
-Feedbackland is a React widget that embeds directly into your app to capture feature requests, bug reports, and any other user feedback. Your users can vote and discuss ideas right where they naturally interact with your product.
+Feedbackland is a drop‑in React widget for in‑app feedback: feature requests, bug reports, and more. Users can submit, vote, and comment, while our AI synthesizes every signal to surface themes, spot patterns, and generate a prioritized, actionable roadmap.
 
-Our AI engine processes all feedback to uncover key themes and patterns, automatically generating a prioritized product roadmap based on real user needs, eliminating the guesswork from product development.
-
-Deploy it your way: Self-host the open-source version for complete control, or get started with our cloud-hosted solution in just 30 seconds.
+Self-host it, or use our cloud‑hosted version, embedded in 30 seconds.
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
