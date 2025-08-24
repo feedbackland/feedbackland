@@ -6,9 +6,8 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
 
-1. 🗣️ The widget collects feature requests, bug reports and any other feedback directly in-app
-2. ⬆️ Your users vote and comment on feedback to highlight top ideas and important issues.
-3. 🤖 Our AI analyzes, clusters & interprets all user inputs, discovers overarching themes and writes your prioritized roadmap
+1. 🗣️ The widget collects feature requests, bug reports, upvotes and comments directly in-app.
+3. 🤖 Our AI analyzes, clusters & interprets all feedback, discovers overarching themes and deeper insights, then writes your prioritized roadmap
 4. 🚀 You use the roadmap to build with certainty what users really want. No guessing required!
 
 ## Preview the widget
