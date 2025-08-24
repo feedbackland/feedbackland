@@ -6,10 +6,10 @@ https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
 ## How it works
 
-- 🗣️ The widget collects feedback directly in-app
-- ⬆️ Your users surface top ideas through votes & comments
-- 🤖 AI analyzes all user inputs and writes your roadmap
-- 🚀 You build what users love!
+1. 🗣️ The widget collects feedback directly in-app
+2. ⬆️ Your users surface top ideas through votes & comments
+3. 🤖 AI analyzes all user inputs and writes your roadmap
+4. 🚀 You build what users love!
 
 ## Preview the widget
 
