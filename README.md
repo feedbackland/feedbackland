@@ -1,6 +1,6 @@
 # Feedbackland - Widget In → Roadmap Out
 
-Feedbackland embeds directly into your React app, captures every bit of user feedback, then transforms it with AI into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
+Feedbackland's widget embeds directly into your React app, captures every bit of user feedback, then transforms it with AI into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
