@@ -1,4 +1,4 @@
-# Feedbackland: Unlock the roadmap hidden in your user feedback.
+# Feedbackland: Unlock the roadmap hidden in user feedback.
 
 From chaotic feedback to strategic clarity. Feedbackland's React widget captures everything from bug reports to feature requests directly in-app. Then, our AI connects the dots, deciphering hidden themes and patterns to deliver a truly actionable roadmap you can build on.
 
