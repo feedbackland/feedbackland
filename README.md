@@ -1,15 +1,16 @@
 # Feedbackland - AI-generate your roadmap from user feedback
 
-Feedbackland provides an easy-to-embed React widget for collecting feature requests, bug reports, and general user feedback directly in your app. Then our AI aggregates and analyzes all user inputs, discovers overarching themes & patterns, and builds your prioritized, actionable product roadmap. Open-source & self-hostable, or available as a free cloud-hosted version embedded in 30 seconds.
+Feedbackland provides an easy-to-embed React widget for collecting feature requests, bug reports, and any other feedback directly in your app. Then our AI aggregates and analyzes all user inputs, discovers overarching themes & patterns, and builds your prioritized, actionable product roadmap.
+Open-source & self-hostable, or available as a free cloud-hosted version embedded in 30 seconds.
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
 ## How it works
 
-1. 🗣️ The widget collects feedback directly in-app
-2. ⬆️ Your users surface top ideas through votes & comments
-3. 🤖 AI analyzes, clusters & interprets all user inputs, discovers overarching themes and writes your roadmap
-4. 🚀 You use the roadmap to build what users really want. No guessing or manual triaging of feedback required!
+1. 🗣️ The widget collects feature requests, bug reports and any other feedback directly in-app
+2. ⬆️ Your users vote and comment on feedback to highlight top ideas and important issues.
+3. 🤖 Our AI analyzes, clusters & interprets all user inputs, discovers overarching themes and writes your prioritized roadmap
+4. 🚀 You use the roadmap to build what users really want. No guessing required!
 
 ## Preview the widget
 
