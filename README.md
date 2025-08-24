@@ -1,8 +1,6 @@
-# Feedbackland - Know exactly what to build next
+# Feedbackland: Unlock the roadmap hidden in your user feedback.
 
-Feedbackland is a drop‑in React widget for in‑app feedback: feature requests, bug reports, and more. Users can submit, vote, and comment, while our AI synthesizes every signal to surface themes, spot patterns, and generate a prioritized, actionable roadmap.
-
-Self-host it, or use our cloud‑hosted version, embedded in 30 seconds.
+From scattered feedback to strategic clarity. Feedbackland's React widget captures everything from bug reports to feature requests, directly in-app. Then, our AI connects the dots, deciphering hidden themes and patterns to deliver a truly actionable roadmap.
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
