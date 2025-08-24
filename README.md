@@ -31,7 +31,7 @@ import { FeedbackButton } from 'feedbackland-react';
   mode="" // optional, 'dark' or 'light', defaults to 'dark'
   text="" // optional, the copy text of the button, defaults to 'Feedback'
   className="" // optional, style the button with Tailwind
-  style={} // optionsl, or style it with native CSS
+  style={} // optional, style the button with native CSS
 />
 ```
 
