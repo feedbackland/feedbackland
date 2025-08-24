@@ -1,12 +1,12 @@
-# Feedbackland: Unlock the roadmap hidden in user feedback.
+# Feedbackland: The self-writing roadmap
 
-From chaotic feedback to strategic clarity. Feedbackland's React widget captures everything from bug reports to feature requests directly in-app. Then, our AI connects the dots, deciphering hidden themes and patterns to deliver a truly actionable roadmap you can build on.
+Embed our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
 
-1. 🗣️ The widget collects feature requests, bug reports, upvotes and comments directly in-app.
+1. 🗣️ The widget collects user feedback directly in-app.
 3. 🤖 Our AI analyzes, clusters & interprets all feedback, discovers overarching themes and deeper insights, then writes your prioritized roadmap
 4. 🚀 You use the roadmap to build with certainty what users really want. No guessing required!
 
