@@ -1,4 +1,4 @@
-# Feedbackland - The Feedback-to-Roadmap Widget
+# Feedbackland - AI-Generated Roadmaps from User Feedback
 
 Feedbackland provides an easy-to-embed React widget for collecting feature requests, bug reports, and general user feedback directly in your app. Users can upvote and comment; Feedbackland aggregates and analyzes all user input and auto-generates a prioritized, actionable product roadmap using our AI Roadmap engine. Open-source & self-hostable, or available as a free cloud-hosted version embedded in 30 seconds.
 
