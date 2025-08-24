@@ -1,6 +1,6 @@
 # Feedbackland - Widget In → Roadmap Out
 
-Feedbackland's widget embeds directly into your React app, captures every bit of user feedback, then transforms it with AI into your crystal-clear, prioritized roadmap. So you know exactly what to build next. No triaging or guessing needed.
+Feedbackland provides an easy-to-embed React widget for collecting feature requests, bug reports, and general user feedback directly in your app. Users can upvote and comment; Feedbackland aggregates and analyzes that input and auto-generates a prioritized, actionable product roadmap using our AI Roadmap engine. Open-source & self-hostable, or available as a free to start cloud-hosted version embedded in 30 seconds.
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
