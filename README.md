@@ -2,7 +2,7 @@
 
 Feedbackland provides an easy-to-embed React widget for collecting feature requests, bug reports, and any other feedback directly in your app. Then our AI aggregates and analyzes all user inputs, discovers overarching themes & patterns, and creates your prioritized, actionable product roadmap. So you can build with certainty what users really want. No guessing required!
 
-Open-source & self-hostable, or available as a start-free cloud-hosted version embedded in 30 seconds.
+Open-source & self-hostable, or available as a cloud-hosted version embedded in 30 seconds.
 
 https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
 
