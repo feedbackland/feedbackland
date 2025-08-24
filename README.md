@@ -4,7 +4,7 @@ Feedbackland provides an easy-to-embed React widget for collecting feature reque
 
 Open-source & self-hostable, or available as a cloud-hosted version embedded in 30 seconds.
 
-https://github.com/user-attachments/assets/3167896a-d564-4e52-8134-e5d10241bdbd
+https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
 
