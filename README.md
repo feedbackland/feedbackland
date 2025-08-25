@@ -8,7 +8,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 1. 🗣️ The widget collects user feedback directly in-app.
 3. 🤖 Our AI analyzes & interprets all feedback posts, votes and comments, uncovers overarching themes and hidden insights, then writes your prioritized roadmap
-4. 🚀 You use the roadmap to build with certainty what users really want. No guessing required!
+4. 🚀 You use the roadmap to build what users really want. No guessing required!
 
 ## Preview the widget
 
