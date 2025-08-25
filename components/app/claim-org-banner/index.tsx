@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ClaimOrgDialog } from "./dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,8 +8,6 @@ import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
-import { iframeParentAtom } from "@/lib/atoms";
 import { BadgeAlertIcon } from "lucide-react";
 import { useInIframe } from "@/hooks/use-in-iframe";
 
@@ -23,7 +21,6 @@ export function ClaimOrgBanner({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
-  const iframeParent = useAtomValue(iframeParentAtom);
   const {
     query: { data: org },
   } = useOrg();
@@ -31,11 +28,6 @@ export function ClaimOrgBanner({
   const orgSubdomain = org?.orgSubdomain;
   const isOrgClaimed = org?.isClaimed;
   const isSignedIn = !!session;
-
-  useEffect(() => {
-    if (isOrgClaimed === undefined || iframeParent === null) return;
-    iframeParent?.setIsClaimed(isOrgClaimed);
-  }, [iframeParent, isOrgClaimed]);
 
   const handleOpenDialog = async () => {
     setIsDialogOpen(true);
