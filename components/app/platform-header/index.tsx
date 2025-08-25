@@ -85,7 +85,7 @@ export function PlatformHeader() {
             <Skeleton className="h-[32px] w-[230px]" />
           ) : (
             <>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-semibold tracking-tight">
                 <Link href={`${platformUrl}`}>
                   {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
                 </Link>
