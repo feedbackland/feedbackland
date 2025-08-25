@@ -93,8 +93,8 @@ export function ClaimOrgBanner({
                 className="hidden size-5! text-[#1F1F1F] sm:block"
               />
               <span className="0 text-sm font-medium text-white">
-                Claim ownership of this {inIframe ? "widget" : "platform"} and
-                unlock admin access.
+                Claim this {inIframe ? "widget" : "platform"} to gain admin
+                access.
               </span>
             </div>
             <Button
@@ -103,7 +103,7 @@ export function ClaimOrgBanner({
               size="sm"
               className="bg-yellow-500 text-black hover:bg-yellow-600"
             >
-              Unlock admin access
+              Claim Ownership
             </Button>
           </div>
         </div>
