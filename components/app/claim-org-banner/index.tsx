@@ -90,7 +90,7 @@ export function ClaimOrgBanner({
             <div className="flex items-center gap-1.5">
               <BadgeAlertIcon
                 fill="var(--color-yellow-500)"
-                className="hidden size-5! text-[#1F1F1F] sm:block"
+                className="size-5! text-[#1F1F1F]"
               />
               <span className="0 text-sm font-medium text-white">
                 Claim this {inIframe ? "widget" : "platform"} to gain admin
