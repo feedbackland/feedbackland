@@ -1,8 +1,8 @@
 # Feedbackland: Widget in → Roadmap out
 
-Embed our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
+Drop in our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
-Open-source & self-hostable, or available as a cloud-hosted version with generous free tier.
+Open-source & self-hostable, or available as a cloud-hosted version with a [generous free tier](https://www.feedbackland.com/#pricing).
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
