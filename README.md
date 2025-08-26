@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## Preview the widget
 
-[Visit Feedbackland's website]([https://www.feedbackland.com](https://www.feedbackland.com/#embed) to preview the widget.
+[Visit Feedbackland's website](https://www.feedbackland.com/#embed) to preview the widget.
 
 ## Embed the widget
 
