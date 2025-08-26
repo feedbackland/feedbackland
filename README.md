@@ -2,7 +2,7 @@
 
 Drop in our widget to capture user feedback. Watch as AI analyzes all user inputs, uncovers hidden insights, and automatically builds your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
-Open-source & self-hostable, or available as a cloud-hosted version with a [generous free tier](https://www.feedbackland.com/#pricing).
+Open-source & [self-hostable](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md), or available as a [cloud-hosted version](https://www.feedbackland.com) with a [generous free tier](https://www.feedbackland.com/#pricing).
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
