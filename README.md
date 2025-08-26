@@ -1,13 +1,15 @@
-# Feedbackland: The self-writing roadmap
+# Feedbackland: Widget in → Roadmap out
 
 Embed our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
+
+Open-source & [self-hostable](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md).
 
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
 
-1. 🗣️ The widget collects user feedback directly in-app.
-3. 🤖 Our AI analyzes, uncovers overarching themes and hidden insights, then writes your prioritized roadmap
+1. 🗣️ The widget collects user feedback directly in-app, at the click of a button.
+3. 🤖 AI analyzes the collected feedback, uncovers overarching themes and hidden insights, then writes your prioritized roadmap
 4. 🚀 You use the roadmap to build what users really want. No guessing required!
 
 ## Preview the widget
@@ -27,10 +29,11 @@ import { FeedbackButton } from 'feedbackland-react';
 
 <FeedbackButton
   platformId="<RANDOMLY-GENERATED-UUIDV4>" // required, a UUID v4, generate one here: https://www.uuidtools.com/v4
-  mode="" // optional, 'dark' or 'light', defaults to 'dark'
-  text="" // optional, the copy text of the button, defaults to 'Feedback'
-  className="" // optional, style the button with Tailwind
-  style={} // optional, style the button with native CSS
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style={} // or style it with native CSS
+  button={} // or bring your own button
 />
 ```
 
