@@ -17,7 +17,7 @@ export default function PlatformRoot({
       <div
         className={cn(
           "m-auto flex w-full grow flex-col justify-between",
-          inIframe ? "px-8 py-6" : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-2xl",
+          inIframe ? "py-6 pt-10 pb-6" : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-2xl",
         )}
       >
         <div>
