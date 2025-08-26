@@ -24,7 +24,7 @@ Want to self-host Feedbackland? [Go to the docs](https://github.com/feedbackland
 
 ## Contact us
 
-Have a question or need support? We're here to help. [hello@feedbackland.com](mailto:hello@feedbackland.com)
+Have a question or need support? [Send us an email](mailto:hello@feedbackland.com)
 
 ## Provide feedback
 
