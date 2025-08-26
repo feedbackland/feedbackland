@@ -20,7 +20,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Self-host it
 
-Want to self-host your Feedbackland platform? [Go to the self-hosting docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+Want to self-host Feedbackland? [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 ## Contact us
 
