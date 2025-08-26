@@ -1,4 +1,4 @@
-# Feedbackland: The self-writing roadmap
+# Feedbackland: Widget in → Roadmap out
 
 Embed our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
