@@ -18,26 +18,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## Embed the widget
 
-Embed Feedbackland's widget in 30 seconds in your React/Nextjs app:
-
-```
-npm i feedbackland-react
-```
-
-```tsx
-import { FeedbackButton } from 'feedbackland-react';
-
-<FeedbackButton
-  platformId="<RANDOMLY-GENERATED-UUIDV4>" // required, a UUID v4, generate one here: https://www.uuidtools.com/v4
-  mode="" // 'dark' or 'light', defaults to 'dark'
-  text="" // the copy text of the button, defaults to 'Feedback'
-  className="" // style the button with Tailwind
-  style={} // or style it with native CSS
-  button={} // or bring your own button
-/>
-```
-
-Alternatively [get your code snippet with an already pre-filled `platformId`](https://www.feedbackland.com/#embed) from the Feedbackland website.
+[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React/Nextjs app:
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
