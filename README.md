@@ -27,10 +27,11 @@ import { FeedbackButton } from 'feedbackland-react';
 
 <FeedbackButton
   platformId="<RANDOMLY-GENERATED-UUIDV4>" // required, a UUID v4, generate one here: https://www.uuidtools.com/v4
-  mode="" // optional, 'dark' or 'light', defaults to 'dark'
-  text="" // optional, the copy text of the button, defaults to 'Feedback'
-  className="" // optional, style the button with Tailwind
-  style={} // optional, style the button with native CSS
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style={} // or style it with native CSS
+  button={} // or bring your own button
 />
 ```
 
