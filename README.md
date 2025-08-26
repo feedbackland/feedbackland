@@ -1,6 +1,6 @@
 # Feedbackland: Widget In. Roadmap Out.
 
-Drop in our widget to capture user feedback. Watch as AI analyzes every feedback post, upvote and comment, uncovers hidden insights, and automatically builds your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
+Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
 Open-source & [self-hostable](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md), or [cloud-hosted](https://www.feedbackland.com) with a [generous free tier](https://www.feedbackland.com/#pricing).
 
