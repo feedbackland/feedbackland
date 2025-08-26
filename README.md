@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## Embed the widget
 
-Embed Feedbackland in 30 seconds in your React/Nextjs app:
+Embed Feedbackland's widget in 30 seconds in your React/Nextjs app:
 
 ```
 npm i feedbackland-react
