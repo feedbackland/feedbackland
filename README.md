@@ -8,9 +8,9 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
 
-🗣️ 1. Collect user feedback, votes, and comments right inside your app—with a single click.
-🤖 2. AI analyzes everything, surfaces themes and hidden insights, and delivers a prioritized roadmap.
-🚀 3. Ship the features and fixes your users care about most. No guesswork needed.
+1. 🗣️ Collect user feedback, votes, and comments right inside your app—with a single click.
+2. 🤖 AI analyzes everything, surfaces themes and hidden insights, and delivers a prioritized roadmap.
+3. 🚀 Ship the features and fixes your users care about most. No guesswork needed.
 
 ## Preview the widget
 
