@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## Preview the widget
 
-[Visit Feedbackland's website](https://www.feedbackland.com) to preview & test-drive the widget.
+[Visit Feedbackland's website]([https://www.feedbackland.com](https://www.feedbackland.com/#embed) to preview the widget.
 
 ## Embed the widget
 
@@ -37,7 +37,7 @@ import { FeedbackButton } from 'feedbackland-react';
 />
 ```
 
-Alternatively [get your code snippet](https://www.feedbackland.com/#embed) with a pre-filled `platformId` from the Feedbackland website.
+Alternatively [get your code snippet with an already pre-filled `platformId`](https://www.feedbackland.com/#embed) from the Feedbackland website.
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
