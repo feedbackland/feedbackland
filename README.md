@@ -1,4 +1,4 @@
-# Feedbackland: Widget In. Roadmap Out.
+# Feedbackland: Widget In. AI Roadmap Out.
 
 Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
