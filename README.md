@@ -2,6 +2,8 @@
 
 Embed our widget to capture user feedback. Watch as AI analyzes patterns, uncovers hidden insights, and automatically builds your product roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
+Open-source & [self-hostable](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md).
+
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
