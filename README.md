@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## Get started
 
-[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React/Nextjs app.
+[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
