@@ -26,11 +26,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 - **Effortlessly Capture In-App Feedback:** Collect valuable insights exactly when users have them with a seamless in-app widget.
 - **Go from Feedback to Roadmap, Instantly:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
 - **Engage with Your Users:** Engage directly with users through comments to clarify feedback and show them you're listening.
-- **Close the Loop and Build Trust:** Keep everyone informed by updating the status of feedback from "Under Review" to "Completed."
-- **Provide Frictionless Access:** Allow users to sign in effortlessly with their existing Google or Microsoft accounts.
-- **Encourage Candid Feedback:** Give users the option to submit ideas anonymously, ensuring you get the most honest insights.
-- **Get the Full Picture with Image Uploads:** Allow users to add screenshots and images to provide crucial visual context for bug reports and feature requests.
-- **Create a Central Feedback Hub:** Next to the widget your feedback platform is also accessible as a standalone website for your community to share and track feedback anytime.
+- **Close the Loop and Build Trust:** Keep everyone informed by updating the status of feedback from "Under consideration" to "Done."
 
 ## Self-host it
 
