@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
 3. 🚀 Using the roadmap you ship the features and fixes your users care about most. No guesswork needed.
 
-## Embed the widget
+## Get started
 
 [Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React/Nextjs app.
 
