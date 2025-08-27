@@ -4,6 +4,8 @@ Drop in our widget to capture user feedback. Watch as AI analyzes everything, un
 
 Open-source & [self-hostable](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md), or [cloud-hosted](https://www.feedbackland.com) with a [generous free tier](https://www.feedbackland.com/#pricing).
 
+<img width="1470" height="736" alt="feedbackland_github_1" src="https://github.com/user-attachments/assets/59275bbd-db91-4f97-880f-d444cc71ce4c" />
+
 https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 ## How it works
