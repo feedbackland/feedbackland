@@ -18,6 +18,17 @@ https://github.com/user-attachments/assets/1b455e94-6117-4ba4-8369-fa2bda2d3590
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
+## Main features
+
+- In-feedback
+- AI-powered roadmaps
+- Upvotes & comments
+- Activity feed
+- Feedback statuses
+- SSO + Anonymous feedback
+- Image uploads
+- Standalone website
+
 ## Self-host it
 
 Want to self-host Feedbackland? [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
