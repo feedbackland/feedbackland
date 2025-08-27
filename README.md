@@ -25,7 +25,8 @@ Not interested in the widget or not using React? No problem, [start with the sta
 - Upvotes & comments
 - Activity feed
 - Feedback statuses
-- SSO + Anonymous feedback
+- Single sign on
+- Anonymous feedback
 - Image uploads
 - Standalone website
 
