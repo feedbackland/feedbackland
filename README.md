@@ -20,7 +20,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Main features
 
-- In-feedback via embeddable React widget
+- In-app feedback via an embeddable React widget
 - AI-powered roadmaps
 - Upvotes & comments
 - Activity feed
