@@ -25,7 +25,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 - **Effortlessly Capture In-App Feedback:** Collect valuable insights exactly when users have them with a seamless in-app widget.
 - **Go from Feedback to Roadmap, Instantly:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
-- **Let Your Community Surface the Best Ideas:** Empower users to upvote the suggestions they care about most, giving you clear, data-backed priorities.
+- **Let Your Users Surface the Best Ideas:** Empower users to upvote the suggestions they care about most, giving you clear, data-backed priorities.
 - **Build a Community Around Your Product:** Engage directly with users through comments to clarify feedback and show them you're listening.
 - **Close the Loop and Build Trust:** Keep everyone informed by updating the status of feedback from "Under Review" to "Completed."
 - **Provide Frictionless Access:** Allow users to sign in effortlessly with their existing Google or Microsoft accounts.
