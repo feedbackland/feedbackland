@@ -1,7 +1,4 @@
-
-<img width="2473" height="188" alt="Group 513396" src="https://github.com/user-attachments/assets/ac25532c-0be4-402f-ad90-abd13482dcbc" />
-
-# Widget in. AI Roadmap out.
+# Feedbackland - Widget in. AI Roadmap out.
 
 Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
