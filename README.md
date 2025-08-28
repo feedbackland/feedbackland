@@ -18,10 +18,10 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
-## Main features
+## Why use it?
 
 - **Effortlessly Capture In-App Feedback:** Collect valuable insights exactly when users have them with a seamless in-app widget.
-- **Go from Feedback to Roadmap, Instantly:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
+- **Instabtly Go from Feedback to Roadmap:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
 - **Engage with Users:** Engage directly with users through comments to clarify feedback and show them you're listening.
 - **Close the Loop and Build Trust:** Keep everyone informed by updating the status of feedback from "Under consideration" to "Done."
 
