@@ -37,7 +37,7 @@ export const POST = Webhooks({
           customerId: subscription.customer.id,
           productId: subscription.product.id,
           status: subscription.status,
-          frequency: subscription.recurringInterval,
+          frequency: subscription.recurringInterval as "month" | "year",
           name: getName(subscription.product.name),
           validUntil: subscription.currentPeriodEnd,
           amount: Math.round(subscription.amount / 100),
