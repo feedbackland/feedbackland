@@ -26,7 +26,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 - **Engage directly with users** - Directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
 
-- **Keep users in the loop** - Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
+- **Keep everyone in the loop** - Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
 ## Self-host Feedbackland
 
