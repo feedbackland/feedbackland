@@ -178,11 +178,6 @@ html {
   scrollbar-gutter: stable;
 }
 
-body[data-scroll-locked] {
-  overflow: visible !important;
-  padding-right: 0 !important;
-}
-
 .h1,
 .tiptap-output h1 {
   @apply scroll-m-20 text-4xl font-bold tracking-tight;
