@@ -9,7 +9,9 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 ## How it works
 
 1. 🗣️ Collect user feedback, votes, and comments right inside your app, at the click of a button.
+
 2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
+
 3. 🚀 Using the roadmap you ship the features and fixes your users care about most. No guesswork needed.
 
 ## Get started
