@@ -54,7 +54,7 @@
     "dompurify": "^3.2.6",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.1.0",
-    "firebase-admin": "^13.4.0",
+    "firebase-admin": "^13.5.0",
     "geist": "^1.4.2",
     "he": "^1.2.0",
     "html-react-parser": "^5.2.6",

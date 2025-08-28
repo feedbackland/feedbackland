@@ -8,8 +8,8 @@ import confetti from "canvas-confetti";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
-import { BadgeAlertIcon } from "lucide-react";
-import { useInIframe } from "@/hooks/use-in-iframe";
+// import { BadgeAlertIcon } from "lucide-react";
+// import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function ClaimOrgBanner({
   className,
@@ -17,7 +17,7 @@ export function ClaimOrgBanner({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const queryClient = useQueryClient();
-  const inIframe = useInIframe();
+  // const inIframe = useInIframe();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
@@ -80,13 +80,12 @@ export function ClaimOrgBanner({
             )}
           >
             <div className="flex items-center gap-1.5">
-              <BadgeAlertIcon
+              {/* <BadgeAlertIcon
                 fill="var(--color-yellow-500)"
                 className="xs:block hidden size-5! shrink-0! text-[#1F1F1F]"
-              />
+              /> */}
               <span className="0 text-sm font-medium text-white">
-                Claim this {inIframe ? "widget" : "platform"} to gain admin
-                access.
+                Claim ownership and gain admin access.
               </span>
             </div>
             <Button
