@@ -21,7 +21,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 ## Why use it?
 
 - **Effortlessly Capture In-App Feedback:** Collect valuable insights exactly when users have them with a seamless in-app widget.
-- **Instabtly Go from Feedback to Roadmap:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
+- **Instantly Go from Feedback to Roadmap:** Our AI analyzes and synthesizes all submissions into a single, prioritized product roadmap, saving you hours of manual work.
 - **Engage with Users:** Engage directly with users through comments to clarify feedback and show them you're listening.
 - **Close the Loop and Build Trust:** Keep everyone informed by updating the status of feedback from "Under consideration" to "Done."
 
