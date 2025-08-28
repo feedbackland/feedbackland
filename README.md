@@ -7,7 +7,7 @@ Drop in our widget to capture user feedback. Watch as AI analyzes everything, un
 
 Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland.com/#embed) into your app to start collecting feedback.
 
-## How it works
+## How Feedbackland works
 
 1. 🗣️ Collect user feedback, votes, and comments right inside your app, at the click of a button.
 
@@ -21,7 +21,7 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
-## Why use it?
+## Why use Feedbackland?
 
 - **Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which embeds in seconds and lets users submit ideas and report bugs directly within your application.
 
