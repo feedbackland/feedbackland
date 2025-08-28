@@ -5,7 +5,11 @@
 
 Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
-Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland.com/#embed) into your app to start collecting feedback.
+## Get started
+
+[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
+
+Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
 ## How Feedbackland works
 
@@ -14,12 +18,6 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
 
 3. 🚀 Use the AI roadmap to build & ship the features and fixes your users care about most. No guesswork needed.
-
-## Get started
-
-[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
-
-Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
 ## Why use Feedbackland?
 
@@ -31,7 +29,7 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 - **Keep users in the loop:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
-## Self-host it
+## Self-host Feedbackland
 
 Want to self-host Feedbackland? [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
