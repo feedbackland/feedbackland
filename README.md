@@ -1,4 +1,4 @@
-<img width="1470" height="736" alt="feedbackland_github_1" src="https://github.com/user-attachments/assets/cd96acdd-4907-4806-a3c6-11612f2f2f3d" />
+<img width="2473" height="1286" alt="feedbackland_github_2" src="https://github.com/user-attachments/assets/4ffa6a24-7107-4e58-bb9e-24fa19e25af1" />
 
 # Feedbackland - Widget in. AI Roadmap out.
 
