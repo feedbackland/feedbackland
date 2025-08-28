@@ -21,13 +21,13 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Why use Feedbackland?
 
-- **Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which embeds in seconds and lets users submit ideas and report bugs directly within your application.
+- **Effortlessly capture feedback** - Capturing feedback is incredibly easy with our widget, which embeds in seconds and lets users submit ideas and report bugs directly within your application.
 
-- **Know exactly what to build next:** Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, telling you precisely what users want and what to build next.
+- **Know exactly what to build next** - Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, telling you precisely what users want and what to build next.
 
-- **Engage directly with users:** Directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
+- **Engage directly with users** - Directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
 
-- **Keep users in the loop:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
+- **Keep users in the loop** - Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
 ## Self-host Feedbackland
 
