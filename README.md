@@ -1,5 +1,7 @@
 <img width="2473" height="1286" alt="feedbackland_github_2" src="https://github.com/user-attachments/assets/4ffa6a24-7107-4e58-bb9e-24fa19e25af1" />
 
+&nbsp;
+
 Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
 Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland.com/#embed) into your app to start collecting feedback.
