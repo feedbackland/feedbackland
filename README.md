@@ -12,7 +12,7 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 
 2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
 
-3. 🚀 Use the roadmap to build & ship the features and fixes your users care about most. No guesswork needed.
+3. 🚀 Use the AI roadmap to build & ship the features and fixes your users care about most. No guesswork needed.
 
 ## Get started
 
