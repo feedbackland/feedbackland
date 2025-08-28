@@ -1,10 +1,10 @@
+<img width="1470" height="736" alt="feedbackland_github_1" src="https://github.com/user-attachments/assets/cd96acdd-4907-4806-a3c6-11612f2f2f3d" />
+
 # Feedbackland - Widget in. AI Roadmap out.
 
 Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
 Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland.com/#embed) into your app to start collecting feedback.
-
-<img width="1470" height="736" alt="feedbackland_github_1" src="https://github.com/user-attachments/assets/cd96acdd-4907-4806-a3c6-11612f2f2f3d" />
 
 ## How it works
 
