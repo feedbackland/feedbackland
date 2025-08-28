@@ -69,7 +69,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center bg-[#1F1F1F] px-3 py-2",
+            "flex w-full items-center justify-center rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-3 py-2.5",
             hideBanner && "hidden",
             className,
           )}
@@ -79,20 +79,14 @@ export function ClaimOrgBanner({
               "flex w-full flex-1 items-center justify-between gap-2",
             )}
           >
-            <div className="flex items-center gap-1.5">
-              {/* <BadgeAlertIcon
-                fill="var(--color-yellow-500)"
-                className="xs:block hidden size-5! shrink-0! text-[#1F1F1F]"
-              /> */}
-              <span className="0 text-sm font-medium text-white">
-                Claim ownership and gain admin access.
-              </span>
+            <div className="text-primary flex items-center gap-1.5 text-sm font-medium">
+              Claim ownership and gain admin access.
             </div>
             <Button
               onClick={handleOpenDialog}
               variant="default"
               size="sm"
-              className="bg-yellow-500 text-black hover:bg-yellow-600"
+              className="bg-yellow-500 text-black hover:bg-yellow-500"
             >
               Claim Ownership
             </Button>
