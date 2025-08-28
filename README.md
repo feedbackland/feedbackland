@@ -12,7 +12,7 @@ Embedded in 30 seconds. Simply paste [the code snippet](https://www.feedbackland
 
 2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
 
-3. 🚀 Using the roadmap you ship the features and fixes your users care about most. No guesswork needed.
+3. 🚀 Use the roadmap to build & ship the features and fixes your users care about most. No guesswork needed.
 
 ## Get started
 
@@ -22,13 +22,13 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Why use it?
 
-- **Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which lets users submit ideas and report bugs directly within your application.
+- **Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which embeds in seconds and lets users submit ideas and report bugs directly within your application.
 
-- **Know exactly what to build next:** Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, uncovering hidden insights and telling you precisely what users want.
+- **Know exactly what to build next:** Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, telling you precisely what users want and what to build next.
 
-- **Engage directly with users:** The widget also allows you to directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
+- **Engage directly with users:** Directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
 
-- **Build a culture of transparency:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
+- **Keep users in the loop:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
 ## Self-host it
 
