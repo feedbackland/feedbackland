@@ -20,13 +20,13 @@ Not interested in the widget or not using React? No problem, [start with the sta
 
 ## Why use it?
 
-**Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which lets users submit ideas and report bugs directly within your application.
+- **Effortlessly capture feedback:** Capturing feedback is incredibly easy with our widget, which lets users submit ideas and report bugs directly within your application.
 
-**Know exactly what to build next:** Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, uncovering hidden insights and telling you what users really want.
+- **Know exactly what to build next:** Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, uncovering hidden insights and telling you what users really want.
 
-**Engage directly with users:** The widget also allows you to directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
+- **Engage directly with users:** The widget also allows you to directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
 
-**Build a culture of transparency:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
+- **Build a culture of transparency:** Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
 ## Self-host it
 
