@@ -25,7 +25,7 @@ export function PlatformHeaderTitle({
       {isPending ? (
         <Skeleton className="h-[24px] w-full max-w-[192px]" />
       ) : (
-        <h1 className="text-xl font-semibold tracking-tight">
+        <h1 className="text-xl font-bold tracking-tight">
           <Link href={`${platformUrl}`}>
             {!isAdminPage ? orgData?.platformTitle : "Admin Panel"}
           </Link>

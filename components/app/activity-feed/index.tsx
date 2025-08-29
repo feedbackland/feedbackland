@@ -26,7 +26,7 @@ export function ActivityFeed() {
   return (
     <div className="">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="h4">Activity</h2>
+        <h2 className="h5">Activity</h2>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

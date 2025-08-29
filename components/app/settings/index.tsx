@@ -9,7 +9,7 @@ export default function Settings() {
 
   return (
     <div className="">
-      <h2 className="h4 mb-6">Settings</h2>
+      <h2 className="h5 mb-6">Settings</h2>
       <div className="rounded-lg border shadow-xs">
         <PlatformTitle className={className} />
         <PlatformDescription className={className} />

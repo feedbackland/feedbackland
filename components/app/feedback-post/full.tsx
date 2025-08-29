@@ -49,7 +49,7 @@ export function FeedbackPostFull({
     } = data;
 
     return (
-      <div className="mt-6">
+      <div className="mt-2">
         <div className="mb-2.5 flex items-start justify-between">
           <GoBackButton className="" />
         </div>

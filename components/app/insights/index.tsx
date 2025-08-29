@@ -11,7 +11,6 @@ import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
 import { InsightsLimitAlert } from "@/components/app/insights/limit-alert";
 import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -26,7 +25,6 @@ const InsightsDownloadButton = dynamic(
 export function Insights() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const platformUrl = usePlatformUrl();
 
   const generateInsightsMutation = useMutation(
     trpc.generateInsights.mutationOptions({
@@ -96,7 +94,7 @@ export function Insights() {
         <div className="flex-1 space-y-1">
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
-              <h2 className="h4 mb-0.5 flex flex-wrap items-center gap-2">
+              <h2 className="h5 mb-0.5 flex flex-wrap items-center gap-2">
                 {isGenerating ? `Generating Roadmap...` : `AI Roadmap`}
               </h2>
               {!isGenerating && hasInsights && (

@@ -78,8 +78,8 @@ export function AdminsInvite() {
   }
 
   return (
-    <div className="mt-8">
-      <Label className="mb-2">Invite</Label>
+    <div className="mt-6">
+      <Label className="text-muted-foreground mb-2">Invite</Label>
       <div className="border-border rounded-md border p-4 shadow-xs">
         <AdminsLimitAlert className="border-0 bg-transparent p-1" />
         {!adminLimit?.limitReached && (

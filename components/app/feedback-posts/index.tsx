@@ -116,7 +116,7 @@ export function FeedbackPosts() {
   return (
     <div className="">
       {!!((!isPending && !isPlatformEmpty) || isSearchActive) && (
-        <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-2">
+        <div className="relative mb-1.5 flex h-[40px] items-center gap-4">
           <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}
@@ -142,12 +142,6 @@ export function FeedbackPosts() {
       )}
 
       {isPlatformEmpty && (
-        // <div className="text-muted-foreground border-border flex w-full flex-col items-center justify-center space-y-1 rounded-xl border py-10 text-center">
-        //   <div className="text-base font-medium">
-        //     Be the first to share feedback
-        //   </div>
-        // </div>
-
         <div className="flex flex-col space-y-1 py-3 text-center">
           <span className="text-primary text-base font-medium">
             No feedback yet

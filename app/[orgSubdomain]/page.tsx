@@ -3,7 +3,7 @@ import { FeedbackPosts } from "@/components/app/feedback-posts";
 
 export default function OrgPage() {
   return (
-    <div>
+    <div className="space-y-7">
       <FeedbackForm />
       <FeedbackPosts />
     </div>

@@ -62,7 +62,7 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
             )}
           </TabsList>
         </Tabs>
-        <div className="mt-8">{children}</div>
+        <div className="mt-6">{children}</div>
       </div>
     );
   }

@@ -10,8 +10,9 @@ export default function AdminWidgetPage() {
 
   if (org && org.id) {
     return (
-      <div>
-        <h2 className="h4 mb-4">Embed the widget in your React app</h2>
+      <div className="space-y-5">
+        <h2 className="h5">Widget</h2>
+        {/* <p className="">Embed the widget in your React app</p> */}
         <WidgetDocs
           showTitle={false}
           orgId={org.id}

@@ -20,7 +20,7 @@ export function WidgetDocs({
 
   return (
     <div className="flex flex-col text-left">
-      {showTitle && <h2 className="h4 mb-6">Widget</h2>}
+      {showTitle && <h2 className="h5 mb-6">Widget</h2>}
       <div className="flex flex-col space-y-8">
         <div>
           <h3 className="text-muted-foreground mb-3 text-sm font-medium">
@@ -32,7 +32,7 @@ export function WidgetDocs({
           <h3 className="text-muted-foreground mb-3 text-sm font-medium">
             Place the{" "}
             <code className="bg-muted text-primary relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`FeedbackButton`}</code>{" "}
-            anywhere in your React app (e.g. inside of a menu or sidebar)
+            anywhere in your React app (for example, in a menu or sidebar)
           </h3>
           <Code
             code={overlayWidgetCodeSnippet}

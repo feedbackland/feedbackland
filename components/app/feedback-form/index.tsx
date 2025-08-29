@@ -105,7 +105,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("mb-6")}>
+    <div className={cn("")}>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"

@@ -24,12 +24,16 @@ export function PlansOverview() {
 
     return (
       <div className="">
-        <h3 className="mb-3 text-sm font-medium">Your current plan</h3>
+        <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+          Your current plan
+        </h3>
         <Plan planName={name as "free" | "pro" | "max"} />
 
         {!isMaxPlan && (
           <>
-            <h3 className="mt-12 mb-3 text-sm font-medium">Upgrade to</h3>
+            <h3 className="text-muted-foreground mt-12 mb-3 text-sm font-medium">
+              Upgrade to
+            </h3>
             {isFreePlan && (
               <div className="space-y-4">
                 <Plan planName="pro" />
