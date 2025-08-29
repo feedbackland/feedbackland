@@ -177,7 +177,7 @@ export function PlatformHeaderButtons() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {!inIframe && (
+        {inIframe && (
           <Button
             variant="ghost"
             size="icon"
