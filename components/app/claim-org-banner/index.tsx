@@ -9,7 +9,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 // import { BadgeAlertIcon } from "lucide-react";
-// import { useInIframe } from "@/hooks/use-in-iframe";
+import { useInIframe } from "@/hooks/use-in-iframe";
+import { BadgeAlertIcon } from "lucide-react";
+import { isMobileOnly } from "react-device-detect";
 
 export function ClaimOrgBanner({
   className,
@@ -17,7 +19,7 @@ export function ClaimOrgBanner({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const queryClient = useQueryClient();
-  // const inIframe = useInIframe();
+  const inIframe = useInIframe();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hideBanner, setHideBanner] = useState(false);
   const { signOut, session } = useAuth();
@@ -69,7 +71,7 @@ export function ClaimOrgBanner({
       {isOrgClaimed === false && (
         <div
           className={cn(
-            "flex w-full items-center justify-center rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-3 py-2.5",
+            "flex w-full items-center justify-center bg-yellow-500/10 py-2.5",
             hideBanner && "hidden",
             className,
           )}
@@ -77,16 +79,20 @@ export function ClaimOrgBanner({
           <div
             className={cn(
               "flex w-full flex-1 items-center justify-between gap-2",
+              inIframe ? "px-8" : "px-3 sm:max-w-2xl",
             )}
           >
-            <div className="text-primary flex items-center gap-1.5 text-sm font-medium">
-              Claim ownership and gain admin access.
+            <div className="flex items-center gap-2 text-sm font-medium text-black dark:text-yellow-500">
+              <BadgeAlertIcon
+                className={cn("size-5.5! shrink-0!", { hidden: isMobileOnly })}
+              />
+              <span className="">Claim ownership & gain admin access</span>
             </div>
             <Button
               onClick={handleOpenDialog}
               variant="default"
               size="sm"
-              className="bg-yellow-500 text-black hover:bg-yellow-500"
+              className="bg-yellow-500 text-black hover:bg-yellow-500/80"
             >
               Claim Ownership
             </Button>

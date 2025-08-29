@@ -308,7 +308,7 @@ export const getOverlayWidgetCodeSnippet = ({
   mode="" // 'dark' or 'light', defaults to 'dark'
   text="" // the copy text of the button, defaults to 'Feedback'
   className="" // style the button with Tailwind
-  style="" // or style it with native CSS
+  style={} // or style it with native CSS
   button={} // or bring your own button
 />`;
   }
@@ -320,7 +320,7 @@ export const getOverlayWidgetCodeSnippet = ({
   mode="" // 'dark' or 'light', defaults to 'dark'
   text="" // the copy text of the button, defaults to 'Feedback'
   className="" // style the button with Tailwind
-  style="" // or style it with native CSS
+  style={} // or style it with native CSS
   button={} // or bring your own button
 />`;
 };

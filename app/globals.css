@@ -174,10 +174,6 @@
   --declined: hsl(0 90.6% 70.8%);
 }
 
-html {
-  scrollbar-gutter: stable;
-}
-
 .h1,
 .tiptap-output h1 {
   @apply scroll-m-20 text-4xl font-bold tracking-tight;

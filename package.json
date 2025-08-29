@@ -53,7 +53,7 @@
     "dequal": "^2.0.3",
     "dompurify": "^3.2.6",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^12.1.0",
+    "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
     "geist": "^1.4.2",
     "he": "^1.2.0",
@@ -99,7 +99,7 @@
     "unique-names-generator": "^4.7.1",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "zod": "^4.1.4"
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.12",
