@@ -178,7 +178,14 @@ export function PlatformHeaderButtons() {
         </DropdownMenu>
 
         {inIframe && (
-          <Button variant="link" size="icon" className="mr-[-6] size-7!">
+          <Button
+            variant="link"
+            size="icon"
+            className="mr-[-6] size-7!"
+            onClick={() => {
+              iframeParent?.close();
+            }}
+          >
             <XIcon className="size-4!" />
           </Button>
         )}
