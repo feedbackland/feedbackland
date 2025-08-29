@@ -105,7 +105,7 @@ export function PlatformHeaderButtons() {
             </DropdownMenuTrigger>
           ) : (
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="link" className="size-7!">
+              <Button size="icon" variant="ghost" className="size-7!">
                 <MoreHorizontalIcon className="size-4!" />
                 <span className="sr-only">Open options dropdown</span>
               </Button>
@@ -177,11 +177,11 @@ export function PlatformHeaderButtons() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {inIframe && (
+        {!inIframe && (
           <Button
-            variant="link"
+            variant="ghost"
             size="icon"
-            className="mr-[-6] size-7!"
+            className="size-7!"
             onClick={() => {
               iframeParent?.close();
             }}
