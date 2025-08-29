@@ -1,33 +1,15 @@
 
-<img width="2473" height="1227" alt="feedbackland_github_4" src="https://github.com/user-attachments/assets/8883eb43-3a6a-4933-a890-5c3039cac49a" />
+<img width="2473" height="1318" alt="feedbackland_github_5" src="https://github.com/user-attachments/assets/f5c24123-da71-4d2c-b73e-7833b2dd0ceb" />
 
 &nbsp;
 
-Drop in our widget to capture user feedback. Watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
+Drop in our widget, capture user feedback and watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
 
 ## Get started
 
 [Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
 
 Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
-
-## How Feedbackland works
-
-1. 🗣️ Collect user feedback, votes, and comments right inside your app, at the click of a button.
-
-2. 🤖 AI analyzes everything, connects the dots, surfaces hidden insights, and delivers a prioritized roadmap.
-
-3. 🚀 Use the AI roadmap to build & ship the features and fixes your users care about most. No guesswork needed.
-
-## Why use Feedbackland?
-
-- **Effortlessly capture feedback** - Capturing feedback is incredibly easy with our widget, which embeds in seconds and lets users submit ideas and report bugs directly within your application.
-
-- **Know exactly what to build next** - Our AI analyzes and synthesizes all feedback into a prioritized product roadmap, telling you precisely what users want and what to build next.
-
-- **Engage directly with users** - Directly communicate with users through comments. Discuss feedback, ask questions, and show them you're listening.
-
-- **Keep users in the loop** - Close the feedback loop. Update posts with statuses like 'In Progress' and 'Done' to communicate progress transparently and build trust.
 
 ## Self-host Feedbackland
 
