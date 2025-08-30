@@ -13,11 +13,11 @@ Don't need the widget, or not using React? No problem, [start with the standalon
 
 ## How it works
 
-1. 🗣️ The widget collects user feedback, votes, and comments right inside your app.
+1. 💬 The widget collects user feedback, votes, and comments right inside your app.
 
 2. 🤖 AI analyzes everything, surfaces hidden insights, and uncovers your prioritized roadmap.
 
-3. 🚀 You build with data-driven certainty what users love. No guesswork needed.
+3. 🚀 You build what users love with data-driven certainty. No guesswork needed.
 
 ## Self-host Feedbackland
 
