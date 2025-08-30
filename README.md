@@ -9,7 +9,15 @@ Drop in our widget, capture user feedback and watch as AI analyzes everything, u
 
 [Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
 
-Not interested in the widget or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
+Don't need the widget, or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
+
+## How it works
+
+1. 🗣️ The widget collects user feedback, votes, and comments right inside your app.
+
+2. 🤖 AI analyzes everything, surfaces hidden insights, and uncovers your prioritized roadmap.
+
+3. 🚀 You build with data-driven certainty what users love. No guesswork needed.
 
 ## Self-host Feedbackland
 
