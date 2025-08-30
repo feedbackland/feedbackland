@@ -3,11 +3,11 @@
 
 &nbsp;
 
-Drop in our widget, capture user feedback and watch as AI analyzes everything, uncovers hidden insights, and writes your prioritized roadmap. No manual sorting, no guesswork, just data-driven clarity on what to build next.
+Embed our open-source React widget to capture in-app feedback. AI analyzes it all, uncovers hidden insights, and auto-generates your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
 
 ## Get started
 
-[Embed Feedbackland's widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
+[Embed the widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
 
 Don't need the widget, or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
 
