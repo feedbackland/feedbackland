@@ -5,7 +5,6 @@
 
 1. You add the feedback button to your React or Next.js app in seconds
 2. Your users click on it to submit their ideas, issues, and suggestions
-3. Through upvotes and comments your users highlight what matters most
 4. AI analyzes everything and writes your roadmap
 5. By following the roadmap, you build and ship what users love
 
