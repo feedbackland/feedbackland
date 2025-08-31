@@ -1,31 +1,42 @@
 
-<img width="2473" height="1274" alt="feedbackland_github_6" src="https://github.com/user-attachments/assets/6f42920a-9949-44e8-a907-92e9fd33f7a3" />
+<img width="2473" height="1374" alt="feedbackland_github_7" src="https://github.com/user-attachments/assets/74c7e736-9f18-4291-bb52-8e722e5bcea2" />
 
-&nbsp;
+The feedback button for your React or Next.js app. Captures your user's ideas, issues and suggestions, then auto-generates your perfect roadmap.
 
-Embed our open-source React widget to capture in-app feedback. AI analyzes it all, uncovers hidden insights, and auto-generates your prioritized roadmap. No triaging. No guesswork. Just clarity on what to build next.
+## Get your feedback button
 
-## Get started
+```
+npm i feedbackland-react
+```
 
-[Embed the widget in 30 seconds](https://www.feedbackland.com/#embed) in your React or Next.js app.
+```tsx
+import { FeedbackButton } from 'feedbackland-react';
 
-Don't need the widget, or not using React? No problem, [start with the standalone platform](https://get-started.feedbackland.com).
+<FeedbackButton
+  platformId="A-RANDOMLY-GENERATED-UUIDv4" // generate it here: https://www.uuidtools.com/v4
+  mode="" // 'dark' or 'light', defaults to 'dark'
+  text="" // the copy text of the button, defaults to 'Feedback'
+  className="" // style the button with Tailwind
+  style={} // or style it with native CSS
+  button={} // or bring your own button
+/>
+```
 
 ## How it works
 
-1. 💬 The widget collects user feedback, votes, and comments right inside your app.
+1. 💬 The button collects user feedback, votes, and comments right inside your app.
 
-2. 🤖 AI analyzes everything, surfaces hidden insights, and uncovers your prioritized roadmap.
+2. 🤖 AI analyzes everything, surfaces hidden insights, and uncovers your roadmap.
 
-3. 🚀 You build what users love with data-driven certainty. No guesswork needed.
+3. 🚀 You build what users love
 
-## Self-host Feedbackland
+## Self-host it
 
-Want to self-host Feedbackland? [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+[Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 ## Contact us
 
-Have a question or need support? [Send us an email](mailto:hello@feedbackland.com)
+[Send us an email](mailto:hello@feedbackland.com)
 
 ## Provide feedback
 
