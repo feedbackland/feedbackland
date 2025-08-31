@@ -1,8 +1,6 @@
 
 <img width="2473" height="1374" alt="feedbackland_github_7" src="https://github.com/user-attachments/assets/74c7e736-9f18-4291-bb52-8e722e5bcea2" />
 
-The feedback button for your React or Next.js app. Captures your user's ideas, issues and suggestions, then auto-generates your perfect roadmap.
-
 ## Get your feedback button
 
 ```
