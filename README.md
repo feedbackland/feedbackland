@@ -7,7 +7,7 @@
 2. Your users use the button to submit their ideas, issus and suggestions
 3. Through upvotes and comments your users highlight what matters most
 4. AI analyzes everything and writes your roadmap
-5. You build & ship what users love
+5. You use the roadmap to build & ship what users love
 
 ## Get your feedback button
 
