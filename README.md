@@ -3,10 +3,11 @@
 
 ## How it works
 
-1. You add the button to your React or Next.js app in seconds
-2. Your users use the button to submit their ideas, isseus and suggestions
-3. AI analyzes everything and generates your roadmap.
-4. You build & ship what users love
+1. You add the button to your React or Next.js app
+2. Your users use the button to submit their ideas, issus and suggestions
+3. Through upvotes and comments your users highlight what matters most
+4. AI analyzes everything and writes your roadmap
+5. You build & ship what users love
 
 ## Get your feedback button
 
