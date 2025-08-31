@@ -4,7 +4,7 @@
 ## How it works
 
 1. You add the button to your React or Next.js app
-2. Your users use the button to submit their ideas, issus and suggestions
+2. Your users click the button to submit their ideas, issues, and suggestions
 3. Through upvotes and comments your users highlight what matters most
 4. AI analyzes everything and writes your roadmap
 5. You use the roadmap to build & ship what users love
