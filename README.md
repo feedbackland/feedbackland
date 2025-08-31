@@ -28,7 +28,7 @@ import { FeedbackButton } from 'feedbackland-react';
 />
 ```
 
-## Built with the following awseome open-source projects
+## Built with the following awesome open-source projects
 
 - Shadcn
 - Tailwind
