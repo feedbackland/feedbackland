@@ -22,9 +22,9 @@ import { FeedbackButton } from 'feedbackland-react';
 
 ## How it works
 
-1. 💬 The button collects user feedback, votes, and comments right inside your app.
+1. 💬 The button collects user feedback right inside your app.
 
-2. 🤖 AI analyzes everything, surfaces hidden insights, and generates your roadmap.
+2. 🤖 AI analyzes everything and generates your roadmap.
 
 3. 🚀 You build what users love
 
