@@ -7,7 +7,7 @@
 2. Your users click on it to submit their ideas, issues, and suggestions
 3. Your users upvote and comment on feedback to highlight the best ideas
 4. AI automatically prioritizes and organizes everything into an actionable roadmap
-5. By following the roadmap, you build and ship what users love
+5. By following the roadmap, you build and ship what users love 🚀
 
 ## Get your feedback button
 
