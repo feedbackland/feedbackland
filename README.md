@@ -28,6 +28,20 @@ import { FeedbackButton } from 'feedbackland-react';
 />
 ```
 
+## Built with the following awseome open-source projects
+
+- Shadcn
+- Tailwind
+- Next.js
+- tRPC
+- TanStack Query
+- Kysely
+- Tiptap
+- Polar
+- React Hook Form
+- Zod
+- Supabase
+
 ## Self-host it
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
