@@ -4,9 +4,9 @@
 ## How it works
 
 1. Add the feedback button to your React or Next.js app in seconds
-2. Your users click on it to submit their ideas/issues, and upvote and comment on feedback
-3. AI automatically prioritizes and organizes everything into an actionable roadmap
-4. By following the roadmap, you build and ship what users love 🚀
+2. Users submit ideas and issues, upvote and comment.
+3. AI clusters, prioritizes, and turns it all into an actionable roadmap.
+4. Follow the roadmap to ship what users love. 🚀
 
 ## Get your feedback button
 
