@@ -1,6 +1,13 @@
 
 <img width="2473" height="1274" alt="feedbackland_github_9" src="https://github.com/user-attachments/assets/c0828924-7055-4deb-b8bd-22e0ee41cbe1" />
 
+## How it works
+
+1. You add the button to your React or Next.js app in seconds
+2. Your users use the button to submit their ideas, isseus and suggestions
+3. AI analyzes everything and generates your roadmap.
+4. You build & ship what users love
+
 ## Get your feedback button
 
 ```
@@ -19,14 +26,6 @@ import { FeedbackButton } from 'feedbackland-react';
   button={} // or bring your own button
 />
 ```
-
-## How it works
-
-1. 👂 The button captures user feedback right inside your app.
-
-2. 🤖 AI analyzes everything and generates your roadmap.
-
-3. 🚀 You build & ship what users love
 
 ## Self-host it
 
