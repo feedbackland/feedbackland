@@ -61,9 +61,13 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider
+          // attribute="class"
+          // defaultTheme="dark"
+          // enableSystem={false}
+          // disableTransitionOnChange
           attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
           <TRPCClientProvider>
@@ -72,9 +76,9 @@ export default function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
-                      <Suspense>
+                      {/* <Suspense>
                         <ProcessModeParam />
-                      </Suspense>
+                      </Suspense> */}
                       {children}
                       <Toaster />
                     </IframeProvider>
