@@ -40,7 +40,7 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
   }, [iframeParent, setIframeParent, setTheme]);
 
   useEffect(() => {
-    if (!!iframeParent && iframeParent) {
+    if (!!iframeParent && isColorModeSet) {
       iframeParent.setLoaded(true);
     }
   }, [iframeParent, isColorModeSet]);
