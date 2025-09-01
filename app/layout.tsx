@@ -50,9 +50,18 @@ const roboto_mono = Roboto_Mono({
 
 export default function RootLayout({
   children,
+  searchParams,
 }: Readonly<{
   children: React.ReactNode;
+  searchParams: { [key: string]: string | string[] | undefined };
 }>) {
+  const themeFromUrl = searchParams?.mode;
+
+  const validatedTheme =
+    themeFromUrl === "light" || themeFromUrl === "dark"
+      ? themeFromUrl
+      : "system";
+
   return (
     <html
       lang="en"
@@ -61,14 +70,11 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider
-          // attribute="class"
-          // defaultTheme="dark"
-          // enableSystem={false}
-          // disableTransitionOnChange
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          forcedTheme={validatedTheme}
         >
           <TRPCClientProvider>
             <AuthProvider>

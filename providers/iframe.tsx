@@ -5,11 +5,9 @@ import { useEffect } from "react";
 import { IframeParentAPI } from "@/lib/typings";
 import { useSetAtom } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
-import { useTheme } from "next-themes";
 
 export function IframeProvider({ children }: { children: React.ReactNode }) {
   const setIframeParent = useSetAtom(iframeParentAtom);
-  const { setTheme } = useTheme();
 
   useEffect(() => {
     const messenger = new WindowMessenger({
@@ -19,11 +17,6 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
 
     const connection = connect<IframeParentAPI>({
       messenger,
-      methods: {
-        setColorMode: (colorMode: "light" | "dark") => {
-          setTheme(colorMode);
-        },
-      },
     });
 
     connection.promise.then((parent) => {
@@ -34,7 +27,7 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
       setIframeParent(null);
       connection.destroy();
     };
-  }, [setIframeParent, setTheme]);
+  }, [setIframeParent]);
 
   return children;
 }
