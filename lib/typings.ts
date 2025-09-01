@@ -72,6 +72,5 @@ export type InsightData = {
 };
 
 export type IframeParentAPI = {
-  setLoaded: (loaded: boolean) => void;
   close: () => void;
 };

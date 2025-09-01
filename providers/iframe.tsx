@@ -1,15 +1,14 @@
 "use client";
 
 import { WindowMessenger, connect } from "penpal";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IframeParentAPI } from "@/lib/typings";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { iframeParentAtom } from "@/lib/atoms";
 import { useTheme } from "next-themes";
 
 export function IframeProvider({ children }: { children: React.ReactNode }) {
-  const [isColorModeSet, setIsColorModeSet] = useState(false);
-  const [iframeParent, setIframeParent] = useAtom(iframeParentAtom);
+  const setIframeParent = useSetAtom(iframeParentAtom);
   const { setTheme } = useTheme();
 
   useEffect(() => {
@@ -23,14 +22,12 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
       methods: {
         setColorMode: (colorMode: "light" | "dark") => {
           setTheme(colorMode);
-          setIsColorModeSet(true);
         },
       },
     });
 
     connection.promise.then((parent) => {
       setIframeParent(parent);
-      // parent.setLoaded(true);
     });
 
     return () => {
@@ -38,12 +35,6 @@ export function IframeProvider({ children }: { children: React.ReactNode }) {
       connection.destroy();
     };
   }, [setIframeParent, setTheme]);
-
-  useEffect(() => {
-    if (!!iframeParent && isColorModeSet) {
-      iframeParent.setLoaded(true);
-    }
-  }, [iframeParent, isColorModeSet]);
 
   return children;
 }
