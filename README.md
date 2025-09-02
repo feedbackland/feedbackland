@@ -7,12 +7,14 @@ Feedbackland is an open-source, easily embeddable feedback platform. Use it to c
 
 ## How it works
 
-1. Add the feedback button to your React or Next.js app in seconds
+1. Add our widget (aka 'the feedback button') to your React or Next.js app in seconds
 2. Users submit ideas and issues, upvote and comment.
 3. AI clusters, prioritizes, and turns it all into an actionable roadmap.
 4. Follow the roadmap to ship what users love. 🚀
 
-## Get your feedback button
+## Get started
+
+To start, simply add the snippet below to your React or Next.js app.
 
 ```
 npm i feedbackland-react
