@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
@@ -27,15 +27,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [searchParams, pathname, router]);
 
   return (
-    <Suspense>
-      <NextThemesProvider
-        attribute="class"
-        enableSystem={false}
-        disableTransitionOnChange
-        defaultTheme={mode}
-      >
-        {children}
-      </NextThemesProvider>
-    </Suspense>
+    <NextThemesProvider
+      attribute="class"
+      enableSystem={false}
+      disableTransitionOnChange
+      defaultTheme={mode}
+    >
+      {children}
+    </NextThemesProvider>
   );
 }

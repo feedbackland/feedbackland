@@ -60,25 +60,27 @@ export default function RootLayout({
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
       <body>
-        <ThemeProvider>
-          <TRPCClientProvider>
-            <AuthProvider>
-              <TooltipProvider>
-                <JotaiProvider>
-                  <NuqsAdapter>
-                    <IframeProvider>
-                      {/* <Suspense>
+        <Suspense>
+          <ThemeProvider>
+            <TRPCClientProvider>
+              <AuthProvider>
+                <TooltipProvider>
+                  <JotaiProvider>
+                    <NuqsAdapter>
+                      <IframeProvider>
+                        {/* <Suspense>
                         <ProcessModeParam />
                       </Suspense> */}
-                      {children}
-                      <Toaster />
-                    </IframeProvider>
-                  </NuqsAdapter>
-                </JotaiProvider>
-              </TooltipProvider>
-            </AuthProvider>
-          </TRPCClientProvider>
-        </ThemeProvider>
+                        {children}
+                        <Toaster />
+                      </IframeProvider>
+                    </NuqsAdapter>
+                  </JotaiProvider>
+                </TooltipProvider>
+              </AuthProvider>
+            </TRPCClientProvider>
+          </ThemeProvider>
+        </Suspense>
       </body>
     </html>
   );
