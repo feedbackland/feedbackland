@@ -60,19 +60,16 @@ export default function RootLayout({
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider>
           <TRPCClientProvider>
             <AuthProvider>
               <TooltipProvider>
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
-                      <ProcessModeParam />
+                      {/* <Suspense>
+                        <ProcessModeParam />
+                      </Suspense> */}
                       {children}
                       <Toaster />
                     </IframeProvider>
