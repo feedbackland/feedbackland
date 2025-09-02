@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 ## How it works
 
 1. Add our widget (aka 'the feedback button') to your React or Next.js app in seconds
-2. Users submit ideas and issues, upvote and comment.
+2. Users submit ideas and issues, and upvote and comment on feedback.
 3. AI clusters, prioritizes, and turns it all into an actionable roadmap.
 4. Follow the roadmap to ship what users love. 🚀
 
