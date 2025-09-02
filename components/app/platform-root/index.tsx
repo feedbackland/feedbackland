@@ -17,7 +17,7 @@ export default function PlatformRoot({
         className={cn(
           "m-auto flex w-full grow flex-col justify-between",
           inIframe
-            ? "px-4 py-4 sm:px-6"
+            ? "px-4 py-4 sm:px-8"
             : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-2xl",
         )}
       >

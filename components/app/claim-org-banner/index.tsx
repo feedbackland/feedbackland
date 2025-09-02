@@ -79,7 +79,7 @@ export function ClaimOrgBanner({
           <div
             className={cn(
               "flex w-full flex-1 items-center justify-between gap-2",
-              inIframe ? "px-8" : "px-3 sm:max-w-2xl",
+              inIframe ? "px-4 sm:px-8" : "px-3 sm:max-w-2xl",
             )}
           >
             <div className="flex items-center gap-2 text-sm font-medium text-black dark:text-yellow-500">
