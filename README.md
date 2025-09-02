@@ -1,5 +1,9 @@
 
-<img width="2473" height="1274" alt="feedbackland_github_9" src="https://github.com/user-attachments/assets/c0828924-7055-4deb-b8bd-22e0ee41cbe1" />
+<img width="2473" height="1227" alt="feedbackland_github_10" src="https://github.com/user-attachments/assets/7dd21cad-e0a3-49af-a23c-c300cea9cd1d" />
+
+## About
+
+Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your app. Then let AI automatically analyze and transformm all user inputs into a prioritized roadmap.
 
 ## How it works
 
