@@ -72,9 +72,7 @@ export default function RootLayout({
                 <JotaiProvider>
                   <NuqsAdapter>
                     <IframeProvider>
-                      <Suspense>
-                        <ProcessModeParam />
-                      </Suspense>
+                      <ProcessModeParam />
                       {children}
                       <Toaster />
                     </IframeProvider>
