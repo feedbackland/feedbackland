@@ -10,6 +10,9 @@ const MinimalTiptapEditor = dynamic(
       ({ MinimalTiptapEditor }) => MinimalTiptapEditor,
     ),
   {
+    loading: () => (
+      <div className="border-input dark:bg-input/30 bg-input/30 h-[93px] w-full rounded-lg border shadow-xs" />
+    ),
     ssr: false,
   },
 );
