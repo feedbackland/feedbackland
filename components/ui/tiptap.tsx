@@ -11,7 +11,7 @@ const MinimalTiptapEditor = dynamic(
     ),
   {
     loading: () => (
-      <div className="border-input dark:bg-input/30 bg-input/30 h-[93px] w-full rounded-lg border shadow-xs" />
+      <div className="border-input bg-background! h-[93px] w-full rounded-lg border shadow-xs" />
     ),
     ssr: false,
   },
@@ -64,7 +64,7 @@ export const Tiptap = ({
     <MinimalTiptapEditor
       value={value}
       className={cn(
-        "bg-input/30 rounded-lg",
+        "bg-background! rounded-lg",
         isFocused && "ring-ring ring-1",
         className,
       )}

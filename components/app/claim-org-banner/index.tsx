@@ -86,7 +86,9 @@ export function ClaimOrgBanner({
               <BadgeAlertIcon
                 className={cn("size-5.5! shrink-0!", { hidden: isMobileOnly })}
               />
-              <span className="">Claim ownership & gain admin access</span>
+              <span className="">
+                Claim ownership to generate your first AI Roadmap
+              </span>
             </div>
             <Button
               onClick={handleOpenDialog}
