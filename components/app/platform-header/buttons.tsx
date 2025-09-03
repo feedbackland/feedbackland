@@ -10,7 +10,6 @@ import {
   MoreHorizontalIcon,
   ShieldIcon,
   UserIcon,
-  XIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,10 +26,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
-import { useAtomValue } from "jotai";
-import { iframeParentAtom } from "@/lib/atoms";
 import { AccountSettings } from "@/components/app/account-settings";
-import { useInIframe } from "@/hooks/use-in-iframe";
+// import { useAtomValue } from "jotai";
+// import { iframeParentAtom } from "@/lib/atoms";
+// import { useInIframe } from "@/hooks/use-in-iframe";
 
 export function PlatformHeaderButtons() {
   const pathname = usePathname();
@@ -40,9 +39,9 @@ export function PlatformHeaderButtons() {
   const { session, signOut, isAdmin } = useAuth();
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
-  const iframeParent = useAtomValue(iframeParentAtom);
   const { theme, setTheme } = useTheme();
-  const inIframe = useInIframe();
+  // const iframeParent = useAtomValue(iframeParentAtom);
+  // const inIframe = useInIframe();
 
   const handleSignOut = async () => {
     await signOut();
@@ -176,7 +175,7 @@ export function PlatformHeaderButtons() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {inIframe && (
+        {/* {inIframe && (
           <Button
             variant="ghost"
             size="icon"
@@ -187,7 +186,7 @@ export function PlatformHeaderButtons() {
           >
             <XIcon className="size-4!" />
           </Button>
-        )}
+        )} */}
       </div>
     </>
   );

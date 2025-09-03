@@ -10,8 +10,8 @@ import { useOrg } from "@/hooks/use-org";
 import { useQueryClient } from "@tanstack/react-query";
 // import { BadgeAlertIcon } from "lucide-react";
 import { useInIframe } from "@/hooks/use-in-iframe";
-import { BadgeAlertIcon } from "lucide-react";
-import { isMobileOnly } from "react-device-detect";
+// import { BadgeAlertIcon } from "lucide-react";
+// import { isMobileOnly } from "react-device-detect";
 
 export function ClaimOrgBanner({
   className,
