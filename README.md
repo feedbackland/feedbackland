@@ -1,4 +1,4 @@
-# Feedbackland
+# Feedbackland -  Know what to build next
 
 Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your, or as a standalone website. Then let AI automatically analyze and transform all collected user feedback, upvotes & comments into a prioritized roadmap.
 
