@@ -1,14 +1,19 @@
+# Feedbackland
 
-<img width="2473" height="1274" alt="feedbackland_github_9" src="https://github.com/user-attachments/assets/c0828924-7055-4deb-b8bd-22e0ee41cbe1" />
+Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your app using our widget, or as a standalone website. Then let AI automatically analyze and transform all collected user feedback, upvotes & comments into a prioritized roadmap.
+
+https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
 ## How it works
 
-1. Add the feedback button to your React or Next.js app in seconds
-2. Users submit ideas and issues, upvote and comment.
-3. AI clusters, prioritizes, and turns it all into an actionable roadmap.
-4. Follow the roadmap to ship what users love. 🚀
+1. Add our widget (aka 'the feedback button') to your React or Next.js app in seconds
+2. Users click the button to submit ideas and issues, view feedback, and upvote and comment on it.
+3. AI analyzes all feedback, uncovers patterns and themes, and writes an actionable roadmap.
+4. You follow the roadmap to ship what users love. 🚀
 
-## Get your feedback button
+## Get started
+
+To start, simply add the snippet below to your React or Next.js app.
 
 ```
 npm i feedbackland-react
@@ -19,7 +24,7 @@ import { FeedbackButton } from 'feedbackland-react';
 
 <FeedbackButton
   platformId="A-RANDOMLY-GENERATED-UUIDv4" // generate it here: https://www.uuidtools.com/v4
-  mode="" // 'dark' or 'light', defaults to 'dark'
+  mode="" // 'dark' or 'light', defaults to 'light'
   text="" // the copy text of the button, defaults to 'Feedback'
   className="" // style the button with Tailwind
   style={} // or style it with native CSS
