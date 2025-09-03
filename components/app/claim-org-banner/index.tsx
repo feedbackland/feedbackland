@@ -79,15 +79,16 @@ export function ClaimOrgBanner({
           <div
             className={cn(
               "flex w-full flex-1 items-center justify-between gap-2",
-              inIframe ? "px-4 sm:px-8" : "px-3 sm:max-w-2xl",
+              inIframe ? "xs:px-8 px-4" : "px-3 sm:max-w-2xl",
             )}
           >
             <div className="flex items-center gap-2 text-sm font-medium text-black dark:text-yellow-500">
-              <BadgeAlertIcon
+              {/* <BadgeAlertIcon
                 className={cn("size-5.5! shrink-0!", { hidden: isMobileOnly })}
-              />
+              /> */}
               <span className="">
-                Claim ownership to generate your first AI Roadmap
+                This is a new, unclaimed platform. Claim ownership to gain admin
+                access and make it yours!
               </span>
             </div>
             <Button
