@@ -1,6 +1,6 @@
-# Feedbackland -  Know what to build next
+# Feedbackland
 
-Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your, or as a standalone website. Then let AI automatically analyze and transform all collected user feedback, upvotes & comments into a prioritized roadmap.
+Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your app, or as a standalone website. Then let AI automatically analyze all collected feedback and write your prioritized roadmap. So you know exactly what to build next.
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
