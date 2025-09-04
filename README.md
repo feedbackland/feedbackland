@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 ## Get started
 [Get your feedback button](https://www.feedbackland.com/#embed). Add it to your React or Next.js app in 30 seconds.
 
-Don't need in-app feedback? [Start with a standalone](https://get-started.feedbackland.com/).
+Don't need in-app feedback? [Start with a standalone platform](https://get-started.feedbackland.com/).
 
 ## Built with the following awesome open-source projects
 
