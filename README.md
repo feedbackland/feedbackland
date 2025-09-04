@@ -12,22 +12,22 @@ https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 4. You follow the roadmap to ship what users love. 🚀
 
 ## Get started
-
-[Create your platform](https://get-started.feedbackland.com/) in 30 seconds.
+[Get your feedback button](https://www.feedbackland.com/#embed). Add it to your React or Next.js app in 30 seconds.
+Don't need in-app feedback? [Start with a standalone](https://get-started.feedbackland.com/).
 
 ## Built with the following awesome open-source projects
 
-- Shadcn
-- Tailwind
-- Next.js
-- tRPC
-- TanStack Query
-- Kysely
-- Tiptap
-- Polar
-- React Hook Form
-- Zod
-- Supabase
+- [Shadcn](https://github.com/shadcn-ui/ui)
+- [Tailwind](https://github.com/tailwindlabs/tailwindcss)
+- [Next.js](https://github.com/vercel/next.js)
+- [tRPC](https://github.com/trpc/trpc)
+- [TanStack Query](https://github.com/TanStack/query)
+- [Kysely](https://github.com/kysely-org/kysely)
+- [Tiptap](https://github.com/ueberdosis/tiptap)
+- [Polar](https://github.com/polarsource/polar)
+- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
+- [Zod](https://github.com/colinhacks/zod)
+- [Supabase](https://github.com/supabase/supabase)
 
 ## Self-host it
 
