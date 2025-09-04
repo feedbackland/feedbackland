@@ -53,7 +53,7 @@ export const upsertOrgQuery = async ({ orgId }: { orgId: string }) => {
           .insertInto("feedback")
           .values([
             {
-              title: "Example post - Add a dark mode to the IU",
+              title: "Example post - Add a dark mode option",
               description:
                 "I often use the platform late at night, and the bright white interface can be quite harsh on the eyes in a dark room. So having the option to toggle on a dark mode would be great!",
               category: "feature request",
