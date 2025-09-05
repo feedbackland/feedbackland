@@ -1,6 +1,6 @@
 # Feedbackland - The smart feedback button for your app
 
-Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your app, at the click of a button. Then let AI automatically analyze all collected feedback and write your prioritized roadmap. So you know exactly what to build next.
+Feedbackland is an open-source, easily embeddable feedback button that captures your user's ideas and suggestion directly in your app. Then lets AI analyze all collected feedback and automatically writes your prioritized roadmap. So you know exactly what to build next.
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
