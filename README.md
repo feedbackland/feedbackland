@@ -6,15 +6,15 @@ https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
 ## How it works
 
-1. Add our widget (aka 'the feedback button') to your React or Next.js app in seconds
-2. Users click the button to submit ideas and issues, view feedback, and upvote and comment on it.
+1. Add our feedback button to your React or Next.js app in seconds
+2. Users click the button to submit ideas and issues, view, upvote and comment on feedback.
 3. AI analyzes all feedback, uncovers patterns and themes, and writes an actionable roadmap.
 4. You follow the roadmap to ship what users love. 🚀
 
 ## Get started
 [Get your feedback button](https://www.feedbackland.com/#embed). Add it to your React or Next.js app in 30 seconds.
 
-Don't need in-app feedback? [Start with a standalone platform](https://get-started.feedbackland.com/).
+Don't need in-app feedback, or not using React? [Start with a standalone platform](https://get-started.feedbackland.com/).
 
 ## Built with the following awesome open-source projects
 
@@ -30,7 +30,7 @@ Don't need in-app feedback? [Start with a standalone platform](https://get-start
 - [Zod](https://github.com/colinhacks/zod)
 - [Supabase](https://github.com/supabase/supabase)
 
-## Self-host it
+## Self-host Feedbackland
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
