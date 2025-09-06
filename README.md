@@ -1,4 +1,4 @@
-# Feedbackland - The smart, open-source feedback button
+# Feedbackland - The smart feedback button
 
 Feedbackland is an open-source, easily embeddable feedback button that captures your user's ideas and suggestion directly in your app. Then lets AI analyze all collected feedback and automatically writes your prioritized roadmap. So you know exactly what to build next.
 
