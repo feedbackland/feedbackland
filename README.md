@@ -4,13 +4,6 @@ Feedbackland is an open-source feedback button that captures your users' ideas a
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
-## How it works
-
-1. Add the feedback button to your React or Next.js app in seconds
-2. Your users click the button to submit their ideas and issues, as well as vote adn comment on feedback.
-3. AI analyzes all feedback, votes and comments, uncovers patterns and themes, and writes an actionable roadmap.
-4. You follow the roadmap to ship what your users love. 🚀
-
 ## Add the feedback button to your app
 
 ```
