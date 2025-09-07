@@ -1,14 +1,14 @@
 # Feedbackland - The smart feedback button
 
-Feedbackland is an open-source, easily embeddable feedback button that captures your user's ideas and suggestion directly in your app. Then lets AI analyze all collected feedback and automatically writes your prioritized roadmap. So you know exactly what to build next.
+Feedbackland is an open-source feedback button that captures your users' ideas and suggestions directly in your app. Then, AI analyzes all the collected feedback and automatically turns it into a prioritized roadmap.
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
 ## How it works
 
 1. Add the feedback button to your React or Next.js app in seconds
-2. Your users click the button to submit their ideas and issues.
-3. AI analyzes all feedback, uncovers patterns and themes, and writes an actionable roadmap.
+2. Your users click the button to submit their ideas and issues, as well as vote adn comment on feedback.
+3. AI analyzes all feedback, votes and comments, uncovers patterns and themes, and writes an actionable roadmap.
 4. You follow the roadmap to ship what your users love. 🚀
 
 ## Get started
