@@ -4,14 +4,14 @@ Feedbackland captures your users' ideas and suggestions directly in your app, th
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
-## Add the feedback button to your app
+## Add to your app
 
 Install the package
 ```
 npm i feedbackland-react
 ```
 
-Import and add the feedback button to your UI (for example, in a sidebar or menu)
+Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
 ```
 import { FeedbackButton } from 'feedbackland-react';
 ```
