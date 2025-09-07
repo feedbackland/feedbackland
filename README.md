@@ -1,6 +1,6 @@
 # Feedbackland - Open-source smart feedback in 1 line of code
 
-Feedbackland captures your users' ideas and suggestions directly in your app, then AI-analyzes all the collected feedback and automatically turns it into a prioritized plan. So you know exactly what to build next. All in 1 line of code.
+Feedbackland captures your users' ideas and suggestions directly in your app, then analyzes, clusters and interprets all the collected feedback and automatically turns it into a prioritized AI roadmap. So you know exactly what to build next. All in 1 line of code.
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
