@@ -1,27 +1,26 @@
-# Feedbackland - The smart feedback button
+# Feedbackland - Open-source smart feedback in 1 line of code
 
-Feedbackland is an open-source feedback button that captures your users' ideas and suggestions directly in your app. Then, AI analyzes all the collected feedback and automatically turns it into a prioritized roadmap.
+Feedbackland captures your users' ideas and suggestions directly in your app, then AI-analyzes all the collected feedback and automatically turns it into a prioritized plan. So you know exactly what to build next. All in 1 line of code.
 
 https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
 
 ## Add the feedback button to your app
 
+Install the package
 ```
 npm i feedbackland-react
 ```
 
-```tsx
-import { FeedbackButton } from 'feedbackland-react';
-
-<FeedbackButton
-  platformId="<RANDOMLY-GENERATED-UUIDV4" // generate one here: https://www.uuidtools.com/v4
-  mode="" // 'dark' or 'light', defaults to 'light'
-  text="" // the copy text of the button, defaults to 'Feedback'
-  className="" // style the button with Tailwind
-  style={} // or style it with native CSS
-  button={} // or bring your own button
-/>
+Import and add the feedbck button to your UI (for example, in a sidebar or menu)
 ```
+import { FeedbackButton } from 'feedbackland-react';
+```
+
+```
+<FeedbackButton platformId="<A-RANDOMLY-GENERATED-UUIDV4>" />
+```
+
+Note: You can generate your UUID [here](https://www.uuidtools.com/v4).
 
 ## Built with the following awesome open-source projects
 
