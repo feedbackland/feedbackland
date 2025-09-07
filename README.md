@@ -11,7 +11,7 @@ Install the package
 npm i feedbackland-react
 ```
 
-Import and add the feedbck button to your UI (for example, in a sidebar or menu)
+Import and add the feedback button to your UI (for example, in a sidebar or menu)
 ```
 import { FeedbackButton } from 'feedbackland-react';
 ```
