@@ -1,5 +1,7 @@
 
-<img width="2421" height="1454" alt="github_banner_2" src="https://github.com/user-attachments/assets/c62310f0-80ed-4c01-9b2b-f63e24430ca7" />
+<img width="2421" height="1436" alt="github_banner_3" src="https://github.com/user-attachments/assets/4bbc511b-0e3a-4fd2-8bf9-214baa3d5a4b" />
+
+&nbsp;
 
 Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
 
