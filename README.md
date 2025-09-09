@@ -3,9 +3,9 @@
 
 &nbsp;
 
-Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
+Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app at the click of a button, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
 
-## Add Feedbackland to your React or Next.js app in seconds
+## Add the feedback button to your React or Next.js app in seconds
 
 Install the package
 ```
