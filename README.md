@@ -1,9 +1,7 @@
 
-<img width="2421" height="274" alt="github_logo" src="https://github.com/user-attachments/assets/ba07953b-3652-41bf-935c-153cb03e698b" />
+<img width="2421" height="1454" alt="github_banner_2" src="https://github.com/user-attachments/assets/cd8002b9-e669-47de-aadf-905e96df237a" />
 
 Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
-
-<img width="2421" height="1271" alt="github_banner" src="https://github.com/user-attachments/assets/1eaea510-1a20-4e95-8015-84e0458a6eff" />
 
 ## Add Feedbackland to your React or Next.js app in seconds
 
