@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAtomValue } from "jotai";
-import { previousPathnameAtom } from "@/lib/atoms";
+// import { useAtomValue } from "jotai";
+// import { previousPathnameAtom } from "@/lib/atoms";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import {
   Tooltip,
@@ -19,15 +19,21 @@ export const GoBackButton = ({
   className?: React.ComponentProps<"div">["className"];
 }) => {
   const router = useRouter();
-  const previousPathname = useAtomValue(previousPathnameAtom);
+  // const previousPathname = useAtomValue(previousPathnameAtom);
   const platformUrl = usePlatformUrl();
 
   const handleGoBack = () => {
-    if (previousPathname) {
-      router.back();
+    if (window.history.length > 1) {
+      window.history.go(-1);
     } else if (platformUrl) {
       router.push(platformUrl);
     }
+
+    // if (previousPathname) {
+    //   router.back();
+    // } else if (platformUrl) {
+    //   router.push(platformUrl);
+    // }
   };
 
   return (
