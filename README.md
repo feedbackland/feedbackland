@@ -5,7 +5,7 @@
 
 Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app at the click of a button, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
 
-## Add the feedback button to your React or Next.js app in seconds
+## Get started
 
 Install the package
 ```
@@ -26,8 +26,9 @@ import { FeedbackButton } from 'feedbackland-react';
   style={} // or style it with CSS
 />
 ```
+That's it! All you have to do now is deploy your app to start collecting in-app feedback and generate your first roadmap!
 
-Note: You can generate your UUID [here](https://www.uuidtools.com/v4).
+Note: You can generate your a UUID to serve as your platformId [here](https://www.uuidtools.com/v4).
 
 ## Self-host Feedbackland
 
