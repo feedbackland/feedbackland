@@ -29,20 +29,6 @@ import { FeedbackButton } from 'feedbackland-react';
 
 Note: You can generate your UUID [here](https://www.uuidtools.com/v4).
 
-## Built with the following awesome open-source projects
-
-- [Shadcn](https://github.com/shadcn-ui/ui)
-- [Tailwind](https://github.com/tailwindlabs/tailwindcss)
-- [Next.js](https://github.com/vercel/next.js)
-- [tRPC](https://github.com/trpc/trpc)
-- [TanStack Query](https://github.com/TanStack/query)
-- [Kysely](https://github.com/kysely-org/kysely)
-- [Tiptap](https://github.com/ueberdosis/tiptap)
-- [Polar](https://github.com/polarsource/polar)
-- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
-- [Zod](https://github.com/colinhacks/zod)
-- [Supabase](https://github.com/supabase/supabase)
-
 ## Self-host Feedbackland
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
