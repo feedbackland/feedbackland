@@ -1,35 +1,49 @@
-# Feedbackland
 
-Feedbackland is an open-source, easily embeddable feedback platform. Use it to capture your user's ideas and suggestion directly in your app, or as a standalone website. Then let AI automatically analyze all collected feedback and write your prioritized roadmap. So you know exactly what to build next.
+<img width="2421" height="1454" alt="github_banner_4" src="https://github.com/user-attachments/assets/96a1784d-dff3-4e32-b87d-bc38302c6bc0" />
 
-https://github.com/user-attachments/assets/6992c85b-704c-48a5-b571-131b94d89087
+&nbsp;
 
-## How it works
+Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app at the click of a button, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
 
-1. Add our widget (aka 'the feedback button') to your React or Next.js app in seconds
-2. Users click the button to submit ideas and issues, view feedback, and upvote and comment on it.
-3. AI analyzes all feedback, uncovers patterns and themes, and writes an actionable roadmap.
-4. You follow the roadmap to ship what users love. 🚀
+## Add the feedback button to your React or Next.js app in seconds
 
-## Get started
+Install the package
+```
+npm i feedbackland-react
+```
 
-[Create your platform](https://get-started.feedbackland.com/) in 30 seconds.
+Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
+```
+import { FeedbackButton } from 'feedbackland-react';
+```
+
+```tsx
+<FeedbackButton 
+  platformId="<A-RANDOMLY-GENERATED-UUIDV4>" // generate one here: https://www.uuidtools.com/v4
+  mode="light" // the color mode of the widget, 'light' or 'dark'
+  copy="Feedback" // the text of the button
+  className="" // style the button with Tailwind
+  style={} // or style it with CSS
+/>
+```
+
+Note: You can generate your UUID [here](https://www.uuidtools.com/v4).
 
 ## Built with the following awesome open-source projects
 
-- Shadcn
-- Tailwind
-- Next.js
-- tRPC
-- TanStack Query
-- Kysely
-- Tiptap
-- Polar
-- React Hook Form
-- Zod
-- Supabase
+- [Shadcn](https://github.com/shadcn-ui/ui)
+- [Tailwind](https://github.com/tailwindlabs/tailwindcss)
+- [Next.js](https://github.com/vercel/next.js)
+- [tRPC](https://github.com/trpc/trpc)
+- [TanStack Query](https://github.com/TanStack/query)
+- [Kysely](https://github.com/kysely-org/kysely)
+- [Tiptap](https://github.com/ueberdosis/tiptap)
+- [Polar](https://github.com/polarsource/polar)
+- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
+- [Zod](https://github.com/colinhacks/zod)
+- [Supabase](https://github.com/supabase/supabase)
 
-## Self-host it
+## Self-host Feedbackland
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
