@@ -1,11 +1,11 @@
 
-<img width="2421" height="1454" alt="github_banner_4" src="https://github.com/user-attachments/assets/96a1784d-dff3-4e32-b87d-bc38302c6bc0" />
+<img width="2421" height="1454" alt="github_banner_5" src="https://github.com/user-attachments/assets/bc34e51e-8808-4359-afda-e8d73fc022ed" />
 
 &nbsp;
 
 Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app at the click of a button, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
 
-## Add the feedback button to your React or Next.js app in seconds
+## Get started
 
 Install the package
 ```
@@ -26,22 +26,9 @@ import { FeedbackButton } from 'feedbackland-react';
   style={} // or style it with CSS
 />
 ```
+That's it! All you have to do now is deploy your app to start collecting in-app feedback and generate your first roadmap!
 
-Note: You can generate your UUID [here](https://www.uuidtools.com/v4).
-
-## Built with the following awesome open-source projects
-
-- [Shadcn](https://github.com/shadcn-ui/ui)
-- [Tailwind](https://github.com/tailwindlabs/tailwindcss)
-- [Next.js](https://github.com/vercel/next.js)
-- [tRPC](https://github.com/trpc/trpc)
-- [TanStack Query](https://github.com/TanStack/query)
-- [Kysely](https://github.com/kysely-org/kysely)
-- [Tiptap](https://github.com/ueberdosis/tiptap)
-- [Polar](https://github.com/polarsource/polar)
-- [React Hook Form](https://github.com/react-hook-form/react-hook-form)
-- [Zod](https://github.com/colinhacks/zod)
-- [Supabase](https://github.com/supabase/supabase)
+Note: You can generate a UUID to serve as your platformId [here](https://www.uuidtools.com/v4).
 
 ## Self-host Feedbackland
 
