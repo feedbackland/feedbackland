@@ -64,14 +64,14 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                     <>
                       {isProPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$19</span>/month or
-                          $190/year
+                          <span className="-mb-0.5 text-2xl">$9</span>/month or
+                          $90/year
                         </span>
                       )}
                       {isMaxPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$49</span>/month or
-                          $490/year
+                          <span className="-mb-0.5 text-2xl">$19</span>/month or
+                          $190/year
                         </span>
                       )}
                     </>
