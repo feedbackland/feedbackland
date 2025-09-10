@@ -1,45 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkRehype from "remark-rehype";
-import rehypePrettyCode from "rehype-pretty-code";
-import rehypeStringify from "rehype-stringify";
 import { CopyButton } from "./copy-button";
 import { cn } from "@/lib/utils";
+import { codeToHtml } from "shiki";
 
 export function Code({
   code,
-  language = "ts",
-  showLineNumbers = false,
   className,
 }: {
   code: string;
-  language?: string;
-  showLineNumbers?: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const [highlightedCode, setHighlightedCode] = useState("");
+  const [highlightedCode, setHighlightedCode] = useState(code);
 
   useEffect(() => {
     async function highlight() {
-      const result = await unified()
-        .use(remarkParse)
-        .use(remarkRehype)
-        .use(rehypePrettyCode, {
-          keepBackground: false,
-          theme: "poimandres",
-          defaultLang: language,
-        })
-        .use(rehypeStringify)
-        .process("```" + language + "\n" + code + "\n```");
+      const html = await codeToHtml(code, {
+        lang: "tsx",
+        theme: "github-dark",
+        transformers: [
+          {
+            pre(node) {
+              // remove background style
+              delete node.properties.style;
+            },
+          },
+        ],
+      });
 
-      setHighlightedCode(String(result));
+      setHighlightedCode(html);
     }
 
     highlight();
-  }, [code, language, showLineNumbers]);
+  }, [code]);
 
   return (
     <div

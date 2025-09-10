@@ -118,10 +118,10 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                 <CheckIcon className="size-4!" />
                 <span>Automatic content moderation</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              {/* <div className="flex items-center gap-1.5">
                 <CheckIcon className="size-4!" />
                 <span>No Feedbackland branding</span>
-              </div>
+              </div> */}
             </>
           )}
         </div>
