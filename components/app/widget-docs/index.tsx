@@ -34,12 +34,7 @@ export function WidgetDocs({
             <code className="bg-muted text-primary relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`FeedbackButton`}</code>{" "}
             anywhere in your React app (for example, in a menu or sidebar)
           </h3>
-          <Code
-            code={overlayWidgetCodeSnippet}
-            showLineNumbers={true}
-            language="tsx"
-            className=""
-          />
+          <Code code={overlayWidgetCodeSnippet} className="" />
         </div>
         {/* <div>
           <h3 className="text-primary mb-3 text-sm font-medium">
