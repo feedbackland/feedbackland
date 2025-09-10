@@ -1,18 +1,16 @@
 
 <img width="2421" height="1454" alt="github_banner_5" src="https://github.com/user-attachments/assets/bc34e51e-8808-4359-afda-e8d73fc022ed" />
 
-&nbsp;
-
-Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app at the click of a button, then automatically turns them into a prioritized roadmap. So you can ship with data-driven certainty what users love.
+Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap.
 
 ## Get started
 
-Install the package
+1. Install the package
 ```
 npm i feedbackland-react
 ```
 
-Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
+2. Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
 ```
 import { FeedbackButton } from 'feedbackland-react';
 ```
@@ -26,9 +24,8 @@ import { FeedbackButton } from 'feedbackland-react';
   style={} // or style it with CSS
 />
 ```
-That's it! All you have to do now is deploy your app to start collecting in-app feedback and generate your first roadmap!
 
-Note: You can generate a UUID to serve as your platformId [here](https://www.uuidtools.com/v4).
+3. Deploy your app to start collecting feedback. Then, generate your first roadmap.
 
 ## Self-host Feedbackland
 
