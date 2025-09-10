@@ -28,7 +28,7 @@ import { FeedbackButton } from 'feedbackland-react';
 ```
 That's it! All you have to do now is deploy your app to start collecting in-app feedback and generate your first roadmap!
 
-Note: You can generate your a UUID to serve as your platformId [here](https://www.uuidtools.com/v4).
+Note: You can generate a UUID to serve as your platformId [here](https://www.uuidtools.com/v4).
 
 ## Self-host Feedbackland
 
