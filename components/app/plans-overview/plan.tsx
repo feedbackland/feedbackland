@@ -64,14 +64,14 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                     <>
                       {isProPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$9</span>/month or
-                          $90/year
+                          <span className="-mb-0.5 text-2xl">$19</span>/month or
+                          $190/year
                         </span>
                       )}
                       {isMaxPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$19</span>/month or
-                          $190/year
+                          <span className="-mb-0.5 text-2xl">$49</span>/month or
+                          $490/year
                         </span>
                       )}
                     </>
@@ -106,10 +106,7 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
 
           <div className="flex items-center gap-1.5">
             <CheckIcon className="size-4!" />
-            <span>
-              {postsLimit === "Unlimited" ? "Unlimited" : `Up to ${postsLimit}`}{" "}
-              feedback posts analyzed per AI roadmap
-            </span>
+            <span>{postsLimit} feedback posts analyzed per AI roadmap</span>
           </div>
 
           {!isFreePlan && (
