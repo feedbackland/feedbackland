@@ -62,7 +62,6 @@ export function FeedbackForm() {
         });
       },
       onError: (error) => {
-        console.log(error);
         if (error?.message?.includes("inappropriate-content")) {
           setErrormessage(
             "Your post could not be published because it appears to violate our community guidelines.",
