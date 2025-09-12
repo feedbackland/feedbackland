@@ -1,9 +1,11 @@
 
-<img width="2421" height="1315" alt="github_banner_7" src="https://github.com/user-attachments/assets/1264f1c9-831a-483c-a9f4-aa8bfa10fbeb" />
+<img width="2421" height="1267" alt="github_banner_7" src="https://github.com/user-attachments/assets/876fa158-12df-481d-a4d6-de2f717054b2" />
 
-Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap.
+Feedbackland is an open-source, embeddable feedback platform that lets you capture user ideas directly within your app. With a single click, users can share their suggestions, which are then automatically organized into a prioritized roadmap.
 
-## Add the feedback button to your React app
+## Get your feedback button
+
+Add it to your React or Next.js app
 
 1. Install the package
 ```
