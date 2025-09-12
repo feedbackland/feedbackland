@@ -4,23 +4,22 @@
 Feedbackland is a drop-in feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap from them.
 
 ## Add the feedback button to your React or Next.js app
+
 ```
 npm i feedbackland-react
 ```
+
 ```
 import { FeedbackButton } from 'feedbackland-react';
 ```
-```tsx
-<FeedbackButton platformId="<A-RANDOMLY-GENERATED-UUIDV4>" />
-```
-**Note**: You can generate a random UUID v4 [here](https://www.uuidtools.com/v4)
 
-Optional button props:
-- `mode`: the color mode of the widget, 'light' or 'dark', defaults to 'light'
-- `text`:  the text of the button, defaults to 'Feedback'
-- `className`: style the button with Tailwind , e.g. `className="bg-red-500"`
-- `style`: or style it with inline CSS styles, e.g. `style={{ background: 'red' }}`
-- `button`: or bring your own button, e.g. `button={<MyCustomButton>Feedback</MyCustomButton>}`
+```tsx
+<FeedbackButton
+  platformId="A-RANDOMLY-GENERATED-UUIDV4" // get one here: https://www.uuidtools.com/v4
+  mode="light" // the color mode of the widget, 'light' or 'dark'
+  button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
+/>
+```
 
 ## Self-host Feedbackland
 
