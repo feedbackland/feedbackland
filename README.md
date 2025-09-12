@@ -7,12 +7,12 @@ Feedbackland is a drop-in feedback button for your React or Next.js app that cap
 
 Add it to your React or Next.js app
 
-1. Install the package
+Step 1 - Install the package
 ```
 npm i feedbackland-react
 ```
 
-2. Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
+Step 2 - Import the feedback button and place it anywhere in your UI (for example, in a sidebar or menu)
 ```
 import { FeedbackButton } from 'feedbackland-react';
 ```
@@ -20,9 +20,9 @@ import { FeedbackButton } from 'feedbackland-react';
 ```tsx
 <FeedbackButton platformId="<A-RANDOMLY-GENERATED-UUIDV4>" />
 ```
-Note: You can generate a random UUID v4 [here](https://www.uuidtools.com/v4)
+**Note**: You can generate a random UUID v4 [here](https://www.uuidtools.com/v4)
 
-3. Deploy your app to start collecting feedback. Then, generate your first roadmap.
+Step 3 - Deploy your app to start collecting feedback. Then, generate your first roadmap.
 
 ## Self-host Feedbackland
 
