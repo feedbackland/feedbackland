@@ -18,14 +18,9 @@ import { FeedbackButton } from 'feedbackland-react';
 ```
 
 ```tsx
-<FeedbackButton 
-  platformId="<A-RANDOMLY-GENERATED-UUIDV4>" // generate one here: https://www.uuidtools.com/v4
-  mode="light" // the color mode of the widget, 'light' or 'dark'
-  copy="Feedback" // the text of the button
-  className="" // style the button with Tailwind
-  style={} // or style it with CSS
-/>
+<FeedbackButton platformId="<A-RANDOMLY-GENERATED-UUIDV4>" />
 ```
+Note: You can generate a random UUID v4 [here](https://www.uuidtools.com/v4)
 
 3. Deploy your app to start collecting feedback. Then, generate your first roadmap.
 
