@@ -3,7 +3,7 @@
 
 Feedbackland is an open-source, easily-embeddable feedback platform that captures your users' ideas and suggestions directly in your app, then automatically turns them into a prioritized roadmap.
 
-## Get started
+## Add the feedback button to your React app
 
 1. Install the package
 ```
