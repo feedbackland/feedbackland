@@ -15,7 +15,7 @@ import { FeedbackButton } from 'feedbackland-react';
 ```
 **Note**: You can generate a random UUID v4 [here](https://www.uuidtools.com/v4)
 
-Optional props:
+Optional button props:
 - `mode`: the color mode of the widget, 'light' or 'dark', defaults to 'light'
 - `text`:  the text of the button, defaults to 'Feedback'
 - `className`: style the button with Tailwind , e.g. `className="bg-red-500"`
