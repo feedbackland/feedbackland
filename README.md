@@ -1,5 +1,5 @@
 
-<img width="2421" height="1267" alt="github_banner_7" src="https://github.com/user-attachments/assets/876fa158-12df-481d-a4d6-de2f717054b2" />
+<img width="2421" height="1267" alt="github_banner_7" src="https://github.com/user-attachments/assets/d8c2a31d-f184-4516-b5b0-36a47ca14c0b" />
 
 Feedbackland is a drop-in feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap from them.
 
