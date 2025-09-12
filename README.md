@@ -3,7 +3,7 @@
 
 Feedbackland is a drop-in feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap from them.
 
-## Get your feedback button
+## Add the feedback button to your React or Next.js app
 ```
 npm i feedbackland-react
 ```
