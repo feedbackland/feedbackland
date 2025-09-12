@@ -1,7 +1,7 @@
 
 <img width="2421" height="1267" alt="github_banner_7" src="https://github.com/user-attachments/assets/876fa158-12df-481d-a4d6-de2f717054b2" />
 
-Feedbackland is an open-source, embeddable feedback platform that lets you capture user ideas directly within your app. With a single click, users can share their suggestions, which are then automatically organized into a prioritized roadmap.
+Feedbackland is a drop-in feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap from them.
 
 ## Get your feedback button
 
