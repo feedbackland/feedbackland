@@ -1,6 +1,6 @@
 # Self-Hosting Feedbackland
 
-Follow these steps to get your own self-hosted instance of Feedbackland up and running in the cloud for free. It should not take more than 30 minutes of your time. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbckland.com) for help. we will try to reply and help you out as quickly as possible!
+Follow these steps to get your own self-hosted instance of Feedbackland up and running for free. It should not take more than 30 minutes of your time. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbckland.com) for help. we will help you out as quickly as possible!
 
 ### Prerequisites
 
