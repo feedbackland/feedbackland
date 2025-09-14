@@ -1,7 +1,7 @@
 
 <img width="2421" height="1267" alt="github_banner_7" src="https://github.com/user-attachments/assets/d8c2a31d-f184-4516-b5b0-36a47ca14c0b" />
 
-Feedbackland is a drop-in feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap. So you always know exactly what to build next, based on real user needs.
+Feedbackland is a drop-in, open-source feedback button for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap. So you always know exactly what to build next, based on real user needs.
 
 ## Add the feedback button to your React or Next.js app
 
