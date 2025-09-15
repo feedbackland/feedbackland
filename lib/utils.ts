@@ -327,7 +327,7 @@ export const getOverlayWidgetCodeSnippet = ({
 
 export const roadmapLimit = (plan: string) => {
   if (plan === "free") {
-    return 5;
+    return 3;
   } else if (plan === "pro") {
     return 20;
   } else if (plan === "max") {
