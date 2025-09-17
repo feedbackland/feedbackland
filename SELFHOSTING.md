@@ -1,6 +1,6 @@
-# Self-Hosting Feedbackland
+# Self-Host Feedbackland for free in 30 minutes
 
-Follow these steps to get your own self-hosted instance of Feedbackland up and running.
+Follow these steps to get your own self-hosted instance of Feedbackland up and running for free in 30 minutes. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbackland.com) for help.
 
 ### Prerequisites
 
@@ -39,7 +39,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
     ```bash
     mv .env.example .env
     ```
-    You will populate this `.env` file with the necessary keys and credentials as you set up the required services.
+    In the following steps you will populate this `.env` file with the necessary keys and credentials.
 
 &nbsp;
 
@@ -83,7 +83,7 @@ Next, let's configure your Supabase project for the database and file storage.
 
 ## 3. Firebase Setup
 
-Now, let's set up Firebase for user authentication.
+Now, let's set up Firebase, which is used for user authentication.
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
@@ -129,13 +129,13 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 1.  **Push your code to GitHub:**
     - Create a new repository on GitHub.
-    - Remove any existing remote origin from your feedbackland project:
+    - Remove any existing remote origin from your local Feedbackland codebase:
       ```bash
       git remote rm origin
       ```
     - Add the remote origin from your newly created GitHub repository:
       ```bash
-      git remote add origin https://github.com/feedbackland/<YOUR-REPOSITORY-NAME>.git
+      git remote add origin https://github.com/<YOUR-GITHUB-ACCOUNT-NAME>/<YOUR-REPOSITORY-NAME>.git
       ```
     - Push your local Feedbackland codebase, including all changes, to the new repository:
       ```bash
@@ -157,14 +157,14 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     - Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
     - Enter the name for your platform and click **Create platform**.
     - You'll get redirect to your platform.
-    - Now claim ownership by clicking the **Claim Ownership** button in the top banner and sign up.
+    - Now claim ownership by clicking the **Claim Ownership** button in the top banner, and sign up.
 5.  **Embed your self-hosted Feedbackland platform in your app**
     - In your Feedbackland platform navigate to Admin Panel > Widget.
-    - Follow the instructions described on the Widget page to embed your platform into your React app
+    - Follow the instructions described on the Widget page to embed your platform into your React or Next.js app
 
 &nbsp;
 
-Congratulations, your Feedbackland platform is now live and directly accessible your app! 🎉
+Congratulations, your Feedbackland platform is now embedded in your app and accessible at the click of a button! 🎉
 
 Now go ahead and:
 
