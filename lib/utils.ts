@@ -328,7 +328,7 @@ export const roadmapLimit = (plan: string) => {
     return 1000;
   }
 
-  return 5;
+  return 3;
 };
 
 export const adminLimit = (plan: string) => {
