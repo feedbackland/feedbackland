@@ -193,7 +193,7 @@ export const getFeedbackPostsQuery = async ({
       feedbackPosts,
       nextCursor,
     };
-  } catch (error: any) {
+  } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to retrieve feedback posts. Reason: ${reason}`);
   }

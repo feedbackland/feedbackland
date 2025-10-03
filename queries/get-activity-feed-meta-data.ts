@@ -87,7 +87,7 @@ export const getActivityFeedMetaDataQuery = async ({
       totalGeneralFeedbackPostCount: counts?.totalGeneralFeedbackPostCount ?? 0,
       totalCommentCount: counts?.totalCommentCount ?? 0,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

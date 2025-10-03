@@ -32,7 +32,7 @@ export const createInsightsQuery = async (insightsToCreate: InsightInput[]) => {
 
       return true;
     });
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

@@ -79,7 +79,7 @@ export const getCommentsQuery = async ({
       comments,
       nextCursor,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

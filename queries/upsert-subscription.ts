@@ -73,7 +73,7 @@ export const upsertSubscriptionQuery = async ({
 
       return subscription;
     });
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

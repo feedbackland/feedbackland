@@ -52,7 +52,7 @@ export const getFeedbackPostQuery = async ({
       .executeTakeFirstOrThrow();
 
     return result;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

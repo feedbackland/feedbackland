@@ -42,7 +42,7 @@ export async function claimOrgQuery({
         throw new Error("Org already claimed");
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 }

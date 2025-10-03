@@ -42,7 +42,7 @@ export const getCommentQuery = async ({
       ])
       .where("comment.id", "=", commentId)
       .executeTakeFirstOrThrow();
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

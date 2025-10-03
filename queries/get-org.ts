@@ -15,7 +15,7 @@ export const getOrgQuery = async ({
       .executeTakeFirstOrThrow();
 
     return org;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

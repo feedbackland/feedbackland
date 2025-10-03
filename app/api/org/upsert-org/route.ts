@@ -27,9 +27,11 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers,
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { error: error?.message || "Failed to upsert org" },
+      {
+        error: `Failed to upsert org: ${error instanceof Error ? error?.message : `Unknown error`}`,
+      },
       { status: 500 },
     );
   }

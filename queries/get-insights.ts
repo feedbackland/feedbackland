@@ -54,7 +54,7 @@ export const getInsightsQuery = async ({
       items,
       nextCursor,
     };
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };
@@ -70,7 +70,7 @@ export const getAllInsightsQuery = async ({ orgId }: { orgId: string }) => {
       .execute();
 
     return items;
-  } catch (error: any) {
+  } catch (error) {
     throw error;
   }
 };

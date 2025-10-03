@@ -33,11 +33,8 @@ export const getFeedbackPostsByIdsQuery = async ({
       .execute();
 
     return feedbackPosts;
-  } catch (error: any) {
-    console.error("Error in getFeedbackPostsByIdsQuery:", error);
-
+  } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-
     throw new Error(
       `Failed to retrieve feedback posts by IDs. Reason: ${reason}`,
     );

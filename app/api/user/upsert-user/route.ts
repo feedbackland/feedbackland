@@ -17,9 +17,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(user);
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { error: `Failed to upsert user: ${error?.message}` },
+      {
+        error: `Failed to upsert user: ${error instanceof Error ? error?.message : `Unknown error`}`,
+      },
       { status: 500 },
     );
   }
