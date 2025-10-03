@@ -17,7 +17,6 @@ export function ActivityFeed() {
   const allActivitiesSeen = useSetAllActivitiesSeen();
 
   const handleOnCLick = async () => {
-    allActivitiesSeen.mutate();
     await allActivitiesSeen.mutateAsync();
     setIsCompleted(true);
     setTimeout(() => setIsCompleted(false), 3000);
