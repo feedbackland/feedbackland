@@ -20,7 +20,7 @@ export function SubscriptionButton({
   size?: "default" | "sm" | "lg" | "icon";
   className?: React.ComponentProps<"div">["className"];
   buttonText?: string;
-  subscriptionName?: "pro" | "max";
+  subscriptionName?: "pro";
 }) {
   const { isAdmin } = useAuth();
 

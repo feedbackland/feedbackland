@@ -1,15 +1,9 @@
 "server-only";
 
 import { db } from "@/db/db";
-import { getSubscriptionQuery } from "./get-subscription";
-import { analyzablePostLimit } from "@/lib/utils";
 
 export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
   try {
-    const { activeSubscription } = await getSubscriptionQuery({ orgId });
-
-    const postLimit = analyzablePostLimit(activeSubscription);
-
     const posts = await db
       .selectFrom("feedback")
       .where("feedback.orgId", "=", orgId)
@@ -35,7 +29,6 @@ export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
             .as("commentCount"),
       ])
       .orderBy("feedback.createdAt", "desc")
-      .limit(postLimit)
       .execute();
 
     return posts;

@@ -13,17 +13,36 @@ export type AuthFactorStatus = "unverified" | "verified";
 
 export type AuthFactorType = "phone" | "totp" | "webauthn";
 
-export type AuthOneTimeTokenType = "confirmation_token" | "email_change_token_current" | "email_change_token_new" | "phone_change_token" | "reauthentication_token" | "recovery_token";
+export type AuthOneTimeTokenType =
+  | "confirmation_token"
+  | "email_change_token_current"
+  | "email_change_token_new"
+  | "phone_change_token"
+  | "reauthentication_token"
+  | "recovery_token";
 
-export type FeedbackCategory = "bug report" | "feature request" | "general feedback";
+export type FeedbackCategory =
+  | "bug report"
+  | "feature request"
+  | "general feedback";
 
-export type FeedbackStatus = "declined" | "done" | "in progress" | "planned" | "under consideration";
+export type FeedbackStatus =
+  | "declined"
+  | "done"
+  | "in progress"
+  | "planned"
+  | "under consideration";
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+  T extends ColumnType<infer S, infer I, infer U>
+    ? ColumnType<S, I | undefined, U>
+    : ColumnType<T, T | undefined, T>;
 
-export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
+export type Int8 = ColumnType<
+  string,
+  bigint | number | string,
+  bigint | number | string
+>;
 
 export type Json = JsonValue;
 
@@ -41,11 +60,22 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type PgsodiumKeyStatus = "default" | "expired" | "invalid" | "valid";
 
-export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" | "hmacsha256" | "hmacsha512" | "kdf" | "secretbox" | "secretstream" | "shorthash" | "stream_xchacha20";
+export type PgsodiumKeyType =
+  | "aead-det"
+  | "aead-ietf"
+  | "auth"
+  | "generichash"
+  | "hmacsha256"
+  | "hmacsha512"
+  | "kdf"
+  | "secretbox"
+  | "secretstream"
+  | "shorthash"
+  | "stream_xchacha20";
 
 export type SubscriptionFrequency = "month" | "year";
 
-export type SubscriptionName = "free" | "max" | "pro";
+export type SubscriptionName = "free" | "pro";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 

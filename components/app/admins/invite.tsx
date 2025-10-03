@@ -18,8 +18,6 @@ import { useCreateAdminInvite } from "@/hooks/use-create-admin-invite";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { AdminsLimitAlert } from "@/components/app/admins/limit-alert";
-import { useAdminLimit } from "@/hooks/use-admin-limit";
 
 const FormSchema = z.object({
   email: z.email(),
@@ -28,9 +26,6 @@ const FormSchema = z.object({
 export function AdminsInvite() {
   const platformUrl = usePlatformUrl();
   const { session } = useAuth();
-  const {
-    query: { data: adminLimit },
-  } = useAdminLimit();
   const createAdminInvite = useCreateAdminInvite();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -81,42 +76,39 @@ export function AdminsInvite() {
     <div className="mt-6">
       <Label className="text-muted-foreground mb-2">Invite</Label>
       <div className="border-border rounded-md border p-4 shadow-xs">
-        <AdminsLimitAlert className="border-0 bg-transparent p-1" />
-        {!adminLimit?.limitReached && (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="sr-only">Email to invite</FormLabel>
-                    <FormControl>
-                      <div className="flex flex-row items-center gap-4">
-                        <Input
-                          type="email"
-                          autoFocus={false}
-                          className="w-full max-w-[300px] text-sm"
-                          placeholder="Email address"
-                          {...field}
-                        />
-                        <Button
-                          type="submit"
-                          size="sm"
-                          className="h-[34px]"
-                          loading={createAdminInvite.isPending}
-                        >
-                          Send invite
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        )}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="sr-only">Email to invite</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-row items-center gap-4">
+                      <Input
+                        type="email"
+                        autoFocus={false}
+                        className="w-full max-w-[300px] text-sm"
+                        placeholder="Email address"
+                        {...field}
+                      />
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="h-[34px]"
+                        loading={createAdminInvite.isPending}
+                      >
+                        Send invite
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
       </div>
     </div>
   );

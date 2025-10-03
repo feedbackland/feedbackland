@@ -11,10 +11,6 @@ export function useDeleteAdminInvite() {
         queryClient.invalidateQueries({
           queryKey: trpc.getAdmins.queryKey(),
         });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getAdminLimit.queryKey(),
-        });
       },
     }),
   );

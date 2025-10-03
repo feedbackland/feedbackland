@@ -6,7 +6,7 @@ import { Selectable } from "kysely";
 import { Subscriptions } from "@/db/schema";
 
 type Subscription = Partial<Selectable<Subscriptions>> & {
-  activeSubscription: "free" | "pro" | "max";
+  activeSubscription: "free" | "pro";
   isExpired: boolean;
 };
 
@@ -42,8 +42,8 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
     return {
       orgId,
       amount: "0",
-      name: isSelfHosted ? "max" : "free",
-      activeSubscription: isSelfHosted ? "max" : "free",
+      name: isSelfHosted ? "pro" : "free",
+      activeSubscription: isSelfHosted ? "pro" : "free",
       frequency: "month",
       isExpired: false,
     } satisfies Subscription;

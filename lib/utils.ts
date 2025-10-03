@@ -318,39 +318,3 @@ export const getOverlayWidgetCodeSnippet = ({
   button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
 />`;
 };
-
-export const roadmapLimit = (plan: string) => {
-  if (plan === "free") {
-    return 3;
-  } else if (plan === "pro") {
-    return 20;
-  } else if (plan === "max") {
-    return 1000;
-  }
-
-  return 3;
-};
-
-export const adminLimit = (plan: string) => {
-  if (plan === "free") {
-    return 2;
-  } else if (plan === "pro") {
-    return 5;
-  } else if (plan === "max") {
-    return 100;
-  }
-
-  return 2;
-};
-
-export const analyzablePostLimit = (plan: string) => {
-  if (plan === "free") {
-    return 100;
-  } else if (plan === "pro") {
-    return 1000;
-  } else if (plan === "max") {
-    return 10000;
-  }
-
-  return 100;
-};

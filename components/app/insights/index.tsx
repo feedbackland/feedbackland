@@ -9,8 +9,6 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
-import { InsightsLimitAlert } from "@/components/app/insights/limit-alert";
-import { useRoadmapLimit } from "@/hooks/use-roadmap-limit";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -32,10 +30,6 @@ export function Insights() {
         queryClient.invalidateQueries({
           queryKey: trpc.getInsights.queryKey().slice(0, 1),
         });
-
-        queryClient.invalidateQueries({
-          queryKey: trpc.getRoadmapLimit.queryKey(),
-        });
       },
     }),
   );
@@ -50,10 +44,6 @@ export function Insights() {
       isError,
     },
   } = useInsights({ enabled: !generateInsightsMutation?.isPending });
-
-  const {
-    query: { data: roadmapLimit },
-  } = useRoadmapLimit();
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -73,20 +63,11 @@ export function Insights() {
   };
 
   const isGenerating = generateInsightsMutation.isPending;
-
   const isGeneratingError = !isGenerating && generateInsightsMutation.isError;
-
   const insights = data?.pages.flatMap((page) => page.items) || [];
-
   const hasInsights = !isPending && !isGenerating && insights?.length > 0;
-
   const hasNoInsights = !isPending && !isGenerating && !hasInsights;
-
   const isInitialEmptyState = !isGenerating && hasNoInsights;
-
-  const roadmapsLeft = roadmapLimit?.left;
-
-  const activeSubscription = roadmapLimit?.activeSubscription;
 
   return (
     <div className="space-y-1">
@@ -123,19 +104,13 @@ export function Insights() {
                 variant="default"
                 onClick={handleGenerateClick}
                 loading={isGenerating}
-                disabled={roadmapLimit?.limitReached}
               >
                 Generate
-                {roadmapsLeft !== undefined &&
-                  activeSubscription !== "max" &&
-                  ` (${roadmapsLeft >= 0 ? roadmapsLeft : 0} left this month)`}
               </Button>
             </div>
           </div>
         </div>
       </div>
-
-      <InsightsLimitAlert className="mb-5" />
 
       {!!(isGenerating || isPending) && <InsightsLoading />}
 
@@ -162,18 +137,6 @@ export function Insights() {
             <br />
             Then generate your first AI Roadmap.
           </div>
-          {/* {platformUrl && (
-            <Button
-              size="default"
-              variant="outline"
-              onClick={handleGenerateClick}
-              loading={isGenerating}
-              disabled={roadmapLimit?.limitReached}
-              className="mt-4"
-            >
-              Generate your first AI Roadmap
-            </Button>
-          )} */}
         </div>
       )}
 

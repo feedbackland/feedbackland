@@ -6,8 +6,6 @@ import { database } from "firebase-admin";
 const getName = (inputName: string) => {
   if (inputName.toLowerCase().includes("pro")) {
     return "pro";
-  } else if (inputName.toLowerCase().includes("max")) {
-    return "max";
   }
 
   return "free";

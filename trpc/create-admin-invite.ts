@@ -3,7 +3,6 @@ import { adminProcedure } from "@/lib/trpc";
 import { createAdminInviteQuery } from "@/queries/create-admin-invite";
 import { resend } from "@/lib/resend";
 import { AdminInviteEmail } from "@/components/emails/admin-invite";
-import { getAdminLimit } from "./get-admin-limit";
 import { getIsSelfHosted } from "@/lib/utils";
 
 export const createAdminInvite = adminProcedure
@@ -16,10 +15,6 @@ export const createAdminInvite = adminProcedure
   )
   .mutation(async (opts) => {
     try {
-      const { limitReached } = await getAdminLimit(opts as any);
-
-      if (limitReached) throw new Error("Admin limit reached");
-
       const {
         input: { platformUrl, invitedBy, email },
         ctx: { orgId, userId },

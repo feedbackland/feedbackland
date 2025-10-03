@@ -4,9 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionButton } from "@/components/app/subscription-button";
-import { adminLimit, analyzablePostLimit, roadmapLimit } from "@/lib/utils";
 
-export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
+export function Plan({ planName }: { planName: "free" | "pro" }) {
   const {
     query: { data: subscription, isPending },
   } = useSubscription();
@@ -20,17 +19,25 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
     } = subscription;
     const isFreePlan = planName === "free";
     const isProPlan = planName === "pro";
-    const isMaxPlan = planName === "max";
     const isActiveSubscription = planName === subscriptionName;
-    const postsLimit =
-      planName === "max"
-        ? "Unlimited"
-        : analyzablePostLimit(planName).toLocaleString("en", {
-            useGrouping: true,
-          });
-    const roadmapsLimit =
-      planName === "max" ? "Unlimited" : roadmapLimit(planName);
-    const adminsLimit = planName === "max" ? "Unlimited" : adminLimit(planName);
+    const features = isFreePlan
+      ? [
+          "Unlimited end-users",
+          "Unlimited feedback posts",
+          "Unlimited admins",
+          "Unlimited comments",
+          "In-app feedback widget",
+          "Standalone website",
+        ]
+      : [
+          "AI Insights",
+          "Ask AI",
+          "Automatic content moderation",
+          "Custom branding",
+          "Email notifications",
+          "Image uploads",
+          "Anonymous feedback",
+        ];
 
     return (
       <div className="border-border flex w-full max-w-full flex-col items-stretch space-y-4 rounded-lg border p-4 shadow-sm">
@@ -64,12 +71,6 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
                     <>
                       {isProPlan && (
                         <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$9</span>/month or
-                          $90/year
-                        </span>
-                      )}
-                      {isMaxPlan && (
-                        <span className="flex flex-wrap items-end text-sm">
                           <span className="-mb-0.5 text-2xl">$29</span>/month or
                           $290/year
                         </span>
@@ -94,35 +95,12 @@ export function Plan({ planName }: { planName: "free" | "pro" | "max" }) {
         </div>
 
         <div className="text-primary flex flex-col items-stretch space-y-1.5 text-sm font-normal">
-          <div className="flex items-center gap-1.5">
-            <CheckIcon className="size-4!" />
-            <span>{adminsLimit} admins</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <CheckIcon className="size-4!" />
-            <span>{roadmapsLimit} AI roadmaps/month</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <CheckIcon className="size-4!" />
-            <span>
-              {postsLimit} feedback posts analyzed per generated AI roadmap
-            </span>
-          </div>
-
-          {isMaxPlan && (
-            <>
-              <div className="flex items-center gap-1.5">
-                <CheckIcon className="size-4!" />
-                <span>Automatic content moderation</span>
-              </div>
-              {/* <div className="flex items-center gap-1.5">
-                <CheckIcon className="size-4!" />
-                <span>No Feedbackland branding</span>
-              </div> */}
-            </>
-          )}
+          {features.map((feature) => (
+            <div key={feature} className="flex items-center gap-1.5">
+              <CheckIcon className="size-4!" />
+              <span>{feature}</span>
+            </div>
+          ))}
         </div>
       </div>
     );

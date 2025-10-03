@@ -1,7 +1,6 @@
 import { adminProcedure } from "@/lib/trpc";
 import { getInsightsInputQuery } from "@/queries/get-insights-input";
 import { createInsightsQuery } from "@/queries/create-insights";
-import { getRoadmapLimit } from "./get-roadmap-limit";
 import { z } from "zod/v4";
 
 const insightsOutputSchema = z.array(
@@ -31,10 +30,6 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
   let retries = 3;
 
   try {
-    const { limitReached } = await getRoadmapLimit(opts as any);
-
-    if (limitReached) throw new Error("Roadmap limit reached");
-
     while (retries > 0) {
       const { ctx } = opts;
 

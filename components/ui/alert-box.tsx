@@ -5,16 +5,14 @@ import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
 import { SubscriptionButton } from "../app/subscription-button";
 
-export function PlanLimitAlert({
+export function AlertBox({
   title,
   description,
   className,
-  type = "alert",
 }: {
   title?: string;
   description?: string;
   className?: React.ComponentProps<"div">["className"];
-  type?: "alert" | "warning";
 }) {
   return (
     <Alert
