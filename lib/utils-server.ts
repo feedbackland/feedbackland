@@ -66,10 +66,6 @@ export const isInappropriateCheck = async ({
   imageUrls?: string[];
 }) => {
   try {
-    const { activeSubscription } = await getSubscriptionQuery({ orgId });
-
-    if (activeSubscription === "free") return false;
-
     const prompt = `
       You are a strict content moderator. Analyze the provided text and images (via URLs) for inappropriate content including spam, nonsensical rambling, violence, sexual material, hate speech, harassment, illegal activities, or anything harmful/unsafe.
 

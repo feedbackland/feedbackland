@@ -19,7 +19,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
     } = subscription;
     const isFreePlan = planName === "free";
     const isProPlan = planName === "pro";
-    const isActiveSubscription = planName === subscriptionName;
+    const isCurrentPlan = planName === subscriptionName;
     const features = isFreePlan
       ? [
           "Unlimited end-users",
@@ -47,11 +47,11 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
               <div className="mb-0.5 flex items-center gap-3">
                 <h3 className="h5 capitalize">{planName}</h3>
 
-                {isActiveSubscription && (
+                {isCurrentPlan && (
                   <Badge variant="outline">Your current plan</Badge>
                 )}
 
-                {isActiveSubscription && !isFreePlan && isExpired && (
+                {!isFreePlan && isCurrentPlan && isExpired && (
                   <Badge variant="destructive">
                     <TriangleAlertIcon />
                     Expired
@@ -61,7 +61,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
 
               {!isFreePlan && (
                 <>
-                  {isActiveSubscription ? (
+                  {isCurrentPlan ? (
                     <span className="flex flex-wrap items-end text-sm">
                       <span className="-mb-0.5 text-2xl">${amount}</span>/
                       {frequency} - billed{" "}
@@ -84,8 +84,8 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
             {!isFreePlan && (
               <div className="mt-1 mr-1">
                 <SubscriptionButton
-                  variant={isActiveSubscription ? "outline" : "default"}
-                  buttonText={isActiveSubscription ? "Manage" : "Upgrade"}
+                  variant={isCurrentPlan ? "outline" : "default"}
+                  buttonText={isCurrentPlan ? "Manage" : "Upgrade"}
                   subscriptionName={planName}
                   size="lg"
                 />
