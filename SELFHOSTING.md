@@ -166,11 +166,7 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
 
 Congratulations, your Feedbackland platform is now embedded in your app and accessible at the click of a button! 🎉
 
-Now go ahead and:
-
-- Deploy your app.
-- Start collecting in-app feedback.
-- Generate your first AI Roadmap!
+Now go ahead and deploy your app to start collecting feedback!
 
 &nbsp;
 &nbsp;

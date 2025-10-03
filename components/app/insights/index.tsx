@@ -76,7 +76,7 @@ export function Insights() {
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
               <h2 className="h5 mb-0.5 flex flex-wrap items-center gap-2">
-                {isGenerating ? `Generating Roadmap...` : `AI Roadmap`}
+                {isGenerating ? `Generating...` : `AI Insights`}
               </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
@@ -116,16 +116,16 @@ export function Insights() {
 
       {isGeneratingError && (
         <Error
-          title="Could not generate roadmap"
-          description="An error occured while trying to generate the roadmap. Please try again."
+          title="Could not generate report"
+          description="An error occured while trying to generate the report. Please try again."
           className="mb-4"
         />
       )}
 
       {!isGeneratingError && isError && (
         <Error
-          title="Could not load roadmap"
-          description="An error occured while trying to load the roadmap. Please try again."
+          title="Could not load AI Insights report"
+          description="An error occured while trying to load the report. Please try again."
           className="mb-4"
         />
       )}
@@ -135,7 +135,7 @@ export function Insights() {
           <div className="text-base font-medium">
             First add some feedback to your platform.
             <br />
-            Then generate your first AI Roadmap.
+            Then generate your first AI Insights report.
           </div>
         </div>
       )}

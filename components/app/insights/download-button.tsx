@@ -49,7 +49,7 @@ export function InsightsDownloadButton() {
         day: "numeric",
         year: "numeric",
       });
-      const filename = `Feedbackland AI Roadmap - ${date}.pdf`;
+      const filename = `Feedbackland AI Insights - ${date}.pdf`;
       downloadBlob({ blob, filename });
     } finally {
       setIsProcessing(false);

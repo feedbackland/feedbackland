@@ -32,10 +32,10 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
           value={pathname?.split("/")?.pop() || "activity"}
         >
           <TabsList className="absolute flex h-10">
-            <TabsTrigger value="roadmap" asChild>
-              <Link href={`${adminBasePath}/roadmap`}>
+            <TabsTrigger value="insights" asChild>
+              <Link href={`${adminBasePath}/insights`}>
                 <SparklesIcon fill="currentColor" className="size-3.5!" />
-                AI Roadmap
+                AI Insights
               </Link>
             </TabsTrigger>
 

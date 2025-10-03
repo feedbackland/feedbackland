@@ -3,7 +3,7 @@ import pgvector from "pgvector/pg";
 import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
-import { getSubscriptionQuery } from "@/queries/get-subscription";
+// import { getSubscriptionQuery } from "@/queries/get-subscription";
 // import { textEmbeddingRateLimit } from "./upstash";
 // import { resend } from "./resend";
 // import { getIsSelfHosted } from "./utils";

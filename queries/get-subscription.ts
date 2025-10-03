@@ -20,10 +20,9 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       .executeTakeFirst();
 
     if (subscription) {
-      const now = new Date();
       const isExpired = !!(
         subscription?.validUntil &&
-        subscription.validUntil.getTime() < now.getTime()
+        subscription.validUntil.getTime() < new Date().getTime()
       );
       const { orgId, amount, name, frequency } = subscription;
 
