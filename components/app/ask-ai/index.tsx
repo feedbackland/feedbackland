@@ -8,8 +8,6 @@ import {
 import { Thread } from "@/components/ui/assistant-ui/thread";
 
 export default function AskAI({ orgId }: { orgId: string }) {
-  console.log("orgId", orgId);
-
   const transport = new AssistantChatTransport({
     body: {
       orgId,
@@ -20,7 +18,8 @@ export default function AskAI({ orgId }: { orgId: string }) {
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <div className="border-border w-full border">
+      <h2 className="h5 mb-5 flex flex-wrap items-center gap-2">Ask AI</h2>
+      <div className="border-border w-full overflow-hidden rounded-lg border shadow-xs">
         <Thread />
       </div>
     </AssistantRuntimeProvider>

@@ -2,7 +2,11 @@
 
 import { db } from "@/db/db";
 
-export const getInsightsInputQuery = async ({ orgId }: { orgId: string }) => {
+export const getAllActiveFeedbackPosts = async ({
+  orgId,
+}: {
+  orgId: string;
+}) => {
   try {
     const posts = await db
       .selectFrom("feedback")

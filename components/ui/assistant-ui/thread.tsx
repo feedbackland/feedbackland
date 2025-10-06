@@ -42,7 +42,7 @@ export const Thread: FC = () => {
             ["--thread-max-width" as string]: "44rem",
           }}
         >
-          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll px-4">
+          <ThreadPrimitive.Viewport className="aui-thread-viewport relative flex h-screen max-h-[calc(100vh-240px)] flex-1 flex-col overflow-x-auto overflow-y-auto px-3.5">
             {/* <ThreadWelcome /> */}
 
             <ThreadPrimitive.Messages
@@ -167,16 +167,16 @@ const ThreadWelcomeSuggestions: FC = () => {
 
 const Composer: FC = () => {
   return (
-    <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-4 overflow-visible rounded-t-3xl pb-4 md:pb-6">
-      <ThreadScrollToBottom />
-      <ThreadPrimitive.Empty>
-        {/* <ThreadWelcomeSuggestions /> */}
-      </ThreadPrimitive.Empty>
-      <ComposerPrimitive.Root className="aui-composer-root border-border bg-muted dark:border-muted-foreground/15 relative flex w-full flex-col rounded-3xl border px-1 pt-2 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),0_2px_5px_0px_rgba(0,0,0,0.06)]">
+    <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto mt-2 flex w-full flex-col gap-4 overflow-visible pt-2 pb-4">
+      {/* <ThreadScrollToBottom /> */}
+      {/* <ThreadPrimitive.Empty>
+        <ThreadWelcomeSuggestions />
+      </ThreadPrimitive.Empty> */}
+      <ComposerPrimitive.Root className="aui-composer-root bg-muted/50 dark:border-muted-foreground/15 relative flex w-full flex-col rounded-md border border-black/20 px-1">
         <ComposerAttachments />
         <ComposerPrimitive.Input
-          placeholder="Send a message..."
-          className="aui-composer-input placeholder:text-muted-foreground focus:outline-primary mb-1 max-h-32 min-h-16 w-full resize-none bg-transparent px-3.5 pt-1.5 pb-3 text-base outline-none"
+          placeholder="Ask anything about your platform's feedback data..."
+          className="aui-composer-input placeholder:text-muted-foreground focus:outline-primary mb-1 max-h-32 w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3 text-sm outline-none"
           rows={1}
           autoFocus
           aria-label="Message input"
@@ -189,19 +189,19 @@ const Composer: FC = () => {
 
 const ComposerAction: FC = () => {
   return (
-    <div className="aui-composer-action-wrapper relative mx-1 mt-2 mb-2 flex items-center justify-between">
+    <div className="aui-composer-action-wrapper relative mx-1 mt-2 mb-2 flex items-center justify-end">
       {/* <ComposerAddAttachment /> */}
 
       <ThreadPrimitive.If running={false}>
         <ComposerPrimitive.Send asChild>
           <TooltipIconButton
-            tooltip="Send message"
+            tooltip="Ask"
             side="bottom"
             type="submit"
             variant="default"
             size="icon"
-            className="aui-composer-send size-[34px] rounded-full p-1"
-            aria-label="Send message"
+            className="aui-composer-send size-[34px] p-1"
+            aria-label="Ask"
           >
             <ArrowUpIcon className="aui-composer-send-icon size-5" />
           </TooltipIconButton>
@@ -214,7 +214,7 @@ const ComposerAction: FC = () => {
             type="button"
             variant="default"
             size="icon"
-            className="aui-composer-cancel border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90 size-[34px] rounded-full border"
+            className="aui-composer-cancel border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90 size-[34px] border"
             aria-label="Stop generating"
           >
             <Square className="aui-composer-cancel-icon size-3.5 fill-white dark:fill-black" />
@@ -239,7 +239,7 @@ const AssistantMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-assistant-message-root animate-in fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] py-4 duration-200 last:mb-24"
+        className="aui-assistant-message-root animate-in fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] py-4 text-sm duration-200 last:mb-24"
         data-role="assistant"
       >
         <div className="aui-assistant-message-content text-foreground mx-2 leading-7 break-words">
@@ -292,13 +292,13 @@ const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-user-message-root animate-in fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-[var(--thread-max-width)] auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-4 duration-200 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
+        className="aui-user-message-root animate-in fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-[var(--thread-max-width)] auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-3 text-sm duration-200 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
         data-role="user"
       >
         <UserMessageAttachments />
 
         <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
-          <div className="aui-user-message-content bg-muted text-foreground rounded-3xl px-5 py-2.5 break-words">
+          <div className="aui-user-message-content bg-muted text-foreground rounded-md px-3 py-2 break-words">
             <MessagePrimitive.Parts />
           </div>
           <div className="aui-user-action-bar-wrapper absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">

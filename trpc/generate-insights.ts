@@ -1,5 +1,5 @@
 import { adminProcedure } from "@/lib/trpc";
-import { getInsightsInputQuery } from "@/queries/get-insights-input";
+import { getAllActiveFeedbackPosts } from "@/queries/get-all-active-feedback-posts";
 import { createInsightsQuery } from "@/queries/create-insights";
 import { z } from "zod/v4";
 
@@ -33,7 +33,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
     while (retries > 0) {
       const { ctx } = opts;
 
-      const feedbackPosts = await getInsightsInputQuery({
+      const feedbackPosts = await getAllActiveFeedbackPosts({
         orgId: ctx.orgId,
       });
 
