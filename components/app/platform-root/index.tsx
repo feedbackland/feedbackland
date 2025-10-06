@@ -18,7 +18,7 @@ export default function PlatformRoot({
           "m-auto flex w-full grow flex-col justify-between",
           inIframe
             ? "xs:px-8 px-4 py-4"
-            : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-2xl",
+            : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-3xl",
         )}
       >
         <div>

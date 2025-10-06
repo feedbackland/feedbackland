@@ -114,7 +114,7 @@ export function FeedbackForm() {
       />
 
       <div className={cn("flex flex-col gap-3")}>
-        <div className={cn("relative min-h-[93px] w-full")}>
+        <div className={cn("relative w-full")}>
           <Tiptap
             placeholder={`Describe your idea, issue, or any other feedback...`}
             value={value}

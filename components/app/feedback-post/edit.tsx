@@ -134,7 +134,6 @@ export function FeedbackPostEdit({
                   <Tiptap
                     value={field?.value}
                     onChange={(value) => field.onChange(value)}
-                    className="min-h-[100px]"
                   />
                 </FormControl>
                 <FormMessage>{errors.title?.message}</FormMessage>

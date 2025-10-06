@@ -63,7 +63,7 @@ export default function RootLayout({
           <ThemeProvider>
             <TRPCClientProvider>
               <AuthProvider>
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                   <JotaiProvider>
                     <NuqsAdapter>
                       {/* <IframeProvider> */}

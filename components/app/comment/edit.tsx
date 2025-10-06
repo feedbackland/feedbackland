@@ -102,7 +102,6 @@ export function CommentEdit({
                   <Tiptap
                     value={field?.value}
                     onChange={(value) => field.onChange(value)}
-                    className="min-h-[100px]"
                   />
                 </FormControl>
                 <FormMessage>{errors.content?.message}</FormMessage>

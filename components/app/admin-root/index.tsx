@@ -34,8 +34,15 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
           <TabsList className="absolute flex h-10">
             <TabsTrigger value="insights" asChild>
               <Link href={`${adminBasePath}/insights`}>
-                <SparklesIcon fill="currentColor" className="size-3.5!" />
+                {/* <SparklesIcon fill="currentColor" className="size-3.5!" /> */}
                 AI Insights
+              </Link>
+            </TabsTrigger>
+
+            <TabsTrigger value="ask-ai" asChild>
+              <Link href={`${adminBasePath}/ask-ai`}>
+                {/* <SparklesIcon fill="currentColor" className="size-3.5!" /> */}
+                Ask AI
               </Link>
             </TabsTrigger>
 
