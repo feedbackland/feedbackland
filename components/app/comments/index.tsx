@@ -74,7 +74,7 @@ export function Comments({
 
           {isFetchingNextPage && (
             <div className="flex items-center justify-start py-5">
-              <Spinner size="small" />
+              <Spinner />
               <span className="ml-2 text-sm">Loading more...</span>
             </div>
           )}
