@@ -30,7 +30,7 @@ export function AlertBox({
           {description && <AlertDescription>{description}</AlertDescription>}
         </div>
       </div>
-      <SubscriptionButton />
+      <SubscriptionButton buttonText="Upgrade" />
     </Alert>
   );
 }

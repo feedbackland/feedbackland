@@ -3,7 +3,6 @@
 import { timeAgo } from "@/lib/time-ago";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { UserIcon } from "lucide-react";
 
@@ -20,8 +19,6 @@ export function CommentHeader({
   createdAt: Date;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const { isAdmin } = useAuth();
-
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <Avatar className="-ml-1 scale-80!">

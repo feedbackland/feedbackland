@@ -4,6 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionButton } from "@/components/app/subscription-button";
+import { cn } from "@/lib/utils";
+import { differenceInDays, parseISO } from "date-fns";
+
+const getTrialDaysLeft = (trialEnd: string) => {
+  const daysLeft = differenceInDays(parseISO(trialEnd), new Date());
+  return `Trial ends in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`;
+};
 
 export function Plan({ planName }: { planName: "free" | "pro" }) {
   const {
@@ -13,8 +20,8 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
   if (!isPending && subscription) {
     const {
       isExpired,
-      amount,
-      frequency,
+      isTrial,
+      trialEnd,
       name: subscriptionName,
     } = subscription;
     const isFreePlan = planName === "free";
@@ -26,29 +33,36 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
           "Unlimited feedback posts",
           "Unlimited admins",
           "Unlimited comments",
-          "In-app feedback widget",
+          "In-app feedback widgets",
           "Standalone website",
         ]
       : [
+          "Everything from Cloud Free",
           "AI Insights",
-          "Ask AI",
           "Automatic content moderation",
-          "Custom branding",
           "Email notifications",
           "Image uploads",
-          "Anonymous feedback",
+          "Slack & Linear integrations",
         ];
 
     return (
-      <div className="border-border flex w-full max-w-full flex-col items-stretch space-y-4 rounded-lg border p-4 shadow-sm">
-        <div className="mb-4 flex flex-col items-stretch gap-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="mb-0.5 flex items-center gap-3">
-                <h3 className="h5 capitalize">{planName}</h3>
+      <div
+        className={cn(
+          "border-border flex w-full max-w-full flex-1 flex-col items-stretch space-y-5 rounded-lg border p-5 shadow-sm",
+          {
+            "border-primary": isProPlan,
+            "border-2": isProPlan,
+          },
+        )}
+      >
+        <div className="flex flex-col items-stretch">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <h3 className="h5 font-bold! capitalize">Cloud {planName}</h3>
 
-                {isCurrentPlan && (
-                  <Badge variant="outline">Your current plan</Badge>
+                {isTrial && isCurrentPlan && trialEnd && (
+                  <Badge variant="default">{getTrialDaysLeft(trialEnd)}</Badge>
                 )}
 
                 {!isFreePlan && isCurrentPlan && isExpired && (
@@ -59,44 +73,51 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
                 )}
               </div>
 
-              {!isFreePlan && (
-                <>
-                  {isCurrentPlan ? (
-                    <span className="flex flex-wrap items-end text-sm">
-                      <span className="-mb-0.5 text-2xl">${amount}</span>/
-                      {frequency} - billed{" "}
-                      {frequency === "month" ? "monthly" : "yearly"}
-                    </span>
-                  ) : (
-                    <>
-                      {isProPlan && (
-                        <span className="flex flex-wrap items-end text-sm">
-                          <span className="-mb-0.5 text-2xl">$29</span>/month or
-                          $290/year
-                        </span>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
+              <span className="flex flex-wrap items-start gap-0.5">
+                <span className="text-2xl font-bold">
+                  {isFreePlan ? "$0" : "$29"}
+                </span>
+                <span className="pt-3 text-xs font-bold">/month</span>
+              </span>
             </div>
-
-            {!isFreePlan && (
-              <div className="mt-1 mr-1">
-                <SubscriptionButton
-                  variant={isCurrentPlan ? "outline" : "default"}
-                  buttonText={isCurrentPlan ? "Manage" : "Upgrade"}
-                  subscriptionName={planName}
-                  size="lg"
-                />
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="text-primary flex flex-col items-stretch space-y-1.5 text-sm font-normal">
+        <div className="flex w-full flex-1">
+          {!isCurrentPlan && isFreePlan && (
+            <SubscriptionButton
+              variant="outline"
+              buttonText="Downgrade"
+              className={cn("w-full flex-1")}
+              disabled={isTrial}
+            />
+          )}
+
+          {!isCurrentPlan && isProPlan && (
+            <SubscriptionButton
+              variant="default"
+              buttonText="Upgrade"
+              className="w-full flex-1"
+            />
+          )}
+
+          {isCurrentPlan && (
+            <SubscriptionButton
+              variant={isTrial ? "default" : "outline"}
+              buttonText={isTrial ? "Keep Pro" : "Your current plan"}
+              className="w-full flex-1 opacity-100!"
+            />
+          )}
+        </div>
+
+        <div className="text-primary flex flex-col items-stretch space-y-2 text-sm font-normal">
           {features.map((feature) => (
-            <div key={feature} className="flex items-center gap-1.5">
+            <div
+              key={feature}
+              className={cn("flex items-center gap-1.5", {
+                // "font-bold": feature.includes("Everything from"),
+              })}
+            >
               <CheckIcon className="size-4!" />
               <span>{feature}</span>
             </div>

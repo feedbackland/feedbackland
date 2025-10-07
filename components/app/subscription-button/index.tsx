@@ -7,20 +7,21 @@ import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
+import { sub } from "date-fns";
 import { Edit2Icon } from "lucide-react";
 
 export function SubscriptionButton({
   variant = "default",
-  size = "default",
+  size = "lg",
   className = "",
-  buttonText = "Upgrade",
-  subscriptionName,
+  buttonText,
+  disabled = false,
 }: {
   variant?: "default" | "secondary" | "outline" | "link" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   className?: React.ComponentProps<"div">["className"];
-  buttonText?: string;
-  subscriptionName?: "pro";
+  buttonText: string;
+  disabled?: boolean;
 }) {
   const { isAdmin } = useAuth();
 
@@ -38,12 +39,7 @@ export function SubscriptionButton({
 
   const isPending = !!(isSubscriptionPending || isPolarProductsPending);
 
-  const polarProductIds = polarProducts
-    ?.filter((product) => {
-      if (!subscriptionName) return true;
-      return product?.name?.toLowerCase().includes(subscriptionName);
-    })
-    .map((product) => product.id);
+  const polarProductIds = polarProducts?.map((product) => product.id);
 
   const openCheckout = async () => {
     if (!polarProductIds || polarProductIds.length === 0) return;
@@ -68,7 +64,7 @@ export function SubscriptionButton({
 
   const handleOnClick = () => {
     if (!isPending) {
-      if (subscription?.name !== "free") {
+      if (subscription?.name !== "free" && !subscription?.isTrial) {
         openCustomerPortal();
       } else {
         openCheckout();
@@ -83,6 +79,7 @@ export function SubscriptionButton({
         size={size}
         className={cn("", className)}
         onClick={handleOnClick}
+        disabled={disabled}
       >
         {buttonText === "Manage" && <Edit2Icon />}
         {buttonText}

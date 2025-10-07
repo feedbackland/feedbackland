@@ -9,27 +9,19 @@ export function PlansOverview() {
   } = useSubscription();
 
   if (!isPending && subscription) {
-    const { name } = subscription;
-    const isProPlan = name === "pro";
+    const { name, isTrial } = subscription;
+    const currentPlan = name;
 
     return (
-      <div className="">
-        <h3 className="text-muted-foreground mb-3 text-sm font-medium">
-          Your current plan
-        </h3>
-
-        <Plan planName={name as "free" | "pro"} />
-
-        {!isProPlan && (
+      <div className="flex flex-col gap-8 sm:flex-row">
+        {(currentPlan === "free" || isTrial) && (
           <>
-            <h3 className="text-muted-foreground mt-12 mb-3 text-sm font-medium">
-              Upgrade to
-            </h3>
-            <div className="space-y-4">
-              <Plan planName="pro" />
-            </div>
+            <Plan planName="free" />
+            <Plan planName="pro" />
           </>
         )}
+
+        {currentPlan === "pro" && !isTrial && <Plan planName="pro" />}
       </div>
     );
   }
