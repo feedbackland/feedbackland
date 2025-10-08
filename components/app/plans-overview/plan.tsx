@@ -104,7 +104,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
           {isCurrentPlan && (
             <SubscriptionButton
               variant={isTrial ? "default" : "outline"}
-              buttonText={isTrial ? "Keep Pro" : "Your current plan"}
+              buttonText={isTrial ? "Subscribe to Pro" : "Your current plan"}
               className="w-full flex-1 opacity-100!"
             />
           )}

@@ -22,6 +22,14 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
     }
   }, [isLoaded, platformUrl, isAdmin, router]);
 
+  const getValue = () => {
+    if (pathname?.includes("insights")) {
+      return "insights";
+    }
+
+    return pathname?.split("/")?.pop() || "activity";
+  };
+
   if (isAdmin) {
     const adminBasePath = `${platformUrl}/admin`;
 
@@ -29,18 +37,18 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
       <div>
         <Tabs
           className="relative h-10 w-full overflow-x-auto overflow-y-hidden"
-          value={pathname?.split("/")?.pop() || "activity"}
+          value={getValue()}
         >
           <TabsList className="absolute flex h-10">
-            <TabsTrigger value="insights" asChild>
-              <Link href={`${adminBasePath}/insights`}>
-                <SparklesIcon fill="currentColor" className="mr-1 size-3.5!" />
-                AI Insights
-              </Link>
-            </TabsTrigger>
-
             <TabsTrigger value="activity" asChild>
               <Link href={`${adminBasePath}/activity`}>Activity</Link>
+            </TabsTrigger>
+
+            <TabsTrigger value="insights" asChild>
+              <Link href={`${adminBasePath}/insights/ai-roadmap`}>
+                {/* <SparklesIcon fill="currentColor" className="mr-1 size-3.5!" /> */}
+                Insights
+              </Link>
             </TabsTrigger>
 
             <TabsTrigger value="settings" asChild>

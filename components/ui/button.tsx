@@ -61,7 +61,7 @@ const Button = ({
     >
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Spinner className={cn("size-6", size === "icon" && "size-5")} />
+          <Spinner className={cn("size-6!", size === "icon" && "size-5!")} />
         </div>
       )}
       <SlotPrimitive.Slottable>

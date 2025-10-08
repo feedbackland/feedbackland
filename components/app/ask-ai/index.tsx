@@ -18,10 +18,7 @@ export default function AskAI({ orgId }: { orgId: string }) {
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <h2 className="h5 mb-5 flex flex-wrap items-center gap-2">Ask AI</h2>
-      <div className="border-border w-full overflow-hidden rounded-lg border shadow-xs">
-        <Thread />
-      </div>
+      <Thread />
     </AssistantRuntimeProvider>
   );
 }
