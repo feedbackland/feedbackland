@@ -22,6 +22,18 @@ function isWithinLast30Days(orgCreatedAt: Date) {
 
 export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
   try {
+    // DEBUG
+    // return {
+    //   orgId,
+    //   amount: "0",
+    //   name: "pro",
+    //   frequency: "month",
+    //   isExpired: false,
+    //   isTrial: true,
+    //   trialEnd: null,
+    // } satisfies Subscription;
+    // END DEBUG
+
     const isSelfHosted = getIsSelfHosted("server");
 
     const subscription = await db

@@ -90,7 +90,7 @@ export function PlatformHeaderButtons() {
         <DropdownMenu>
           {session ? (
             <DropdownMenuTrigger asChild className="cursor-pointer">
-              <Avatar className="-mr-0.5 scale-90!">
+              <Avatar className="-mr-0.5">
                 <AvatarImage
                   src={session?.user?.photoURL || undefined}
                   alt="User avatar image"

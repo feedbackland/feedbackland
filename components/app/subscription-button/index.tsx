@@ -7,20 +7,20 @@ import { useCreatePolarCustomerSession } from "@/hooks/use-create-polar-customer
 import { usePolarProducts } from "@/hooks/use-polar-products";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
-import { sub } from "date-fns";
-import { Edit2Icon } from "lucide-react";
 
 export function SubscriptionButton({
   variant = "default",
   size = "lg",
+  icon,
   className = "",
   buttonText,
   disabled = false,
 }: {
   variant?: "default" | "secondary" | "outline" | "link" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
+  icon?: React.ReactNode;
   className?: React.ComponentProps<"div">["className"];
-  buttonText: string;
+  buttonText?: string;
   disabled?: boolean;
 }) {
   const { isAdmin } = useAuth();
@@ -81,7 +81,7 @@ export function SubscriptionButton({
         onClick={handleOnClick}
         disabled={disabled}
       >
-        {buttonText === "Manage" && <Edit2Icon />}
+        {icon}
         {buttonText}
       </Button>
     );
