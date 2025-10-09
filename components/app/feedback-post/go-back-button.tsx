@@ -4,14 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { useAtomValue } from "jotai";
-// import { previousPathnameAtom } from "@/lib/atoms";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export const GoBackButton = ({
   className,
@@ -19,7 +12,6 @@ export const GoBackButton = ({
   className?: React.ComponentProps<"div">["className"];
 }) => {
   const router = useRouter();
-  // const previousPathname = useAtomValue(previousPathnameAtom);
   const platformUrl = usePlatformUrl();
 
   const handleGoBack = () => {
@@ -28,12 +20,6 @@ export const GoBackButton = ({
     } else if (platformUrl) {
       router.push(platformUrl);
     }
-
-    // if (previousPathname) {
-    //   router.back();
-    // } else if (platformUrl) {
-    //   router.push(platformUrl);
-    // }
   };
 
   return (
@@ -46,22 +32,5 @@ export const GoBackButton = ({
       <ArrowLeft />
       Back
     </Button>
-  );
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          size="icon"
-          onClick={handleGoBack}
-          variant="outline"
-          className={cn("size-8", className)}
-        >
-          <ArrowLeft className="size-4" />
-          <span className="sr-only">Go back</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Go back to overview</TooltipContent>
-    </Tooltip>
   );
 };

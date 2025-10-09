@@ -47,7 +47,7 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
             <TabsTrigger value="insights" asChild>
               <Link href={`${adminBasePath}/insights/ai-roadmap`}>
                 {/* <SparklesIcon fill="currentColor" className="mr-1 size-3.5!" /> */}
-                Insights
+                AI Insights
               </Link>
             </TabsTrigger>
 

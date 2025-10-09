@@ -26,7 +26,7 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
     // return {
     //   orgId,
     //   amount: "0",
-    //   name: "pro",
+    //   name: "free",
     //   frequency: "month",
     //   isExpired: false,
     //   isTrial: true,

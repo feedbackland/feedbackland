@@ -5,13 +5,15 @@ import { cn } from "@/lib/utils";
 import { AlertTriangleIcon } from "lucide-react";
 import { SubscriptionButton } from "../app/subscription-button";
 
-export function AlertBox({
+export function UpgradeAlert({
   title,
   description,
   className,
+  buttonText,
 }: {
   title?: string;
   description?: string;
+  buttonText?: string;
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
@@ -21,16 +23,16 @@ export function AlertBox({
         className,
       )}
     >
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
         <AlertTriangleIcon
-          className={cn("text-primary hidden size-6 shrink-0 sm:block")}
+          className={cn("text-primary hidden size-5 shrink-0 sm:block")}
         />
         <div className="flex flex-col items-stretch space-y-1">
-          {title && <AlertTitle>{title}</AlertTitle>}
+          {title && <AlertTitle className="font-semibold">{title}</AlertTitle>}
           {description && <AlertDescription>{description}</AlertDescription>}
         </div>
       </div>
-      <SubscriptionButton buttonText="Upgrade" />
+      <SubscriptionButton buttonText={buttonText || "Upgrade"} />
     </Alert>
   );
 }

@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   CheckIcon,
   InfoIcon,
-  Settings2Icon,
   SettingsIcon,
   TriangleAlertIcon,
 } from "lucide-react";
@@ -17,7 +16,6 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { SubscriptionButton } from "@/components/app/subscription-button";
 import { cn } from "@/lib/utils";
 import { differenceInDays, parseISO } from "date-fns";
-import { Button } from "@/components/ui/button";
 
 const getTrialDaysLeft = (trialEnd: string) => {
   const daysLeft = differenceInDays(parseISO(trialEnd), new Date());
@@ -49,8 +47,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
         ]
       : [
           "Everything from Cloud Free",
-          "AI Roadmap",
-          "AI Explorer",
+          "AI Insights",
           "Multiple admins",
           "Automatic content moderation",
           "Image uploads",
@@ -116,7 +113,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
             {!isCurrentPlan && isProPlan && (
               <SubscriptionButton
                 variant="default"
-                buttonText="Upgrade"
+                buttonText="Upgrade to Cloud Pro"
                 className="w-full flex-1 shadow-none"
               />
             )}
@@ -124,7 +121,9 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
             {isCurrentPlan && (
               <SubscriptionButton
                 variant={isTrial ? "default" : "outline"}
-                buttonText={isTrial ? "Subscribe to Pro" : "Your current plan"}
+                buttonText={
+                  isTrial ? "Subscribe to Cloud Pro" : "Your current plan"
+                }
                 className="w-full flex-1 opacity-100! shadow-none"
                 disabled={isTrial ? false : true}
               />
@@ -133,12 +132,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
 
           <div className="text-primary flex flex-col items-stretch space-y-2 text-sm font-normal">
             {features.map((feature) => (
-              <div
-                key={feature}
-                className={cn("flex items-center gap-1.5", {
-                  // "font-bold": feature.includes("Everything from"),
-                })}
-              >
+              <div key={feature} className={cn("flex items-center gap-1.5")}>
                 <CheckIcon className="size-4!" />
                 <span>{feature}</span>
               </div>
