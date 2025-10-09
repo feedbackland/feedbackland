@@ -40,30 +40,13 @@ export const GoBackButton = ({
     <Button
       size="sm"
       onClick={handleGoBack}
-      variant="link"
-      className={cn(
-        "text-muted-foreground hover:text-primary w-fit px-0 hover:no-underline",
-        className,
-      )}
+      variant="secondary"
+      className={cn("", className)}
     >
-      <span className="flex items-center gap-1.5">
-        <ArrowLeft className="size-3.5" />
-        <span className="">Back</span>
-      </span>
+      <ArrowLeft />
+      Back
     </Button>
   );
-
-  // return (
-  //   <Button
-  //     size="sm"
-  //     onClick={handleGoBack}
-  //     variant="secondary"
-  //     className={cn("", className)}
-  //   >
-  //     <ArrowLeft className="size-4" />
-  //     <span className="hidden sm:block">Back</span>
-  //   </Button>
-  // );
 
   return (
     <Tooltip>

@@ -67,7 +67,6 @@ export const getSubscriptionQuery = async ({ orgId }: { orgId: string }) => {
       .executeTakeFirstOrThrow();
 
     const isTrial = !isSelfHosted && isWithinLast30Days(org.createdAt);
-    // const isTrial = false;
 
     return {
       orgId,
