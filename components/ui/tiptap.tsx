@@ -1,21 +1,21 @@
 import { Content } from "@tiptap/react";
-// import { MinimalTiptapEditor } from "./minimal-tiptap";
+import { MinimalTiptapEditor } from "./minimal-tiptap";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
-const MinimalTiptapEditor = dynamic(
-  () =>
-    import("./minimal-tiptap").then(
-      ({ MinimalTiptapEditor }) => MinimalTiptapEditor,
-    ),
-  {
-    loading: () => (
-      <div className="border-input bg-background! h-[93px] w-full rounded-lg border shadow-xs" />
-    ),
-    ssr: false,
-  },
-);
+// const MinimalTiptapEditor = dynamic(
+//   () =>
+//     import("./minimal-tiptap").then(
+//       ({ MinimalTiptapEditor }) => MinimalTiptapEditor,
+//     ),
+//   {
+//     loading: () => (
+//       <div className="border-input bg-background! h-[93px] w-full rounded-lg border shadow-xs" />
+//     ),
+//     ssr: false,
+//   },
+// );
 
 export const Tiptap = ({
   value,
@@ -64,7 +64,7 @@ export const Tiptap = ({
     <MinimalTiptapEditor
       value={value}
       className={cn(
-        "bg-background! rounded-lg",
+        "bg-muted/40 border-border rounded-lg shadow-none",
         isFocused && "ring-ring ring-1",
         className,
       )}

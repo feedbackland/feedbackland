@@ -295,7 +295,7 @@ export const getOverlayWidgetCodeSnippet = ({
   platformId="${orgId}" // your platform's ID
   url="${url}" your platform's URL
   mode="light" // the color mode of the widget, 'light' or 'dark'
-  button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
+  button={<button>Feedback</button>} // bring your own button
 />`;
   }
 
@@ -304,6 +304,6 @@ export const getOverlayWidgetCodeSnippet = ({
 <FeedbackButton
   platformId="${orgId}" // your platform's ID
   mode="light" // the color mode of the widget, 'light' or 'dark'
-  button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
+  button={<button>Feedback</button>} // bring your own button
 />`;
 };
