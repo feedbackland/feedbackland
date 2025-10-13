@@ -158,77 +158,70 @@ export const getIsSelfHosted = (
   return false;
 };
 
-export const base64ToBlob = ({
-  base64,
-  contentType,
-}: {
-  base64: string;
-  contentType: string;
-}) => {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
+const getImageDimensions = (
+  source: string,
+): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () =>
+      reject(new Error("Failed to load image to get dimensions."));
+    img.src = source;
+  });
+};
 
-  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
+function getImageExtension(base64: string) {
+  const match = base64.match(/^data:image\/(\w+);base64,/);
+  if (!match) return null;
+  const mimeType = match[1].toLowerCase();
+  return mimeType === "jpeg" ? "jpg" : mimeType;
+}
 
-    const byteNumbers = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
+async function getBlob(base64: string) {
+  const response = await fetch(base64);
+  const blob = await response.blob();
+  return blob;
+}
+
+export const uploadImage = async (base64Image: string) => {
+  try {
+    const { width, height } = await getImageDimensions(base64Image);
+    const imageExtension = getImageExtension(base64Image);
+    const blob = await getBlob(base64Image);
+    const filename = `image-${uuidv4()}.${imageExtension}`;
+    const { error } = await supabase.storage
+      .from("images")
+      .upload(filename, blob);
+
+    if (error) {
+      throw error;
     }
 
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("images").getPublicUrl(filename);
 
-  return new Blob(byteArrays, { type: contentType });
+    return { publicUrl, width, height };
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const processImagesInHTML = async (html: string) => {
   const base64Regex = /<img.*?src="(data:image\/(.*?);base64,([^"]*))"[^>]*>/g;
 
-  let modifiedHTML = html; // Start with original HTML
+  let modifiedHTML = html;
 
   const matches = Array.from(html.matchAll(base64Regex));
 
-  // Create an array of promises, one for each image processing task
   const processingPromises = matches.map(async (match) => {
     const fullMatch = match[0];
-    const imageType = match[2];
-    const base64Data = match[3];
+    const base64Image = match[3];
 
     try {
-      // Decode base64 to buffer for image-size
-      const imageBuffer = Buffer.from(base64Data, "base64");
+      const { publicUrl, width, height } = await uploadImage(base64Image);
 
-      const { width, height } = imageSize(imageBuffer); // Get dimensions
-
-      const blob = base64ToBlob({
-        base64: base64Data,
-        contentType: `image/${imageType}`,
-      });
-
-      const filename = `image-${uuidv4()}.${imageType}`;
-
-      // Upload to Supabase
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(filename, blob);
-
-      if (uploadError) {
-        throw uploadError; // Propagate upload error
-      }
-
-      // Get public URL
-      // Using 'as any' as a workaround for persistent TS error where 'error' property is not recognized on the type.
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("images").getPublicUrl(filename);
-
-      if (!publicUrl) {
-        throw new Error("Failed to get public URL for uploaded image.");
-      }
-
-      // Return the original match and the replacement string
       return {
         original: fullMatch,
         replacement: `<img src="${publicUrl}" alt="Uploaded Image" width="${width}" height="${height}">`,
@@ -241,23 +234,19 @@ export const processImagesInHTML = async (html: string) => {
         fullMatch,
       );
 
-      // Return null or the original match if processing fails for this image
-      return { original: fullMatch, replacement: fullMatch }; // Keep original if error
+      return { original: fullMatch, replacement: fullMatch };
     }
   });
 
-  // Wait for all image processing tasks to complete
   const results = await Promise.all(processingPromises);
 
-  // Perform replacements after all promises are resolved
   results.forEach((result) => {
     if (result) {
-      // Ensure result is not null/undefined from potential errors handled above
       modifiedHTML = modifiedHTML.replace(result.original, result.replacement);
     }
   });
 
-  return modifiedHTML; // Return the final modified HTML
+  return modifiedHTML;
 };
 
 export const getPriorityLabel = (priorityScore: number) => {

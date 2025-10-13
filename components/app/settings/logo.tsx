@@ -1,17 +1,19 @@
 "use client";
 
-import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
+import { cn, uploadImage } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { PenIcon, TrashIcon, UploadIcon } from "lucide-react";
 import { ImageCropper } from "@/components/ui/image-cropper";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
+import { useUpdateOrg } from "@/hooks/use-update-org";
+import { useOrg } from "@/hooks/use-org";
+import { Button } from "@/components/ui/button";
+import { SwitchIcon } from "@radix-ui/react-icons";
 
 export type FileWithPreview = FileWithPath & {
   preview: string;
-};
-
-const accept = {
-  "image/*": [],
 };
 
 export function Logo({
@@ -19,49 +21,130 @@ export function Logo({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const [selectedFile, setSelectedFile] =
-    React.useState<FileWithPreview | null>(null);
-  const [isDialogOpen, setDialogOpen] = React.useState(false);
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
+  const [localImage, setLocalImage] = useState<string | null>(null);
 
-  const onDrop = React.useCallback((acceptedFiles: FileWithPath[]) => {
-    const file = acceptedFiles[0];
-    if (!file) {
-      alert("Selected image is too large!");
-      return;
+  const {
+    query: { data },
+  } = useOrg();
+
+  useEffect(() => {
+    if (data?.logo) {
+      setRemoteImageUrl(data?.logo);
     }
+  }, [data]);
 
-    const fileWithPreview = Object.assign(file, {
-      preview: URL.createObjectURL(file),
+  const updateOrg = useUpdateOrg();
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
+  };
 
-    setSelectedFile(fileWithPreview);
+  const onDrop = async (acceptedFiles: FileWithPath[]) => {
+    const file = acceptedFiles[0];
+    const base64Image = await fileToBase64(file);
+    setLocalImage(base64Image);
     setDialogOpen(true);
-  }, []);
+  };
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept,
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+    },
+    multiple: false,
+    maxFiles: 1,
   });
 
+  const onSave = async (image: string) => {
+    const { publicUrl } = await uploadImage(image);
+
+    setRemoteImageUrl(publicUrl);
+
+    await updateOrg.mutateAsync({
+      logo: publicUrl,
+    });
+
+    setLocalImage(null);
+
+    return true;
+  };
+
+  const onRemove = async () => {
+    await updateOrg.mutateAsync({
+      logo: null,
+    });
+
+    setRemoteImageUrl(null);
+  };
+
   return (
-    <div className={cn("", className)}>
-      {selectedFile ? (
-        <ImageCropper
-          dialogOpen={isDialogOpen}
-          setDialogOpen={setDialogOpen}
-          selectedFile={selectedFile}
-          setSelectedFile={setSelectedFile}
-        />
-      ) : (
-        <Avatar
-          {...getRootProps()}
-          className="size-36 cursor-pointer ring-2 ring-slate-200 ring-offset-2"
-        >
-          <input {...getInputProps()} />
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      )}
-    </div>
+    <>
+      <ImageCropper
+        open={isDialogOpen}
+        imageSrc={localImage}
+        onClose={() => setDialogOpen(false)}
+        onCrop={async (image) => {
+          await onSave(image);
+          setDialogOpen(false);
+        }}
+      />
+      <div className={cn("", className)}>
+        <div className="flex items-start gap-6">
+          <div className="flex flex-1 flex-col items-stretch gap-2">
+            <Label>Logo</Label>
+            <div
+              {...getRootProps()}
+              className="hover:border-primary flex size-[100px] cursor-pointer items-center justify-center border-2 border-dashed"
+            >
+              {remoteImageUrl ? (
+                <Image
+                  src={remoteImageUrl}
+                  alt="logo"
+                  width={96}
+                  height={96}
+                  className="size-[96px] object-contain"
+                />
+              ) : (
+                <UploadIcon className="text-muted-foreground" />
+              )}
+
+              <input {...getInputProps()} />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {remoteImageUrl && (
+              <Button
+                className=""
+                size="sm"
+                variant="outline"
+                onClick={onRemove}
+              >
+                <TrashIcon className="size-3" />
+                Remove
+              </Button>
+            )}
+            <Button
+              className=""
+              size="sm"
+              variant="outline"
+              onClick={() => setDialogOpen(true)}
+              {...getRootProps()}
+            >
+              <PenIcon className="size-3" />
+              Edit
+              <input {...getInputProps()} />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

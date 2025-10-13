@@ -1,165 +1,29 @@
 "use client";
 
-import React, { type SyntheticEvent } from "react";
+import React, { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
   type Crop,
   type PixelCrop,
 } from "react-image-crop";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import "react-image-crop/dist/ReactCrop.css";
-import { CropIcon, Trash2Icon } from "lucide-react";
+import { CropIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { FileWithPath } from "react-dropzone";
-
-interface ImageCropperProps {
-  dialogOpen: boolean;
-  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedFile: FileWithPreview | null;
-  setSelectedFile: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
-}
+import { set } from "date-fns";
 
 export type FileWithPreview = FileWithPath & {
   preview: string;
 };
 
-export function ImageCropper({
-  dialogOpen,
-  setDialogOpen,
-  selectedFile,
-  setSelectedFile,
-}: ImageCropperProps) {
-  const aspect = 1;
-
-  const imgRef = React.useRef<HTMLImageElement | null>(null);
-
-  const [crop, setCrop] = React.useState<Crop>();
-  const [croppedImageUrl, setCroppedImageUrl] = React.useState<string>("");
-  const [croppedImage, setCroppedImage] = React.useState<string>("");
-
-  function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
-    if (aspect) {
-      const { width, height } = e.currentTarget;
-      setCrop(centerAspectCrop(width, height, aspect));
-    }
-  }
-
-  function onCropComplete(crop: PixelCrop) {
-    if (imgRef.current && crop.width && crop.height) {
-      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
-      setCroppedImageUrl(croppedImageUrl);
-    }
-  }
-
-  function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
-    const canvas = document.createElement("canvas");
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-
-    const ctx = canvas.getContext("2d");
-
-    if (ctx) {
-      ctx.imageSmoothingEnabled = false;
-
-      ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        crop.width * scaleX,
-        crop.height * scaleY,
-      );
-    }
-
-    return canvas.toDataURL("image/png", 1.0);
-  }
-
-  async function onCrop() {
-    try {
-      setCroppedImage(croppedImageUrl);
-      setDialogOpen(false);
-    } catch (error) {
-      alert("Something went wrong!");
-    }
-  }
-
-  return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger>
-        <Avatar className="size-36 cursor-pointer ring-2 ring-slate-200 ring-offset-2">
-          <AvatarImage
-            src={croppedImage ? croppedImage : selectedFile?.preview}
-            alt="@shadcn"
-          />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      </DialogTrigger>
-      <DialogContent className="gap-0 p-0">
-        <DialogTitle className="sr-only">Upload logo</DialogTitle>
-        <div className="size-full p-6">
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => onCropComplete(c)}
-            aspect={aspect}
-            className="w-full"
-          >
-            <Avatar className="size-full rounded-none">
-              <AvatarImage
-                ref={imgRef}
-                className="size-full rounded-none"
-                alt="Image Cropper Shell"
-                src={selectedFile?.preview}
-                onLoad={onImageLoad}
-              />
-              <AvatarFallback className="size-full min-h-[460px] rounded-none">
-                Loading...
-              </AvatarFallback>
-            </Avatar>
-          </ReactCrop>
-        </div>
-        <DialogFooter className="justify-center p-6 pt-0">
-          <DialogClose asChild>
-            <Button
-              size={"sm"}
-              type="reset"
-              className="w-fit"
-              variant={"outline"}
-              onClick={() => {
-                setSelectedFile(null);
-              }}
-            >
-              <Trash2Icon className="mr-1.5 size-4" />
-              Cancel
-            </Button>
-          </DialogClose>
-          <Button type="submit" size={"sm"} className="w-fit" onClick={onCrop}>
-            <CropIcon className="mr-1.5 size-4" />
-            Crop
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Helper function to center the crop
 export function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
@@ -178,5 +42,162 @@ export function centerAspectCrop(
     ),
     mediaWidth,
     mediaHeight,
+  );
+}
+
+function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    return "";
+  }
+
+  const { naturalWidth, naturalHeight, width, height } = image;
+
+  const imageAspectRatio = naturalWidth / naturalHeight;
+  const containerAspectRatio = width / height;
+
+  let renderWidth,
+    renderHeight,
+    xOffset = 0,
+    yOffset = 0;
+
+  if (imageAspectRatio > containerAspectRatio) {
+    renderWidth = width;
+    renderHeight = width / imageAspectRatio;
+    yOffset = (height - renderHeight) / 2;
+  } else {
+    renderHeight = height;
+    renderWidth = height * imageAspectRatio;
+    xOffset = (width - renderWidth) / 2;
+  }
+
+  const scaleX = naturalWidth / renderWidth;
+  const scaleY = naturalHeight / renderHeight;
+
+  const sourceX = (crop.x - xOffset) * scaleX;
+  const sourceY = (crop.y - yOffset) * scaleY;
+  const sourceWidth = crop.width * scaleX;
+  const sourceHeight = crop.height * scaleY;
+
+  canvas.width = sourceWidth;
+  canvas.height = sourceHeight;
+
+  ctx.imageSmoothingEnabled = false;
+
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    sourceWidth,
+    sourceHeight,
+  );
+
+  return canvas.toDataURL("image/png", 1.0);
+}
+
+export function ImageCropper({
+  open,
+  imageSrc,
+  onClose,
+  onCrop,
+}: {
+  open: boolean;
+  imageSrc: string | null;
+  onClose: () => void;
+  onCrop: (croppedImage: string) => void;
+}) {
+  const aspect = 1;
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    setProcessing(false);
+  }, [open]);
+
+  function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    setCrop(centerAspectCrop(width, height, aspect));
+  }
+
+  function onCropComplete(crop: PixelCrop) {
+    if (imgRef.current && crop.width && crop.height) {
+      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
+      setCroppedImage(croppedImageUrl);
+    }
+  }
+
+  async function handleOnCrop() {
+    if (croppedImage) {
+      onCrop(croppedImage);
+      setProcessing(true);
+    } else {
+      handleOnClose();
+    }
+  }
+
+  const handleOnClose = () => {
+    onClose();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleOnClose();
+      }}
+    >
+      <DialogContent className="">
+        <DialogTitle className="sr-only">Upload logo</DialogTitle>
+        <div className="mx-auto size-96!">
+          <ReactCrop
+            crop={crop}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            onComplete={(c) => onCropComplete(c)}
+            aspect={aspect}
+            className="w-full"
+          >
+            <img
+              ref={imgRef}
+              className="size-96! rounded-none object-contain"
+              alt="Image Cropper"
+              src={imageSrc || undefined}
+              onLoad={onImageLoad}
+            />
+          </ReactCrop>
+        </div>
+        <DialogFooter className="">
+          <DialogClose asChild>
+            <Button
+              size={"sm"}
+              type="reset"
+              className="w-fit"
+              variant={"outline"}
+              onClick={handleOnClose}
+            >
+              <Trash2Icon className="mr-1.5 size-4" />
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="submit"
+            size={"sm"}
+            className="w-fit"
+            onClick={handleOnCrop}
+            loading={processing}
+          >
+            <UploadIcon className="mr-1.5 size-4" />
+            Crop and upload
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

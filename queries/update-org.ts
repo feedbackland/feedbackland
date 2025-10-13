@@ -10,12 +10,14 @@ export const updateOrgQuery = async ({
   orgSubdomain = undefined,
   platformTitle = undefined,
   platformDescription = undefined,
+  logo = undefined,
 }: {
   orgId: string;
   userId: string;
   orgSubdomain?: string;
   platformTitle?: string;
   platformDescription?: string | null;
+  logo?: string | null;
 }) => {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -33,6 +35,7 @@ export const updateOrgQuery = async ({
             orgSubdomain,
             platformTitle,
             platformDescription,
+            logo,
           } satisfies Partial<Selectable<Org>>).filter(
             ([_, value]) => value !== undefined,
           ),

@@ -13,36 +13,19 @@ export type AuthFactorStatus = "unverified" | "verified";
 
 export type AuthFactorType = "phone" | "totp" | "webauthn";
 
-export type AuthOneTimeTokenType =
-  | "confirmation_token"
-  | "email_change_token_current"
-  | "email_change_token_new"
-  | "phone_change_token"
-  | "reauthentication_token"
-  | "recovery_token";
+export type AuthOauthRegistrationType = "dynamic" | "manual";
 
-export type FeedbackCategory =
-  | "bug report"
-  | "feature request"
-  | "general feedback";
+export type AuthOneTimeTokenType = "confirmation_token" | "email_change_token_current" | "email_change_token_new" | "phone_change_token" | "reauthentication_token" | "recovery_token";
 
-export type FeedbackStatus =
-  | "declined"
-  | "done"
-  | "in progress"
-  | "planned"
-  | "under consideration";
+export type FeedbackCategory = "bug report" | "feature request" | "general feedback";
 
-export type Generated<T> =
-  T extends ColumnType<infer S, infer I, infer U>
-    ? ColumnType<S, I | undefined, U>
-    : ColumnType<T, T | undefined, T>;
+export type FeedbackStatus = "declined" | "done" | "in progress" | "planned" | "under consideration";
 
-export type Int8 = ColumnType<
-  string,
-  bigint | number | string,
-  bigint | number | string
->;
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
+
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
 
 export type Json = JsonValue;
 
@@ -60,22 +43,13 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type PgsodiumKeyStatus = "default" | "expired" | "invalid" | "valid";
 
-export type PgsodiumKeyType =
-  | "aead-det"
-  | "aead-ietf"
-  | "auth"
-  | "generichash"
-  | "hmacsha256"
-  | "hmacsha512"
-  | "kdf"
-  | "secretbox"
-  | "secretstream"
-  | "shorthash"
-  | "stream_xchacha20";
+export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" | "hmacsha256" | "hmacsha512" | "kdf" | "secretbox" | "secretstream" | "shorthash" | "stream_xchacha20";
+
+export type StorageBuckettype = "ANALYTICS" | "STANDARD";
 
 export type SubscriptionFrequency = "month" | "year";
 
-export type SubscriptionName = "free" | "pro";
+export type SubscriptionName = "free" | "max" | "pro";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
@@ -173,6 +147,21 @@ export interface AuthMfaFactors {
   web_authn_credential: Json | null;
 }
 
+export interface AuthOauthClients {
+  client_id: string;
+  client_name: string | null;
+  client_secret_hash: string;
+  client_uri: string | null;
+  created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
+  grant_types: string;
+  id: string;
+  logo_uri: string | null;
+  redirect_uris: string;
+  registration_type: AuthOauthRegistrationType;
+  updated_at: Generated<Timestamp>;
+}
+
 export interface AuthOneTimeTokens {
   created_at: Generated<Timestamp>;
   id: string;
@@ -249,6 +238,7 @@ export interface AuthSsoDomains {
 
 export interface AuthSsoProviders {
   created_at: Timestamp | null;
+  disabled: boolean | null;
   id: string;
   /**
    * Auth: Uniquely identifies a SSO provider according to a user-chosen resource ID (case insensitive), useful in infrastructure as code.
@@ -429,6 +419,7 @@ export interface Org {
   createdAt: Generated<Timestamp>;
   id: Generated<string>;
   isClaimed: Generated<boolean>;
+  logo: string | null;
   orgSubdomain: string;
   platformDescription: string | null;
   platformTitle: Generated<string>;
@@ -547,7 +538,16 @@ export interface StorageBuckets {
   owner: string | null;
   owner_id: string | null;
   public: Generated<boolean | null>;
+  type: Generated<StorageBuckettype>;
   updated_at: Generated<Timestamp | null>;
+}
+
+export interface StorageBucketsAnalytics {
+  created_at: Generated<Timestamp>;
+  format: Generated<string>;
+  id: string;
+  type: Generated<StorageBuckettype>;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface StorageMigrations {
@@ -562,6 +562,7 @@ export interface StorageObjects {
   created_at: Generated<Timestamp | null>;
   id: Generated<string>;
   last_accessed_at: Generated<Timestamp | null>;
+  level: number | null;
   metadata: Json | null;
   name: string | null;
   /**
@@ -573,6 +574,14 @@ export interface StorageObjects {
   updated_at: Generated<Timestamp | null>;
   user_metadata: Json | null;
   version: string | null;
+}
+
+export interface StoragePrefixes {
+  bucket_id: string;
+  created_at: Generated<Timestamp | null>;
+  level: Generated<number>;
+  name: string;
+  updated_at: Generated<Timestamp | null>;
 }
 
 export interface StorageS3MultipartUploads {
@@ -681,6 +690,7 @@ export interface DB {
   "auth.mfa_amr_claims": AuthMfaAmrClaims;
   "auth.mfa_challenges": AuthMfaChallenges;
   "auth.mfa_factors": AuthMfaFactors;
+  "auth.oauth_clients": AuthOauthClients;
   "auth.one_time_tokens": AuthOneTimeTokens;
   "auth.refresh_tokens": AuthRefreshTokens;
   "auth.saml_providers": AuthSamlProviders;
@@ -707,8 +717,10 @@ export interface DB {
   "realtime.schema_migrations": RealtimeSchemaMigrations;
   "realtime.subscription": RealtimeSubscription;
   "storage.buckets": StorageBuckets;
+  "storage.buckets_analytics": StorageBucketsAnalytics;
   "storage.migrations": StorageMigrations;
   "storage.objects": StorageObjects;
+  "storage.prefixes": StoragePrefixes;
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
   subscriptions: Subscriptions;

@@ -8,11 +8,12 @@ export const updateOrg = adminProcedure
       orgSubdomain: z.string().optional(),
       platformTitle: z.string().optional(),
       platformDescription: z.string().nullish(),
+      logo: z.string().nullish(),
     }),
   )
   .mutation(
     async ({
-      input: { orgSubdomain, platformTitle, platformDescription },
+      input: { orgSubdomain, platformTitle, platformDescription, logo },
       ctx: { userId, orgId },
     }) => {
       try {
@@ -22,6 +23,7 @@ export const updateOrg = adminProcedure
           orgSubdomain,
           platformTitle,
           platformDescription,
+          logo,
         });
       } catch (error) {
         throw error;

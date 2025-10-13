@@ -98,7 +98,7 @@ export function FeedbackPostUpvoteButton({
         }}
       >
         <ArrowBigUp
-          className="size-4!"
+          className="size-[0.95rem]!"
           strokeWidth={hasUserUpvote ? 0 : 1.5}
           fill={hasUserUpvote ? "var(--background)" : "none"}
         />
