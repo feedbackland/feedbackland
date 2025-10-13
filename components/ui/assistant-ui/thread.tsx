@@ -120,11 +120,11 @@ export const Thread: FC = () => {
 const Composer: FC = () => {
   return (
     <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto mt-2 flex w-full flex-col gap-4 overflow-visible pt-2 pb-4">
-      <ComposerPrimitive.Root className="aui-composer-root bg-muted/50 dark:border-muted-foreground/15 relative flex w-full flex-col rounded-md border border-black/20 px-1">
+      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border relative flex w-full flex-col rounded-md border px-1">
         <ComposerAttachments />
         <ComposerPrimitive.Input
-          placeholder="Ask anything about your feedback platform's data..."
-          className="aui-composer-input placeholder:text-muted-foreground focus:outline-primary mb-1 max-h-32 w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3 text-sm outline-none"
+          placeholder="Ask anything about your platform's data..."
+          className="aui-composer-input placeholder:text-muted-foreground mb-1 max-h-32 w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3 text-sm outline-none"
           rows={1}
           autoFocus
           aria-label="Message input"
