@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { usePathname } from "next/navigation";
 import { useOrg } from "@/hooks/use-org";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -13,8 +12,6 @@ export function PlatformHeaderTitle({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const pathname = usePathname();
-  const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
 
   const {
@@ -37,8 +34,7 @@ export function PlatformHeaderTitle({
                 className="size-[30px] rounded-sm object-contain"
               />
             )}
-            <span>Acme's feedback board</span>
-            {/* {!isAdminPage ? orgData?.platformTitle : "Admin Panel"} */}
+            <span>{orgData?.platformTitle || "Feedback board"}</span>
           </Link>
         </h1>
       )}

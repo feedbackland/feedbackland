@@ -21,10 +21,10 @@ import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const FormSchema = z.object({
-  platformTitle: z.string().min(1),
+  orgUrl: z.string().min(1),
 });
 
-export function PlatformTitle({
+export function OrgUrl({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
@@ -40,20 +40,20 @@ export function PlatformTitle({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      platformTitle: "",
+      orgUrl: "",
     },
   });
 
   useEffect(() => {
-    form.setValue("platformTitle", data?.platformTitle || "");
+    form.setValue("orgUrl", data?.orgUrl || "");
   }, [form, data]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
-      await updateOrg.mutateAsync({ platformTitle: formData.platformTitle });
+      await updateOrg.mutateAsync({ orgUrl: formData.orgUrl });
       setIsEditing(false);
     } catch {
-      form.setError("platformTitle", {
+      form.setError("orgUrl", {
         message: "An error occured. Please try again.",
       });
     }
@@ -61,7 +61,7 @@ export function PlatformTitle({
 
   const handleOnCancel = () => {
     setIsEditing(false);
-    form.setValue("platformTitle", data?.platformTitle || "");
+    form.setValue("orgUrl", data?.orgUrl || "");
     form.clearErrors();
   };
 
@@ -73,25 +73,29 @@ export function PlatformTitle({
             <form onSubmit={form.handleSubmit(onSubmit)} className="">
               <FormField
                 control={form.control}
-                name="platformTitle"
+                name="orgUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Platform title</FormLabel>
+                    <FormLabel>Company or product website</FormLabel>
                     <FormDescription className="">
-                      The title of your feedback platform, displayed at the top
-                      of the page
+                      The website of the company or product this feedback
+                      platform is used for
                     </FormDescription>
                     <FormControl>
                       {isEditing ? (
                         <Input
                           autoFocus={true}
                           className="w-full max-w-[450px] text-sm"
-                          placeholder="Title of your feedback platform"
+                          placeholder="Company or product website URL"
                           {...field}
                         />
                       ) : (
-                        <div className="text-primary text-sm">
-                          {data?.platformTitle}
+                        <div
+                          className={cn("text-primary text-sm", {
+                            "text-muted-foreground": !data?.orgUrl,
+                          })}
+                        >
+                          {data?.orgUrl || "No website added"}
                         </div>
                       )}
                     </FormControl>

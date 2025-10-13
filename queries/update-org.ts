@@ -8,6 +8,8 @@ export const updateOrgQuery = async ({
   orgId,
   userId,
   orgSubdomain = undefined,
+  orgName = undefined,
+  orgUrl = undefined,
   platformTitle = undefined,
   platformDescription = undefined,
   logo = undefined,
@@ -15,6 +17,8 @@ export const updateOrgQuery = async ({
   orgId: string;
   userId: string;
   orgSubdomain?: string;
+  orgName?: string;
+  orgUrl?: string;
   platformTitle?: string;
   platformDescription?: string | null;
   logo?: string | null;
@@ -33,6 +37,8 @@ export const updateOrgQuery = async ({
         const updatedOrgProps = Object.fromEntries(
           Object.entries({
             orgSubdomain,
+            orgName,
+            orgUrl,
             platformTitle,
             platformDescription,
             logo,

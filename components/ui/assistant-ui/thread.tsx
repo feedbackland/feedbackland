@@ -120,11 +120,11 @@ export const Thread: FC = () => {
 const Composer: FC = () => {
   return (
     <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto mt-2 flex w-full flex-col gap-4 overflow-visible pt-2 pb-4">
-      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border relative flex w-full flex-col rounded-md border px-1">
+      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border relative flex w-full flex-col rounded-lg border px-1">
         <ComposerAttachments />
         <ComposerPrimitive.Input
           placeholder="Ask anything about your platform's data..."
-          className="aui-composer-input placeholder:text-muted-foreground mb-1 max-h-32 w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3 text-sm outline-none"
+          className="aui-composer-input placeholder:text-muted-foreground mb-1 max-h-32 w-full resize-none bg-transparent px-3 pt-3 pb-3 text-sm outline-none"
           rows={1}
           autoFocus
           aria-label="Message input"
@@ -146,10 +146,10 @@ const ComposerAction: FC = () => {
             type="submit"
             variant="default"
             size="icon"
-            className="aui-composer-send size-[34px] p-1"
+            className="aui-composer-send size-[32px] p-1"
             aria-label="Ask"
           >
-            <ArrowUpIcon className="aui-composer-send-icon size-5" />
+            <ArrowUpIcon className="aui-composer-send-icon size-4.5" />
           </TooltipIconButton>
         </ComposerPrimitive.Send>
       </ThreadPrimitive.If>
@@ -160,7 +160,7 @@ const ComposerAction: FC = () => {
             type="button"
             variant="default"
             size="icon"
-            className="aui-composer-cancel border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90 size-[34px] border"
+            className="aui-composer-cancel border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90 size-[32px] border"
             aria-label="Stop generating"
           >
             <Square className="aui-composer-cancel-icon size-3.5 fill-white dark:fill-black" />

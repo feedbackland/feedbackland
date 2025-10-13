@@ -420,7 +420,9 @@ export interface Org {
   id: Generated<string>;
   isClaimed: Generated<boolean>;
   logo: string | null;
+  orgName: string | null;
   orgSubdomain: string;
+  orgUrl: string | null;
   platformDescription: string | null;
   platformTitle: Generated<string>;
   updatedAt: Generated<Timestamp>;

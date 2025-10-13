@@ -94,7 +94,7 @@ export function PlatformUrl({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Platform URL</FormLabel>
-                    <FormDescription className="sr-only">
+                    <FormDescription className="">
                       The full URL for your feedback platform
                     </FormDescription>
                     <FormControl>
