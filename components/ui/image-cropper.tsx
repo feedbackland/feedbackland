@@ -16,9 +16,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import "react-image-crop/dist/ReactCrop.css";
-import { CropIcon, Trash2Icon, UploadIcon } from "lucide-react";
+import { Trash2Icon, UploadIcon } from "lucide-react";
 import { FileWithPath } from "react-dropzone";
-import { set } from "date-fns";
 
 export type FileWithPreview = FileWithPath & {
   preview: string;

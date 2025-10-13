@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
 import { cn, uploadImage } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import Image from "next/image";
 import { useUpdateOrg } from "@/hooks/use-update-org";
 import { useOrg } from "@/hooks/use-org";
 import { Button } from "@/components/ui/button";
-import { SwitchIcon } from "@radix-ui/react-icons";
 
 export type FileWithPreview = FileWithPath & {
   preview: string;

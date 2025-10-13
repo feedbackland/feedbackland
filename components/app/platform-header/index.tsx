@@ -29,7 +29,7 @@ export function PlatformHeader() {
         onClose={() => setIsSignUpInDialogOpen(false)}
       />
 
-      <div className="flex flex-col items-stretch space-y-1 pb-3">
+      <div className="flex flex-col items-stretch space-y-1 pb-5">
         <div className="flex items-center justify-between">
           <PlatformHeaderTitle />
           <PlatformHeaderButtons />
