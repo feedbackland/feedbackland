@@ -12,6 +12,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useInIframe } from "@/hooks/use-in-iframe";
 import { isUuidV4 } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { useWindowSize } from "react-use";
 
 function isInViewport(el: Element) {
   if (!(el instanceof HTMLElement)) return false;
@@ -27,6 +28,7 @@ function isInViewport(el: Element) {
 }
 
 export function FeedbackPosts() {
+  const { width } = useWindowSize();
   const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
   const [feedbackPostsState, setFeedbackPostsState] = useAtom(
     feedbackPostsStateAtom,
@@ -106,32 +108,26 @@ export function FeedbackPosts() {
     }
   }, [inIframe, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
-  const handleSearch = (value: string) => {
-    setFeedbackPostsState((prev) => ({
-      ...prev,
-      searchValue: value,
-    }));
-  };
-
   return (
     <div className="">
-      {!!((!isPending && !isPlatformEmpty) || isSearchActive) && (
-        <div className="relative mb-1.5 flex h-[40px] items-center gap-4">
-          <SortingFilteringDropdown
-            orderBy={orderBy}
-            status={status}
-            onChange={({ orderBy, status }) => {
-              setFeedbackPostsState((prev) => ({
-                ...prev,
-                orderBy,
-                status,
-              }));
-            }}
-          />
+      {!!((!isPending && !isPlatformEmpty) || isSearchActive) &&
+        width < 800 && (
+          <div className="relative mb-1.5 flex h-[40px] items-center gap-4">
+            <SortingFilteringDropdown
+              orderBy={orderBy}
+              status={status}
+              onChange={({ orderBy, status }) => {
+                setFeedbackPostsState((prev) => ({
+                  ...prev,
+                  orderBy,
+                  status,
+                }));
+              }}
+            />
 
-          <FeedbackPostsSearchInput onDebouncedChange={handleSearch} />
-        </div>
-      )}
+            <FeedbackPostsSearchInput />
+          </div>
+        )}
 
       {isPending && <FeedbackPostsLoading />}
 

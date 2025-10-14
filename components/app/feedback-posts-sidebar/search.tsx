@@ -5,16 +5,11 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useDebounce, useKey, useClickAway } from "react-use";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useDebounce } from "react-use";
 import { useSetAtom } from "jotai";
 import { feedbackPostsStateAtom } from "@/lib/atoms";
 
-export const FeedbackPostsSearchInput = ({
+export const FeedbackPostsSidebarSearch = ({
   delay = 500,
   className,
 }: {
@@ -42,54 +37,16 @@ export const FeedbackPostsSearchInput = ({
     [inputValue],
   );
 
-  useClickAway(inputContainerRef, () => {
-    if (!inputValue?.length) close();
-  });
-
-  useKey("Escape", () => {
-    close();
-  });
-
-  const close = () => {
-    setInputValue("");
-    setIsFocused(false);
-  };
-
   useEffect(() => {
     if (isFocused) {
       inputRef?.current?.focus();
     }
   }, [isFocused]);
 
-  const isActive = !!(isFocused || inputValue?.length > 0);
-
-  if (!isActive) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            size="icon"
-            variant="link"
-            className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
-            onClick={() => setIsFocused(true)}
-          >
-            <SearchIcon className="size-4" />
-            <span className="sr-only">Search feedback</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Search feedback</TooltipContent>
-      </Tooltip>
-    );
-  }
-
   return (
     <div
       ref={inputContainerRef}
-      className={cn(
-        "bg-background relative w-full max-w-52 transition-none",
-        isActive && "absolute top-0 right-0 left-0 z-10 max-w-full",
-        className,
-      )}
+      className={cn("bg-background relative w-full", className)}
     >
       <SearchIcon className="absolute top-[0.6rem] left-2.5 z-10 size-4" />
       <Input
