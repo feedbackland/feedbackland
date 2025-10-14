@@ -188,7 +188,7 @@ const AssistantMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-assistant-message-root animate-in fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] py-4 text-sm duration-200 last:mb-24"
+        className="aui-assistant-message-root animate-in fade-in slide-in-from-bottom-1 relative mx-auto w-full py-4 text-sm duration-200 last:mb-24"
         data-role="assistant"
       >
         <div className="aui-assistant-message-content text-foreground mx-2 leading-7 break-words">
@@ -241,7 +241,7 @@ const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-user-message-root animate-in fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-[var(--thread-max-width)] auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-3 text-sm duration-200 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
+        className="aui-user-message-root animate-in fade-in slide-in-from-bottom-1 mx-auto grid w-full auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 py-3 text-sm duration-200 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
         data-role="user"
       >
         <UserMessageAttachments />

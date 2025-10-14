@@ -48,6 +48,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
       : [
           "Everything from Cloud Free",
           "AI Insights",
+          "Ask AI",
           "Multiple admins",
           "Automatic content moderation",
           "Image uploads",
