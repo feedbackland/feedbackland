@@ -75,9 +75,9 @@ export function Insights() {
         <div className="flex-1 space-y-1">
           <div className="mb-0 flex items-center justify-between gap-2">
             <div className="flex flex-col">
-              {/* <h2 className="h5 mb-0.5 flex flex-wrap items-center gap-2">
-                {isGenerating ? `Generating...` : `AI Insights`}
-              </h2> */}
+              <h2 className="h5 mb-0.5 flex flex-wrap items-center gap-2">
+                {isGenerating ? `Generating...` : `AI Roadmap`}
+              </h2>
               {!isGenerating && hasInsights && (
                 <p className="text-muted-foreground text-sm">
                   AI Roadmap last generated on{" "}
@@ -93,7 +93,7 @@ export function Insights() {
 
               {isGenerating && (
                 <p className="text-muted-foreground text-sm">
-                  Generating AI roadmap. This might take a few minutes...
+                  Generating AI Roadmap. This might take a few minutes...
                 </p>
               )}
             </div>

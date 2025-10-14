@@ -1,7 +1,6 @@
 "use client";
 
 import { Code } from "@/components/ui/code";
-import { CodeInstall } from "@/components/ui/code-install";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export function WidgetDocs({
@@ -26,22 +25,15 @@ export function WidgetDocs({
           <h3 className="text-muted-foreground mb-3 text-sm font-medium">
             Install the package
           </h3>
-          <CodeInstall packageName="feedbackland-react" />
+          <Code code={`npm i feedbackland-react`} />
         </div>
         <div>
           <h3 className="text-muted-foreground mb-3 text-sm font-medium">
             Add the feedback button anywhere in your app (for example, in a menu
             or sidebar)
           </h3>
-          <Code code={overlayWidgetCodeSnippet} className="" />
+          <Code code={overlayWidgetCodeSnippet} />
         </div>
-        {/* <div>
-          <h3 className="text-primary mb-3 text-sm font-medium">
-            Step 3 - Use{" "}
-            <code className="bg-muted relative rounded px-[0.4rem] py-[0.2rem] font-mono text-sm">{`<FeedbackButton />`}</code>{" "}
-            anywhere in your UI (e.g. inside of a sidebar or menu)
-          </h3>
-        </div> */}
       </div>
     </div>
   );

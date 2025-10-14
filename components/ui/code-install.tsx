@@ -60,7 +60,7 @@ export function CodeInstall({
               value={packageManager}
               className="px-4 pt-2 pb-4"
             >
-              <pre className="font-mono text-xs text-white">
+              <pre className="font-mono text-sm text-white">
                 <code>{text}</code>
               </pre>
             </TabsContent>

@@ -67,9 +67,12 @@ export const Thread: FC = () => {
                   <EmptyMedia variant="icon">
                     <ScanSearch />
                   </EmptyMedia>
-                  <EmptyTitle>Explore your data</EmptyTitle>
-                  <EmptyDescription>
+                  <EmptyTitle>
                     Ask anything about your platform's data.
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    Let our AI answer any question you have about your
+                    platform's data.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

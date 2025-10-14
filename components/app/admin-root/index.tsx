@@ -6,7 +6,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
-import { SparklesIcon } from "lucide-react";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 
 export default function AdminRoot({ children }: { children: ReactNode }) {
@@ -23,10 +22,6 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
   }, [isLoaded, platformUrl, isAdmin, router]);
 
   const getValue = () => {
-    if (pathname?.includes("insights")) {
-      return "insights";
-    }
-
     return pathname?.split("/")?.pop() || "activity";
   };
 
@@ -44,11 +39,12 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
               <Link href={`${adminBasePath}/activity`}>Activity</Link>
             </TabsTrigger>
 
-            <TabsTrigger value="insights" asChild>
-              <Link href={`${adminBasePath}/insights/ai-roadmap`}>
-                {/* <SparklesIcon fill="currentColor" className="mr-1 size-3.5!" /> */}
-                AI Insights
-              </Link>
+            <TabsTrigger value="ai-roadmap" asChild>
+              <Link href={`${adminBasePath}/ai-roadmap`}>AI Roadmap</Link>
+            </TabsTrigger>
+
+            <TabsTrigger value="ask-ai" asChild>
+              <Link href={`${adminBasePath}/ask-ai`}>Ask AI</Link>
             </TabsTrigger>
 
             <TabsTrigger value="settings" asChild>
