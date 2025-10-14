@@ -30,8 +30,12 @@ export const getUserSessionQuery = async ({
         "org.createdAt as org_createdAt",
         "org.isClaimed as org_isClaimed",
         "org.orgSubdomain as org_orgSubdomain",
+        "org.orgName as org_orgName",
+        "org.orgUrl as org_orgUrl",
+        "org.orgSubdomain as org_orgSubdomain",
         "org.platformDescription as org_platformDescription",
         "org.platformTitle as org_platformTitle",
+        "org.logo as org_logo",
         "org.updatedAt as org_updatedAt",
       ])
       .executeTakeFirstOrThrow();
@@ -50,8 +54,11 @@ export const getUserSessionQuery = async ({
       createdAt: result.org_createdAt,
       isClaimed: result.org_isClaimed,
       orgSubdomain: result.org_orgSubdomain,
+      orgName: result.org_orgName,
+      orgUrl: result.org_orgUrl,
       platformDescription: result.org_platformDescription,
       platformTitle: result.org_platformTitle,
+      logo: result.org_logo,
       updatedAt: result.org_updatedAt,
     };
 
