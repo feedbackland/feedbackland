@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { previousPathnameAtom } from "@/lib/atoms";
+import { useAtomValue } from "jotai";
 
 export const GoBackButton = ({
   className,
@@ -13,9 +15,10 @@ export const GoBackButton = ({
 }) => {
   const router = useRouter();
   const platformUrl = usePlatformUrl();
+  const previousPathname = useAtomValue(previousPathnameAtom);
 
   const handleGoBack = () => {
-    if (window.history.length > 1) {
+    if (previousPathname && window.history.length > 1) {
       window.history.go(-1);
     } else if (platformUrl) {
       router.push(platformUrl);
