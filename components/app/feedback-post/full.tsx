@@ -1,14 +1,12 @@
 "use client";
 
 import { timeAgo } from "@/lib/time-ago";
-import { Button } from "@/components/ui/button";
-import { FeedbackPostUpvoteButton } from "./upvote-button";
-import { MessageSquare, UserIcon } from "lucide-react";
+import { UpvoteButton } from "@/components/app/upvote-button";
+import { CommentsButton } from "@/components/app/comments-button.tsx";
 import { cn } from "@/lib/utils";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { GoBackButton } from "./go-back-button";
 import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FeedbackPostOptionsMenu } from "./options-menu";
 import { FeedbackPostEdit } from "./edit";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
@@ -43,7 +41,6 @@ export function FeedbackPostFull({
       upvotes,
       hasUserUpvote,
       authorName,
-      authorPhotoURL,
       commentCount,
       status,
     } = data;
@@ -101,21 +98,12 @@ export function FeedbackPostFull({
             <TiptapOutput content={description} />
 
             <div className="flex items-center gap-2.5 pt-2">
-              <FeedbackPostUpvoteButton
+              <UpvoteButton
                 postId={postId}
-                variant="secondary"
                 upvoteCount={upvotes}
                 hasUserUpvote={hasUserUpvote}
-                className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
               />
-              <Button
-                variant="secondary"
-                size="sm"
-                className="flex h-[25px] items-center px-2 py-0 [&>span]:gap-1"
-              >
-                <MessageSquare className="size-3!" />
-                <span className="text-xs">{commentCount}</span>
-              </Button>
+              <CommentsButton commentCount={commentCount?.toString() || "0"} />
             </div>
           </div>
         )}

@@ -12,20 +12,12 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Session } from "@/hooks/use-auth";
 
-export function FeedbackPostUpvoteButton({
+export function UpvoteButton({
   postId,
-  variant,
   className,
   ...props
 }: {
   postId: string;
-  variant:
-    | "link"
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost";
   upvoteCount: string;
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
@@ -88,9 +80,12 @@ export function FeedbackPostUpvoteButton({
   return (
     <>
       <Button
-        variant={hasUserUpvote ? "default" : variant}
+        variant={hasUserUpvote ? "default" : "secondary"}
         size="sm"
-        className={cn("", className)}
+        className={cn(
+          "flex h-[25px] items-center px-2 py-0 [&>span]:gap-1",
+          className,
+        )}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -98,8 +93,7 @@ export function FeedbackPostUpvoteButton({
         }}
       >
         <ArrowBigUp
-          className="size-[0.95rem]!"
-          strokeWidth={hasUserUpvote ? 0 : 1.5}
+          className="size-[0.85rem]!"
           fill={hasUserUpvote ? "var(--background)" : "none"}
         />
         <span className="text-xs">{upvoteCount}</span>

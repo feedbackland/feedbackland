@@ -1,15 +1,15 @@
 "use client";
 
 import { memo } from "react";
-import { Button } from "@/components/ui/button";
-import { FeedbackPostUpvoteButton } from "./upvote-button";
-import { MessageSquare } from "lucide-react";
+import { UpvoteButton } from "@/components/app/upvote-button";
 import { cn } from "@/lib/utils";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { FeedbackStatus } from "@/lib/typings";
+import { CommentsButton } from "@/components/app/comments-button.tsx";
+import { useRouter } from "next/navigation";
 
 function Inner({
   postId,
@@ -35,6 +35,7 @@ function Inner({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const platformUrl = usePlatformUrl();
+  const router = useRouter();
 
   return (
     <div className={cn("", className)} data-post-id={postId}>
@@ -75,27 +76,17 @@ function Inner({
       </Link>
 
       <div className="mt-2 flex items-center gap-2.5">
-        <FeedbackPostUpvoteButton
+        <UpvoteButton
           postId={postId}
-          variant="secondary"
           upvoteCount={upvoteCount}
           hasUserUpvote={hasUserUpvote}
-          className="flex h-[24px] items-center px-2 py-0 [&>span]:gap-1"
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          className="flex h-[24px] items-center px-2 py-0 [&>span]:gap-1"
-          asChild
-        >
-          <Link
-            href={`${platformUrl}/${postId}`}
-            className="flex items-center gap-1"
-          >
-            <MessageSquare className="size-3!" />
-            <span className="text-xs">{commentCount}</span>
-          </Link>
-        </Button>
+        <CommentsButton
+          commentCount={commentCount}
+          onClick={() => {
+            router.push(`${platformUrl}/${postId}`);
+          }}
+        />
       </div>
     </div>
   );
