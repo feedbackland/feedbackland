@@ -79,7 +79,7 @@ export const ImageSelectBlock = ({
 
       <input
         type="file"
-        accept="image/*"
+        accept="image/png, image/jpeg, image/jpg"
         ref={fileInputRef}
         multiple
         className="hidden"

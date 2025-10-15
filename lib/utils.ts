@@ -158,38 +158,62 @@ export const getIsSelfHosted = (
   return false;
 };
 
-const getImageDimensions = (
-  source: string,
-): Promise<{ width: number; height: number }> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () =>
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = () =>
-      reject(new Error("Failed to load image to get dimensions."));
-    img.src = source;
-  });
-};
+function getImageInfoFromDataUrl(dataUrl: string) {
+  if (!dataUrl || !dataUrl.startsWith("data:")) {
+    return { contentType: null, extension: null };
+  }
 
-function getImageExtension(base64: string) {
-  const match = base64.match(/^data:image\/(\w+);base64,/);
-  if (!match) return null;
-  const mimeType = match[1].toLowerCase();
-  return mimeType === "jpeg" ? "jpg" : mimeType;
+  const mimeMatch = dataUrl.match(/^data:(.+?)[;,]/);
+
+  if (!mimeMatch || mimeMatch.length < 2) {
+    return { contentType: null, extension: null };
+  }
+
+  const contentType = mimeMatch[1];
+  const extension =
+    {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/svg+xml": "svg",
+      "image/webp": "webp",
+      "image/bmp": "bmp",
+      "image/tiff": "tif",
+      "image/x-icon": "ico",
+      "image/avif": "avif",
+    }[contentType] || null;
+
+  return { contentType, extension };
 }
 
-async function getBlob(base64: string) {
-  const response = await fetch(base64);
-  const blob = await response.blob();
-  return blob;
+function base64ToBlob({
+  base64,
+  contentType = "",
+}: {
+  base64: string;
+  contentType: string;
+}): Blob {
+  const base64Clean = base64.replace(/^data:image\/[^;]+;base64,/, "");
+  const byteCharacters = atob(base64Clean);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const byteArray = new Uint8Array(byteNumbers);
+
+  return new Blob([byteArray], { type: contentType });
 }
 
-export const uploadImage = async (base64Image: string) => {
+export const uploadImage = async (base64: string) => {
   try {
-    const { width, height } = await getImageDimensions(base64Image);
-    const imageExtension = getImageExtension(base64Image);
-    const blob = await getBlob(base64Image);
-    const filename = `image-${uuidv4()}.${imageExtension}`;
+    const { extension, contentType } = getImageInfoFromDataUrl(base64);
+    const blob = base64ToBlob({
+      base64,
+      contentType: contentType || "image/jpeg",
+    });
+    const filename = `image-${uuidv4()}.${extension || "jpg"}`;
     const { error } = await supabase.storage
       .from("images")
       .upload(filename, blob);
@@ -202,7 +226,7 @@ export const uploadImage = async (base64Image: string) => {
       data: { publicUrl },
     } = supabase.storage.from("images").getPublicUrl(filename);
 
-    return { publicUrl, width, height };
+    return { publicUrl };
   } catch (error) {
     throw error;
   }
@@ -210,17 +234,19 @@ export const uploadImage = async (base64Image: string) => {
 
 export const processImagesInHTML = async (html: string) => {
   const base64Regex = /<img.*?src="(data:image\/(.*?);base64,([^"]*))"[^>]*>/g;
-
   let modifiedHTML = html;
-
   const matches = Array.from(html.matchAll(base64Regex));
 
   const processingPromises = matches.map(async (match) => {
     const fullMatch = match[0];
-    const base64Image = match[3];
+    const dataUrl = match[1];
+    // const imageExtension = match[2]
+    const rawBase64 = match[3];
 
     try {
-      const { publicUrl, width, height } = await uploadImage(base64Image);
+      const { publicUrl } = await uploadImage(dataUrl);
+      const imageBuffer = Buffer.from(rawBase64, "base64");
+      const { width, height } = imageSize(imageBuffer);
 
       return {
         original: fullMatch,

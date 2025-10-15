@@ -13,7 +13,7 @@ export function Error({
 }) {
   return (
     <Alert variant="destructive" className={cn("", className)}>
-      <AlertTriangle className="size-4" />
+      <AlertTriangle />
       <AlertTitle>{title}</AlertTitle>
       {description && <AlertDescription>{description}</AlertDescription>}
     </Alert>
