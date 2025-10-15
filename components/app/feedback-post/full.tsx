@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { FeedbackPostOptionsMenu } from "./options-menu";
 import { FeedbackPostEdit } from "./edit";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
+import { useWindowSize } from "react-use";
 
 export function FeedbackPostFull({
   postId,
@@ -20,6 +21,8 @@ export function FeedbackPostFull({
   className?: React.ComponentProps<"div">["className"];
   onLoaded?: () => void;
 }) {
+  const { width } = useWindowSize();
+
   const [isEditing, setIsEditing] = useState(false);
 
   const {
@@ -73,26 +76,28 @@ export function FeedbackPostFull({
                   />
                 </div>
               </div>
-              <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
-                <span>Posted by {authorName || "Anonymous user"}</span>
-                <span className="text-[8px]">•</span>
-                <span>{timeAgo.format(createdAt, "mini-now")}</span>
-                <span className="text-[8px]">•</span>
-                <span className="capitalize">{category}</span>
-                {status && (
-                  <>
-                    <span className="text-[8px]">•</span>
-                    <span
-                      className={cn(
-                        "capitalize",
-                        `text-${status.replace(" ", "-")}`,
-                      )}
-                    >
-                      {status}
-                    </span>
-                  </>
-                )}
-              </div>
+              {width < 800 && (
+                <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
+                  <span>Posted by {authorName || "Anonymous user"}</span>
+                  <span className="text-[8px]">•</span>
+                  <span>{timeAgo.format(createdAt, "mini-now")}</span>
+                  <span className="text-[8px]">•</span>
+                  <span className="capitalize">{category}</span>
+                  {status && (
+                    <>
+                      <span className="text-[8px]">•</span>
+                      <span
+                        className={cn(
+                          "capitalize",
+                          `text-${status.replace(" ", "-")}`,
+                        )}
+                      >
+                        {status}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <TiptapOutput content={description} />

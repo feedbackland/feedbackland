@@ -1,9 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { UpvoteButton } from "@/components/app/upvote-button";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useFeedbackPost } from "@/hooks/use-feedback-post";
 import { Label } from "@/components/ui/label";
+import { UserIcon } from "lucide-react";
+import { format } from "date-fns";
 
 export default function FeedbackPostSidebar({
   postId,
@@ -17,36 +19,44 @@ export default function FeedbackPostSidebar({
   } = useFeedbackPost({ postId });
 
   if (data) {
-    const { category, upvotes, hasUserUpvote, authorName, status } = data;
+    const { category, authorName, authorPhotoURL, status, createdAt } = data;
 
     return (
       <div
         className={cn(
-          "border-border flex h-[600px] w-[260px] flex-col items-stretch space-y-6 rounded-md border p-5 shadow-xs",
+          "border-border mt-11 flex w-[260px] flex-col items-stretch space-y-6 rounded-md border p-5 shadow-xs",
           className,
         )}
       >
         <div>
-          <UpvoteButton
-            postId={postId}
-            upvoteCount={upvotes}
-            hasUserUpvote={hasUserUpvote}
-          />
-        </div>
-        <div>
-          <Label>Posted by</Label>
-          <div>{authorName || "Anonymous user"}</div>
+          <Label className="text-muted-foreground">Posted by</Label>
+          <div className="flex items-center gap-0.5 text-sm">
+            <Avatar className="-ml-1 scale-80!">
+              <AvatarImage
+                src={authorPhotoURL || undefined}
+                alt="User avatar image"
+              />
+              <AvatarFallback>
+                {authorName?.charAt(0) || <UserIcon className="size-4" />}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm">
+              {authorName || "Anonymous"} on {format(createdAt, "MMM d, yyyy")}
+            </span>
+          </div>
         </div>
         {category && (
           <div>
-            <Label>Category</Label>
-            <div>{category}</div>
+            <Label className="text-muted-foreground">Category</Label>
+            <div className="text-sm">{capitalizeFirstLetter(category)}</div>
           </div>
         )}
         {status && (
           <div>
-            <Label>Status</Label>
-            <div className={`text-${status?.replace(" ", "-")}`}>{status}</div>
+            <Label className="text-muted-foreground">Status</Label>
+            <div className={`text-sm text-${status?.replace(" ", "-")}`}>
+              {capitalizeFirstLetter(status)}
+            </div>
           </div>
         )}
       </div>

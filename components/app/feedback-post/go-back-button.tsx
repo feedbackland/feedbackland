@@ -29,8 +29,11 @@ export const GoBackButton = ({
     <Button
       size="sm"
       onClick={handleGoBack}
-      variant="secondary"
-      className={cn("", className)}
+      variant="link"
+      className={cn(
+        "text-muted-foreground hover:text-primary size-fit p-0 hover:no-underline",
+        className,
+      )}
     >
       <ArrowLeft />
       Back

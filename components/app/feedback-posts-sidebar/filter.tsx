@@ -32,7 +32,7 @@ export default function FeedbackPostsSidebarFilter({
 
   return (
     <div className={cn("flex flex-col items-stretch gap-1", className)}>
-      <Label className="mb-1">Status</Label>
+      <Label className="text-muted-foreground mb-1">Status</Label>
       <Button
         onClick={() => handleFilterBy(null)}
         size="sm"
