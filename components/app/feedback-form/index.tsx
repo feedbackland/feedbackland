@@ -127,7 +127,7 @@ export function FeedbackForm() {
                 <Button
                   type="submit"
                   size="icon"
-                  variant="default"
+                  variant="ghost"
                   loading={isPending}
                   onClick={handleOnSubmitClick}
                   disabled={!!(!hasText || isPending)}

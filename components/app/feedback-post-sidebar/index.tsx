@@ -29,7 +29,7 @@ export default function FeedbackPostSidebar({
         )}
       >
         <div>
-          <Label className="text-muted-foreground">Posted by</Label>
+          <Label className="text-muted-foreground">Author</Label>
           <div className="flex items-center gap-0.5 text-sm">
             <Avatar className="-ml-1 scale-80!">
               <AvatarImage
@@ -40,11 +40,15 @@ export default function FeedbackPostSidebar({
                 {authorName?.charAt(0) || <UserIcon className="size-4" />}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm">
-              {authorName || "Anonymous"} on {format(createdAt, "MMM d, yyyy")}
-            </span>
+            <span className="text-sm">{authorName || "Anonymous"}</span>
           </div>
         </div>
+        {createdAt && (
+          <div>
+            <Label className="text-muted-foreground">Posted on</Label>
+            <div className="text-sm">{format(createdAt, "MMM d, yyyy")}</div>
+          </div>
+        )}
         {category && (
           <div>
             <Label className="text-muted-foreground">Category</Label>
