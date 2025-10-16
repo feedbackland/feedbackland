@@ -17,13 +17,32 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
       Given a description provided by a user, create a short title that sounds like it was written by a human.
       Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
 
-      Respond ONLY with a valid JSON object that follows this structure exactly:
-      \`\`\`json
+      You MUST respond with only a valid JSON that exactly matches the following schema:
       {
-        "title": "brief human-like title here",
-        "category": "one of: feature request, bug report, general feedback"
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "A brief human-like title"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["feature request", "bug report", "general feedback"],
+            "description": "The category of the feedback"
+          }
+        },
+        "required": ["title", "category"],
+        "additionalProperties": false
       }
-      \`\`\`
+
+      An example of what the output json object may look like:
+      {
+        "title": "Add a dark mode to the UI",
+        "category": "feature request"
+      }
+
+      Remember: Return ONLY the JSON object, nothing else.
     `;
 
     const response = await fetch(
@@ -46,12 +65,19 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
               content: plainText,
             },
           ],
+          temperature: 0.1,
           response_format: { type: "json_object" },
         }),
       },
     );
 
+    console.log("response", response);
+
     const data = await response.json();
+
+    console.log("data", data);
+
+    console.log("data.choices[0]", data.choices[0]);
 
     const content = data.choices[0]?.message?.content || "";
 
