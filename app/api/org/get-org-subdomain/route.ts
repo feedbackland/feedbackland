@@ -1,6 +1,6 @@
-import { upsertOrgSchema } from "@/lib/schemas";
-import { upsertOrgQuery } from "@/queries/upsert-org";
+import { getOrgSubdomainQuery } from "@/queries/get-org-subdomain";
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 const headers = {
   "Access-Control-Allow-Origin": "*", // Allow any origin
@@ -17,11 +17,15 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const bodyRaw = await request.json();
-    const { orgId } = upsertOrgSchema.parse(bodyRaw);
-    const org = await upsertOrgQuery({ orgId });
+    const { orgId } = z
+      .object({
+        orgId: z.uuid(),
+      })
+      .parse(bodyRaw);
+    const org = await getOrgSubdomainQuery({ orgId });
 
     return NextResponse.json(org, {
       status: 200,
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: `Failed to upsert org: ${error instanceof Error ? error?.message : `Unknown error`}`,
+        error: `Failed to get org subdomain: ${error instanceof Error ? error?.message : `Unknown error`}`,
       },
       { status: 500 },
     );

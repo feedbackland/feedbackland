@@ -3,7 +3,6 @@ import { updateFeedbackPostStatus } from "./update-feedback-post-status";
 import { upvoteComment } from "./upvote-comment";
 import { getMentionableUsers } from "./get-mentionable-users";
 import { getOrg } from "./get-org";
-import { claimOrg } from "./claim-org";
 import { createFeedbackPost } from "./create-feedback-post";
 import { upvoteFeedbackPost } from "./upvote-feedback-post";
 import { getFeedbackPosts } from "./get-feedback-posts";
@@ -42,7 +41,6 @@ export const appRouter = router({
   upvoteComment,
   getMentionableUsers,
   getOrg,
-  claimOrg,
   createFeedbackPost,
   upvoteFeedbackPost,
   getFeedbackPosts,

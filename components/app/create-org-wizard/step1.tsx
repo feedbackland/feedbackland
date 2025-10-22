@@ -18,19 +18,22 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
-import { cn } from "@/lib/utils";
+import { cn, convertToSubdomain } from "@/lib/utils";
 import { useVercelUrl } from "@/hooks/use-vercel-url";
+import { useEffect } from "react";
 
 type FormData = z.infer<typeof createOrgSchema>;
 
-export function CreateOrgCard({
+export function CreateOrgStep1({
   onSuccess,
 }: {
   onSuccess: ({
     orgId,
+    orgName,
     orgSubdomain,
   }: {
     orgId: string;
+    orgName: string;
     orgSubdomain: string;
   }) => void;
 }) {
@@ -42,26 +45,44 @@ export function CreateOrgCard({
   const form = useForm<FormData>({
     resolver: zodResolver(createOrgSchema),
     defaultValues: {
+      orgName: "",
       orgSubdomain: "",
     },
   });
 
   const {
     formState: { errors },
+    watch,
+    setValue,
     setError,
     clearErrors,
   } = form;
 
-  const onSubmit: SubmitHandler<FormData> = async ({ orgSubdomain }) => {
+  const organizationName = watch("orgName");
+
+  useEffect(() => {
+    setValue("orgSubdomain", convertToSubdomain(organizationName));
+    clearErrors("orgSubdomain");
+  }, [organizationName, setValue, clearErrors]);
+
+  const onSubmit: SubmitHandler<FormData> = async ({
+    orgName,
+    orgSubdomain,
+  }) => {
     clearErrors("root.serverError");
 
     const response = await createOrg({
+      orgName,
       orgSubdomain,
     });
 
     if (response?.data?.success && response?.data?.org) {
       const { org } = response.data;
-      onSuccess({ orgId: org.id, orgSubdomain: org.orgSubdomain });
+      onSuccess({
+        orgId: org.id,
+        orgName: org?.orgName || "",
+        orgSubdomain: org.orgSubdomain,
+      });
     } else if (response?.data?.message === "duplicate subdomain") {
       setError("orgSubdomain", {
         message: "Sorry, this subdomain is already taken",
@@ -88,6 +109,23 @@ export function CreateOrgCard({
                 {errors?.root?.serverError.message}
               </p>
             )}
+            <FormField
+              control={form.control}
+              name="orgName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organization or product name</FormLabel>
+                  <FormControl>
+                    <Input
+                      autoFocus
+                      placeholder="Organization or product name..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="orgSubdomain"

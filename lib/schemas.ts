@@ -30,7 +30,9 @@ export const upsertUserSchema = z.object({
   photoURL: z.string().min(1).nullable(),
 });
 
-export const upsertOrgSchema = z.object({
+export const claimOrgSchema = z.object({
+  userId: z.string(),
+  userEmail: z.email().optional(),
   orgId: z.uuid(),
 });
 

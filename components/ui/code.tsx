@@ -47,7 +47,7 @@ export function Code({
         text={code}
       />
       <div
-        className="scrollbar grow overflow-x-auto font-mono text-sm"
+        className="scrollbar grow overflow-x-auto font-mono text-xs"
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
       />
     </div>

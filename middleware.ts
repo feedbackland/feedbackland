@@ -20,7 +20,7 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
-const upsertOrg = async ({
+const getOrgSubdomain = async ({
   orgId,
   origin,
 }: {
@@ -28,8 +28,8 @@ const upsertOrg = async ({
   origin: string;
 }) => {
   try {
-    const response = await fetch(`${origin}/api/org/upsert-org`, {
-      method: "POST",
+    const response = await fetch(`${origin}/api/org/get-org-subdomain`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
@@ -58,12 +58,10 @@ export async function middleware(req: NextRequest) {
     if (isUUIDSubdomain) {
       const mainDomain = getMaindomain(urlString);
       const orgId = subdomain;
-
-      const orgSubdomain = await upsertOrg({
+      const orgSubdomain = await getOrgSubdomain({
         orgId,
         origin,
       });
-
       const redirectUrl = isSubdirOrg
         ? `${origin}/${orgSubdomain}${search}`
         : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;

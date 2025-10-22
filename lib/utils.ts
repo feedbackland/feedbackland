@@ -328,8 +328,8 @@ export const getOverlayWidgetCodeSnippet = ({
   return `import { FeedbackButton } from 'feedbackland-react';
 
 <FeedbackButton
-  platformId="${orgId}" // your platform's ID
-  mode="light" // the color mode of the widget, 'light' or 'dark'
-  button={<button>Feedback</button>} // bring your own button
+  platformId="${orgId}"
+  mode="light" // optional, color mode of the widget, 'light' or 'dark'
+  button={<button>Feedback</button>} // optional, bring your own button
 />`;
 };

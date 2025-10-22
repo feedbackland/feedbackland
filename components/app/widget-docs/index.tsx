@@ -29,8 +29,8 @@ export function WidgetDocs({
         </div>
         <div>
           <h3 className="text-muted-foreground mb-3 text-sm font-medium">
-            Add the feedback button anywhere in your app (for example, in a menu
-            or sidebar)
+            Add the feedback button anywhere in your app (e.g. in a menu or
+            sidebar)
           </h3>
           <Code code={overlayWidgetCodeSnippet} />
         </div>

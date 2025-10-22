@@ -5,7 +5,6 @@ import {
   feedbackCategorySchema,
   upsertUserSchema,
   userRoleSchema,
-  upsertOrgSchema,
   feedbackPostsCursorSchema,
   feedbackCategoriesSchema,
   insightsCursorSchema,
@@ -20,8 +19,6 @@ export type FeedbackCategory = z.infer<typeof feedbackCategorySchema>;
 export type FeedbackCategories = z.infer<typeof feedbackCategoriesSchema>;
 
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
-
-export type UpsertOrg = z.infer<typeof upsertOrgSchema>;
 
 export type UserRole = z.infer<typeof userRoleSchema>;
 

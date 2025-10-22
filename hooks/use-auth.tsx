@@ -83,7 +83,8 @@ const upsertUser = async ({
   photoURL: string | null;
 }) => {
   try {
-    const orgSubdomain = getSubdomain();
+    const orgSubdomain =
+      sessionStorage?.getItem("orgSubdomain") || getSubdomain();
 
     if (!orgSubdomain) {
       throw new Error("Missing email or org subdomain");
