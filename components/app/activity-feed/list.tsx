@@ -174,7 +174,7 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <div className="text-muted-foreground p-0 text-xs font-normal">
+              <div className="p-0 pb-1 text-xs font-normal sm:text-sm">
                 {stat.title}
               </div>
               <div className="flex items-center gap-2">
