@@ -13,6 +13,7 @@ import { useInIframe } from "@/hooks/use-in-iframe";
 import { isUuidV4 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useWindowSize } from "react-use";
+import { FeedbackPostsEmpty } from "./empty";
 
 function isInViewport(el: Element) {
   if (!(el instanceof HTMLElement)) return false;
@@ -137,16 +138,7 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {isPlatformEmpty && (
-        <div className="flex flex-col space-y-1 py-3 text-center">
-          <span className="text-primary text-base font-medium">
-            No feedback yet
-          </span>
-          <span className="text-muted-foreground text-sm font-light">
-            Be the first to share feedback
-          </span>
-        </div>
-      )}
+      {isPlatformEmpty && <FeedbackPostsEmpty />}
 
       {isSearchEmpty && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">
