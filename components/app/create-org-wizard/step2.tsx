@@ -12,7 +12,7 @@ export function CreateOrgStep2({ onSuccess }: { onSuccess: () => void }) {
     <Card className="w-full max-w-[400px]">
       <CardHeader>
         <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
-          Create an account
+          Create your account
         </CardTitle>
       </CardHeader>
       <CardContent>

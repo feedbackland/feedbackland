@@ -13,7 +13,7 @@ export default function GetStartedPage() {
   }, []);
 
   return (
-    <div className="m-auto flex min-h-dvh w-dvw flex-col items-center pt-14">
+    <div className="bg-muted dark:bg-background m-auto flex min-h-dvh w-dvw flex-col items-center pt-14">
       <FeedbacklandLogoFull className="fill-primary-foreground! mb-8 w-[165px]" />
       <CreateOrgWizard />
     </div>

@@ -11,6 +11,7 @@ import { z } from "zod/v4";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -114,11 +115,14 @@ export function CreateOrgStep1({
               name="orgName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Organization or product name</FormLabel>
+                  <FormLabel>Product name</FormLabel>
+                  {/* <FormDescription>
+                    The name of the product the feedback board will be used for
+                  </FormDescription> */}
                   <FormControl>
                     <Input
-                      autoFocus
-                      placeholder="Organization or product name..."
+                      autoFocus={true}
+                      placeholder="Product associated with this feedback board"
                       {...field}
                     />
                   </FormControl>
@@ -140,7 +144,7 @@ export function CreateOrgStep1({
                         </div>
                       )}
                       <Input
-                        autoFocus={true}
+                        autoFocus={false}
                         className={cn("z-10 w-full text-sm", {
                           "rounded-r-none": !isSelfHosted,
                           "rounded-l-none": isSelfHosted,
@@ -149,7 +153,7 @@ export function CreateOrgStep1({
                         {...field}
                       />
                       {!isSelfHosted && (
-                        <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm">
+                        <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm shadow-sm">
                           <span>.feedbackland.com</span>
                         </div>
                       )}
