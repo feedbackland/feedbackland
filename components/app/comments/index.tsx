@@ -60,7 +60,9 @@ export function Comments({
               <MessageSquareDashed className="size-5!" />
             </EmptyMedia>
             <EmptyTitle>No comments yet</EmptyTitle>
-            <EmptyDescription>Be the first to comment</EmptyDescription>
+            <EmptyDescription>
+              Be the first to comment on this post
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}
