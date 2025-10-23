@@ -3,6 +3,20 @@
 import { db } from "@/db/db";
 import { v4 as uuidv4 } from "uuid";
 
+function getPlatformTitle(productName: string): string {
+  // Ensure the product name isn't empty
+  if (!productName) {
+    return "Feedback board";
+  }
+
+  // Check the last character to form the possessive correctly
+  const possessiveName = productName.endsWith("s")
+    ? `${productName}'`
+    : `${productName}'s`;
+
+  return `${possessiveName} feedback board`;
+}
+
 export const createOrgQuery = async ({
   orgName,
   orgSubdomain,
@@ -18,6 +32,7 @@ export const createOrgQuery = async ({
           id: uuidv4(),
           orgName: orgName && orgName?.length > 0 ? orgName : null,
           orgSubdomain,
+          platformTitle: getPlatformTitle(orgName),
         })
         .returningAll()
         .executeTakeFirstOrThrow();
