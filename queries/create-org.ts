@@ -37,8 +37,16 @@ export const createOrgQuery = async ({
           {
             title: "Example post - Make search more powerful",
             description:
-              "It would be a huge improvement if the search could also index and find keywords within the description of the feedback posts.",
+              "It would be great if the search could find relevant results even if I don't type the exact word, like finding synonyms.",
             category: "general feedback",
+            authorId: null,
+            orgId: org.id,
+            embedding: null,
+          },
+          {
+            title: "Example post - The dashboard loads very slowly",
+            description: `The dashboard's performance is very poor, often leading to slow loads or complete timeouts.`,
+            category: "bug report",
             authorId: null,
             orgId: org.id,
             embedding: null,

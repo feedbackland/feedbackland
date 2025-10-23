@@ -26,7 +26,7 @@ export function CreateOrgStep3({
         <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
           Add the widget to your app
         </CardTitle>
-        <CardDescription className="mx-auto max-w-lg text-center">
+        <CardDescription className="text-primary mx-auto max-w-lg text-center">
           Your feedback platform is ready! Follow the steps below to embed it in
           your React or Next.js app, or feel free to do this later.
         </CardDescription>

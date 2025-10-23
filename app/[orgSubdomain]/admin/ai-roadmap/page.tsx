@@ -23,7 +23,7 @@ export default function AIRoadmapPage() {
           title={
             isExpired
               ? "Your subscription is expired"
-              : "You free trial has ended"
+              : "Your current plan does not have access to 'AI Roadmap'"
           }
           description={
             isExpired

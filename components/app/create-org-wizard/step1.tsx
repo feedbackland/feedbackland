@@ -96,7 +96,7 @@ export function CreateOrgStep1({
   };
 
   return (
-    <Card className="w-full max-w-[400px]">
+    <Card className="w-full max-w-[420px]">
       <CardHeader>
         <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
           Create your platform
@@ -122,7 +122,7 @@ export function CreateOrgStep1({
                   <FormControl>
                     <Input
                       autoFocus={true}
-                      placeholder="Product associated with this feedback board"
+                      placeholder="Name of the product associated with this platform"
                       {...field}
                     />
                   </FormControl>
@@ -135,7 +135,7 @@ export function CreateOrgStep1({
               name="orgSubdomain"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Platform url</FormLabel>
+                  <FormLabel>Platform URL</FormLabel>
                   <FormControl>
                     <div className="tems-center flex">
                       {isSelfHosted && vercelUrl && (

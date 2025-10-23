@@ -9,7 +9,7 @@ export function CreateOrgStep2({ onSuccess }: { onSuccess: () => void }) {
   const { executeAsync: claimOrg } = useAction(claimOrgAction);
 
   return (
-    <Card className="w-full max-w-[400px]">
+    <Card className="w-full max-w-[420px]">
       <CardHeader>
         <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
           Create your account

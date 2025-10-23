@@ -28,7 +28,7 @@ export default function AskAIPage() {
           title={
             isExpired
               ? "Your subscription is expired"
-              : "You free trial has ended"
+              : "Your current plan does not have access to 'Ask AI'"
           }
           description={
             isExpired

@@ -89,7 +89,7 @@ export function AdminsInvite() {
             title={
               isExpired
                 ? "Your subscription is expired"
-                : "You free trial has ended"
+                : "Your current plan does not support admin invites"
             }
             description={
               isExpired
