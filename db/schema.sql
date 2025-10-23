@@ -251,8 +251,11 @@ CREATE TABLE IF NOT EXISTS "public"."org" (
     "isClaimed" boolean DEFAULT false NOT NULL,
     "createdAt" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updatedAt" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "platformTitle" "text" DEFAULT 'Share your feedback'::"text" NOT NULL,
-    "platformDescription" "text"
+    "platformTitle" "text" DEFAULT '''Feedback board''::text'::"text" NOT NULL,
+    "platformDescription" "text",
+    "logo" "text",
+    "orgName" "text",
+    "orgUrl" "text"
 );
 
 

@@ -13,7 +13,13 @@ export type AuthFactorStatus = "unverified" | "verified";
 
 export type AuthFactorType = "phone" | "totp" | "webauthn";
 
+export type AuthOauthAuthorizationStatus = "approved" | "denied" | "expired" | "pending";
+
+export type AuthOauthClientType = "confidential" | "public";
+
 export type AuthOauthRegistrationType = "dynamic" | "manual";
+
+export type AuthOauthResponseType = "code";
 
 export type AuthOneTimeTokenType = "confirmation_token" | "email_change_token_current" | "email_change_token_new" | "phone_change_token" | "reauthentication_token" | "recovery_token";
 
@@ -147,10 +153,29 @@ export interface AuthMfaFactors {
   web_authn_credential: Json | null;
 }
 
-export interface AuthOauthClients {
+export interface AuthOauthAuthorizations {
+  approved_at: Timestamp | null;
+  authorization_code: string | null;
+  authorization_id: string;
   client_id: string;
+  code_challenge: string | null;
+  code_challenge_method: AuthCodeChallengeMethod | null;
+  created_at: Generated<Timestamp>;
+  expires_at: Generated<Timestamp>;
+  id: string;
+  redirect_uri: string;
+  resource: string | null;
+  response_type: Generated<AuthOauthResponseType>;
+  scope: string;
+  state: string | null;
+  status: Generated<AuthOauthAuthorizationStatus>;
+  user_id: string | null;
+}
+
+export interface AuthOauthClients {
   client_name: string | null;
-  client_secret_hash: string;
+  client_secret_hash: string | null;
+  client_type: Generated<AuthOauthClientType>;
   client_uri: string | null;
   created_at: Generated<Timestamp>;
   deleted_at: Timestamp | null;
@@ -160,6 +185,15 @@ export interface AuthOauthClients {
   redirect_uris: string;
   registration_type: AuthOauthRegistrationType;
   updated_at: Generated<Timestamp>;
+}
+
+export interface AuthOauthConsents {
+  client_id: string;
+  granted_at: Generated<Timestamp>;
+  id: string;
+  revoked_at: Timestamp | null;
+  scopes: string;
+  user_id: string;
 }
 
 export interface AuthOneTimeTokens {
@@ -221,6 +255,7 @@ export interface AuthSessions {
    * Auth: Not after is a nullable column that contains a timestamp after which the session should be regarded as expired.
    */
   not_after: Timestamp | null;
+  oauth_client_id: string | null;
   refreshed_at: Timestamp | null;
   tag: string | null;
   updated_at: Timestamp | null;
@@ -692,7 +727,9 @@ export interface DB {
   "auth.mfa_amr_claims": AuthMfaAmrClaims;
   "auth.mfa_challenges": AuthMfaChallenges;
   "auth.mfa_factors": AuthMfaFactors;
+  "auth.oauth_authorizations": AuthOauthAuthorizations;
   "auth.oauth_clients": AuthOauthClients;
+  "auth.oauth_consents": AuthOauthConsents;
   "auth.one_time_tokens": AuthOneTimeTokens;
   "auth.refresh_tokens": AuthRefreshTokens;
   "auth.saml_providers": AuthSamlProviders;
