@@ -132,19 +132,19 @@ export function ActivityFeedList({
             <div
               key={index}
               className={cn(
-                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs sm:p-3",
+                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs hover:ring-1 hover:ring-black hover:ring-inset sm:p-3",
                 stat.title === "Feature requests" &&
                   featureRequestsSelected &&
-                  "border-primary ring-ring bg-muted/50 ring-1",
+                  "border-primary bg-muted/50 ring-1 ring-black ring-inset",
                 stat.title === "Bug reports" &&
                   bugReportsSelected &&
-                  "border-primary ring-ring bg-muted/50 ring-1",
+                  "border-primary bg-muted/50 ring-1 ring-black ring-inset",
                 stat.title === "General feedback" &&
                   generalFeedbackSelected &&
-                  "border-primary ring-ring bg-muted/50 ring-1",
+                  "border-primary bg-muted/50 ring-1 ring-black ring-inset",
                 stat.title === "Comments" &&
                   commentsSelected &&
-                  "border-primary ring-ring bg-muted/50 ring-1",
+                  "border-primary bg-muted/50 ring-1 ring-black ring-inset",
               )}
               onClick={() => {
                 if (stat.title === "Feature requests") {
@@ -174,7 +174,7 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <div className="p-0 pb-1 text-xs font-normal sm:text-sm">
+              <div className="p-0 pb-1 text-xs font-medium sm:text-sm">
                 {stat.title}
               </div>
               <div className="flex items-center gap-2">
