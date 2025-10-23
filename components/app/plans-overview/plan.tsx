@@ -42,6 +42,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
           "Unlimited end-users",
           "Unlimited feedback posts",
           "Unlimited comments",
+          "Anonymous feedback",
           "In-app feedback widgets",
           "Standalone website",
         ]
