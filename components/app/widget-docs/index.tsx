@@ -1,6 +1,7 @@
 "use client";
 
 import { Code } from "@/components/ui/code";
+import { Label } from "@/components/ui/label";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 
 export function WidgetDocs({
@@ -20,18 +21,18 @@ export function WidgetDocs({
   return (
     <div className="flex flex-col text-left">
       {showTitle && <h2 className="h5 mb-6">Widget</h2>}
-      <div className="flex flex-col space-y-8">
-        <div>
-          <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col items-stretch">
+          <Label className="text-muted-foreground mb-2">
             Install the package
-          </h3>
+          </Label>
           <Code code={`npm i feedbackland-react`} />
         </div>
-        <div>
-          <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+        <div className="flex flex-col items-stretch">
+          <Label className="text-muted-foreground mb-2">
             Add the feedback button anywhere in your app (e.g. in a menu or
             sidebar)
-          </h3>
+          </Label>
           <Code code={overlayWidgetCodeSnippet} />
         </div>
       </div>

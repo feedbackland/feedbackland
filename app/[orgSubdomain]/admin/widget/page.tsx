@@ -10,9 +10,12 @@ export default function AdminWidgetPage() {
 
   if (org && org.id) {
     return (
-      <div className="space-y-5">
-        <h2 className="h5">Widget</h2>
-        {/* <p className="">Embed the widget in your React app</p> */}
+      <div className="">
+        <h2 className="h5 mb-0.5">Widget</h2>
+        <p className="text-muted-foreground mb-6 text-sm">
+          Follow the steps below to integrate the widget for this platform in
+          your React or Next.js app.
+        </p>
         <WidgetDocs
           showTitle={false}
           orgId={org.id}
