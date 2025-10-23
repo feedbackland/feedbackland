@@ -9,6 +9,7 @@ import { Insight } from "@/components/app/insight";
 import { useInView } from "react-intersection-observer";
 import { InsightsLoading } from "./loading";
 import dynamic from "next/dynamic";
+import { InsightsEmpty } from "./empty";
 
 const InsightsDownloadButton = dynamic(
   () =>
@@ -130,15 +131,7 @@ export function Insights() {
         />
       )}
 
-      {isInitialEmptyState && (
-        <div className="text-muted-foreground border-border flex w-full flex-col items-center justify-center space-y-1 rounded-xl border py-10 text-center">
-          <div className="text-base font-medium">
-            First add some feedback to your platform.
-            <br />
-            Then generate your first AI Insights report.
-          </div>
-        </div>
-      )}
+      {isInitialEmptyState && <InsightsEmpty />}
 
       {hasInsights && (
         <div className="flex flex-col items-stretch space-y-7">
