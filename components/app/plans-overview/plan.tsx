@@ -136,6 +136,9 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
               <div key={feature} className={cn("flex items-center gap-1.5")}>
                 <CheckIcon className="size-4!" />
                 <span>{feature}</span>
+                {(feature.includes("Slack") || feature.includes("Email")) && (
+                  <Badge variant="secondary">Coming soon</Badge>
+                )}
               </div>
             ))}
           </div>
