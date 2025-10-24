@@ -1,6 +1,8 @@
 
 <img width="2421" height="1409" alt="github_banner_9" src="https://github.com/user-attachments/assets/0107b229-988f-4ec2-a67c-095c0ec391ed" />
 
+## About
+
 Feedbackland gives you control. It's an open-source feedback platform you can self-host or use as a convenient cloud solution. Whether you embed it as a widget or use the standalone site, it collects user feedback and uses AI to generate your actionable roadmap. Best of all, our cloud plan features a generous free tier with unlimited feedback and end-users (no per-user tracking). Our promise: We will never punish your success with expensive pricing or artificial usage caps.
 
 ## Get started
