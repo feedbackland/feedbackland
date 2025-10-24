@@ -1,25 +1,11 @@
 
 <img width="2421" height="1409" alt="github_banner_9" src="https://github.com/user-attachments/assets/0107b229-988f-4ec2-a67c-095c0ec391ed" />
 
-Feedbackland is a drop-in, open-source feedback platform for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap. So you know what to build next, based on real user needs.
+Feedbackland is a feedback platform that collects feedback, upvotes and comments from your users either directly in your app via an easily embeddable widget, or as a standalone feedback website. It's fully open-source, self-hostable and available as a convenient cloud-hosted option with a generous free tier that includes unlimited feedback from unlimited end-users (no tracked users!). Feedbackland's promise is to never punish growth with expensive pricing models that don't scale.
 
-## Add our feedback button to your React or Next.js app
+## Get started
 
-```
-npm i feedbackland-react
-```
-
-```
-import { FeedbackButton } from 'feedbackland-react';
-```
-
-```tsx
-<FeedbackButton
-  platformId="A-RANDOMLY-GENERATED-UUIDV4" // get one here: https://www.uuidtools.com/v4
-  mode="light" // the color mode of the widget, 'light' or 'dark'
-  button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
-/>
-```
+[Create your free platform in minutes](https://get-started.feedbackland.com)
 
 ## Self-host Feedbackland
 
