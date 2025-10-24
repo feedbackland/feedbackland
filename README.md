@@ -1,7 +1,7 @@
 
 <img width="2421" height="1409" alt="github_banner_9" src="https://github.com/user-attachments/assets/0107b229-988f-4ec2-a67c-095c0ec391ed" />
 
-Feedbackland is a feedback platform that collects feedback, upvotes and comments from your users either directly in your app via an easily embeddable widget, or as a standalone feedback website. It's fully open-source, self-hostable and available as a convenient cloud-hosted option with a generous free tier that includes unlimited feedback from unlimited end-users (no tracked users!). Feedbackland's promise is to never punish growth with expensive pricing models that don't scale.
+Feedbackland is an open-source, self-hostable feedback platform you can use either directly in your app via an easily embeddable widget, or as a standalone website. Next to being self-hostable it's also available as a convenient cloud-hosted option with a generous free tier that includes unlimited feedback from unlimited end-users (no tracked users!). Feedbackland's promise is to never punish growth with expensive pricing models and artificial usage limits.
 
 ## Get started
 
