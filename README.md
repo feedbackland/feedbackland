@@ -7,7 +7,7 @@ Feedbackland is an open-source feedback platform you can self-host or use as a c
 
 ## Get started
 
-[Create your free platform in minutes](https://get-started.feedbackland.com)
+[Create your free platform](https://get-started.feedbackland.com)
 
 ## Self-host
 
