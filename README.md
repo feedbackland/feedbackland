@@ -1,15 +1,15 @@
 
-<img width="2421" height="1489" alt="github_banner_new" src="https://github.com/user-attachments/assets/45c9ecc9-2e0a-4e55-acdb-b062872dd261" />
+<img width="2421" height="1489" alt="github_banner_new_2" src="https://github.com/user-attachments/assets/13d65d6c-d135-4316-b5b4-cdfbc7214008" />
 
 ## About
 
-Feedbackland is an open-source feedback platform you can self-host or use as a convenient cloud solution. Whether you embed it as a widget or use the standalone site, it collects user feedback and uses AI to generate your actionable roadmap. Iur cloud plan features a generous free tier with unlimited feedback and end-users (no per-user tracking). Our promise: We will never punish your success with expensive pricing or artificial usage caps.
+Feedbackland is an open-source feedback platform you can self-host or use as a convenient cloud solution. Whether you embed it as a widget in your app, or use the standalone site, it collects user feedback and uses AI to generate your actionable roadmap. Our cloud plan features a generous free tier with unlimited feedback from unlimited end-users (no per-user tracking!). Our promise: We will never punish your success with expensive pricing or artificial usage caps.
 
 ## Get started
 
 [Create your free platform in minutes](https://get-started.feedbackland.com)
 
-## Self-host Feedbackland
+## Self-host
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
@@ -20,7 +20,6 @@ Feedbackland is an open-source feedback platform you can self-host or use as a c
 ## Provide feedback
 
 Have a feature request, bug report, or any other feedback? [Share it on our own platform](https://dogfood.feedbackland.com)!
-
 For technical and code-related issues, ideas & discussions, please feel free to use this repository's [Issues section](https://github.com/feedbackland/feedbackland/issues).
 
 ## License
