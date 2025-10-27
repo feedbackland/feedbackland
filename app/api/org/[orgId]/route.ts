@@ -18,10 +18,10 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orgId: string } },
+  { params }: { params: Promise<{ orgId: string }> },
 ) {
   try {
-    const orgId = params.orgId;
+    const { orgId } = await params;
     const org = await getOrgSubdomainQuery({ orgId });
     return NextResponse.json(org, {
       status: 200,
