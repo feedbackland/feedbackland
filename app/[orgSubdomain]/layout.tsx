@@ -8,7 +8,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
     <>
       <GlobalOrgState />
       <SubscriptionListener />
-      <ProcessAdminInviteParams />
+      {/* <ProcessAdminInviteParams /> */}
       <PlatformRoot>{children}</PlatformRoot>
     </>
   );
