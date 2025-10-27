@@ -40,6 +40,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
     const features = isFreePlan
       ? [
           "Unlimited end-users",
+          "Unlimited admins",
           "Unlimited feedback posts",
           "Unlimited comments",
           "Anonymous feedback",
@@ -50,7 +51,6 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
           "Everything from Cloud Free",
           "AI Insights",
           "Ask AI",
-          "Multiple admins",
           "Automatic content moderation",
           "Image uploads",
           "Email notifications",
