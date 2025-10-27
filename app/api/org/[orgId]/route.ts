@@ -1,6 +1,5 @@
 import { getOrgSubdomainQuery } from "@/queries/get-org-subdomain";
 import { NextResponse, type NextRequest } from "next/server";
-import { z } from "zod";
 
 const headers = {
   "Access-Control-Allow-Origin": "*", // Allow any origin
@@ -17,16 +16,13 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { orgId: string } },
+) {
   try {
-    const bodyRaw = await request.json();
-    const { orgId } = z
-      .object({
-        orgId: z.uuid(),
-      })
-      .parse(bodyRaw);
+    const orgId = params.orgId;
     const org = await getOrgSubdomainQuery({ orgId });
-
     return NextResponse.json(org, {
       status: 200,
       headers,

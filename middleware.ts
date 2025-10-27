@@ -28,16 +28,8 @@ const getOrgSubdomain = async ({
   origin: string;
 }) => {
   try {
-    const response = await fetch(`${origin}/api/org/get-org-subdomain`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ orgId }),
-    });
-
+    const response = await fetch(`${origin}/api/org/${orgId}`);
     const orgSubdomain: string = await response.json();
-
     return orgSubdomain;
   } catch (error) {
     throw error;
