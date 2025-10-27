@@ -1,27 +1,14 @@
+<img width="2421" height="1489" alt="github_banner_new_2" src="https://github.com/user-attachments/assets/a63f1e9c-da8c-4c43-ae15-837e73f03500" />
 
-<img width="2421" height="1409" alt="github_banner_9" src="https://github.com/user-attachments/assets/0107b229-988f-4ec2-a67c-095c0ec391ed" />
+## About
 
-Feedbackland is a drop-in, open-source feedback platform for your React or Next.js app that captures user ideas, issues, and suggestions, then uses AI to generate a prioritized roadmap. So you know what to build next, based on real user needs.
+Feedbackland is the open-source feedback platform that lets you collect feedback without artificial usage limits. Embed it as a widget in your app for direct, in-app feedback collection, or use it as a standalone site. Let our AI transform the feedback noise into a crystal-clear roadmap, so you know exactly what to build next.
 
-## Add our feedback button to your React or Next.js app
+## Get started
 
-```
-npm i feedbackland-react
-```
+[Create your free platform](https://get-started.feedbackland.com)
 
-```
-import { FeedbackButton } from 'feedbackland-react';
-```
-
-```tsx
-<FeedbackButton
-  platformId="A-RANDOMLY-GENERATED-UUIDV4" // get one here: https://www.uuidtools.com/v4
-  mode="light" // the color mode of the widget, 'light' or 'dark'
-  button={<button>Feedback</button>} // bring your own button, or a button from your favorite component library
-/>
-```
-
-## Self-host Feedbackland
+## Self-host
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
@@ -32,7 +19,6 @@ import { FeedbackButton } from 'feedbackland-react';
 ## Provide feedback
 
 Have a feature request, bug report, or any other feedback? [Share it on our own platform](https://dogfood.feedbackland.com)!
-
 For technical and code-related issues, ideas & discussions, please feel free to use this repository's [Issues section](https://github.com/feedbackland/feedbackland/issues).
 
 ## License
