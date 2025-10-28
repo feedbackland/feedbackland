@@ -315,29 +315,37 @@ export const getOverlayWidgetCodeSnippet = ({
       ? `${vercelUrl}/${orgSubdomain}`
       : `http://localhost:${process.env.PORT ?? 3000}/${orgSubdomain}`;
 
-    return `import { FeedbackButton } from 'feedbackland-react';
-
-<FeedbackButton
-  platformId="${orgId}" // your platform's ID
-  url="${url}" your platform's URL
-  // text="Feedback" // optional, text to display on the button, defaults to 'Feedback'
-  // mode="light" // optional, color mode of the widget, 'light' or 'dark', defaults to 'light'
-  // className="" // optional, style the button with Tailwind CSS
-  // style={{}} // optional, style the button with CSS
-  // button={<button>Feedback</button>} // optional, bring your own button component
-  // preload={false} // optional, preload the widget when the page loads,  defaults to false
-/>`;
+    return `import { FeedbackButton } from "feedbackland-react";
+    
+export function WidgetDemo() {
+  return (
+    <FeedbackButton
+      platformId="${orgId}" // your platform ID
+      // url="${url}" your platform URL
+      // text="Feedback" // optional, text to display on the button
+      // mode="light" // optional, color mode of the widget, 'light' or 'dark'
+      // className="" // optional, style the button with Tailwind
+      // style={{}} // optional, style the button with CSS
+      // preload={true} // optional, preload the widget
+      // button={<button>Feedback</button>} // optional, bring your own button
+    />
+  );
+}`;
   }
 
-  return `import { FeedbackButton } from 'feedbackland-react';
-
-<FeedbackButton
-  platformId="${orgId}"
-  // text="Feedback" // optional, text to display on the button, defaults to 'Feedback'
-  // mode="light" // optional, color mode of the widget, 'light' or 'dark', defaults to 'light'
-  // className="" // optional, style the button with Tailwind CSS
-  // style={{}} // optional, style the button with CSS
-  // button={<button>Feedback</button>} // optional, bring your own button component
-  // preload={false} // optional, preload the widget when the page loads, defaults to false
-/>`;
+  return `import { FeedbackButton } from "feedbackland-react";
+    
+export function WidgetDemo() {
+  return (
+    <FeedbackButton
+      platformId="${orgId}" // your platform ID
+      // text="Feedback" // optional, text to display on the button
+      // mode="light" // optional, color mode of the widget, 'light' or 'dark'
+      // className="" // optional, style the button with Tailwind
+      // style={{}} // optional, style the button with CSS
+      // preload={true} // optional, preload the widget
+      // button={<button>Feedback</button>} // optional, bring your own button
+    />
+  );
+}`;
 };

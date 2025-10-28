@@ -3,6 +3,7 @@
 import { Code } from "@/components/ui/code";
 import { Label } from "@/components/ui/label";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
+import { FeedbackButton } from "feedbackland-react";
 
 export function WidgetDocs({
   orgId,
@@ -21,19 +22,28 @@ export function WidgetDocs({
   return (
     <div className="flex flex-col text-left">
       {showTitle && <h2 className="h5 mb-6">Widget</h2>}
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-7">
         <div className="flex flex-col items-stretch">
-          <Label className="text-muted-foreground mb-2">
+          <Label className="text-muted-foreground mb-2.5">
             Install the package
           </Label>
-          <Code code={`npm i feedbackland-react`} />
+          <Code code={`npm i feedbackland-react`} lang="bash" />
         </div>
         <div className="flex flex-col items-stretch">
-          <Label className="text-muted-foreground mb-2">
-            Add the feedback button anywhere in your app (e.g. in a menu or
-            sidebar)
+          <Label className="text-muted-foreground mb-2.5">
+            Place the feedback button anywhere in your app, such as the navbar
+            or sidebar
           </Label>
-          <Code code={overlayWidgetCodeSnippet} />
+
+          <div className="border-border flex h-32 w-full items-center justify-center rounded-t-lg border border-b-0 p-10">
+            <FeedbackButton platformId="e8e5f11f-4e07-4904-8e55-3f6ee90ff766" />
+          </div>
+
+          <Code
+            code={overlayWidgetCodeSnippet}
+            lang="tsx"
+            className="rounded-t-none"
+          />
         </div>
       </div>
     </div>
