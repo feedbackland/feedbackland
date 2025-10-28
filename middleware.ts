@@ -29,7 +29,7 @@ const getOrgSubdomain = async ({
 }) => {
   try {
     const response = await fetch(`${origin}/api/org/${orgId}`);
-    const orgSubdomain: string = await response.json();
+    const orgSubdomain = (await response.json()) as string;
     return orgSubdomain;
   } catch (error) {
     throw error;

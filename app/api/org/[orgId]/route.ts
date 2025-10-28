@@ -22,8 +22,8 @@ export async function GET(
 ) {
   try {
     const { orgId } = await params;
-    const org = await getOrgSubdomainQuery({ orgId });
-    return NextResponse.json(org, {
+    const orgSubdomain = await getOrgSubdomainQuery({ orgId });
+    return NextResponse.json(orgSubdomain, {
       status: 200,
       headers,
     });
