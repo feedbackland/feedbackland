@@ -320,8 +320,12 @@ export const getOverlayWidgetCodeSnippet = ({
 <FeedbackButton
   platformId="${orgId}" // your platform's ID
   url="${url}" your platform's URL
-  // mode="light" // optional, color mode of the widget, 'light' or 'dark'
-  // button={<button>Feedback</button>} // optional, bring your own button
+  // text="Feedback" // optional, text to display on the button, defaults to 'Feedback'
+  // mode="light" // optional, color mode of the widget, 'light' or 'dark', defaults to 'light'
+  // className="" // optional, style the button with Tailwind CSS
+  // style={{}} // optional, style the button with CSS
+  // button={<button>Feedback</button>} // optional, bring your own button component
+  // preload={false} // optional, preload the widget when the page loads,  defaults to false
 />`;
   }
 
@@ -329,7 +333,11 @@ export const getOverlayWidgetCodeSnippet = ({
 
 <FeedbackButton
   platformId="${orgId}"
-  // mode="light" // optional, color mode of the widget, 'light' or 'dark'
+  // text="Feedback" // optional, text to display on the button, defaults to 'Feedback'
+  // mode="light" // optional, color mode of the widget, 'light' or 'dark', defaults to 'light'
+  // className="" // optional, style the button with Tailwind CSS
+  // style={{}} // optional, style the button with CSS
   // button={<button>Feedback</button>} // optional, bring your own button component
+  // preload={false} // optional, preload the widget when the page loads, defaults to false
 />`;
 };
