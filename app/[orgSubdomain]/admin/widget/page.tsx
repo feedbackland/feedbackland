@@ -13,8 +13,8 @@ export default function AdminWidgetPage() {
       <div className="">
         <h2 className="h5 mb-0.5">Widget</h2>
         <p className="text-muted-foreground mb-6 text-sm">
-          Follow the steps below to integrate the widget for this platform in
-          your React or Next.js app.
+          Follow the steps below to embed this platform directly in your React
+          or Next.js app.
         </p>
         <WidgetDocs
           showTitle={false}
