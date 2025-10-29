@@ -15,16 +15,15 @@ export default function PlatformRoot({
     return (
       <div
         className={cn(
-          "m-auto flex w-full grow flex-col justify-between",
-          inIframe
-            ? "xs:px-8 px-4 py-4"
-            : "mt-4 mb-10 px-3 sm:mt-5 sm:max-w-[940px]",
+          "m-auto flex w-full max-w-[940px] grow flex-col items-stretch",
+          {
+            "xs:px-8 px-4 py-4": inIframe,
+            "mt-4 mb-10 px-3 sm:mt-5": !inIframe,
+          },
         )}
       >
-        <div>
-          <PlatformHeader />
-          {children}
-        </div>
+        <PlatformHeader />
+        {children}
       </div>
     );
   }

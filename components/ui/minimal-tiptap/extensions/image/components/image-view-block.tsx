@@ -225,11 +225,13 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
     >
       <div
         className="group/node-image relative rounded-md object-contain"
-        style={{
-          width: imageState.naturalSize.width,
-          maxWidth: "100%",
-          aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
-        }}
+        style={
+          {
+            // width: imageState.naturalSize.width,
+            // maxWidth: "100%",
+            // aspectRatio: `${imageState.naturalSize.width} / ${imageState.naturalSize.height}`,
+          }
+        }
       >
         <div
           className={cn(
@@ -265,7 +267,7 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
               >
                 <img
                   className={cn(
-                    "h-auto rounded object-contain transition-shadow",
+                    "h-auto max-w-full rounded object-contain transition-shadow",
                     {
                       "opacity-0": !imageState.imageLoaded || imageState.error,
                     },

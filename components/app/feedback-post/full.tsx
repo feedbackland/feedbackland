@@ -76,7 +76,7 @@ export function FeedbackPostFull({
                   />
                 </div>
               </div>
-              {width < 800 && (
+              {width < 768 && (
                 <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
                   <span>Posted by {authorName || "Anonymous user"}</span>
                   <span className="text-[8px]">•</span>

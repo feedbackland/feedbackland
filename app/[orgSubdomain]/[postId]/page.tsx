@@ -24,7 +24,7 @@ export default function FeedbackPostPage() {
           <Comments postId={postId} />
         </div>
       </div>
-      {width >= 800 && <FeedbackPostSidebar postId={postId} />}
+      {width >= 768 && <FeedbackPostSidebar postId={postId} />}
     </div>
   );
 }

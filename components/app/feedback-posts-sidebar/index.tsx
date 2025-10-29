@@ -13,7 +13,7 @@ export default function FeedbackPostsSidebar({
 }) {
   const { width } = useWindowSize();
 
-  if (width >= 800) {
+  if (width >= 768) {
     return (
       <div
         className={cn(

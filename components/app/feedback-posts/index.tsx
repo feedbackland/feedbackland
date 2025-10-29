@@ -112,7 +112,7 @@ export function FeedbackPosts() {
   return (
     <div className="">
       {!!((!isPending && !isPlatformEmpty) || isSearchActive) &&
-        width < 800 && (
+        width < 768 && (
           <div className="relative mb-1.5 flex h-[40px] items-center gap-4">
             <SortingFilteringDropdown
               orderBy={orderBy}
