@@ -62,7 +62,7 @@ export function Insight({ item, index }: { item: Item; index: number }) {
               variant="link"
               size="lg"
               className={cn(
-                "hover:bg-muted/40 data-[state=open]:bg-muted/40 border-border w-full justify-start rounded-t-none rounded-b-xl border-t-1 px-3.5 py-3.5 transition-none hover:no-underline data-[state=open]:rounded-none [&>span]:flex! [&>span]:w-full! [&>span]:flex-1",
+                "bg-muted/40 hover:bg-muted/60 border-border w-full justify-start rounded-t-none rounded-b-[11px] border-t px-3.5 py-3.5 transition-none hover:no-underline data-[state=open]:rounded-none [&>span]:flex! [&>span]:w-full! [&>span]:flex-1",
               )}
             >
               <div className="flex w-full! flex-1 items-center justify-between">
@@ -82,7 +82,7 @@ export function Insight({ item, index }: { item: Item; index: number }) {
             </Button>
           </CollapsibleTrigger>
 
-          <CollapsibleContent className="border-border space-y-4 border-t-1 px-4 py-3">
+          <CollapsibleContent className="border-border space-y-4 border-t px-4 py-3">
             <InsightPosts ids={item.ids || []} />
           </CollapsibleContent>
         </Collapsible>
