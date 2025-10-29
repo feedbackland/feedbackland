@@ -36,7 +36,7 @@ export function WidgetDocs({
           </Label>
 
           <div className="border-border flex h-32 w-full items-center justify-center rounded-t-lg border border-b-0 p-10">
-            <FeedbackButton platformId="e8e5f11f-4e07-4904-8e55-3f6ee90ff766" />
+            <FeedbackButton platformId={orgId} />
           </div>
 
           <Code
