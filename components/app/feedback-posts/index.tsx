@@ -169,6 +169,7 @@ export function FeedbackPosts() {
             <FeedbackPostCompact
               key={post.id}
               postId={post.id}
+              authorId={post.authorId}
               title={post.title}
               description={post.description}
               status={post.status}
