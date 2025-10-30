@@ -2,7 +2,7 @@
 
 ## About
 
-Feedbackland is the open-source feedback platform that lets you collect feedback without imposing usage limits. Embed it as a widget, or use it as a standalone site, and capture feedback wherever your users are. Then, let our AI transform it into a crystal-clear roadmap, and know exactly what to build next.
+Feedbackland is the open-source feedback platform that lets you collect unlimited feedback at no cost. Embed it as a widget, or use it as a standalone site, and capture feedback wherever your users are. Then, let our AI transform raw feedback into a crystal-clear roadmap, and know exactly what to build next.
 
 ## Get started
 
