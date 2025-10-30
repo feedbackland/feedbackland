@@ -1,8 +1,8 @@
-<img width="2421" height="1489" alt="github_banner_new_2" src="https://github.com/user-attachments/assets/a63f1e9c-da8c-4c43-ae15-837e73f03500" />
+<img width="2421" height="1489" alt="github_banner_new_3" src="https://github.com/user-attachments/assets/321ea503-4259-4d08-859a-f9ad78e599b2" />
 
 ## About
 
-Feedbackland is the open-source feedback platform that lets you collect feedback without artificial usage limits. Embed it as a widget in your app for direct, in-app feedback collection, or use it as a standalone site. Let our AI transform the feedback noise into a crystal-clear roadmap, so you know exactly what to build next.
+Feedbackland is the open-source feedback platform that lets you collect feedback without imposing usage limits. Embed it as a widget, or use it as a standalone site, and capture feedback wherever your users are. Then, let our AI transform it into a crystal-clear roadmap, and know exactly what to build next.
 
 ## Get started
 
@@ -16,7 +16,7 @@ Feedbackland is the open-source feedback platform that lets you collect feedback
 
 [Send us an email](mailto:hello@feedbackland.com)
 
-## Provide feedback
+## Give feedback
 
 Have a feature request, bug report, or any other feedback? [Share it on our own platform](https://dogfood.feedbackland.com)!
 For technical and code-related issues, ideas & discussions, please feel free to use this repository's [Issues section](https://github.com/feedbackland/feedbackland/issues).
