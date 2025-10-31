@@ -6,10 +6,11 @@ import { useAction } from "next-safe-action/hooks";
 import { claimOrgAction } from "./actions";
 import { CreateOrgWrapper } from "./wrapper";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export function CreateOrgClaim({ onSuccess }: { onSuccess: () => void }) {
+  const { refreshSession } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<Method>("sign-up");
-
   const { executeAsync: claimOrg } = useAction(claimOrgAction);
 
   return (
@@ -37,6 +38,9 @@ export function CreateOrgClaim({ onSuccess }: { onSuccess: () => void }) {
                   userEmail,
                   orgId,
                 });
+
+                await refreshSession();
+
                 onSuccess();
               }
             }}
