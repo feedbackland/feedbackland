@@ -13,14 +13,9 @@ export default function AdminWidgetPage() {
       <div className="">
         <h2 className="h5 mb-0.5">Widget</h2>
         <p className="mb-6 text-sm">
-          Follow the steps below to embed this platform directly in your React
-          or Next.js app.
+          Collect feedback directly in your React or Next.js app.
         </p>
-        <WidgetDocs
-          showTitle={false}
-          orgId={org.id}
-          orgSubdomain={org.orgSubdomain}
-        />
+        <WidgetDocs orgId={org.id} orgSubdomain={org.orgSubdomain} />
       </div>
     );
   }

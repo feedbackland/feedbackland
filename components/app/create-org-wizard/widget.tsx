@@ -27,17 +27,12 @@ export function CreateOrgWidget({ onSuccess }: { onSuccess: () => void }) {
               Add the widget to your app
             </CardTitle>
             <CardDescription className="text-primary mx-auto max-w-lg text-center">
-              Your feedback platform is ready. Follow the steps below to embed
-              it in your React or Next.js app now, or feel free to do this
-              later.
+              Start capturing in-app feedback now. Just add the ready-to-use
+              widget to your React or Next.js project.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <WidgetDocs
-              orgId={org.id}
-              orgSubdomain={org.orgSubdomain}
-              showTitle={false}
-            />
+            <WidgetDocs orgId={org.id} orgSubdomain={org.orgSubdomain} />
             <div className="mt-9">
               <Button onClick={() => onSuccess()} className="w-full">
                 Proceed to your platform

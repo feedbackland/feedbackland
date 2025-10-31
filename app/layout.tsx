@@ -58,7 +58,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
-      <body>
+      <body className="">
         <Suspense>
           <ThemeProvider>
             <TRPCClientProvider>

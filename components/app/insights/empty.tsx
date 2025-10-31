@@ -11,7 +11,7 @@ import {
 
 export function InsightsEmpty() {
   return (
-    <Empty className="border-border border">
+    <Empty className="border-border border shadow-xs">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <ClipboardList />
