@@ -83,7 +83,7 @@ function Inner({
       <TiptapOutput
         content={description}
         forbiddenTags={["a", "pre", "img"]}
-        className="text-primary/70! mt-[-1] line-clamp-4"
+        className="text-primary/70! mt-0.5 line-clamp-4"
       />
 
       <div className="mt-2 flex items-center gap-2.5">

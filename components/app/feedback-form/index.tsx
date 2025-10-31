@@ -116,7 +116,7 @@ export function FeedbackForm() {
       <div className={cn("flex flex-col gap-3")}>
         <div className={cn("relative w-full")}>
           <Tiptap
-            placeholder={`Describe your idea, suggestion or issue. The more context you provide, the better we can address your input.`}
+            placeholder={`Describe your idea, suggestion or issue. The more context you provide, the better.`}
             value={value}
             onChange={onChange}
             autofocus={false}
