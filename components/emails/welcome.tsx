@@ -41,7 +41,7 @@ export const WelcomeEmail = ({
 
             <Section className="mb-5">
               <Text className="mb-6 text-center text-2xl font-bold text-black">
-                Your feedback platform is ready!
+                Your feedback platform is ready
               </Text>
 
               <Text className="mb-6 text-base text-black">
@@ -57,31 +57,6 @@ export const WelcomeEmail = ({
                   Access Your Platform
                 </Button>
               </Section>
-            </Section>
-
-            <Section className="mb-4">
-              <Text className="mb-6 text-base text-black">
-                If you haven't done so already, go ahead and add the widget to
-                your app:
-              </Text>
-
-              <Text className="mb-2 text-sm text-black">
-                Step 1: Install the package
-              </Text>
-              <pre className="bg-black px-2 py-2 text-xs text-white">
-                <code>npm i feedbackland-react</code>
-              </pre>
-
-              <Text className="mb-2 text-sm text-black">
-                Step 2: Add the component to your app
-              </Text>
-              <pre className="bg-black p-3 text-xs text-white">
-                <code>{overlayWidgetCodeSnippet}</code>
-              </pre>
-
-              <Text className="mb-2 text-sm text-black">
-                Step 3: Place it anywhere in your UI
-              </Text>
             </Section>
 
             <Section>
