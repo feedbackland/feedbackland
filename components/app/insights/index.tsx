@@ -55,6 +55,10 @@ export function Insights() {
     },
   } = useInsights({ enabled: !generateInsightsMutation?.isPending });
 
+  const { name, isExpired } = subscription || {};
+  // const hasAccess = !!(name === "pro" && isExpired === false);
+  const hasAccess = true;
+
   const { ref } = useInView({
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
@@ -76,9 +80,6 @@ export function Insights() {
     }
   };
 
-  const { name, isExpired } = subscription || {};
-  const hasAccess = !!(name === "pro" && isExpired === false);
-  // const hasAccess = false;
   const isGenerating = generateInsightsMutation.isPending;
   const isGeneratingError = !isGenerating && generateInsightsMutation.isError;
   const insights = data?.pages.flatMap((page) => page.items) || [];
