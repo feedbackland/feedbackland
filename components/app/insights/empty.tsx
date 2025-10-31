@@ -1,9 +1,8 @@
-import { ArrowUpRightIcon, ClipboardList } from "lucide-react";
+"use client";
 
-import { Button } from "@/components/ui/button";
+import { ArrowUpRightIcon, ClipboardList } from "lucide-react";
 import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
