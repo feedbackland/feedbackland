@@ -16,7 +16,7 @@ export function InsightsEmpty() {
         <EmptyMedia variant="icon">
           <ClipboardList />
         </EmptyMedia>
-        <EmptyTitle>No AI Roadmap found</EmptyTitle>
+        <EmptyTitle>No AI Roadmap</EmptyTitle>
         <EmptyDescription>
           Click 'Generate' to create your first AI Roadmap
         </EmptyDescription>

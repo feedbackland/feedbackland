@@ -77,8 +77,8 @@ export function Insights() {
   };
 
   const { name, isExpired } = subscription || {};
-  // const hasAccess = !!(name === "pro" && isExpired === false);
-  const hasAccess = false;
+  const hasAccess = !!(name === "pro" && isExpired === false);
+  // const hasAccess = false;
   const isGenerating = generateInsightsMutation.isPending;
   const isGeneratingError = !isGenerating && generateInsightsMutation.isError;
   const insights = data?.pages.flatMap((page) => page.items) || [];
