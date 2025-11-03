@@ -8,7 +8,6 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { ThemeProvider } from "@/providers/theme";
-// import { IframeProvider } from "@/providers/iframe";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -66,10 +65,8 @@ export default function RootLayout({
                 <TooltipProvider delayDuration={0}>
                   <JotaiProvider>
                     <NuqsAdapter>
-                      {/* <IframeProvider> */}
                       {children}
                       <Toaster />
-                      {/* </IframeProvider> */}
                     </NuqsAdapter>
                   </JotaiProvider>
                 </TooltipProvider>
