@@ -315,8 +315,25 @@ export const getOverlayWidgetCodeSnippet = ({
       ? `${vercelUrl}/${orgSubdomain}`
       : `http://localhost:${process.env.PORT ?? 3000}/${orgSubdomain}`;
 
-    return `<FeedbackButton url="${url}">Feedback</FeedbackButton>`;
+    return `import { FeedbackButton } from "feedbackland-react";
+
+export function WidgetDemo() {
+  return (
+    <FeedbackButton
+      platformId="${orgId}" // your platform ID
+      url="${url}" your platform URL
+    >
+      Feedback
+    </FeedbackButton>
+  );
+}`;
   }
 
-  return `<FeedbackButton platformId="${orgId}">Feedback</FeedbackButton>}`;
+  return `import { FeedbackButton } from "feedbackland-react";
+
+export function WidgetDemo() {
+  return (
+    <FeedbackButton platformId="${orgId}">Feedback</FeedbackButton>
+  );
+}`;
 };
