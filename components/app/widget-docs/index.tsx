@@ -33,7 +33,7 @@ export function WidgetDocs({
           </Label> */}
 
           <div className="border-border flex h-32 w-full items-center justify-center rounded-lg border p-10">
-            <FeedbackButton platformId={orgId} />
+            <FeedbackButton platformId={orgId}>Feedback</FeedbackButton>
           </div>
 
           <Code code={`npm i feedbackland-react`} lang="bash" />
