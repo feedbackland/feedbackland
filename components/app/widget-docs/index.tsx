@@ -38,7 +38,12 @@ export function WidgetDocs({
 
           <Code code={`npm i feedbackland-react`} lang="bash" />
 
-          <Code code={overlayWidgetCodeSnippet} lang="tsx" className="" />
+          <Code
+            code={`import { FeedbackButton } from "feedbackland-react`}
+            lang="tsx"
+          />
+
+          <Code code={overlayWidgetCodeSnippet} lang="tsx" />
         </div>
       </div>
     </div>
