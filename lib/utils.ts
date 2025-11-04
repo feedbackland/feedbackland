@@ -321,14 +321,10 @@ export function WidgetDemo() {
   return (
     <FeedbackButton
       platformId="${orgId}" // your platform ID
-      // url="${url}" your platform URL
-      // text="Feedback" // optional, text to display on the button
-      // mode="light" // optional, color mode of the widget, 'light' or 'dark'
-      // className="" // optional, style the button with Tailwind
-      // style={{}} // optional, style the button with CSS
-      // preload={true} // optional, preload the widget
-      // button={<button>Feedback</button>} // optional, bring your own button
-    />
+      url="${url}" your platform URL
+    >
+      Feedback
+    </FeedbackButton>
   );
 }`;
   }
@@ -337,15 +333,7 @@ export function WidgetDemo() {
     
 export function WidgetDemo() {
   return (
-    <FeedbackButton
-      platformId="${orgId}" // your platform ID
-      // text="Feedback" // optional, text to display on the button
-      // mode="light" // optional, color mode of the widget, 'light' or 'dark'
-      // className="" // optional, style the button with Tailwind
-      // style={{}} // optional, style the button with CSS
-      // preload={true} // optional, preload the widget
-      // button={<button>Feedback</button>} // optional, bring your own button
-    />
+    <FeedbackButton platformId="${orgId}">Feedback</FeedbackButton>
   );
 }`;
 };
