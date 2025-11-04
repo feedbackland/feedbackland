@@ -46,7 +46,7 @@ function Inner({
     <div className={cn("", className)} data-post-id={postId}>
       <div className="flex flex-col items-stretch">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="mb-0.5 text-[17px] leading-5.5 font-semibold hover:underline active:underline">
+          <h2 className="mb-0.5 text-[17px] leading-5.5 font-medium hover:underline active:underline">
             <Link
               href={`${platformUrl}/${postId}`}
               className="flex flex-col items-stretch space-y-1.5"
