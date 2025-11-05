@@ -10,7 +10,8 @@
     "migrate-make": "npx kysely migrate:make -x ts",
     "migrate-up": "npx kysely migrate:up",
     "migrate-down": "npx kysely migrate:down",
-    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts"
+    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts",
+    "schema-dump": "npx supabase db dump -f db/schema.sql"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.28",

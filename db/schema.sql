@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS "public"."comment" (
     "createdAt" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updatedAt" timestamp with time zone DEFAULT "now"() NOT NULL,
     "upvotes" numeric DEFAULT '0'::numeric NOT NULL,
-    "embedding" "extensions"."vector"(768)
+    "embedding" "extensions"."halfvec"(3072)
 );
 
 
@@ -180,8 +180,8 @@ CREATE TABLE IF NOT EXISTS "public"."feedback" (
     "updatedAt" timestamp with time zone DEFAULT "now"() NOT NULL,
     "category" "public"."feedback_category",
     "upvotes" numeric DEFAULT '0'::numeric NOT NULL,
-    "embedding" "extensions"."vector"(768),
-    "status" "public"."feedback_status"
+    "status" "public"."feedback_status",
+    "embedding" "extensions"."halfvec"(3072)
 );
 
 
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS "public"."org" (
     "isClaimed" boolean DEFAULT false NOT NULL,
     "createdAt" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updatedAt" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "platformTitle" "text" DEFAULT '''Feedback board''::text'::"text" NOT NULL,
+    "platformTitle" "text" DEFAULT 'Feedback board'::"text" NOT NULL,
     "platformDescription" "text",
     "logo" "text",
     "orgName" "text",
@@ -415,7 +415,7 @@ CREATE INDEX "comment_author_id_index" ON "public"."comment" USING "btree" ("aut
 
 
 
-CREATE INDEX "comment_embedding_index" ON "public"."comment" USING "hnsw" ("embedding" "extensions"."vector_cosine_ops");
+CREATE INDEX "comment_embedding_index" ON "public"."comment" USING "hnsw" ("embedding" "extensions"."halfvec_cosine_ops");
 
 
 
@@ -427,7 +427,7 @@ CREATE INDEX "comment_post_id_index" ON "public"."comment" USING "btree" ("postI
 
 
 
-CREATE INDEX "feedback_embedding_index" ON "public"."feedback" USING "hnsw" ("embedding" "extensions"."vector_cosine_ops");
+CREATE INDEX "feedback_embedding_index" ON "public"."feedback" USING "hnsw" ("embedding" "extensions"."halfvec_cosine_ops");
 
 
 
@@ -1363,4 +1363,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
-RESET ALL;
