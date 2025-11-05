@@ -14,8 +14,7 @@ Before you begin, make sure you have accounts for the following services, which 
 - **Transactional Emails:**
   - [Resend](https://resend.com) (for sending transactional emails)
 - **AI Services:**
-  - [Gemini API](https://aistudio.google.com/) (for generating text embeddings)
-  - [OpenRouter](https://openrouter.ai) (for all other AI-related tasks)
+  - [OpenRouter](https://openrouter.ai) (for all AI-related tasks)
 - **Code Management:**
   - [GitHub](https://github.com) (for repository management)
 
@@ -105,17 +104,13 @@ Now, let's set up Firebase, which is used for user authentication.
 
 ## 4. API Key Configuration
 
-Next, you'll need to get API keys for Resend, Gemini API, and OpenRouter.
+Next, you'll need to get API keys for Resend and OpenRouter.
 
 - **Resend:**
   - Create a Resend account.
   - Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
   - Add your email domain (e.g. `mycompany.com`) to Resend
   - Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
-
-- **Google AI Studio (Gemini API):**
-  - Create a Google AI Studio account and generate an API key.
-  - Add this key to your `.env` file: `GEMINI_API_KEY=your_gemini_api_key`
 
 - **OpenRouter:**
   - Create an OpenRouter account and generate an API key.
