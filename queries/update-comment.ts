@@ -3,7 +3,7 @@
 import { db } from "@/db/db";
 import {
   clean,
-  generateEmbedding,
+  generateSQLEmbedding,
   getImageUrls,
   getPlainText,
   isInappropriateCheck,
@@ -50,7 +50,7 @@ export const updateCommentQuery = async ({
           throw new Error("inappropriate-content");
         }
 
-        const embedding = await generateEmbedding(plainText);
+        const embedding = await generateSQLEmbedding(plainText);
 
         return await trx
           .updateTable("comment")

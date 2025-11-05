@@ -3,7 +3,7 @@
 import { db } from "@/db/db";
 import {
   clean,
-  generateEmbedding,
+  generateSQLEmbedding,
   getImageUrls,
   getPlainText,
   isInappropriateCheck,
@@ -53,7 +53,7 @@ export const updateFeedbackPostQuery = async ({
           throw new Error("inappropriate-content");
         }
 
-        const embedding = await generateEmbedding(`${title}: ${plainText}`);
+        const embedding = await generateSQLEmbedding(`${title}: ${plainText}`);
 
         return await trx
           .updateTable("feedback")

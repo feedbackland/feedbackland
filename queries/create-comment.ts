@@ -3,7 +3,7 @@
 import { db } from "@/db/db";
 import {
   clean,
-  generateEmbedding,
+  generateSQLEmbedding,
   getImageUrls,
   getPlainText,
   isInappropriateCheck,
@@ -32,7 +32,7 @@ export async function createCommentQuery({
         plainText,
         imageUrls,
       }),
-      generateEmbedding(plainText),
+      generateSQLEmbedding(plainText),
     ]);
 
     if (isInappropriate) {

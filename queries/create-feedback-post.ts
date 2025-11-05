@@ -4,7 +4,7 @@ import { db } from "@/db/db";
 import { FeedbackCategory } from "@/lib/typings";
 import {
   clean,
-  generateEmbedding,
+  generateSQLEmbedding,
   getImageUrls,
   getPlainText,
   isInappropriateCheck,
@@ -116,7 +116,7 @@ export async function createFeedbackPostQuery({
       throw new Error("inappropriate-content");
     }
 
-    const embedding = await generateEmbedding(`${title}: ${plainText}`);
+    const embedding = await generateSQLEmbedding(`${title}: ${plainText}`);
 
     const feedbackPost = await db
       .insertInto("feedback")

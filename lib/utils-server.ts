@@ -1,48 +1,32 @@
-import { gemini } from "@/lib/gemini";
 import pgvector from "pgvector/pg";
 import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
-// import { getSubscriptionQuery } from "@/queries/get-subscription";
-// import { textEmbeddingRateLimit } from "./upstash";
-// import { resend } from "./resend";
-// import { getIsSelfHosted } from "./utils";
 
 export const generateVector = async (text: string) => {
   try {
-    // const isSelfHosted = getIsSelfHosted("server");
-
-    // if (!isSelfHosted) {
-    //   const { success, remaining } =
-    //     await textEmbeddingRateLimit.limit("generateVector");
-
-    //   if (!success) return null;
-
-    //   if (remaining === 1) {
-    //     await resend?.emails.send({
-    //       from: "hello@feedbackland.com",
-    //       to: ["hello@feedbackland.com"],
-    //       subject: "Text embedding rate limit reached",
-    //       text: "Text embedding rate limit reached",
-    //     });
-    //   }
-    // }
-
-    const response = await gemini.models.embedContent({
-      model: "gemini-embedding-001",
-      contents: text,
-      config: {
-        outputDimensionality: 768,
+    const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        model: "google/gemini-embedding-001",
+        input: text,
+        encoding_format: "float",
+      }),
     });
 
-    return response?.embeddings?.[0]?.values || null;
+    const data = await response.json();
+
+    return data?.data?.[0]?.embedding || null;
   } catch {
     return null;
   }
 };
 
-export const generateEmbedding = async (text: string) => {
+export const generateSQLEmbedding = async (text: string) => {
   try {
     const vector = await generateVector(text);
 
