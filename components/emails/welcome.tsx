@@ -28,7 +28,7 @@ export const WelcomeEmail = ({
           <title>Your feedback platform is ready</title>
         </Head>
         <Body className="bg-gray-50 p-6 font-sans">
-          <Container className="mx-auto max-w-xl rounded-md border border-solid border-gray-300 bg-white p-6 shadow-md">
+          <Container className="mx-auto max-w-xl rounded-md border border-solid border-gray-300 bg-white p-6 shadow-xs">
             <Section className="mb-3 pt-2 text-center">
               <Img
                 src="https://zfk6n7wmgpfhtlwc.public.blob.vercel-storage.com/feedbackland_logo_email.jpg"
