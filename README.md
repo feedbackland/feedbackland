@@ -1,11 +1,11 @@
 
-<img width="2421" height="1520" alt="github_banner_new_5" src="https://github.com/user-attachments/assets/d2e67ce1-e712-4d2d-af29-c2e4ef396064" />
+<img width="2421" height="1502" alt="github_banner_new_14" src="https://github.com/user-attachments/assets/725ae997-9a74-4b29-9c3f-4f444a5a3385" />
 
 ## About
 
-Feedbackland is the open-source feedback platform that lets you collect unlimited feedback at no cost. Embed it as a widget in your app, or use it as a standalone site, to capture feedback wherever your users are. Then, let our AI transform raw feedback into a crystal-clear roadmap, and know exactly what to build next.
+Feedbackland automatically uncovers the roadmap hidden in your users' feedback, so you know exactly which features to build next.
 
-## Get started for free
+## Get started
 
 [Create your free platform](https://get-started.feedbackland.com)
 
