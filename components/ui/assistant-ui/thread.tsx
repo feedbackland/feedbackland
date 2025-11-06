@@ -71,8 +71,7 @@ export const Thread: FC = () => {
                     Ask anything about your platform's data.
                   </EmptyTitle>
                   <EmptyDescription>
-                    Let our AI answer any question you have about your
-                    platform's data.
+                    Let our AI answer any question you have.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

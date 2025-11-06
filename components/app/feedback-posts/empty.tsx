@@ -12,7 +12,7 @@ import { TextSelect } from "lucide-react";
 
 export function FeedbackPostsEmpty() {
   return (
-    <Empty>
+    <Empty className="md:border-2 md:border-dashed md:py-[117px]!">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <TextSelect />
@@ -23,12 +23,6 @@ export function FeedbackPostsEmpty() {
           thoughts!
         </EmptyDescription>
       </EmptyHeader>
-      {/* <EmptyContent>
-        <div className="flex gap-2">
-          <Button>Create Project</Button>
-          <Button variant="outline">Import Project</Button>
-        </div>
-      </EmptyContent> */}
     </Empty>
   );
 }

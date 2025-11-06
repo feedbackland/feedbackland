@@ -333,7 +333,9 @@ export function WidgetDemo() {
 
 export function WidgetDemo() {
   return (
-    <FeedbackButton platformId="${orgId}">Feedback</FeedbackButton>
+    <FeedbackButton platformId="${orgId}">
+      Feedback
+    </FeedbackButton>
   );
 }`;
 };
