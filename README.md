@@ -3,7 +3,7 @@
 
 ## About
 
-Feedbackland automatically uncovers the roadmap your users desire. It collects user feedback in-app or via a standalone website, then with AI transforms it into a prioritized product roadmap. Fully open-source and self-hostable next to a cloud option with generous free tier including unlimited feedback collection.
+[Feedbackland](https://feedbackland.com) automatically uncovers the roadmap your users desire. Collect user feedback directly in your app or standalone, then with AI transform it into a prioritized product roadmap. Fully open-source and self-hostable, as well as having a convenient cloud-hosted option with generous free tier including unlimited feedback collection.
 
 ## Get started
 
