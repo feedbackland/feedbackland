@@ -1,4 +1,4 @@
-# Self-Host Feedbackland for free in 30 minutes
+# Self-Host Feedbackland
 
 Follow these steps to get your own self-hosted instance of Feedbackland up and running for free in 30 minutes. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbackland.com) for help.
 
