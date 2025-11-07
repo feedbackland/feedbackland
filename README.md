@@ -3,7 +3,7 @@
 
 ## About
 
-Feedbackland is an open-source platform that provides both a standalone website and in-app widget to collect user feedback. Then with AI transforms the collected feedback into a prioritized, crystal-clear product roadmap. So you never again have to guess which feature to build next.
+Feedbackland automatically uncovers the roadmap your users desure. It collects user feedback in-app or via a standalone website, then with AI transforms it into a prioritized product roadmap. Fully open-source and self-hostable next to a cloud option with generous free tier including unlimited feedback collection.
 
 ## Get started
 
