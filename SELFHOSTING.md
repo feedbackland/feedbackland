@@ -153,16 +153,13 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
     - Enter the name for your platform and click **Create platform**.
     - You'll get redirect to your platform.
     - Now claim ownership by clicking the **Claim Ownership** button in the top banner, and sign up.
-5.  **Embed your self-hosted Feedbackland platform in your app**
+5.  **Optional: Embed your self-hosted Feedbackland platform in your app**
     - In your Feedbackland platform navigate to Admin Panel > Widget.
-    - Follow the instructions described on the Widget page to embed your platform into your React or Next.js app
+    - Copy-paste the code snippet into your React or Next.js app to install the widget
 
 &nbsp;
 
-Congratulations, your Feedbackland platform is now embedded in your app and accessible at the click of a button! 🎉
+Congratulations! Your self-hosted Feedbackland platform is up and running, and ready to start collecting feedback.
 
-Now go ahead and deploy your app to start collecting feedback!
-
-&nbsp;
 &nbsp;
 &nbsp;
