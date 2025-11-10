@@ -1,9 +1,9 @@
 
-<img width="2421" height="1502" alt="github_banner_new_14" src="https://github.com/user-attachments/assets/725ae997-9a74-4b29-9c3f-4f444a5a3385" />
+https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 ## About
 
-[Feedbackland](https://feedbackland.com) automatically uncovers the roadmap your users desire. Collect user feedback directly in your app or standalone, then with AI transform it into a prioritized product roadmap. Fully open-source and self-hostable, as well as having a convenient cloud-hosted option with generous free tier including unlimited feedback collection.
+[Feedbackland](https://feedbackland.com) lets your effrotlessly collect user feedback directly in your app or standalone, then with AI transform it into a prioritized product roadmap. Fully open-source and self-hostable, as well as having a convenient cloud-hosted version with generous free tier including unlimited feedback collection.
 
 ## Get started
 
