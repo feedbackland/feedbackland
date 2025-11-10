@@ -12,19 +12,21 @@ import {
   Tailwind,
 } from "@react-email/components";
 
-export const WelcomeEmail = ({
-  orgId,
-  overlayWidgetCodeSnippet,
-  platformUrl,
-}: {
-  orgId: string;
-  overlayWidgetCodeSnippet: string;
-  platformUrl: string;
-}) => {
+export const WelcomeEmail = ({ platformUrl }: { platformUrl: string }) => {
   return (
     <Tailwind>
       <Html lang="en">
         <Head>
+          <meta name="color-scheme" content="light" />
+          <meta name="supported-color-schemes" content="light" />
+          <style>
+            {`
+            * {
+              color-scheme: light !important;
+              supported-color-schemes: light !important;
+            }
+          `}
+          </style>
           <title>Your feedback platform is ready</title>
         </Head>
         <Body className="bg-gray-50 p-6 font-sans">

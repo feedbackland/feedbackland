@@ -22,7 +22,19 @@ export const AdminInviteEmail = ({
   return (
     <Tailwind>
       <Html lang="en">
-        <Head />
+        <Head>
+          <meta name="color-scheme" content="light" />
+          <meta name="supported-color-schemes" content="light" />
+          <style>
+            {`
+            * {
+              color-scheme: light !important;
+              supported-color-schemes: light !important;
+            }
+          `}
+          </style>
+          <title>You&apos;re invited to be an Admin</title>
+        </Head>
         <Body className="bg-gray-50 p-6 font-sans">
           <Container className="mx-auto max-w-xl rounded-md border border-solid border-gray-300 bg-white p-6 shadow-xs">
             {/* Logo Section */}

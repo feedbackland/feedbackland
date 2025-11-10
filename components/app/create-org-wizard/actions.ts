@@ -55,8 +55,6 @@ export const claimOrgAction = actionClient
           to: [userEmail],
           subject: "Your Feedbackland platform is ready!",
           react: WelcomeEmail({
-            orgId,
-            overlayWidgetCodeSnippet,
             platformUrl,
           }),
         });
