@@ -4,7 +4,7 @@ Follow these steps to get your own self-hosted instance of Feedbackland up and r
 
 ### Prerequisites
 
-Before you begin, make sure you have accounts for the following services, which can all be used for free:
+Before you begin, make sure you have accounts for the following services:
 
 - **Hosting & Database:**
   - [Vercel](https://vercel.com) (for hosting the application)
@@ -146,6 +146,8 @@ git push -u origin main
     - Once your deployment on Vercel is complete, copy its URL (e.g., `my-feedbackland-platform.vercel.app`).
     - In the browser go to your Firebase Console and navigate to Authentication > Settings > Authorized domains.
     - Click **Add domain** and paste your Vercel URL to authorize it.
+  
+&nbsp;
 
 ## 8. Finalize your platform setup
 
