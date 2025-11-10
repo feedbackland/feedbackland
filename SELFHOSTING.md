@@ -22,7 +22,7 @@ Before you begin, make sure you have accounts for the following services, which 
 
 ## 1. Download the Source Code
 
-First, you'll need to get the Feedbackland source code onto your local machine.
+Get the Feedbackland source code onto your local machine.
 
 1.  **Download the repository:**
     You can either clone the repository, or [download the source code as a zip file](https://github.com/feedbackland/feedbackland/archive/refs/heads/main.zip).
@@ -42,9 +42,7 @@ First, you'll need to get the Feedbackland source code onto your local machine.
 
 &nbsp;
 
-## 2. Supabase Setup
-
-Next, let's configure your Supabase project for the database and file storage.
+## 2. Supabase
 
 1.  **Create a new Supabase project.**
 2.  **Enable the pgvector extension:**
@@ -80,9 +78,7 @@ Next, let's configure your Supabase project for the database and file storage.
 
 &nbsp;
 
-## 3. Firebase Setup
-
-Now, let's set up Firebase, which is used for user authentication.
+## 3. Firebase
 
 1.  **Create a new Firebase project.**
 2.  **Configure your web app:**
@@ -102,15 +98,17 @@ Now, let's set up Firebase, which is used for user authentication.
 
 &nbsp;
 
-## 4. API Key Configuration
+## 4. Resend
 
-Next, you'll need to get API keys for Resend and OpenRouter.
-
-- **Resend:**
+**Resend:**
   - Create a Resend account.
   - Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
   - Add your email domain (e.g. `mycompany.com`) to Resend
   - Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
+
+&nbsp;
+
+## 5. OpenRouter
 
 - **OpenRouter:**
   - Create an OpenRouter account and generate an API key.
@@ -118,11 +116,9 @@ Next, you'll need to get API keys for Resend and OpenRouter.
 
 &nbsp;
 
-## 5. GitHub and Vercel Deployment
+## 6. GitHub
 
-Now let's deploy your Feedbackland instance using GitHub and Vercel.
-
-1.  **Push your code to GitHub:**
+**Push your code to GitHub:**
     - Create a new repository on GitHub.
     - Remove any existing remote origin from your local Feedbackland codebase:
       ```bash
@@ -138,24 +134,24 @@ Now let's deploy your Feedbackland instance using GitHub and Vercel.
       git commit -m "init"
       git push -u origin main
       ```
-2.  **Deploy with Vercel:**
+
+&nbsp;
+
+## 7. Vercel
+
+1.  **Deploy with Vercel:**
     - On the Vercel dashboard, create a **New Project**.
     - Import your Feedbackland repository from GitHub.
     - In the project settings, navigate to the **Environment Variables** section.
     - Copy and paste all the environment variables from your local `.env` file into Vercel.
     - Click **Deploy** and wait for it to complete.
-3.  **Add Vercel URL to Firebase:**
+2.  **Add Vercel URL to Firebase:**
     - Once your deployment on Vercel is complete, copy its URL (e.g., my-feedbackland-platform.vercel.app).
     - In the browser go to your Firebase Console and navigate to Authentication > Settings > Authorized domains.
     - Click **Add domain** and paste your Vercel URL to authorize it.
-4.  **Finalize your platform setup:**
+3.  **Finalize your platform setup:**
     - Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
-    - Enter the name for your platform and click **Create platform**.
-    - You'll get redirect to your platform.
-    - Now claim ownership by clicking the **Claim Ownership** button in the top banner, and sign up.
-5.  **Optional: Embed your self-hosted Feedbackland platform in your app**
-    - In your Feedbackland platform navigate to Admin Panel > Widget.
-    - Copy-paste the code snippet into your React or Next.js app to install the widget
+    - Follow the steps in the get started wizard
 
 &nbsp;
 
