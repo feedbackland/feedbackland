@@ -1,6 +1,7 @@
 "use client";
 
 import { Code } from "@/components/ui/code";
+import { Info } from "@/components/ui/info";
 import { Label } from "@/components/ui/label";
 import { getOverlayWidgetCodeSnippet } from "@/lib/utils";
 import { FeedbackButton } from "feedbackland-react";
@@ -27,6 +28,25 @@ export function WidgetDocs({
             </Label>
             <FeedbackButton platformId={orgId}>Feedback</FeedbackButton>
           </div>
+
+          <Info
+            description={
+              <span className="text-primary flex flex-wrap gap-1">
+                <span>
+                  The button uses shadcn. For more info on how to customize it,
+                  please visit the
+                </span>
+                <a
+                  href="https://ui.shadcn.com/docs/components/button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:underline"
+                >
+                  shadcn docs
+                </a>
+              </span>
+            }
+          />
 
           <Code code={`npm i feedbackland-react`} lang="bash" />
 

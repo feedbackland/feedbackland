@@ -7,14 +7,14 @@ export function Info({
   description,
   className,
 }: {
-  title: string;
-  description?: string;
+  title?: string | React.ReactNode;
+  description?: string | React.ReactNode;
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
     <Alert variant="default" className={cn("", className)}>
       <BadgeInfo className="size-4" />
-      <AlertTitle>{title}</AlertTitle>
+      {title && <AlertTitle>{title}</AlertTitle>}
       {description && <AlertDescription>{description}</AlertDescription>}
     </Alert>
   );
