@@ -100,40 +100,37 @@ Get the Feedbackland source code onto your local machine.
 
 ## 4. Resend
 
-**Resend:**
-  - Create a Resend account.
-  - Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
-  - Add your email domain (e.g. `mycompany.com`) to Resend
-  - Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
+- Create a Resend account.
+- Generate an API key and add it to your `.env` file: `RESEND_API_KEY=your_resend_api_key`
+- Add your email domain (e.g. `mycompany.com`) to Resend
+- Add the full email address you want to use for sending transactional emails (e.g. `info@mycompany.com`) to your `.env` file: `RESEND_EMAIL_SENDER=your_email_address`. Note: the email address must belong to the domain you added on Resend.
 
 &nbsp;
 
 ## 5. OpenRouter
 
-- **OpenRouter:**
-  - Create an OpenRouter account and generate an API key.
-  - Add this key to your `.env` file: `OPENROUTER_API_KEY=your_openrouter_api_key`
+- Create an OpenRouter account and generate an API key.
+- Add this key to your `.env` file: `OPENROUTER_API_KEY=your_openrouter_api_key`
 
 &nbsp;
 
 ## 6. GitHub
 
-**Push your code to GitHub:**
-    - Create a new repository on GitHub.
-    - Remove any existing remote origin from your local Feedbackland codebase:
-      ```bash
-      git remote rm origin
-      ```
-    - Add the remote origin from your newly created GitHub repository:
-      ```bash
-      git remote add origin https://github.com/<YOUR-GITHUB-ACCOUNT-NAME>/<YOUR-REPOSITORY-NAME>.git
-      ```
-    - Push your local Feedbackland codebase, including all changes, to the new repository:
-      ```bash
-      git add -A
-      git commit -m "init"
-      git push -u origin main
-      ```
+- Create a new repository on GitHub.
+- Remove any existing remote origin from your local Feedbackland codebase:
+```bash
+git remote rm origin
+```
+- Add the remote origin from your newly created GitHub repository:
+```bash
+git remote add origin https://github.com/<YOUR-GITHUB-ACCOUNT-NAME>/<YOUR-REPOSITORY-NAME>.git
+```
+- Push your local Feedbackland codebase, including all changes, to the new repository:
+```bash
+git add -A
+git commit -m "init"
+git push -u origin main
+```
 
 &nbsp;
 
@@ -149,9 +146,11 @@ Get the Feedbackland source code onto your local machine.
     - Once your deployment on Vercel is complete, copy its URL (e.g., my-feedbackland-platform.vercel.app).
     - In the browser go to your Firebase Console and navigate to Authentication > Settings > Authorized domains.
     - Click **Add domain** and paste your Vercel URL to authorize it.
-3.  **Finalize your platform setup:**
-    - Now navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
-    - Follow the steps in the get started wizard
+
+## 8. Finalize your platform setupd
+
+- Navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
+- Follow the steps in the get started wizard
 
 &nbsp;
 
