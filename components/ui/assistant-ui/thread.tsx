@@ -43,7 +43,7 @@ export const Thread: FC = () => {
     <LazyMotion features={domAnimation}>
       <MotionConfig reducedMotion="user">
         <ThreadPrimitive.Root
-          className="aui-root aui-thread-root bg-background border-border @container flex h-screen max-h-[calc(100vh-180px)] w-full flex-col overflow-hidden rounded-lg border shadow-xs"
+          className="aui-root aui-thread-root bg-background border-border @container flex h-screen max-h-[calc(100dvh-200px)] w-full flex-col overflow-hidden rounded-lg border shadow-xs"
           style={{
             ["--thread-max-width" as string]: "44rem",
           }}
@@ -122,7 +122,7 @@ export const Thread: FC = () => {
 const Composer: FC = () => {
   return (
     <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto mt-2 flex w-full flex-col gap-4 overflow-visible pt-2 pb-4">
-      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border relative flex w-full flex-col rounded-lg border px-1">
+      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border focus-within:border-primary focus-within:ring-primary relative flex w-full flex-col rounded-lg border px-1 focus-within:ring-1">
         <ComposerAttachments />
         <ComposerPrimitive.Input
           placeholder="Ask anything about your platform's data..."
