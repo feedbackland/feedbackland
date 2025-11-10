@@ -112,14 +112,11 @@ export function CreateOrgForm() {
                 name="orgName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product name</FormLabel>
-                    {/* <FormDescription>
-                    The name of the product the feedback board will be used for
-                  </FormDescription> */}
+                    <FormLabel>The name of your product</FormLabel>
                     <FormControl>
                       <Input
                         autoFocus={true}
-                        placeholder="Name of the product associated with this platform"
+                        placeholder="Product name"
                         {...field}
                       />
                     </FormControl>

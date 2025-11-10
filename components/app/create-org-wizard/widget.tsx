@@ -27,7 +27,7 @@ export function CreateOrgWidget({ onSuccess }: { onSuccess: () => void }) {
               Start collecting in-app feedback
             </CardTitle>
             <CardDescription className="text-primary mx-auto max-w-lg text-center">
-              Place the feedback button in your React or Next.js app
+              Add the feedback button to your React or Next.js app
             </CardDescription>
           </CardHeader>
           <CardContent>
