@@ -10,12 +10,12 @@ import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import {
+  BadgeAlert,
   BugIcon,
   Inbox,
   Lightbulb,
   MessageSquare,
   NotebookText,
-  TriangleAlert,
 } from "lucide-react";
 
 export function ActivityFeedListItem({
@@ -56,7 +56,7 @@ export function ActivityFeedListItem({
           )}
 
           {item.type !== "comment" && category === "issue" && (
-            <TriangleAlert className="size-4!" />
+            <BadgeAlert className="size-4!" />
           )}
         </div>
 

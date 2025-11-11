@@ -12,12 +12,10 @@ import { useWindowSize } from "react-use";
 import { useAtom } from "jotai";
 import { activtyFeedStateAtom } from "@/lib/atoms";
 import {
-  BugIcon,
-  Inbox,
+  BadgeAlert,
   Lightbulb,
   MessageSquare,
   NotebookText,
-  TriangleAlert,
 } from "lucide-react";
 
 export function ActivityFeedList({
@@ -189,7 +187,7 @@ export function ActivityFeedList({
               <div className="flex items-center gap-2">
                 {stat.title === "Ideas" && <Lightbulb className="size-4.5!" />}
                 {stat.title === "Issues" && (
-                  <TriangleAlert className="size-4.5!" />
+                  <BadgeAlert className="size-4.5!" />
                 )}
                 {stat.title === "General feedback" && (
                   <NotebookText className="size-4.5!" />
