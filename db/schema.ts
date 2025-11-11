@@ -23,7 +23,7 @@ export type AuthOauthResponseType = "code";
 
 export type AuthOneTimeTokenType = "confirmation_token" | "email_change_token_current" | "email_change_token_new" | "phone_change_token" | "reauthentication_token" | "recovery_token";
 
-export type FeedbackCategory = "bug report" | "feature request" | "general feedback";
+export type FeedbackCategory = "general feedback" | "idea" | "issue";
 
 export type FeedbackStatus = "declined" | "done" | "in progress" | "planned" | "under consideration";
 
@@ -144,6 +144,10 @@ export interface AuthMfaFactors {
   friendly_name: string | null;
   id: string;
   last_challenged_at: Timestamp | null;
+  /**
+   * Stores the latest WebAuthn challenge data including attestation/assertion for customer verification
+   */
+  last_webauthn_challenge_data: Json | null;
   phone: string | null;
   secret: string | null;
   status: AuthFactorStatus;
@@ -256,6 +260,14 @@ export interface AuthSessions {
    */
   not_after: Timestamp | null;
   oauth_client_id: string | null;
+  /**
+   * Holds the ID (counter) of the last issued refresh token.
+   */
+  refresh_token_counter: Int8 | null;
+  /**
+   * Holds a HMAC-SHA256 key used to sign refresh tokens for this session.
+   */
+  refresh_token_hmac_key: string | null;
   refreshed_at: Timestamp | null;
   tag: string | null;
   updated_at: Timestamp | null;

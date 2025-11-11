@@ -40,7 +40,7 @@ export function ActivityFeedListItem({
         <div className="border-border flex items-center justify-center rounded-md border px-3 shadow-xs">
           {item.type === "comment" && <MessageSquare className="size-4!" />}
 
-          {item.type !== "comment" && category === "feature request" && (
+          {item.type !== "comment" && category === "idea" && (
             <Lightbulb className="size-4!" />
           )}
 
@@ -48,7 +48,7 @@ export function ActivityFeedListItem({
             <Inbox className="size-4!" />
           )}
 
-          {item.type !== "comment" && category === "bug report" && (
+          {item.type !== "comment" && category === "issue" && (
             <BugIcon className="size-4!" />
           )}
         </div>

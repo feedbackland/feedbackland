@@ -15,7 +15,7 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
     const prompt = `
       You are an expert at creating concise, natural-sounding titles and categorizing descriptions.
       Given a description provided by a user, create a short title that sounds like it was written by a human.
-      Also categorize the description as either a 'feature request', 'bug report' or 'general feedback'.
+      Also categorize the description as either a 'idea', 'issue' or 'general feedback'.
 
       You MUST respond with only a valid JSON object that exactly matches the following schema:
       {
@@ -28,7 +28,7 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
           },
           "category": {
             "type": "string",
-            "enum": ["feature request", "bug report", "general feedback"],
+            "enum": ["idea", "issue", "general feedback"],
             "description": "The category of the feedback"
           }
         },
@@ -39,7 +39,7 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
       An example of what the output JSON object may look like:
       {
         "title": "Add a dark mode to the UI",
-        "category": "feature request"
+        "category": "idea"
       }
 
       Remember: Return ONLY the JSON object, nothing else!

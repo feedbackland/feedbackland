@@ -12,8 +12,8 @@ export const activtyFeedStateAtom = atomWithReset<{
   page: number;
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
-  featureRequestsSelected: boolean;
-  bugReportsSelected: boolean;
+  ideasSelected: boolean;
+  issuesSelected: boolean;
   generalFeedbackSelected: boolean;
   commentsSelected: boolean;
 }>({
@@ -21,8 +21,8 @@ export const activtyFeedStateAtom = atomWithReset<{
   page: 1,
   orderBy: "newest",
   status: null,
-  featureRequestsSelected: false,
-  bugReportsSelected: false,
+  ideasSelected: false,
+  issuesSelected: false,
   generalFeedbackSelected: false,
   commentsSelected: false,
 });

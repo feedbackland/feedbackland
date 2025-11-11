@@ -47,11 +47,11 @@ export const getActivityFeedMetaDataQuery = async ({
         sql<number>`COUNT(CASE WHEN activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "totalUnseenCount",
         ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'feature request' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
-          "unseenFeatureRequestPostCount",
+        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'idea' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
+          "unseenIdeasPostCount",
         ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'bug report' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
-          "unseenBugReportPostCount",
+        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'issue' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
+          "unseenIssuesPostCount",
         ),
         sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'general feedback' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "unseenGeneralFeedbackPostCount",
@@ -59,11 +59,11 @@ export const getActivityFeedMetaDataQuery = async ({
         sql<number>`COUNT(CASE WHEN activity.type = 'comment' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "unseenCommentCount",
         ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'feature request' THEN 1 END)::int`.as(
-          "totalFeatureRequestPostCount",
+        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'idea' THEN 1 END)::int`.as(
+          "totalIdeasPostCount",
         ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'bug report' THEN 1 END)::int`.as(
-          "totalBugReportPostCount",
+        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'issue' THEN 1 END)::int`.as(
+          "totalIssuesPostCount",
         ),
         sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'general feedback' THEN 1 END)::int`.as(
           "totalGeneralFeedbackPostCount",
@@ -77,13 +77,13 @@ export const getActivityFeedMetaDataQuery = async ({
 
     return {
       totalUnseenCount: counts?.totalUnseenCount ?? 0,
-      unseenFeatureRequestPostCount: counts?.unseenFeatureRequestPostCount ?? 0,
-      unseenBugReportPostCount: counts?.unseenBugReportPostCount ?? 0,
+      unseenIdeasPostCount: counts?.unseenIdeasPostCount ?? 0,
+      unseenIssuesPostCount: counts?.unseenIssuesPostCount ?? 0,
       unseenGeneralFeedbackPostCount:
         counts?.unseenGeneralFeedbackPostCount ?? 0,
       unseenCommentCount: counts?.unseenCommentCount ?? 0,
-      totalFeatureRequestPostCount: counts?.totalFeatureRequestPostCount ?? 0,
-      totalBugReportPostCount: counts?.totalBugReportPostCount ?? 0,
+      totalIdeasPostCount: counts?.totalIdeasPostCount ?? 0,
+      totalIssuesPostCount: counts?.totalIssuesPostCount ?? 0,
       totalGeneralFeedbackPostCount: counts?.totalGeneralFeedbackPostCount ?? 0,
       totalCommentCount: counts?.totalCommentCount ?? 0,
     };

@@ -10,14 +10,11 @@ export const feedbackOrderBySchema = z
   .nullable();
 
 export const feedbackCategorySchema = z
-  .enum(["feature request", "bug report", "general feedback"])
+  .enum(["idea", "issue", "general feedback"])
   .nullable();
 
 export const feedbackCategoriesSchema = z
-  .tuple(
-    [z.enum(["feature request", "bug report", "general feedback"])],
-    z.enum(["feature request", "bug report", "general feedback"]),
-  )
+  .array(feedbackCategorySchema)
   .nullable();
 
 export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();

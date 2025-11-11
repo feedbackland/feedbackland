@@ -28,8 +28,8 @@ export function ActivityFeedList({
     page,
     orderBy,
     status,
-    featureRequestsSelected,
-    bugReportsSelected,
+    ideasSelected,
+    issuesSelected,
     generalFeedbackSelected,
     commentsSelected,
   } = activityFeedState;
@@ -42,12 +42,14 @@ export function ActivityFeedList({
 
   let categories = null;
 
-  if (featureRequestsSelected) {
-    categories = [...(categories || []), "feature request"];
+  if (ideasSelected) {
+    categories = [...(categories || []), "idea"];
   }
-  if (bugReportsSelected) {
-    categories = [...(categories || []), "bug report"];
+
+  if (issuesSelected) {
+    categories = [...(categories || []), "issue"];
   }
+
   if (generalFeedbackSelected) {
     categories = [...(categories || []), "general feedback"];
   }
@@ -109,14 +111,14 @@ export function ActivityFeedList({
         <div className="mt-2 mb-4 grid grid-cols-4 gap-2 sm:gap-3">
           {[
             {
-              title: "Feature requests",
-              totalCount: metaData?.totalFeatureRequestPostCount || 0,
-              newCount: metaData?.unseenFeatureRequestPostCount || 0,
+              title: "Ideas",
+              totalCount: metaData?.totalIdeasPostCount || 0,
+              newCount: metaData?.unseenIdeasPostCount || 0,
             },
             {
-              title: "Bug reports",
-              totalCount: metaData?.totalBugReportPostCount || 0,
-              newCount: metaData?.unseenBugReportPostCount || 0,
+              title: "Issues",
+              totalCount: metaData?.totalIssuesPostCount || 0,
+              newCount: metaData?.unseenIssuesPostCount || 0,
             },
             {
               title: "General feedback",
@@ -133,11 +135,11 @@ export function ActivityFeedList({
               key={index}
               className={cn(
                 "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs hover:ring-1 hover:ring-black hover:ring-inset sm:p-3",
-                stat.title === "Feature requests" &&
-                  featureRequestsSelected &&
+                stat.title === "Ideas" &&
+                  ideasSelected &&
                   "border-primary bg-muted/50 ring-1 ring-black ring-inset",
-                stat.title === "Bug reports" &&
-                  bugReportsSelected &&
+                stat.title === "Issues" &&
+                  issuesSelected &&
                   "border-primary bg-muted/50 ring-1 ring-black ring-inset",
                 stat.title === "General feedback" &&
                   generalFeedbackSelected &&
@@ -147,17 +149,17 @@ export function ActivityFeedList({
                   "border-primary bg-muted/50 ring-1 ring-black ring-inset",
               )}
               onClick={() => {
-                if (stat.title === "Feature requests") {
+                if (stat.title === "Ideas") {
                   setActivityFeedState((prev) => ({
                     ...prev,
                     page: 1,
-                    featureRequestsSelected: !prev.featureRequestsSelected,
+                    ideasSelected: !prev.ideasSelected,
                   }));
-                } else if (stat.title === "Bug reports") {
+                } else if (stat.title === "Issues") {
                   setActivityFeedState((prev) => ({
                     ...prev,
                     page: 1,
-                    bugReportsSelected: !prev.bugReportsSelected,
+                    issuesSelected: !prev.issuesSelected,
                   }));
                 } else if (stat.title === "General feedback") {
                   setActivityFeedState((prev) => ({
@@ -178,12 +180,8 @@ export function ActivityFeedList({
                 {stat.title}
               </div>
               <div className="flex items-center gap-2">
-                {stat.title === "Feature requests" && (
-                  <Lightbulb className="size-4.5!" />
-                )}
-                {stat.title === "Bug reports" && (
-                  <BugIcon className="size-4.5!" />
-                )}
+                {stat.title === "Ideas" && <Lightbulb className="size-4.5!" />}
+                {stat.title === "Issues" && <BugIcon className="size-4.5!" />}
                 {stat.title === "General feedback" && (
                   <Inbox className="size-4.5!" />
                 )}

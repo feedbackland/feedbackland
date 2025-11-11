@@ -80,8 +80,8 @@ CREATE EXTENSION IF NOT EXISTS "wrappers" WITH SCHEMA "extensions";
 
 
 CREATE TYPE "public"."feedback_category" AS ENUM (
-    'feature request',
-    'bug report',
+    'idea',
+    'issue',
     'general feedback'
 );
 

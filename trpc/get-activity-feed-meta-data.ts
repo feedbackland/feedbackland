@@ -8,12 +8,12 @@ export const getActivityFeedMetaData = adminProcedure
     try {
       const {
         totalUnseenCount,
-        unseenFeatureRequestPostCount,
-        unseenBugReportPostCount,
+        unseenIdeasPostCount,
+        unseenIssuesPostCount,
         unseenGeneralFeedbackPostCount,
         unseenCommentCount,
-        totalFeatureRequestPostCount,
-        totalBugReportPostCount,
+        totalIdeasPostCount,
+        totalIssuesPostCount,
         totalGeneralFeedbackPostCount,
         totalCommentCount,
       } = await getActivityFeedMetaDataQuery({
@@ -23,12 +23,12 @@ export const getActivityFeedMetaData = adminProcedure
 
       return {
         totalUnseenCount,
-        unseenFeatureRequestPostCount,
-        unseenBugReportPostCount,
+        unseenIdeasPostCount,
+        unseenIssuesPostCount,
         unseenGeneralFeedbackPostCount,
         unseenCommentCount,
-        totalFeatureRequestPostCount,
-        totalBugReportPostCount,
+        totalIdeasPostCount,
+        totalIssuesPostCount,
         totalGeneralFeedbackPostCount,
         totalCommentCount,
       };

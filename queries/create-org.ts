@@ -44,7 +44,7 @@ export const createOrgQuery = async ({
             title: "Example post - Add a dark mode option",
             description:
               "I often use the platform late at night, and the bright white interface can be quite harsh on the eyes in a dark room. So having the option to toggle on a dark mode would be great!",
-            category: "feature request",
+            category: "idea",
             authorId: null,
             orgId: org.id,
             embedding: null,
@@ -61,7 +61,7 @@ export const createOrgQuery = async ({
           {
             title: "Example post - The dashboard loads very slowly",
             description: `The dashboard's performance is very poor, often leading to slow loads or complete timeouts.`,
-            category: "bug report",
+            category: "issue",
             authorId: null,
             orgId: org.id,
             embedding: null,
