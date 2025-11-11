@@ -11,7 +11,14 @@ import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { useWindowSize } from "react-use";
 import { useAtom } from "jotai";
 import { activtyFeedStateAtom } from "@/lib/atoms";
-import { BugIcon, Inbox, Lightbulb, MessageSquare } from "lucide-react";
+import {
+  BugIcon,
+  Inbox,
+  Lightbulb,
+  MessageSquare,
+  NotebookText,
+  TriangleAlert,
+} from "lucide-react";
 
 export function ActivityFeedList({
   className,
@@ -181,9 +188,11 @@ export function ActivityFeedList({
               </div>
               <div className="flex items-center gap-2">
                 {stat.title === "Ideas" && <Lightbulb className="size-4.5!" />}
-                {stat.title === "Issues" && <BugIcon className="size-4.5!" />}
+                {stat.title === "Issues" && (
+                  <TriangleAlert className="size-4.5!" />
+                )}
                 {stat.title === "General feedback" && (
-                  <Inbox className="size-4.5!" />
+                  <NotebookText className="size-4.5!" />
                 )}
                 {stat.title === "Comments" && (
                   <MessageSquare className="size-4.5!" />

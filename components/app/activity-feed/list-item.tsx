@@ -9,7 +9,14 @@ import Link from "next/link";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { BugIcon, Inbox, Lightbulb, MessageSquare } from "lucide-react";
+import {
+  BugIcon,
+  Inbox,
+  Lightbulb,
+  MessageSquare,
+  NotebookText,
+  TriangleAlert,
+} from "lucide-react";
 
 export function ActivityFeedListItem({
   item,
@@ -32,7 +39,7 @@ export function ActivityFeedListItem({
   return (
     <div
       className={cn(
-        "border-border flex flex-1 items-center gap-6 border-b-1 py-4 pr-2 pl-3",
+        "border-border flex flex-1 items-center gap-6 border-b py-4 pr-2 pl-3",
         className,
       )}
     >
@@ -45,11 +52,11 @@ export function ActivityFeedListItem({
           )}
 
           {item.type !== "comment" && category === "general feedback" && (
-            <Inbox className="size-4!" />
+            <NotebookText className="size-4!" />
           )}
 
           {item.type !== "comment" && category === "issue" && (
-            <BugIcon className="size-4!" />
+            <TriangleAlert className="size-4!" />
           )}
         </div>
 
