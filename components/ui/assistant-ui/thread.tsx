@@ -122,7 +122,7 @@ export const Thread: FC = () => {
 const Composer: FC = () => {
   return (
     <div className="aui-composer-wrapper bg-background sticky bottom-0 mx-auto mt-2 flex w-full flex-col gap-4 overflow-visible pt-2 pb-4">
-      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border focus-within:border-primary focus-within:ring-primary relative flex w-full flex-col rounded-lg border px-1 focus-within:ring-1">
+      <ComposerPrimitive.Root className="aui-composer-root bg-muted/40 border-border focus-within:border-border focus-within:ring-ring relative flex w-full flex-col rounded-lg border px-1 focus-within:ring-1">
         <ComposerAttachments />
         <ComposerPrimitive.Input
           placeholder="Ask anything about your platform's data..."

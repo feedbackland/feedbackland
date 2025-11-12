@@ -61,7 +61,7 @@ export function Comments({
             </EmptyMedia>
             <EmptyTitle>No comments yet</EmptyTitle>
             <EmptyDescription>
-              Be the first to comment on this post
+              Kick things off. Leave a comment!
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

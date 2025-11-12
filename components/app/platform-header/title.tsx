@@ -24,7 +24,10 @@ export function PlatformHeaderTitle({
         <Skeleton className="h-[24px] w-full max-w-[192px]" />
       ) : (
         <h1 className="text-xl font-bold tracking-tight">
-          <Link href={`${platformUrl}`} className="flex items-center gap-2">
+          <Link
+            href={`${platformUrl}`}
+            className="flex items-center gap-2 focus-visible:outline-none"
+          >
             {orgData?.logo && (
               <Image
                 src={orgData.logo}

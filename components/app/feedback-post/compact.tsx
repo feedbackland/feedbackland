@@ -42,6 +42,8 @@ function Inner({
   const router = useRouter();
   const { isAdmin } = useAuth();
 
+  // border-border bg-background rounded-lg border p-4 shadow-xs
+
   return (
     <div className={cn("", className)} data-post-id={postId}>
       <div className="flex flex-col items-stretch">

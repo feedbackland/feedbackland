@@ -181,20 +181,22 @@ export function ActivityFeedList({
                 }
               }}
             >
-              <div className="p-0 pb-1 text-xs font-medium sm:text-sm">
-                {stat.title}
-              </div>
-              <div className="flex items-center gap-2">
-                {stat.title === "Ideas" && <Lightbulb className="size-4.5!" />}
+              <div className="flex items-center justify-between gap-3 p-0 pb-1 text-xs font-medium sm:text-sm">
+                <span>{stat.title}</span>
+                {stat.title === "Ideas" && (
+                  <Lightbulb className="text-muted-foreground size-4.5 shrink-0" />
+                )}
                 {stat.title === "Issues" && (
-                  <BadgeAlert className="size-4.5!" />
+                  <BadgeAlert className="text-muted-foreground size-4.5 shrink-0" />
                 )}
                 {stat.title === "General feedback" && (
-                  <NotebookText className="size-4.5!" />
+                  <NotebookText className="text-muted-foreground size-4.5 shrink-0" />
                 )}
                 {stat.title === "Comments" && (
-                  <MessageSquare className="size-4.5!" />
+                  <MessageSquare className="text-muted-foreground size-4.5 shrink-0" />
                 )}
+              </div>
+              <div className="flex items-center gap-2">
                 <div className="flex items-baseline gap-1.5 p-0">
                   <span className="text-xl font-semibold">
                     {stat.totalCount}
