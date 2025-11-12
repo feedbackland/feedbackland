@@ -24,10 +24,10 @@ export function CreateOrgWidget({ onSuccess }: { onSuccess: () => void }) {
         <Card className="w-full max-w-[750px]">
           <CardHeader>
             <CardTitle className="h3 mt-1 mb-3 text-center font-bold">
-              Start collecting in-app feedback
+              Add the feedback button to your app
             </CardTitle>
             <CardDescription className="text-primary mx-auto max-w-lg text-center">
-              Add the feedback button to your React or Next.js app
+              Start collecting in-app feedback
             </CardDescription>
           </CardHeader>
           <CardContent>
