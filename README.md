@@ -1,9 +1,12 @@
+# Feedbackland - Build what users actually want
 
 https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 ## About
 
-[Feedbackland](https://feedbackland.com) collects user feedback directly in your app and as a standalone website, then with AI transform it into a clear product roadmap. Fully open-source and self-hostable, as well as having a convenient cloud-hosted version with generous free tier including unlimited feedback collection from unlimited end-users.
+[Feedbackland](https://feedbackland.com) collects user feedback directly in your app and as a standalone website, then with AI translates it into a clear product roadmap. So you build the features your users will love, without the guesswork.
+
+Fully open-source and self-hostable. Convenient cloud-hosted version with generous free tier including unlimited feedback collection from unlimited end-users.
 
 ## Get started
 
