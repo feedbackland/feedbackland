@@ -61,35 +61,39 @@ function Inner({
         href={`${platformUrl}/${postId}`}
         className="flex flex-col items-stretch gap-3.5"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col items-stretch gap-1.5">
-            <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-              <span>{timeAgo.format(createdAt, "mini-now")}</span>
-              <span className="text-[8px]">•</span>
-              <span className="capitalize">{category}</span>
-              {status && (
-                <>
-                  <span className="text-[8px]">•</span>
-                  <span className={cn("", `text-${status.replace(" ", "-")}`)}>
-                    {status}
-                  </span>
-                </>
-              )}
-            </div>
+        <div className="group flex flex-col items-stretch gap-3.5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col items-stretch gap-1.5">
+              <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
+                <span>{timeAgo.format(createdAt, "mini-now")}</span>
+                <span className="text-[8px]">•</span>
+                <span className="capitalize">{category}</span>
+                {status && (
+                  <>
+                    <span className="text-[8px]">•</span>
+                    <span
+                      className={cn("", `text-${status.replace(" ", "-")}`)}
+                    >
+                      {status}
+                    </span>
+                  </>
+                )}
+              </div>
 
-            <div className="-mb-1.5 flex items-start justify-between gap-4">
-              <h2 className="text-[17px] leading-5 font-medium group-hover:underline">
-                {title}
-              </h2>
+              <div className="-mb-1.5 flex items-start justify-between gap-4">
+                <h2 className="text-[17px] leading-5 font-medium group-hover:underline">
+                  {title}
+                </h2>
+              </div>
             </div>
           </div>
-        </div>
 
-        <TiptapOutput
-          content={description}
-          forbiddenTags={["a", "pre", "img"]}
-          className="line-clamp-4"
-        />
+          <TiptapOutput
+            content={description}
+            forbiddenTags={["a", "pre", "img"]}
+            className="line-clamp-4"
+          />
+        </div>
 
         <div className="flex items-center gap-2.5">
           <UpvoteButton
