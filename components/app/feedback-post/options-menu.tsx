@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, MouseEvent } from "react";
 import { CheckIcon, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
@@ -94,9 +94,13 @@ export function FeedbackPostOptionsMenu({
     );
   };
 
-  const handleStatusChange: (status: FeedbackStatus) => void = async (
+  const handleStatusChange: ({
     status,
-  ) => {
+    event,
+  }: {
+    status: FeedbackStatus;
+    event: MouseEvent<HTMLDivElement>;
+  }) => void = async ({ status, event }) => {
     updateStatus.mutate({
       postId,
       status,
@@ -138,13 +142,20 @@ export function FeedbackPostOptionsMenu({
                   <DropdownMenuSubContent className="w-48">
                     <DropdownMenuItem
                       className="flex items-center justify-between"
-                      onClick={() => handleStatusChange(null)}
+                      onClick={(e) =>
+                        handleStatusChange({ status: null, event: e })
+                      }
                     >
                       <span>No status</span>
                       {status === null && <CheckIcon />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("under consideration")}
+                      onClick={(e) =>
+                        handleStatusChange({
+                          status: "under consideration",
+                          event: e,
+                        })
+                      }
                       className="text-under-consideration hover:text-under-consideration! flex items-center justify-between"
                     >
                       <span>Under consideration</span>
@@ -153,7 +164,9 @@ export function FeedbackPostOptionsMenu({
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("planned")}
+                      onClick={(e) =>
+                        handleStatusChange({ status: "planned", event: e })
+                      }
                       className="text-planned hover:text-planned! flex items-center justify-between"
                     >
                       <span>Planned</span>
@@ -162,7 +175,9 @@ export function FeedbackPostOptionsMenu({
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("in progress")}
+                      onClick={(e) =>
+                        handleStatusChange({ status: "in progress", event: e })
+                      }
                       className="text-in-progress hover:text-in-progress! flex items-center justify-between"
                     >
                       <span>In Progress</span>
@@ -171,14 +186,18 @@ export function FeedbackPostOptionsMenu({
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("done")}
+                      onClick={(e) =>
+                        handleStatusChange({ status: "done", event: e })
+                      }
                       className="text-done hover:text-done! flex items-center justify-between"
                     >
                       <span>Done</span>
                       {status === "done" && <CheckIcon className="text-done" />}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => handleStatusChange("declined")}
+                      onClick={(e) =>
+                        handleStatusChange({ status: "declined", event: e })
+                      }
                       className="text-declined hover:text-declined! flex items-center justify-between"
                     >
                       <span>Declined</span>
