@@ -26,7 +26,10 @@ export function WidgetDocs({
             <Label className="text-muted-foreground absolute top-2 left-2.5 text-xs font-normal">
               PREVIEW
             </Label>
-            <FeedbackButton platformId={orgId}>Feedback</FeedbackButton>
+            <FeedbackButton
+              buttonElement={<button>Feedback</button>}
+              platformId={orgId}
+            />
           </div>
 
           {/* <Info

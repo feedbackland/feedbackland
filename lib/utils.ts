@@ -321,10 +321,9 @@ export function WidgetDemo() {
   return (
     <FeedbackButton
       platformId="${orgId}" // your platform ID
+      buttonElement={<button>Feedback</button>} // your custom feedback button
       url="${url}" your platform URL
-    >
-      Feedback
-    </FeedbackButton>
+    />
   );
 }`;
   }
@@ -333,9 +332,10 @@ export function WidgetDemo() {
 
 export function WidgetDemo() {
   return (
-    <FeedbackButton platformId="${orgId}">
-      Feedback
-    </FeedbackButton>
+    <FeedbackButton
+      platformId="${orgId}" // your platform ID
+      buttonElement={<button>Feedback</button>} // your custom feedback button
+    />
   );
 }`;
 };
