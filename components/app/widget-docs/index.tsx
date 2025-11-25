@@ -29,7 +29,7 @@ export function WidgetDocs({
             <FeedbackButton platformId={orgId}>Feedback</FeedbackButton>
           </div>
 
-          <Info
+          {/* <Info
             description={
               <span className="text-primary flex flex-wrap gap-1">
                 <span>
@@ -46,7 +46,7 @@ export function WidgetDocs({
                 </a>
               </span>
             }
-          />
+          /> */}
 
           <Code code={`npm i feedbackland-react`} lang="bash" />
 
