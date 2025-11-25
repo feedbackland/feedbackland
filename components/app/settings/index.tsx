@@ -8,12 +8,12 @@ import { OrgName } from "@/components/app/settings/org-name";
 import { OrgUrl } from "@/components/app/settings/org-url";
 
 export default function Settings() {
-  const className = "border-border relative w-full border-b-1 py-5 px-4";
+  const className = "border-border relative w-full border-b py-5 px-4";
 
   return (
     <div className="">
       <h2 className="h5 mb-6">Settings</h2>
-      <div className="rounded-lg border shadow-xs">
+      <div className="bg-background rounded-lg border shadow-xs">
         <Logo className={className} />
         <OrgName className={className} />
         <OrgUrl className={className} />

@@ -10,10 +10,11 @@ import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-drop
 import { feedbackPostsStateAtom, previousPathnameAtom } from "@/lib/atoms";
 import { useAtom, useAtomValue } from "jotai";
 import { useInIframe } from "@/hooks/use-in-iframe";
-import { isUuidV4 } from "@/lib/utils";
+import { cn, isUuidV4 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useWindowSize } from "react-use";
 import { FeedbackPostsEmpty } from "./empty";
+import { Separator } from "@/components/ui/separator";
 
 function isInViewport(el: Element) {
   if (!(el instanceof HTMLElement)) return false;
@@ -109,11 +110,23 @@ export function FeedbackPosts() {
     }
   }, [inIframe, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
+  const hasPosts =
+    !isPending && !isError && Array.isArray(posts) && posts.length > 0;
+
+  const hasNoPosts =
+    !isPending &&
+    !isError &&
+    !isPlatformEmpty &&
+    !isSearchEmpty &&
+    status !== null &&
+    Array.isArray(posts) &&
+    posts.length === 0;
+
   return (
     <div className="">
       {!!((!isPending && !isPlatformEmpty) || isSearchActive) &&
         width < 768 && (
-          <div className="relative mb-1.5 flex h-[40px] items-center gap-4">
+          <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-4">
             <SortingFilteringDropdown
               orderBy={orderBy}
               status={status}
@@ -146,26 +159,15 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {!isPending &&
-        !isError &&
-        !isPlatformEmpty &&
-        !isSearchEmpty &&
-        status !== null &&
-        Array.isArray(posts) &&
-        posts.length === 0 && (
-          <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-            No feedback found that is marked as {status}
-          </div>
-        )}
+      {hasNoPosts && (
+        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+          No feedback found that is marked as {status}
+        </div>
+      )}
 
-      {!!(
-        !isPending &&
-        !isError &&
-        Array.isArray(posts) &&
-        posts.length > 0
-      ) && (
-        <div className="space-y-9">
-          {posts.map((post) => (
+      {hasPosts && (
+        <div className="border-border bg-background rounded-lg border shadow-xs">
+          {posts.map((post, index) => (
             <FeedbackPostCompact
               key={post.id}
               postId={post.id}
@@ -178,13 +180,18 @@ export function FeedbackPosts() {
               upvoteCount={post.upvotes}
               commentCount={String(post?.commentCount)}
               hasUserUpvote={post.hasUserUpvote}
+              className={cn("", {
+                "border-b-0": index === posts.length - 1,
+              })}
             />
           ))}
 
           {isFetchingNextPage && (
-            <div className="flex items-center justify-start py-5">
+            <div className="border-border flex items-center justify-start border-t p-5">
               <Spinner />
-              <span className="ml-2 text-sm">Loading more...</span>
+              <span className="ml-2 text-sm">
+                Loading more feedback submissions...
+              </span>
             </div>
           )}
 

@@ -27,10 +27,6 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { AccountSettings } from "@/components/app/account-settings";
-// import { useAtomValue } from "jotai";
-// import { iframeParentAtom } from "@/lib/atoms";
-// import { useInIframe } from "@/hooks/use-in-iframe";
-
 export function PlatformHeaderButtons() {
   const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
@@ -40,8 +36,6 @@ export function PlatformHeaderButtons() {
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
   const { theme, setTheme } = useTheme();
-  // const iframeParent = useAtomValue(iframeParentAtom);
-  // const inIframe = useInIframe();
 
   const handleSignOut = async () => {
     await signOut();
@@ -160,7 +154,6 @@ export function PlatformHeaderButtons() {
               </span>
               <Switch checked={theme === "dark"} />
             </DropdownMenuItem>
-            {/* <DropdownMenuSeparator /> */}
             {session ? (
               <DropdownMenuItem onClick={handleSignOut} className="text-sm">
                 <LogOutIcon className="size-3.5!" />
@@ -174,19 +167,6 @@ export function PlatformHeaderButtons() {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* {inIframe && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7!"
-            onClick={() => {
-              iframeParent?.close();
-            }}
-          >
-            <XIcon className="size-4!" />
-          </Button>
-        )} */}
       </div>
     </>
   );

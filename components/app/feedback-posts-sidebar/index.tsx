@@ -17,7 +17,7 @@ export default function FeedbackPostsSidebar({
     return (
       <div
         className={cn(
-          "border-border bg-background sticky top-7 flex w-[260px] flex-col items-stretch space-y-7 rounded-md border p-5 shadow-xs",
+          "border-border bg-background sticky top-7 flex w-[260px] flex-col items-stretch space-y-7 rounded-md border p-4 shadow-xs",
           className,
         )}
       >

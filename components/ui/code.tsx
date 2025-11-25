@@ -42,7 +42,7 @@ export function Code({
   return (
     <div
       className={cn(
-        "bg-muted/50 border-border relative flex flex-col overflow-hidden rounded-lg border p-3 shadow-xs",
+        "bg-background border-border relative flex flex-col overflow-hidden rounded-lg border p-3",
         className,
       )}
     >

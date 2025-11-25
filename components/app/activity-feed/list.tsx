@@ -139,7 +139,7 @@ export function ActivityFeedList({
             <div
               key={index}
               className={cn(
-                "border-border hover:border-primary flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs hover:ring-1 hover:ring-black hover:ring-inset sm:p-3",
+                "border-border hover:border-primary bg-background flex cursor-pointer flex-col justify-between gap-1 rounded-md border p-2 shadow-xs hover:ring-1 hover:ring-black hover:ring-inset sm:p-3",
                 stat.title === "Ideas" &&
                   ideasSelected &&
                   "border-primary bg-muted/50 ring-1 ring-black ring-inset",
@@ -214,7 +214,7 @@ export function ActivityFeedList({
           ))}
         </div>
 
-        <div className="border-border overflow-hidden rounded-lg border shadow-xs">
+        <div className="border-border bg-background overflow-hidden rounded-lg border shadow-xs">
           <ActivityFeedListHeader className="border-border bg-background border-b pr-2 pl-3" />
 
           <div className="flex flex-col items-stretch">

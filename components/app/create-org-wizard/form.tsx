@@ -147,7 +147,7 @@ export function CreateOrgForm() {
                           {...field}
                         />
                         {!isSelfHosted && (
-                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm shadow-sm">
+                          <div className="border-border text-primary bg-muted flex h-[36px] items-center rounded-l-none rounded-r-md border px-3 text-sm shadow-xs">
                             <span>.feedbackland.com</span>
                           </div>
                         )}

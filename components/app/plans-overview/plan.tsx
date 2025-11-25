@@ -60,7 +60,7 @@ export function Plan({ planName }: { planName: "free" | "pro" }) {
     return (
       <div
         className={cn(
-          "border-border relative flex w-full max-w-full flex-1 flex-col items-stretch rounded-lg border p-5 shadow-xs",
+          "border-border bg-background relative flex w-full max-w-full flex-1 flex-col items-stretch rounded-lg border p-5 shadow-xs",
           {
             "border-primary": isProPlan,
             "border-2": isProPlan,

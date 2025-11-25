@@ -113,7 +113,7 @@ export function Insights() {
                 </h2>
                 {!isGenerating && hasInsights && (
                   <p className="text-muted-foreground text-sm">
-                    AI Roadmap last generated on{" "}
+                    Last generated on{" "}
                     {new Date(insights[0].createdAt).toLocaleDateString(
                       "en-US",
                       {

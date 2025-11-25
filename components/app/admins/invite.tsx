@@ -73,9 +73,9 @@ export function AdminsInvite() {
   }
 
   return (
-    <div className="mt-6">
-      <Label className="text-muted-foreground mb-2">Invite admins</Label>
-      <div className="border-border rounded-md border p-4 shadow-xs">
+    <div className="mt-6 flex flex-col items-stretch gap-2">
+      <Label className="text-muted-foreground">Invite admins</Label>
+      <div className="border-border bg-background rounded-md border p-5 shadow-xs">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
             <FormField

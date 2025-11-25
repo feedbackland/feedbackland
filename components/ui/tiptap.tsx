@@ -64,7 +64,7 @@ export const Tiptap = ({
     <MinimalTiptapEditor
       value={value}
       className={cn(
-        "bg-background! border-border! rounded-lg shadow-sm",
+        "bg-background! border-border! rounded-lg shadow-xs",
         isFocused && "ring-ring ring-1",
         className,
       )}

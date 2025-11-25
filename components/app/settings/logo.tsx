@@ -101,7 +101,7 @@ export function Logo({
             <Label>Logo</Label>
             <div
               {...getRootProps()}
-              className="hover:border-primary flex size-[100px] cursor-pointer items-center justify-center border-2 border-dashed"
+              className="hover:border-primary flex size-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-md border-2 border-dashed"
             >
               {remoteImageUrl ? (
                 <Image
