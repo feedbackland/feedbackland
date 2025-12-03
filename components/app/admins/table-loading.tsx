@@ -12,7 +12,7 @@ export function AdminsTableLoading() {
   const numberOfRows = 3;
 
   return (
-    <div className="rounded-md border shadow-xs">
+    <div className="border-border rounded-md border shadow-xs">
       <Table className="">
         <TableHeader>
           <TableRow className="">

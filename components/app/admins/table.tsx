@@ -23,7 +23,7 @@ export function AdminsTable() {
   if (isSuccess && admins && admins.length > 0) {
     return (
       <>
-        <div className="bg-background rounded-md border shadow-xs">
+        <div className="bg-background border-border rounded-md border shadow-xs">
           <Table>
             <TableHeader>
               <TableRow>

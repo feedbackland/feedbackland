@@ -13,7 +13,7 @@ export default function Settings() {
   return (
     <div className="">
       <h2 className="h5 mb-6">Settings</h2>
-      <div className="bg-background rounded-lg border shadow-xs">
+      <div className="bg-background border-border rounded-lg border shadow-xs">
         <Logo className={className} />
         <OrgName className={className} />
         <OrgUrl className={className} />
