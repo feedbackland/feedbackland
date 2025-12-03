@@ -27,7 +27,9 @@ export function WidgetDocs({
               PREVIEW
             </Label>
             <FeedbackButton
-              buttonElement={<button>Feedback</button>}
+              buttonElement={
+                <button className="font-sans [all:revert]">Feedback</button>
+              }
               platformId={orgId}
             />
           </div>
