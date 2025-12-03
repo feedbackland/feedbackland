@@ -26,19 +26,13 @@ export function ActivityFeed() {
     <div className="">
       <div className="-mt-1 mb-5 flex items-center justify-between">
         <h2 className="h5">Activity</h2>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              loading={allActivitiesSeen.isPending}
-              onClick={handleOnCLick}
-              variant="outline"
-              size="icon"
-            >
-              {isCompleted ? <CheckIcon /> : <BookOpenIcon />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Mark all as read</TooltipContent>
-        </Tooltip>
+        <Button
+          loading={allActivitiesSeen.isPending}
+          onClick={handleOnCLick}
+          variant="default"
+        >
+          Mark all as seen
+        </Button>
       </div>
       <ActivityFeedList />
     </div>
