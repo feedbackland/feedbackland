@@ -132,7 +132,7 @@ export function FeedbackPostEdit({
               <FormItem>
                 <FormControl>
                   <Tiptap
-                    value={field?.value}
+                    value={field?.value || null}
                     onChange={(value) => field.onChange(value)}
                   />
                 </FormControl>
