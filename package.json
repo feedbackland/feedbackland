@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.44",
-    "@ai-sdk/openai": "^2.0.76",
+    "@ai-sdk/openai": "^2.0.77",
     "@assistant-ui/react": "^0.11.47",
     "@assistant-ui/react-ai-sdk": "^1.1.16",
     "@assistant-ui/react-markdown": "^0.11.6",
@@ -114,7 +114,7 @@
     "react-device-detect": "^2.2.3",
     "react-dom": "^19.2.1",
     "react-dropzone": "^14.3.8",
-    "react-hook-form": "^7.67.0",
+    "react-hook-form": "^7.68.0",
     "react-image-crop": "^11.0.10",
     "react-intersection-observer": "^10.0.0",
     "react-medium-image-zoom": "^5.4.0",
