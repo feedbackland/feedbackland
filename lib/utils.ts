@@ -302,9 +302,11 @@ export const getPriorityColor = (priorityScore: number) => {
 export const getOverlayWidgetCodeSnippet = ({
   orgId,
   orgSubdomain,
+  type = "drawer",
 }: {
   orgId: string;
   orgSubdomain: string;
+  type?: "drawer" | "popover";
 }) => {
   const isSelfHosted = getIsSelfHosted();
 
@@ -323,6 +325,7 @@ export function WidgetDemo() {
       platformId="${orgId}" // your platform ID
       buttonElement={<button>Feedback</button>} // your custom feedback button
       url="${url}" your platform URL
+      widgetType="${type}" // 'drawer' or 'popover'
     />
   );
 }`;
@@ -335,6 +338,7 @@ export function WidgetDemo() {
     <FeedbackButton
       platformId="${orgId}" // your platform ID
       buttonElement={<button>Feedback</button>} // your custom feedback button
+      widgetType="${type}" // 'drawer' or 'popover'
     />
   );
 }`;
