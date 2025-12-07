@@ -29,7 +29,7 @@ const TabsTrigger = ({
   <TabsPrimitive.Trigger
     className={cn(
       "ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-xs",
-      "text-muted-foreground ring-offset-background focus-visible:ring-ring data-[state=active]:border-b-primary data-[state=active]:bg-background data-[state=active]:text-foreground relative inline-flex items-center justify-center rounded-none border-b-2 border-b-transparent bg-transparent px-0 py-1.5 text-sm font-semibold whitespace-nowrap shadow-none transition-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-none",
+      "text-muted-foreground ring-offset-background focus-visible:ring-ring data-[state=active]:border-b-primary data-[state=active]:bg-background data-[state=active]:text-foreground relative inline-flex cursor-pointer items-center justify-center rounded-none border-b-2 border-b-transparent bg-transparent px-0 py-1.5 text-sm font-semibold whitespace-nowrap shadow-none transition-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-none",
       className,
     )}
     {...props}

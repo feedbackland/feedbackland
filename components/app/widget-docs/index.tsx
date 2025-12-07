@@ -21,7 +21,7 @@ export function WidgetDocs({
 }) {
   return (
     <Tabs defaultValue="drawer">
-      <TabsList>
+      <TabsList className="mb-2">
         <TabsTrigger value="drawer">Drawer</TabsTrigger>
 
         <TabsTrigger value="popover">Popover</TabsTrigger>
@@ -30,8 +30,8 @@ export function WidgetDocs({
       <TabsContent value="drawer">
         <div className="flex flex-col text-left">
           <div className="flex flex-col space-y-7">
-            <div className="flex flex-col items-stretch gap-5">
-              <div className="border-border bg-background relative flex h-32 w-full items-center justify-center rounded-lg border p-10 shadow-xs">
+            <div className="flex flex-col items-stretch">
+              <div className="border-border bg-background relative flex h-32 w-full items-center justify-center rounded-lg rounded-b-none border p-10 shadow-xs">
                 <Label className="text-muted-foreground absolute top-2 left-2.5 text-xs font-normal">
                   PREVIEW
                 </Label>
@@ -42,7 +42,11 @@ export function WidgetDocs({
                 />
               </div>
 
-              <Code code={`npm i feedbackland-react`} lang="bash" />
+              <Code
+                code={`npm i feedbackland-react`}
+                lang="bash"
+                className="rounded-none! border-t-0 border-b-0"
+              />
 
               <Code
                 code={getOverlayWidgetCodeSnippet({
@@ -51,6 +55,7 @@ export function WidgetDocs({
                   type: "drawer",
                 })}
                 lang="tsx"
+                className="rounded-t-none!"
               />
             </div>
           </div>
@@ -60,8 +65,8 @@ export function WidgetDocs({
       <TabsContent value="popover">
         <div className="flex flex-col text-left">
           <div className="flex flex-col space-y-7">
-            <div className="flex flex-col items-stretch gap-5">
-              <div className="border-border bg-background relative flex h-32 w-full items-center justify-center rounded-lg border p-10 shadow-xs">
+            <div className="flex flex-col items-stretch">
+              <div className="border-border bg-background relative flex h-32 w-full items-center justify-center rounded-lg rounded-b-none border p-10 shadow-xs">
                 <Label className="text-muted-foreground absolute top-2 left-2.5 text-xs font-normal">
                   PREVIEW
                 </Label>
@@ -72,7 +77,11 @@ export function WidgetDocs({
                 />
               </div>
 
-              <Code code={`npm i feedbackland-react`} lang="bash" />
+              <Code
+                code={`npm i feedbackland-react`}
+                lang="bash"
+                className="rounded-none! border-t-0 border-b-0"
+              />
 
               <Code
                 code={getOverlayWidgetCodeSnippet({
@@ -81,6 +90,7 @@ export function WidgetDocs({
                   type: "popover",
                 })}
                 lang="tsx"
+                className="rounded-t-none!"
               />
             </div>
           </div>
