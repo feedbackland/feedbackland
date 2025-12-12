@@ -8,7 +8,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const mode = searchParams?.get("mode") || undefined;
+  const mode = searchParams?.get("mode") || "light";
 
   useEffect(() => {
     const mode = searchParams?.get("mode");
@@ -25,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       attribute="class"
       enableSystem={false}
       disableTransitionOnChange
-      defaultTheme={mode || "light"}
+      forcedTheme={mode}
     >
       {children}
     </NextThemesProvider>
