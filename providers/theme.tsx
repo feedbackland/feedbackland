@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       attribute="class"
       enableSystem={false}
       disableTransitionOnChange
-      forcedTheme={searchParams?.get("mode") || theme || "light"}
+      forcedTheme={forcedTheme}
     >
       {children}
     </NextThemesProvider>
