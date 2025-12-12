@@ -1,22 +1,17 @@
 # Self-Host Feedbackland
 
-Follow these steps to get your own self-hosted instance of Feedbackland up and running for free in 30 minutes. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbackland.com) for help.
+Follow these steps to get your own self-hosted instance of Feedbackland up and running. In case you bump into an issue, do not hesitate to [contact us](mailto:hello@feedbackland.com) for help.
 
 ### Prerequisites
 
 Before you begin, make sure you have accounts for the following services:
 
-- **Hosting & Database:**
-  - [Vercel](https://vercel.com) (for hosting the application)
-  - [Supabase](https://supabase.com) (for PostgreSQL database and image storage)
-- **Authentication:**
-  - [Firebase](https://firebase.google.com) (for user authentication)
-- **Transactional Emails:**
-  - [Resend](https://resend.com) (for sending transactional emails)
-- **AI Services:**
-  - [OpenRouter](https://openrouter.ai) (for all AI-related tasks)
-- **Code Management:**
-  - [GitHub](https://github.com) (for repository management)
+- [Vercel](https://vercel.com) (for hosting the application)
+- [Supabase](https://supabase.com) (for PostgreSQL database and image storage)
+- [Firebase](https://firebase.google.com) (for user authentication)
+- [Resend](https://resend.com) (for sending transactional emails)
+- [OpenRouter](https://openrouter.ai) (for all AI-related tasks)
+- [GitHub](https://github.com) (for repository management)
 
 &nbsp;
 
@@ -58,7 +53,7 @@ Get the Feedbackland source code onto your local machine.
 5.  **Run the database schema script:**
     - In your Supabase project, click on the **Connect** button in the top bar.
     - Copy the **Direct connection** string.
-    - Replace `[YOUR-PASSWORD]` with your actual database password.
+    - Replace `[YOUR-PASSWORD]` with your database password.
     - In your terminal run the following command, replacing `"YOUR_CONNECTION_STRING"` with your complete Supabase connection string:
       ```bash
       psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
@@ -89,7 +84,7 @@ Get the Feedbackland source code onto your local machine.
     - In the Firebase console, go to the **Authentication** section.
     - Enable and configure the following sign-in methods: **Email/Password**, **Google**, and **Microsoft**.
 4.  **Add Firebase service account credentials to your `.env` file:**
-    - In the Firebase Console, go to **Project Settings** > **Service accounts**.
+    - In the Firebase console, go to **Project Settings** > **Service accounts**.
     - Click on **Generate new private key**.
     - A JSON file will be downloaded. Open this file and copy the following values, without the opening and closing quotation (`"`) characters, into your `.env` file:
       - `project_id` → `FIREBASE_PROJECT_ID`
@@ -123,7 +118,7 @@ git remote rm origin
 ```
 - Add the remote origin from your newly created GitHub repository to your local Feedbackland folder:
 ```bash
-git remote add origin https://github.com/<YOUR-GITHUB-ACCOUNT-NAME>/<YOUR-REPOSITORY-NAME>.git
+git remote add origin https://github.com/<YOUR-GITHUB-ACCOUNT-NAME>/<YOUR-GITHUB-REPOSITORY-NAME>.git
 ```
 - Push your local Feedbackland folder, including all changes, to the new repository:
 ```bash
@@ -152,11 +147,11 @@ git push -u origin main
 ## 8. Finalize your platform setup
 
 - Navigate to `<YOUR-PROJECT-NAME>.vercel.app/get-started`.
-- Follow the steps in the get started wizard
+- Follow the get started wizard
 
 &nbsp;
 
-Congratulations! Your self-hosted Feedbackland platform is up and running, and ready to start collecting feedback.
+Congratulations! Your self-hosted Feedbackland platform is up and running!
 
 &nbsp;
 &nbsp;
