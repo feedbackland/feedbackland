@@ -4,7 +4,7 @@ https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 ## About
 
-[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments from your users through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
+[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
 
 ## Get started
 
