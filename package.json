@@ -16,7 +16,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.46",
     "@ai-sdk/openai": "^2.0.86",
-    "@assistant-ui/react": "^0.11.50",
+    "@assistant-ui/react": "^0.11.51",
     "@assistant-ui/react-ai-sdk": "^1.1.19",
     "@assistant-ui/react-markdown": "^0.11.8",
     "@hookform/resolvers": "^5.2.2",
@@ -85,7 +85,7 @@
     "dequal": "^2.0.3",
     "dompurify": "^3.3.1",
     "embla-carousel-react": "^8.6.0",
-    "feedbackland-react": "^2.6.2",
+    "feedbackland-react": "^2.6.3",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
     "geist": "^1.5.1",
