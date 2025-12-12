@@ -11,10 +11,10 @@ export default function AdminWidgetPage() {
   if (org && org.id) {
     return (
       <div className="">
-        <h2 className="h5 mb-0.5">Widget</h2>
-        <p className="mb-6 text-sm">
+        <h2 className="h5 mb-6">Widget</h2>
+        {/* <p className="mb-6 text-sm">
           Collect feedback directly in your React or Next.js app.
-        </p>
+        </p> */}
         <WidgetDocs orgId={org.id} orgSubdomain={org.orgSubdomain} />
       </div>
     );
