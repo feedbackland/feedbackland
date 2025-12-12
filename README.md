@@ -6,7 +6,7 @@ https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 [Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
 
-It's extremely easy to set up and takes about 30 seconds to add to your React or Next.js app.
+It's extremely easy to [set up](https://get-started.feedbackland.com) and takes about 30 seconds to add to your React or Next.js app.
 
 ## Get started
 
