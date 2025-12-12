@@ -10,6 +10,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [theme, setTheme] = useState(searchParams?.get("mode"));
 
+  const forcedTheme = searchParams?.get("mode") || theme || "light";
+
   useEffect(() => {
     const mode = searchParams?.get("mode");
 

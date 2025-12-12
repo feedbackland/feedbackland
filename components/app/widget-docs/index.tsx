@@ -35,11 +35,7 @@ export function WidgetDocs({
                 <Label className="text-muted-foreground absolute top-2 left-2.5 text-xs font-normal">
                   PREVIEW
                 </Label>
-                <FeedbackButton
-                  buttonElement={<Button>Feedback</Button>}
-                  platformId={orgId}
-                  widget="drawer"
-                />
+                <FeedbackButton platformId={orgId} widget="drawer" />
               </div>
 
               <Code
@@ -70,11 +66,7 @@ export function WidgetDocs({
                 <Label className="text-muted-foreground absolute top-2 left-2.5 text-xs font-normal">
                   PREVIEW
                 </Label>
-                <FeedbackButton
-                  buttonElement={<Button>Feedback</Button>}
-                  platformId={orgId}
-                  widget="popover"
-                />
+                <FeedbackButton platformId={orgId} widget="popover" />
               </div>
 
               <Code

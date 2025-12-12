@@ -323,7 +323,6 @@ export function WidgetDemo() {
   return (
     <FeedbackButton
       platformId="${orgId}" // your platform ID
-      buttonElement={<button>Feedback</button>} // your custom feedback button
       url="${url}" your platform URL
       widgetType="${type}" // 'drawer' or 'popover'
     />
@@ -337,7 +336,6 @@ export function WidgetDemo() {
   return (
     <FeedbackButton
       platformId="${orgId}" // your platform ID
-      buttonElement={<button>Feedback</button>} // your custom feedback button
       widgetType="${type}" // 'drawer' or 'popover'
     />
   );
