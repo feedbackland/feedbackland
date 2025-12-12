@@ -32,7 +32,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useInIframe } from "@/hooks/use-in-iframe";
+
 export function PlatformHeaderButtons() {
+  const inIframe = useInIframe();
   const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const [isAccountSettingsDialogOpen, setIsAccountSettingsDialogOpen] =
@@ -73,6 +76,7 @@ export function PlatformHeaderButtons() {
             <Link
               className="xs:block hidden"
               href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
+              target={inIframe ? "_blank" : "_self"}
             >
               <span className="flex items-center gap-2">
                 {isAdminPage ? (
