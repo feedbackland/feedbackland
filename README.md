@@ -1,16 +1,16 @@
-# Feedbackland - Build what users actually want
+# Feedbackland
 
 https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 ## About
 
-[Feedbackland](https://feedbackland.com) collects user feedback directly in your app and as a standalone website, then with AI translates it into a clear product roadmap. So you build the features your users will love, without the guesswork.
+[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
 
-Fully open-source and self-hostable. Convenient cloud-hosted version with generous free tier including unlimited feedback collection from unlimited end-users.
+It's extremely easy to [set up](https://get-started.feedbackland.com) and takes about 30 seconds to add to your React or Next.js app.
 
 ## Get started
 
-[Create your free platform](https://get-started.feedbackland.com)
+[Create your free platform](https://get-started.feedbackland.com) -> Get your feedback widget in 30 seconds
 
 ## Self-host
 
