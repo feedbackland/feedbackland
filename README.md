@@ -4,11 +4,13 @@ https://github.com/user-attachments/assets/8baf5d03-8537-4889-a3b5-a238495e4c9e
 
 ## About
 
-[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap. It's extremely easy to set up and add to your React or Next.js app as a simple 'Feedback' button.
+[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
+
+It's extremely easy to set up and add to your React or Next.js app as a simple 'Feedback' button.
 
 ## Get started
 
-[Create your free platform](https://get-started.feedbackland.com)
+[Create your free platform](https://get-started.feedbackland.com) -> Get your feedback widget in 30 seconds
 
 ## Self-host
 
