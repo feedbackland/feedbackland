@@ -324,7 +324,11 @@ export function WidgetDemo() {
     <FeedbackButton
       platformId="${orgId}" // your platform ID
       url="${url}" your platform URL
-      widgetType="${type}" // 'drawer' or 'popover'
+      widgetType="${type}" // 'drawer' | 'popover'
+      text="Feedback" // text for the button
+      variant="default" // 'default' | 'link' | 'outline' | 'ghost' | 'destructive' | 'secondary'
+      size="default" // 'default' | 'sm' | 'lg'
+      className="" // Tailwind classes
     />
   );
 }`;
@@ -336,7 +340,11 @@ export function WidgetDemo() {
   return (
     <FeedbackButton
       platformId="${orgId}" // your platform ID
-      widgetType="${type}" // 'drawer' or 'popover'
+      widgetType="${type}" // 'drawer' | 'popover'
+      text="Feedback" // text for the button
+      variant="default" // 'default' | 'link' | 'outline' | 'ghost' | 'destructive' | 'secondary'
+      size="default" // 'default' | 'sm' | 'lg'
+      className="" // Tailwind classes
     />
   );
 }`;
