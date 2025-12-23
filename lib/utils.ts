@@ -303,10 +303,16 @@ export const getOverlayWidgetCodeSnippet = ({
   orgId,
   orgSubdomain,
   type = "drawer",
+  text = "Feedback",
+  variant = "default",
+  size = "default",
 }: {
   orgId: string;
   orgSubdomain: string;
   type?: "drawer" | "popover";
+  text?: string;
+  variant?: string;
+  size?: string;
 }) => {
   const isSelfHosted = getIsSelfHosted();
 
@@ -322,13 +328,13 @@ export const getOverlayWidgetCodeSnippet = ({
 export function WidgetDemo() {
   return (
     <FeedbackButton
-      platformId="${orgId}" // your platform ID
-      url="${url}" your platform URL
-      widgetType="${type}" // 'drawer' | 'popover'
-      text="Feedback" // text for the button
-      variant="default" // 'default' | 'link' | 'outline' | 'ghost' | 'destructive' | 'secondary'
-      size="default" // 'default' | 'sm' | 'lg'
-      className="" // Tailwind classes
+      platformId="${orgId}"
+      url="${url}"
+      widgetType="${type}"
+      text="${text}"
+      variant="${variant}"
+      size="${size}"
+      className=""
     />
   );
 }`;
@@ -339,12 +345,12 @@ export function WidgetDemo() {
 export function WidgetDemo() {
   return (
     <FeedbackButton
-      platformId="${orgId}" // your platform ID
-      widgetType="${type}" // 'drawer' | 'popover'
-      text="Feedback" // text for the button
-      variant="default" // 'default' | 'link' | 'outline' | 'ghost' | 'destructive' | 'secondary'
-      size="default" // 'default' | 'sm' | 'lg'
-      className="" // Tailwind classes
+      platformId="${orgId}"
+      widgetType="${type}"
+      text="${text}"
+      variant="${variant}"
+      size="${size}"
+      className=""
     />
   );
 }`;
