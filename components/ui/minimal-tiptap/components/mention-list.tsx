@@ -29,9 +29,20 @@ const MentionList = forwardRef<MentionListRef, SuggestionProps<MentionItem>>(
     const listRef = useRef<HTMLDivElement>(null);
     const trpc = useTRPC();
 
+    const [debouncedQuery, setDebouncedQuery] = useState(props.query);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedQuery(props.query);
+      }, 300);
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [props.query]);
+
     const { data, isLoading } = useQuery(
       trpc.getMentionableUsers.queryOptions({
-        searchValue: props.query,
+        searchValue: debouncedQuery,
       }),
     );
 

@@ -2,20 +2,6 @@ import { Content } from "@tiptap/react";
 import { MinimalTiptapEditor } from "./minimal-tiptap";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-// import dynamic from "next/dynamic";
-
-// const MinimalTiptapEditor = dynamic(
-//   () =>
-//     import("./minimal-tiptap").then(
-//       ({ MinimalTiptapEditor }) => MinimalTiptapEditor,
-//     ),
-//   {
-//     loading: () => (
-//       <div className="border-input bg-background! h-[93px] w-full rounded-lg border shadow-xs" />
-//     ),
-//     ssr: false,
-//   },
-// );
 
 export const Tiptap = ({
   value,
