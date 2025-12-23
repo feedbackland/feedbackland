@@ -36,7 +36,7 @@ const getOrgSubdomain = async ({
   }
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   let response = NextResponse.next();
   const url = req.nextUrl.clone();
   const { pathname, search, origin, protocol } = url;
