@@ -1,8 +1,8 @@
 # Feedbackland
 
-## About
-
-[Feedbackland](https://feedbackland.com) captures user feedback, upvotes and comments through an in-app widget or standalone website, then uses AI to turn it into a prioritized product roadmap.
+Capture user feedback, then let AI turn it into your prioritized roadmap.
+<br />
+Open-source and self-hostable.
 
 ## Get started
 
