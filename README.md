@@ -1,6 +1,6 @@
 # Feedbackland
 
-Capture user feedback, then let AI turn it into your prioritized roadmap.
+Capture user feedback directly in your app, then let AI turn it into your prioritized roadmap.
 
 ## Get started
 
