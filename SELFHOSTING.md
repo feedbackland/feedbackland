@@ -1,6 +1,6 @@
 # Self-Hosting Guide
 
-Deploy your own instance of Feedbackland
+Deploy your own instance of Feedbackland. While some steps are involved, it should not take more than 15 minutes of your time to get your feedback platform up and running.
 
 ## Prerequisites
 
