@@ -1,12 +1,12 @@
 # Feedbackland
 
-Capture user feedback directly in your app, then let AI turn it into your prioritized roadmap.
+Open source feedback platform. Collect feedback from your users, let them vote on features, and auto-generate a prioritized roadmap. Self-host or use our cloud.
 
-## Get started
+## Cloud-hosted
 
 [Create your free platform](https://get-started.feedbackland.com)
 
-## Self-host
+## Self-hosted
 
 [Go to the docs](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
