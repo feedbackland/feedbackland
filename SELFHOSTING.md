@@ -1,8 +1,6 @@
 # Self-Hosting Guide
 
-Deploy your own instance of Feedbackland in about 30 minutes.
-
----
+Deploy your own instance of Feedbackland
 
 ## Prerequisites
 
