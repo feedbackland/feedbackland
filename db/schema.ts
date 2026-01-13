@@ -51,7 +51,7 @@ export type PgsodiumKeyStatus = "default" | "expired" | "invalid" | "valid";
 
 export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" | "hmacsha256" | "hmacsha512" | "kdf" | "secretbox" | "secretstream" | "shorthash" | "stream_xchacha20";
 
-export type StorageBuckettype = "ANALYTICS" | "STANDARD";
+export type StorageBuckettype = "ANALYTICS" | "STANDARD" | "VECTOR";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
@@ -163,6 +163,7 @@ export interface AuthOauthAuthorizations {
   created_at: Generated<Timestamp>;
   expires_at: Generated<Timestamp>;
   id: string;
+  nonce: string | null;
   redirect_uri: string;
   resource: string | null;
   response_type: Generated<AuthOauthResponseType>;
@@ -185,6 +186,13 @@ export interface AuthOauthClients {
   redirect_uris: string;
   registration_type: AuthOauthRegistrationType;
   updated_at: Generated<Timestamp>;
+}
+
+export interface AuthOauthClientStates {
+  code_verifier: string | null;
+  created_at: Timestamp;
+  id: string;
+  provider_type: string;
 }
 
 export interface AuthOauthConsents {
@@ -265,6 +273,7 @@ export interface AuthSessions {
    */
   refresh_token_hmac_key: string | null;
   refreshed_at: Timestamp | null;
+  scopes: string | null;
   tag: string | null;
   updated_at: Timestamp | null;
   user_agent: string | null;
@@ -589,7 +598,16 @@ export interface StorageBuckets {
 
 export interface StorageBucketsAnalytics {
   created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
   format: Generated<string>;
+  id: Generated<string>;
+  name: string;
+  type: Generated<StorageBuckettype>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface StorageBucketsVectors {
+  created_at: Generated<Timestamp>;
   id: string;
   type: Generated<StorageBuckettype>;
   updated_at: Generated<Timestamp>;
@@ -652,6 +670,18 @@ export interface StorageS3MultipartUploadsParts {
   size: Generated<Int8>;
   upload_id: string;
   version: string;
+}
+
+export interface StorageVectorIndexes {
+  bucket_id: string;
+  created_at: Generated<Timestamp>;
+  data_type: string;
+  dimension: number;
+  distance_metric: string;
+  id: Generated<string>;
+  metadata_configuration: Json | null;
+  name: string;
+  updated_at: Generated<Timestamp>;
 }
 
 export interface SupabaseMigrationsSchemaMigrations {
@@ -720,6 +750,7 @@ export interface DB {
   "auth.mfa_challenges": AuthMfaChallenges;
   "auth.mfa_factors": AuthMfaFactors;
   "auth.oauth_authorizations": AuthOauthAuthorizations;
+  "auth.oauth_client_states": AuthOauthClientStates;
   "auth.oauth_clients": AuthOauthClients;
   "auth.oauth_consents": AuthOauthConsents;
   "auth.one_time_tokens": AuthOneTimeTokens;
@@ -749,11 +780,13 @@ export interface DB {
   "realtime.subscription": RealtimeSubscription;
   "storage.buckets": StorageBuckets;
   "storage.buckets_analytics": StorageBucketsAnalytics;
+  "storage.buckets_vectors": StorageBucketsVectors;
   "storage.migrations": StorageMigrations;
   "storage.objects": StorageObjects;
   "storage.prefixes": StoragePrefixes;
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
+  "storage.vector_indexes": StorageVectorIndexes;
   "supabase_migrations.schema_migrations": SupabaseMigrationsSchemaMigrations;
   "supabase_migrations.seed_files": SupabaseMigrationsSeedFiles;
   user: User;
