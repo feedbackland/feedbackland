@@ -6,14 +6,12 @@ import { useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
-import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 
 export default function AdminRoot({ children }: { children: ReactNode }) {
   const { isAdmin, isLoaded } = useAuth();
   const platformUrl = usePlatformUrl();
   const router = useRouter();
   const pathname = usePathname();
-  const isSelfHosted = useIsSelfHosted();
 
   useEffect(() => {
     if (platformUrl && isLoaded && !isAdmin) {
@@ -58,12 +56,6 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
             <TabsTrigger value="widget" asChild>
               <Link href={`${adminBasePath}/widget`}>Widget</Link>
             </TabsTrigger>
-
-            {!isSelfHosted && (
-              <TabsTrigger value="plan" asChild>
-                <Link href={`${adminBasePath}/plan`}>Plan</Link>
-              </TabsTrigger>
-            )}
           </TabsList>
         </Tabs>
         <div className="mt-6">{children}</div>

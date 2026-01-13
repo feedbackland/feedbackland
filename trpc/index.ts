@@ -28,11 +28,6 @@ import { redeemAdminInvite } from "./redeem-admin-invite";
 import { deleteAdmin } from "./delete-admin";
 import { getAdminInvite } from "./get-admin-invite";
 import { setAllActivitiesSeen } from "./set-all-activities-seen";
-import { createPolarCustomerSession } from "./create-polar-customer-session";
-import { createPolarCheckoutSession } from "./create-polar-checkout-session";
-import { getPolarProducts } from "./get-polar-products";
-import { getSubscription } from "./get-subscription";
-import { getPolarProduct } from "./get-polar-product";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
 
@@ -67,11 +62,6 @@ export const appRouter = router({
   redeemAdminInvite,
   getAdminInvite,
   deleteAdmin,
-  createPolarCustomerSession,
-  createPolarCheckoutSession,
-  getPolarProducts,
-  getPolarProduct,
-  getSubscription,
   updateUser,
   getUserSession,
 });

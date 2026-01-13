@@ -53,10 +53,6 @@ export type PgsodiumKeyType = "aead-det" | "aead-ietf" | "auth" | "generichash" 
 
 export type StorageBuckettype = "ANALYTICS" | "STANDARD";
 
-export type SubscriptionFrequency = "month" | "year";
-
-export type SubscriptionName = "free" | "max" | "pro";
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export type UserOrgRole = "admin" | "user";
@@ -658,22 +654,6 @@ export interface StorageS3MultipartUploadsParts {
   version: string;
 }
 
-export interface Subscriptions {
-  amount: Numeric;
-  createdAt: Generated<Timestamp>;
-  customerId: string;
-  email: string | null;
-  frequency: SubscriptionFrequency;
-  id: Generated<string>;
-  name: SubscriptionName;
-  orgId: string;
-  productId: string;
-  status: string;
-  subscriptionId: string;
-  updatedAt: Generated<Timestamp>;
-  validUntil: Timestamp | null;
-}
-
 export interface SupabaseMigrationsSchemaMigrations {
   name: string | null;
   statements: string[] | null;
@@ -774,7 +754,6 @@ export interface DB {
   "storage.prefixes": StoragePrefixes;
   "storage.s3_multipart_uploads": StorageS3MultipartUploads;
   "storage.s3_multipart_uploads_parts": StorageS3MultipartUploadsParts;
-  subscriptions: Subscriptions;
   "supabase_migrations.schema_migrations": SupabaseMigrationsSchemaMigrations;
   "supabase_migrations.seed_files": SupabaseMigrationsSeedFiles;
   user: User;
