@@ -1,202 +1,147 @@
-# Self-Hosting Guide
+# Self-Hosting Feedbackland
 
-Deploy your own instance of Feedbackland. While some steps are involved, it should not take more than 15 minutes of your time to get your feedback platform up and running.
+Deploy your own instance of Feedbackland in under 15 minutes.
 
 ## Prerequisites
 
-You'll need accounts with these six services:
+You will need accounts with the following services (all offer free tiers):
 
-| Service | Purpose |
-|---------|---------|
-| [Supabase](https://supabase.com) | Database and image storage |
-| [Firebase](https://firebase.google.com) | User authentication |
-| [Resend](https://resend.com) | Transactional emails |
-| [OpenRouter](https://openrouter.ai) | AI features |
-| [GitHub](https://github.com) | Code repository |
-| [Vercel](https://vercel.com) | Hosting |
-
-You'll also need:
-- [Git](https://git-scm.com/) installed on your machine
-- [psql](https://www.postgresql.org/download/) (PostgreSQL client) installed on your machine
+* **[GitHub](https://github.com)** (Code repository)
+* **[Supabase](https://supabase.com)** (Database & Storage)
+* **[Firebase](https://firebase.google.com)** (Authentication)
+* **[Resend](https://resend.com)** (Transactional Emails)
+* **[OpenRouter](https://openrouter.ai)** (AI Features)
+* **[Vercel](https://vercel.com)** (Hosting)
 
 ---
 
-## Step 1: Download the Source Code
+## Step 1: Get the Code
 
-Clone the repository and set up your environment file:
-```bash
+Clone the repository and prepare your local environment.
+
+\`\`\`bash
 git clone https://github.com/feedbackland/feedbackland.git
 cd feedbackland
-mv .env.example .env
-```
-
-You'll populate the `.env` file with credentials as you complete the following steps.
+cp .env.example .env
+\`\`\`
 
 ---
 
-## Step 2: Set Up Supabase
+## Step 2: Set Up Supabase (Database)
 
-### 2.1 Create your project
+1.  **Create Project:** Go to [Supabase](https://supabase.com), create a new project, and **copy your Database Password** (you will need it later).
+2.  **Enable Vector Extension:**
+    * In the sidebar, go to **Database** → **Extensions**.
+    * Search for \`vector\`.
+    * Enable the \`vector\` extension.
+3.  **Run Database Schema:**
+    * Open the file \`db/schema.sql\` in your local project folder and copy its entire content.
+    * In Supabase, go to the **SQL Editor** (sidebar icon).
+    * Paste the content and click **Run**.
+4.  **Create Storage Bucket:**
+    * Go to **Storage** → **New Bucket**.
+    * Name it \`images\`.
+    * Toggle **Public bucket** to **ON**.
+    * Click **Create bucket**.
+5.  **Disable Data API (Security):**
+    * Go to **Project Settings** → **Data API**.
+    * Toggle **Enable Data API** to **OFF**.
+6.  **Get Credentials:**
+    * Go to **Project Settings** → **API Keys**.
+    * Copy the \`Project URL\` and \`anon\` / \`public\` Key.
+    * Go to **Connect** (top bar) → **Transaction Pooler**.
+    * Copy the Connection String (Replace \`[YOUR-PASSWORD]\` with the password from step 2.1).
 
-1. Go to [Supabase](https://supabase.com) and create a new project.
-2. Save your database password somewhere safe—you'll need it shortly.
-
-### 2.2 Enable the vector extension
-
-1. Go to **Database → Extensions**.
-2. Search for `vector`.
-3. Click to enable it.
-
-### 2.3 Disable the Data API
-
-1. Go to **Project Settings → Data API**.
-2. Under **Config**, toggle OFF **Enable Data API**.
-
-### 2.4 Create a storage bucket
-
-1. Go to **Storage** in the sidebar.
-2. Click **New bucket**.
-3. Name it `images`.
-4. Toggle ON **Public bucket**.
-5. Click **Create bucket**.
-
-### 2.5 Run the database schema
-
-1. Click the **Connect** button in the top bar.
-2. Copy the **Direct connection** string.
-3. Replace `[YOUR-PASSWORD]` with your actual database password.
-4. Run this command in your terminal:
-```bash
-psql --single-transaction --variable ON_ERROR_STOP=1 --file db/schema.sql "YOUR_CONNECTION_STRING"
-```
-
-### 2.6 Add credentials to your `.env` file
-
-Open your `.env` file and fill in these three values:
-
-**DATABASE_URL**
-1. Click **Connect** in the top bar.
-2. Copy the **Transaction pooler** connection string.
-3. Replace `[YOUR-PASSWORD]` with your database password.
-4. Paste into your `.env` file.
-
-**NEXT_PUBLIC_SUPABASE_PROJECT_ID**
-1. Go to **Project Settings → General**.
-2. Copy the **Project ID**.
-3. Paste into your `.env` file.
-
-**NEXT_PUBLIC_SUPABASE_ANON_KEY**
-1. Go to **Project Settings → API Keys**.
-2. Copy the `anon` **public** key.
-3. Paste into your `.env` file.
+**Update your \`.env\` file:**
+\`\`\`env
+NEXT_PUBLIC_SUPABASE_PROJECT_ID=[Your Project Reference ID from the URL]
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[Your anon public key]
+DATABASE_URL=[Your Transaction Pooler connection string]
+\`\`\`
 
 ---
 
-## Step 3: Set Up Firebase
+## Step 3: Set Up Firebase (Authentication)
 
-### 3.1 Create your project
+### 3.1 Create Project & App
+1.  Go to the [Firebase Console](https://console.firebase.google.com) and create a project.
+2.  Click the **Web** icon (\`</>\`) to add an app. Give it a nickname (e.g., "Feedbackland").
+3.  **Important:** You will see a \`const firebaseConfig = { ... }\` object. Copy this object.
+4.  Open \`firebaseConfig.ts\` in your local project folder and replace its content with your specific config.
 
-1. Go to the [Firebase Console](https://console.firebase.google.com) and create a new project.
+### 3.2 Enable Authentication
+1.  Go to **Build** → **Authentication** → **Get Started**.
+2.  Select **Sign-in method** and enable:
+    * **Email/Password**
+    * **Google** (Default configuration is fine for testing).
+    * **Microsoft** (Optional: requires Azure setup).
 
-### 3.2 Configure the web app
+### 3.3 Get Admin Credentials
+1.  Go to **Project Settings** (gear icon) → **Service accounts**.
+2.  Click **Generate new private key**.
+3.  Open the downloaded JSON file.
 
-1. In your Firebase project, click **Add app** and select **Web**.
-2. Register your app and copy the config object.
-3. Open `firebaseConfig.ts` in your Feedbackland project folder.
-4. Replace the existing config object with yours.
-
-### 3.3 Enable authentication
-
-1. Go to **Authentication** in the sidebar.
-2. Click **Get started**.
-3. Enable these sign-in methods:
-   - Email/Password
-   - Google
-   - Microsoft
-
-### 3.4 Add credentials to your `.env` file
-
-1. Go to **Project Settings → Service accounts**.
-2. Click **Generate new private key**.
-3. Open the downloaded JSON file.
-4. Copy these values into your `.env` file (without the surrounding quotes):
-
-| JSON field | `.env` variable |
-|------------|-----------------|
-| `project_id` | `FIREBASE_PROJECT_ID` |
-| `client_email` | `FIREBASE_CLIENT_EMAIL` |
-| `private_key` | `FIREBASE_PRIVATE_KEY` |
+**Update your \`.env\` file with values from the JSON:**
+\`\`\`env
+FIREBASE_PROJECT_ID=[project_id]
+FIREBASE_CLIENT_EMAIL=[client_email]
+FIREBASE_PRIVATE_KEY=[private_key]
+\`\`\`
+*(Note: When pasting the private key into Vercel later, ensure you copy the entire string including \`-----BEGIN PRIVATE KEY-----\`)*
 
 ---
 
-## Step 4: Set Up Resend
+## Step 4: Get API Keys
 
-1. Go to [Resend](https://resend.com) and create an account.
-2. Add and verify your email domain (e.g., `mycompany.com`).
-3. Generate an API key.
-4. Add these values to your `.env` file:
-```
-RESEND_API_KEY=your_api_key_here
-RESEND_EMAIL_SENDER=info@mycompany.com
-```
+### Resend (Emails)
+1.  Go to [Resend API Keys](https://resend.com/api-keys) and create a key.
+2.  Verify a domain (required for sending emails).
 
-> **Note:** The sender email must belong to the domain you verified.
+### OpenRouter (AI)
+1.  Go to [OpenRouter Keys](https://openrouter.ai/keys) and create a key.
 
----
-
-## Step 5: Set Up OpenRouter
-
-1. Go to [OpenRouter](https://openrouter.ai) and create an account.
-2. Generate an API key.
-3. Add it to your `.env` file:
-```
-OPENROUTER_API_KEY=your_api_key_here
-```
+**Update your \`.env\` file:**
+\`\`\`env
+RESEND_API_KEY=[Your Resend Key]
+RESEND_EMAIL_SENDER=[info@your-verified-domain.com]
+OPENROUTER_API_KEY=[Your OpenRouter Key]
+\`\`\`
 
 ---
 
-## Step 6: Push to GitHub
+## Step 5: Deploy to Vercel
 
-1. Create a new repository on [GitHub](https://github.com).
-2. Connect your local project to your new repository:
-```bash
-git remote rm origin
+### 5.1 Push to GitHub
+Create a new repository on GitHub and push your code:
+
+\`\`\`bash
+git remote remove origin
 git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-git add -A
-git commit -m "Initial commit"
+git add .
+git commit -m "Setup for deployment"
 git push -u origin main
-```
+\`\`\`
+
+### 5.2 Deploy
+1.  Go to [Vercel](https://vercel.com) and click **Add New** → **Project**.
+2.  Import your new GitHub repository.
+3.  **Environment Variables:** Copy the values from your local \`.env\` file and paste them into the Vercel "Environment Variables" section.
+    * *Tip: You can often copy the entire text of your \`.env\` file and paste it into the first field in Vercel to auto-populate all fields.*
+    * **Ensure \`NEXT_PUBLIC_SELF_HOSTED=true\` is set**.
+4.  Click **Deploy**.
 
 ---
 
-## Step 7: Deploy to Vercel
+## Step 6: Final Configuration
 
-### 7.1 Create your deployment
+Once deployment is complete, Vercel will assign a domain (e.g., \`feedbackland-xyz.vercel.app\`).
 
-1. Go to [Vercel](https://vercel.com) and click **Add New → Project**.
-2. Import your GitHub repository.
-3. Before deploying, go to **Environment Variables**.
-4. Copy all values from your local `.env` file and add them here.
-5. Click **Deploy**.
-
-### 7.2 Authorize the domain in Firebase
-
-1. Once deployment completes, copy your Vercel URL (e.g., `my-app.vercel.app`).
-2. Go to your Firebase Console.
-3. Navigate to **Authentication → Settings → Authorized domains**.
-4. Click **Add domain** and paste your Vercel URL.
+1.  Copy your new Vercel domain.
+2.  Go back to **Firebase Console** → **Authentication** → **Settings** → **Authorized domains**.
+3.  Click **Add domain** and paste your Vercel domain (without \`https://\`).
 
 ---
 
-## Step 8: Complete Setup
+## 🎉 You're Live!
 
-1. Open your browser and go to `https://YOUR_PROJECT.vercel.app/get-started`.
-2. Follow the setup wizard to finish configuring your platform.
-
----
-
-## You're Done!
-
-Your self-hosted Feedbackland instance is now live.
-
-**Need help?** Contact us at [hello@feedbackland.com](mailto:hello@feedbackland.com).
+Visit your Vercel URL. You should be redirected to \`/get-started\` to create your first organization and admin account.
