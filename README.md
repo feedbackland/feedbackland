@@ -1,8 +1,7 @@
 # Feedbackland
 
-[Feedbackland](https://www.feedbackland.com) is a free, open-source and self-hostable feedback platform available under the MIT license.
+[Feedbackland](https://www.feedbackland.com) is a free-forever, open-source and self-hostable feedback platform available under the MIT license.
 
-Collect feedback from your users, let them vote on and discuss ideas & issues, and auto-generate a prioritized roadmap based on all user feedback.
+Collect user feedback, let users vote on and discuss feedback, and auto-generate your prioritized roadmap.
 
-[Create your free platform](https://get-started.feedbackland.com) or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) your platform.
-
+[Create your free cloud-hosted platform](https://get-started.feedbackland.com) or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) your platform.
