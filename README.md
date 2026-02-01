@@ -8,4 +8,4 @@
 
 Create your free [cloud-hosted platform](https://get-started.feedbackland.com) in seconds, or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) your platform.
 
-Check out the [demo platform](https://get-started.feedbackland.com) (email: admin@demo.com, password: demo1234)
+Check out the [demo platform](https://demo.feedbackland.com) (email: admin@demo.com, password: demo1234)
