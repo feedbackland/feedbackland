@@ -72,7 +72,6 @@ export function PlatformHeaderButtons() {
       />
 
       <div className="flex items-center gap-3">
-        <ModeToggle />
         {isAdmin && platformUrl && (
           <Button variant="ghost" size="default" asChild>
             <Link
@@ -161,6 +160,7 @@ export function PlatformHeaderButtons() {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        <ModeToggle />
       </div>
     </>
   );
