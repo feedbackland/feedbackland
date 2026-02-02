@@ -67,7 +67,7 @@ export function CommentInner({
         />
       </div>
       {isExpanded && (
-        <div className="pl-8">
+        <div className="pl-9">
           {!isEditing ? (
             <>
               <TiptapOutput key={id} content={content} />

@@ -20,8 +20,8 @@ export function CommentHeader({
   className?: React.ComponentProps<"div">["className"];
 }) {
   return (
-    <div className={cn("flex items-center gap-1", className)}>
-      <Avatar className="-ml-1 scale-80!">
+    <div className={cn("flex items-center gap-2", className)}>
+      <Avatar className="size-7">
         <AvatarImage
           src={authorPhotoURL || undefined}
           alt="User avatar image"
@@ -31,16 +31,16 @@ export function CommentHeader({
         </AvatarFallback>
       </Avatar>
       <div className="text-muted-foreground flex items-center gap-1 text-xs font-normal">
-        <div className="text-primary">
+        <div className="font-medium text-foreground">
           {authorName}
           {authorRole === "admin" && (
-            <Badge variant="outline" className="border-primary ml-1 scale-85">
+            <Badge variant="outline" className="border-primary/30 ml-1 text-[10px] px-1 py-0 font-normal">
               Admin
             </Badge>
           )}
         </div>
-        <span className="text-[8px]">•</span>
-        <div className="">{timeAgo.format(createdAt, "mini-now")}</div>
+        <span className="text-muted-foreground/50">·</span>
+        <div>{timeAgo.format(createdAt, "mini-now")}</div>
       </div>
     </div>
   );

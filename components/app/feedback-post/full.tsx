@@ -11,6 +11,7 @@ import { FeedbackPostOptionsMenu } from "./options-menu";
 import { FeedbackPostEdit } from "./edit";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { useWindowSize } from "react-use";
+import { Badge } from "@/components/ui/badge";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -39,27 +40,22 @@ export function FeedbackPostFull({
 
   if (isPending) {
     return (
-      <div className={cn("mt-2 flex flex-col space-y-3", className)}>
-        <div className="mb-2.5 flex items-start justify-between">
-          <Skeleton className="h-8 w-24" />
+      <div className={cn("flex flex-col space-y-3", className)}>
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-8 w-3/4" />
         </div>
-        <div className="flex flex-col items-stretch gap-2">
-          <div className="flex items-center justify-between gap-3.5">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="size-8 rounded-full" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-3 w-20" />
-          </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-20" />
         </div>
         <div className="space-y-2 py-4">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
         </div>
-        <div className="flex items-center gap-2.5 pt-2">
+        <div className="flex items-center gap-2 pt-1">
           <Skeleton className="h-9 w-20" />
           <Skeleton className="h-9 w-20" />
         </div>
@@ -81,11 +77,7 @@ export function FeedbackPostFull({
     } = data;
 
     return (
-      <div className="mt-2">
-        <div className="mb-2.5 flex items-start justify-between">
-          <GoBackButton />
-        </div>
-
+      <div>
         {isEditing ? (
           <FeedbackPostEdit
             postId={postId}
@@ -99,8 +91,11 @@ export function FeedbackPostFull({
           >
             <div className="flex flex-col items-stretch gap-0.5">
               <div className="flex items-center justify-between gap-3.5">
-                <h2 className="text-xl font-semibold">{title}</h2>
-                <div className="">
+                <div className="flex items-center gap-3">
+                  <GoBackButton />
+                  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                </div>
+                <div>
                   <FeedbackPostOptionsMenu
                     postId={postId}
                     authorId={data.authorId}
@@ -111,21 +106,24 @@ export function FeedbackPostFull({
               {width < 768 && (
                 <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
                   <span>Posted by {authorName || "Anonymous user"}</span>
-                  <span className="text-[8px]">•</span>
+                  <span className="text-muted-foreground/50">·</span>
                   <span>{timeAgo.format(createdAt, "mini-now")}</span>
-                  <span className="text-[8px]">•</span>
-                  <span className="capitalize">{category}</span>
+                  <span className="text-muted-foreground/50">·</span>
+                  <Badge variant="secondary" className="capitalize text-xs px-1.5 py-0">
+                    {category}
+                  </Badge>
                   {status && (
                     <>
-                      <span className="text-[8px]">•</span>
-                      <span
+                      <span className="text-muted-foreground/50">·</span>
+                      <Badge
+                        variant="secondary"
                         className={cn(
-                          "capitalize",
+                          "capitalize text-xs px-1.5 py-0",
                           `text-${status.replace(" ", "-")}`,
                         )}
                       >
                         {status}
-                      </span>
+                      </Badge>
                     </>
                   )}
                 </div>
@@ -134,7 +132,7 @@ export function FeedbackPostFull({
 
             <TiptapOutput content={description} />
 
-            <div className="flex items-center gap-2.5 pt-2">
+            <div className="flex items-center gap-2 pt-1">
               <UpvoteButton
                 postId={postId}
                 upvoteCount={upvotes}

@@ -36,10 +36,10 @@ export function CommentWrapper({
         isExpanded={isExpanded}
       />
       <div
-        className="group absolute top-10 bottom-2 left-0.5 flex w-[20px] cursor-pointer justify-center"
+        className="group absolute top-9 bottom-0 left-0.5 flex w-[20px] cursor-pointer justify-center"
         onClick={() => setIsExpanded(false)}
       >
-        <div className="bg-muted group-hover:bg-primary h-full w-[1px]"></div>
+        <div className="bg-muted group-hover:bg-primary/50 transition-colors h-full w-[1px]"></div>
       </div>
     </div>
   );

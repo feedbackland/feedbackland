@@ -12,17 +12,15 @@ export default function FeedbackPostPage() {
   const { postId } = useParams<{ postId: string }>();
 
   return (
-    <div className="flex flex-row items-start gap-11">
-      <div className="w-full flex-1 space-y-10">
+    <div className="flex flex-row items-start gap-8">
+      <div className="min-w-0 w-full flex-1 space-y-8">
         <FeedbackPostFull postId={postId} />
-        <div className="space-y-10">
-          <CommentForm
-            postId={postId}
-            parentCommentId={null}
-            showCloseButton={false}
-          />
-          <Comments postId={postId} />
-        </div>
+        <CommentForm
+          postId={postId}
+          parentCommentId={null}
+          showCloseButton={false}
+        />
+        <Comments postId={postId} />
       </div>
       {width >= 768 && <FeedbackPostSidebar postId={postId} />}
     </div>

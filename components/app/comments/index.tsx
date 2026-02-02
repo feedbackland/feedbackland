@@ -68,21 +68,27 @@ export function Comments({
       )}
 
       {!!(!isPending && !isError && comments.length > 0) && (
-        <div className="space-y-4">
-          {parentComments.map((comment) => {
-            const childComments = comments.filter(
-              (i) => i.parentCommentId === comment.id,
-            );
+        <div>
+          <h3 className="text-sm font-semibold mb-4">
+            Comments <span className="text-muted-foreground">({parentComments.length})</span>
+          </h3>
+          <div className="divide-y divide-border">
+            {parentComments.map((comment) => {
+              const childComments = comments.filter(
+                (i) => i.parentCommentId === comment.id,
+              );
 
-            return (
-              <CommentWrapper
-                key={comment.id}
-                comment={comment}
-                childComments={childComments}
-                className=""
-              />
-            );
-          })}
+              return (
+                <div key={comment.id} className="py-4 first:pt-0 last:pb-0">
+                  <CommentWrapper
+                    comment={comment}
+                    childComments={childComments}
+                    className=""
+                  />
+                </div>
+              );
+            })}
+          </div>
 
           {isFetchingNextPage && (
             <div className="flex items-center justify-start py-5">

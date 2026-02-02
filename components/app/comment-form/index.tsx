@@ -150,7 +150,7 @@ export function CommentForm({
           if (newSession) onSubmit(newSession);
         }}
       />
-      <div ref={elementRef} className={cn("flex flex-col gap-3", className)}>
+      <div ref={elementRef} className={cn("flex flex-col gap-2", className)}>
         <div className="relative flex items-start gap-2">
           {showCloseButton && (
             <Button
