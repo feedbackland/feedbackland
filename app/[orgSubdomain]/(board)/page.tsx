@@ -5,11 +5,11 @@ import FeedbackPostsSidebar from "@/components/app/feedback-posts-sidebar";
 export default function OrgPage() {
   return (
     <div className="flex flex-1 flex-row items-start gap-11">
+      <FeedbackPostsSidebar />
       <div className="flex-1 space-y-7">
         <FeedbackForm />
         <FeedbackPosts />
       </div>
-      <FeedbackPostsSidebar />
     </div>
   );
 }
