@@ -8,6 +8,10 @@ A free, unlimited, AI-powered alternative to Canny — built for teams who ship.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/feedbackland/feedbackland/pulls)
 
 [Live Demo](https://demo.feedbackland.com) &middot; [Get Started Free](https://get-started.feedbackland.com) &middot; [Self-Host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
