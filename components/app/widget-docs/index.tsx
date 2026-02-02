@@ -37,7 +37,7 @@ export function WidgetDocs({
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
       {/* Configuration Panel */}
       <div className="lg:sticky lg:top-8 lg:col-span-4">
-        <Card>
+        <Card className="bg-background">
           <CardHeader className="">
             <CardTitle className="">Configuration</CardTitle>
             <CardDescription className="">

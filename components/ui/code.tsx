@@ -16,13 +16,13 @@ export function Code({
   lang?: string;
 }) {
   const [highlightedCode, setHighlightedCode] = useState(code);
-  const { forcedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     async function highlight() {
       const html = await codeToHtml(code, {
         lang: lang || "tsx",
-        theme: forcedTheme === "dark" ? "github-dark" : "github-light",
+        theme: resolvedTheme === "dark" ? "github-dark" : "github-light",
         transformers: [
           {
             pre(node) {
@@ -37,7 +37,7 @@ export function Code({
     }
 
     highlight();
-  }, [code, lang, forcedTheme]);
+  }, [code, lang, resolvedTheme]);
 
   return (
     <div

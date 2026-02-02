@@ -61,7 +61,7 @@ export function Insight({ item }: { item: Item }) {
   const postCount = item.ids?.length || 0;
 
   return (
-    <Card className="gap-0 overflow-hidden py-0">
+    <Card className="bg-background gap-0 overflow-hidden py-0">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="pt-5">
           <CardTitle className="text-base leading-snug tracking-tight">
