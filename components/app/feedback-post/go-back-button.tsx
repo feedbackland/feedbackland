@@ -45,7 +45,7 @@ export const GoBackButton = ({
           <ArrowLeft />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="right">Go back</TooltipContent>
+      <TooltipContent>Go back</TooltipContent>
     </Tooltip>
   );
 };
