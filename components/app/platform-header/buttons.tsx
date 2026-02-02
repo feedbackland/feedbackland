@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useInIframe } from "@/hooks/use-in-iframe";
+import { ModeToggle } from "@/components/app/mode-toggle";
 
 export function PlatformHeaderButtons() {
   const inIframe = useInIframe();
@@ -71,6 +72,7 @@ export function PlatformHeaderButtons() {
       />
 
       <div className="flex items-center gap-3">
+        <ModeToggle />
         {isAdmin && platformUrl && (
           <Button variant="ghost" size="default" asChild>
             <Link

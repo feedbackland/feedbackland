@@ -18,33 +18,19 @@ export function ModeToggle() {
     return null;
   }
 
-  if (theme) {
-    // return (
-    //   <Switch
-    //     checked={theme === "dark"}
-    //     onCheckedChange={() =>
-    //       setTheme((theme) => (theme === "light" ? "dark" : "light"))
-    //     }
-    //   />
-    // );
-
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() =>
-          setTheme((theme) => (theme === "light" ? "dark" : "light"))
-        }
-      >
-        {theme === "light" ? (
-          <Sun className="size-4" />
-        ) : (
-          <Moon className="size-4" />
-        )}
-        <span className="sr-only">Toggle dark mode</span>
-      </Button>
-    );
-  }
-
-  return null;
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="text-muted-foreground hover:text-foreground size-7!"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      {theme === "dark" ? (
+        <Moon className="size-4!" />
+      ) : (
+        <Sun className="size-4!" />
+      )}
+      <span className="sr-only">Toggle dark mode</span>
+    </Button>
+  );
 }
