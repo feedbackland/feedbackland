@@ -4,11 +4,11 @@
 
 &nbsp;
 
-[Feedbackland](https://www.feedbackland.com) is a free, open-source and self-hostable feedback platform and alternative to Canny.
+[Feedbackland](https://www.feedbackland.com) is an open-source feedback platform and alternative to Canny.
 
 - Free-forever, open-source and MIT licensed
-- Self-hostable or free cloud hosted
-- No usage limits: unlimited feedback, unlimited users, unlimited admins
+- Two hosting options: [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) or [free cloud-hosted](https://get-started.feedbackland.com)
+- No usage limits: truly unlimited feedback, unlimited users, unlimited admins
 - Configurable in-app feedback widgets for React/Next.js
 - Standalone feedback website
 - Users can submit, comment on and upvote feedback
