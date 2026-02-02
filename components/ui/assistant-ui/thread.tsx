@@ -89,23 +89,23 @@ const ThreadHeader: FC = () => {
 const suggestedPrompts = [
   {
     icon: TrendingUpIcon,
-    label: "Top trends",
-    prompt: "What are the top trending feedback themes this month?",
+    label: "Summarize feedback",
+    prompt: "Summarize all the feedback posts",
   },
   {
     icon: UsersIcon,
-    label: "User sentiment",
-    prompt: "Summarize the overall user sentiment from recent feedback",
+    label: "List all posts",
+    prompt: "List all feedback posts with their categories",
   },
   {
     icon: AlertCircleIcon,
-    label: "Critical issues",
-    prompt: "What are the most urgent issues users are reporting?",
+    label: "Issues reported",
+    prompt: "What issues have users reported?",
   },
   {
     icon: LightbulbIcon,
-    label: "Feature requests",
-    prompt: "What are the most requested features?",
+    label: "Ideas submitted",
+    prompt: "What ideas have users submitted?",
   },
 ];
 
