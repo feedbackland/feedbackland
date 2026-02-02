@@ -12,7 +12,7 @@ export default function FeedbackPostPage() {
   const { postId } = useParams<{ postId: string }>();
 
   return (
-    <div className="mt-4 flex flex-row items-start gap-11">
+    <div className="flex flex-row items-start gap-11">
       {width >= 768 && <FeedbackPostSidebar postId={postId} />}
       <div className="border-border bg-background w-full min-w-0 flex-1 rounded-lg border shadow-xs">
         <div className="border-border border-b p-5">
