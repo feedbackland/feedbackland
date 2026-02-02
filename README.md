@@ -1,8 +1,21 @@
 # Feedbackland
 
-[Feedbackland](https://www.feedbackland.com) is a free, open-source and self-hostable feedback platform available under the MIT license.
+<img width="1920" height="1280" alt="836shots_so" src="https://github.com/user-attachments/assets/411b719f-cf2e-4fd1-a308-f3270f30ad3f" />
 
-Collect feedback from your users, let them vote on and discuss ideas & issues, and auto-generate a prioritized roadmap based on all user feedback.
+&nbsp;
 
-[Create your free platform](https://get-started.feedbackland.com) or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) your platform.
+[Feedbackland](https://www.feedbackland.com) is an open-source feedback platform and a free alternative to Canny.
 
+- Free-forever, open-source and MIT licensed
+- Two hosting options: [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) or [free cloud-hosted](https://get-started.feedbackland.com)
+- No usage limits: truly unlimited feedback, unlimited users, unlimited admins
+- Configurable in-app feedback widgets for React/Next.js
+- Standalone feedback website
+- Users can submit, comment on and upvote feedback
+- Admin dashboard with overview of all feedback and comments
+- AI Roadmap: automatically turn feedback into a prioritized product roadmap
+- Ask AI: chat with your platform's feedback data and ask any question about it
+
+Create your free [cloud-hosted platform](https://get-started.feedbackland.com) in seconds, or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) your platform.
+
+Check out the [demo platform](https://demo.feedbackland.com) (email: admin@demo.com, password: demo1234)
