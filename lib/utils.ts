@@ -287,6 +287,15 @@ export const getPriorityLabel = (priorityScore: number) => {
   return "Critical priority";
 };
 
+export const getPriorityLevel = (
+  priorityScore: number,
+): "low" | "medium" | "high" | "critical" => {
+  if (priorityScore < 40) return "low";
+  if (priorityScore < 70) return "medium";
+  if (priorityScore < 95) return "high";
+  return "critical";
+};
+
 export const getPriorityColor = (priorityScore: number) => {
   if (priorityScore < 40) {
     return "blue";

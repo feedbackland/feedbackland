@@ -4,7 +4,7 @@ import { useFeedbackPostsByIds } from "@/hooks/use-feedback-posts-by-ids";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { timeAgo } from "@/lib/time-ago";
 import { cn } from "@/lib/utils";
-import { ArrowBigUp, LinkIcon, MessageSquareIcon } from "lucide-react";
+import { ArrowBigUp, MessageSquareIcon } from "lucide-react";
 import Link from "next/link";
 import { InsightPostsLoading } from "./posts-loading";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
@@ -17,7 +17,7 @@ export function InsightPosts({ ids }: { ids: string[] }) {
   const platformUrl = usePlatformUrl();
 
   return (
-    <div className="flex flex-col items-stretch space-y-4 p-0">
+    <div className="divide-y divide-border">
       {isPending && <InsightPostsLoading />}
 
       {posts
@@ -32,62 +32,51 @@ export function InsightPosts({ ids }: { ids: string[] }) {
 
           return Number(b.upvotes) - Number(a.upvotes);
         })
-        .map((post) => {
-          return (
-            <div
-              key={post.id}
-              className="flex items-start justify-between gap-5"
-            >
-              <div className="flex flex-1 items-start gap-2">
-                <LinkIcon className="mt-1 size-3! shrink-0!"></LinkIcon>
-                <div className="flex flex-1 flex-col items-stretch space-y-0">
-                  <div className="flex flex-1 items-start justify-between gap-4">
-                    <Link
-                      key={post.id}
-                      href={`${platformUrl}/${post.id}`}
-                      className="text-[13px] font-medium hover:underline"
-                    >
-                      {post.title}
-                    </Link>
-                    <div className="text-primary flex items-center gap-4 text-xs">
-                      <FeedbackPostOptionsMenu
-                        postId={post.id}
-                        authorId={undefined}
-                        className="text-muted-foreground h-fit py-0.5"
-                      />
-                      <div className="flex items-center gap-0.5">
-                        <ArrowBigUp className="size-4!" strokeWidth={1.5} />
-                        <span>{post.upvotes}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageSquareIcon className="size-3" />
-                        <span>{post.commentCount}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
-                    <span>{timeAgo.format(post.createdAt, "mini-now")}</span>
-                    <span className="text-[8px]">•</span>
-                    <span className="capitalize">{post.category}</span>
-                    {post.status && (
-                      <>
-                        <span className="text-[8px]">•</span>
-                        <span
-                          className={cn(
-                            "capitalize",
-                            `text-${post.status.replace(" ", "-")}`,
-                          )}
-                        >
-                          {post.status}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
+        .map((post) => (
+          <div key={post.id} className="py-3 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-4">
+              <Link
+                href={`${platformUrl}/${post.id}`}
+                className="text-sm font-medium leading-snug hover:underline"
+              >
+                {post.title}
+              </Link>
+              <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                <FeedbackPostOptionsMenu
+                  postId={post.id}
+                  authorId={undefined}
+                  className="h-fit py-0.5 text-muted-foreground"
+                />
+                <span className="flex items-center gap-0.5">
+                  <ArrowBigUp className="size-4" strokeWidth={1.5} />
+                  {post.upvotes}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageSquareIcon className="size-3" />
+                  {post.commentCount}
+                </span>
               </div>
             </div>
-          );
-        })}
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              <span>{timeAgo.format(post.createdAt, "mini-now")}</span>
+              <span className="text-[8px]">&middot;</span>
+              <span className="capitalize">{post.category}</span>
+              {post.status && (
+                <>
+                  <span className="text-[8px]">&middot;</span>
+                  <span
+                    className={cn(
+                      "capitalize",
+                      `text-${post.status.replace(" ", "-")}`,
+                    )}
+                  >
+                    {post.status}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
     </div>
   );
 }
