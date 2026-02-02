@@ -15,7 +15,7 @@ export default function PlatformRoot({
     return (
       <div
         className={cn(
-          "m-auto flex w-full max-w-6xl grow flex-col items-stretch",
+          "m-auto flex w-full max-w-5xl grow flex-col items-stretch",
           {
             "xs:px-8 px-4 py-4": inIframe,
             "mt-4 mb-10 px-3 sm:mt-5": !inIframe,
