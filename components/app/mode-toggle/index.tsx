@@ -18,7 +18,7 @@ export function ModeToggle() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground hover:text-foreground relative size-7!"
+          className="text-muted-foreground hover:text-foreground relative size-8!"
           onClick={() =>
             setTheme((theme) => (theme === "dark" ? "light" : "dark"))
           }

@@ -6,8 +6,6 @@ import {
   HomeIcon,
   LogInIcon,
   LogOutIcon,
-  MoonIcon,
-  MoreHorizontalIcon,
   ShieldIcon,
   UserIcon,
 } from "lucide-react";
@@ -23,8 +21,6 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "next-themes";
-import { Switch } from "@/components/ui/switch";
 import { usePathname } from "next/navigation";
 import { AccountSettings } from "@/components/app/account-settings";
 import {
@@ -44,25 +40,16 @@ export function PlatformHeaderButtons() {
   const { session, signOut, isAdmin } = useAuth();
   const isAdminPage = pathname.includes("/admin");
   const platformUrl = usePlatformUrl();
-  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
-  };
-
-  const openAccountSettings = () => {
-    setIsAccountSettingsDialogOpen(true);
-  };
-
-  const closeAccountSettings = () => {
-    setIsAccountSettingsDialogOpen(false);
   };
 
   return (
     <>
       <AccountSettings
         open={isAccountSettingsDialogOpen}
-        onClose={closeAccountSettings}
+        onClose={() => setIsAccountSettingsDialogOpen(false)}
       />
 
       <SignUpInDialog
@@ -71,24 +58,22 @@ export function PlatformHeaderButtons() {
         onClose={() => setIsSignUpInDialogOpen(false)}
       />
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
         {isAdmin && platformUrl && (
-          <Button variant="ghost" size="default" asChild>
-            <Link
-              className="xs:block hidden"
-              href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
-              target={inIframe ? "_blank" : "_self"}
-            >
-              <span className="flex items-center gap-2">
-                {isAdminPage ? (
-                  <HomeIcon className="size-3.5!" />
-                ) : (
-                  <ShieldIcon className="size-3.5!" />
-                )}
-                <span>{isAdminPage ? "Home" : "Admin Panel"}</span>
-              </span>
-            </Link>
-          </Button>
+          <Link
+            className="xs:block hidden"
+            href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
+            target={inIframe ? "_blank" : "_self"}
+          >
+            <Button variant="ghost" size="sm">
+              {isAdminPage ? (
+                <HomeIcon className="size-3.5!" />
+              ) : (
+                <ShieldIcon className="size-3.5!" />
+              )}
+              {isAdminPage ? "Home" : "Admin Panel"}
+            </Button>
+          </Link>
         )}
 
         {!session && (
@@ -97,7 +82,7 @@ export function PlatformHeaderButtons() {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-7!"
+                className="text-muted-foreground hover:text-foreground size-8!"
                 onClick={() => setIsSignUpInDialogOpen(true)}
               >
                 <LogInIcon className="size-4!" />
@@ -109,19 +94,30 @@ export function PlatformHeaderButtons() {
 
         {session && (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="cursor-pointer">
-              <Avatar className="-mr-0.5">
-                <AvatarImage
-                  src={session?.user?.photoURL || undefined}
-                  alt="User avatar image"
-                />
-                <AvatarFallback>
-                  {session?.user?.name?.charAt(0) || (
-                    <UserIcon className="size-3.5!" />
-                  )}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8! rounded-full"
+                  >
+                    <Avatar className="size-6!">
+                      <AvatarImage
+                        src={session?.user?.photoURL || undefined}
+                        alt="User avatar image"
+                      />
+                      <AvatarFallback className="text-xs">
+                        {session?.user?.name?.charAt(0) || (
+                          <UserIcon className="size-3!" />
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Account</TooltipContent>
+            </Tooltip>
 
             <DropdownMenuContent
               className="w-52 space-y-1"
@@ -130,7 +126,7 @@ export function PlatformHeaderButtons() {
             >
               <DropdownMenuItem
                 className="flex flex-col items-stretch space-y-0"
-                onClick={openAccountSettings}
+                onClick={() => setIsAccountSettingsDialogOpen(true)}
               >
                 <div className="flex items-center gap-1 font-semibold">
                   <span>{session?.user?.name || "Unnamed user"}</span>
