@@ -11,7 +11,7 @@
 
 ---
 
-Feedbackland is a modern, full-stack feedback platform built for developers who value integrity and open source. We replaced the "contact sales" button with a GitHub repo.
+Feedbackland is a modern, full-stack feedback platform built for organisations who value integrity and open source.
 
 ## 🚀 Why Feedbackland?
 
@@ -20,7 +20,7 @@ Feedbackland is a modern, full-stack feedback platform built for developers who 
     * **AI Roadmap:** Automatically distills raw feedback into a prioritized product roadmap.
     * **Ask AI:** Chat with your data. Ask questions like *"What do users hate about the login flow?"* and get instant, cited answers.
 * **🔌 Universal Capture:** Collect feedback via a standalone board or drop our configurable **React/Next.js Widgets** directly into your app.
-* **⚡ Bleeding Edge Stack:** Built with **Next.js 16**, **TypeScript**, **Tailwind v4**, **tRPC**, **Kysely**, and **Postgres**.
+* **⚡ Bleeding Edge Stack:** Built with **Next.js 16**, **TypeScript**, **shadcn**, **Tailwind**, **tRPC**, **Kysely**, and **Postgres**.
 
 ## 🛠️ Deployment Options
 
