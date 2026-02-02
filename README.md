@@ -4,7 +4,7 @@
 
 &nbsp;
 
-### The Open-Source Product Operations Platform
+### The Open-Source Feedback Platform
 **A truly free, unlimited, and AI-powered alternative to Canny.**
 
 [Live Demo](https://demo.feedbackland.com) · [Get Started Free](https://get-started.feedbackland.com) · [Self-Host Guide](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
