@@ -56,9 +56,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${roboto_mono.variable} bg-background`}
+      className={`${inter.variable} ${roboto_mono.variable}`}
     >
-      <body className="">
+      <body className="bg-muted/40 dark:bg-background">
         <Suspense>
           <ThemeProvider>
             <TRPCClientProvider>

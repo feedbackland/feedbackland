@@ -47,7 +47,7 @@ export function FeedbackPostFull({
             <Skeleton className="h-7 w-3/5" />
           </div>
           {width < 768 && (
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="mt-1 flex items-center gap-1.5">
               <Skeleton className="h-3 w-28" />
               <Skeleton className="h-3 w-10" />
               <Skeleton className="h-4 w-14 rounded-full" />
@@ -98,7 +98,9 @@ export function FeedbackPostFull({
               <div className="flex items-center justify-between gap-3.5">
                 <div className="flex items-center gap-3">
                   <GoBackButton />
-                  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                  <h1 className="text-xl font-semibold tracking-tight">
+                    {title}
+                  </h1>
                 </div>
                 <div>
                   <FeedbackPostOptionsMenu
@@ -114,7 +116,10 @@ export function FeedbackPostFull({
                   <span className="text-muted-foreground/50">·</span>
                   <span>{timeAgo.format(createdAt, "mini-now")}</span>
                   <span className="text-muted-foreground/50">·</span>
-                  <Badge variant="secondary" className="capitalize text-xs px-1.5 py-0">
+                  <Badge
+                    variant="secondary"
+                    className="px-1.5 py-0 text-xs capitalize"
+                  >
                     {category}
                   </Badge>
                   {status && (
@@ -123,7 +128,7 @@ export function FeedbackPostFull({
                       <Badge
                         variant="secondary"
                         className={cn(
-                          "capitalize text-xs px-1.5 py-0",
+                          "px-1.5 py-0 text-xs capitalize",
                           `text-${status.replace(" ", "-")}`,
                         )}
                       >
