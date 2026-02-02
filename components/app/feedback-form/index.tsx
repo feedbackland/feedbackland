@@ -128,11 +128,11 @@ export function FeedbackForm() {
                 <Button
                   type="submit"
                   size="icon"
-                  variant="ghost"
+                  variant={hasText ? "default" : "secondary"}
                   loading={isPending}
                   onClick={handleOnSubmitClick}
                   disabled={!!(!hasText || isPending)}
-                  className="size-8!"
+                  className="size-8! transition-all duration-200 disabled:opacity-70"
                 >
                   <SendIcon className="size-4!" />
                   <span className="sr-only">Submit feedback</span>
