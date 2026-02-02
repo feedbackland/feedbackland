@@ -352,7 +352,7 @@ const AssistantMessage: FC = () => {
             </ThreadPrimitive.If>
           </div>
 
-          <div className="aui-assistant-message-content prose prose-sm prose-neutral dark:prose-invert text-foreground max-w-none leading-relaxed">
+          <div className="aui-assistant-message-content prose prose-sm prose-neutral dark:prose-invert text-foreground max-w-none overflow-x-auto leading-relaxed">
             <MessagePrimitive.Parts
               components={{
                 Text: MarkdownText,
