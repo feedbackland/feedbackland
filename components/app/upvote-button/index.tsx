@@ -80,7 +80,7 @@ export function UpvoteButton({
   return (
     <>
       <Button
-        variant={hasUserUpvote ? "default" : "secondary"}
+        variant={hasUserUpvote ? "default" : "outline"}
         size="sm"
         className={cn(
           "flex h-[25px] items-center px-2 py-0 [&>span]:gap-1",

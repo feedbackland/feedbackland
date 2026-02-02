@@ -15,7 +15,7 @@ export const CommentsButton = ({
 }) => {
   return (
     <Button
-      variant="secondary"
+      variant="ghost"
       size="sm"
       className={cn(
         "flex h-[25px] items-center px-2 py-0 [&>span]:gap-1.5",
