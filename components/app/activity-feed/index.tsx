@@ -3,7 +3,7 @@
 import { ActivityFeedList } from "./list";
 import { Button } from "@/components/ui/button";
 import { useSetAllActivitiesSeen } from "@/hooks/use-set-all-activities-seen";
-import { BookOpenIcon, CheckIcon } from "lucide-react";
+import { Check, Eye } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
@@ -16,7 +16,7 @@ export function ActivityFeed() {
 
   const allActivitiesSeen = useSetAllActivitiesSeen();
 
-  const handleOnCLick = async () => {
+  const handleOnClick = async () => {
     await allActivitiesSeen.mutateAsync();
     setIsCompleted(true);
     setTimeout(() => setIsCompleted(false), 3000);
@@ -26,13 +26,27 @@ export function ActivityFeed() {
     <div className="">
       <div className="-mt-1 mb-5 flex items-center justify-between">
         <h2 className="h5">Activity</h2>
-        <Button
-          loading={allActivitiesSeen.isPending}
-          onClick={handleOnCLick}
-          variant="default"
-        >
-          Mark all as seen
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              loading={allActivitiesSeen.isPending}
+              onClick={handleOnClick}
+              variant="outline"
+              size="icon"
+            >
+              {isCompleted ? (
+                <>
+                  <Check className="size-4" />
+                </>
+              ) : (
+                <>
+                  <Eye className="size-4" />
+                </>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Mark all activities as read</TooltipContent>
+        </Tooltip>
       </div>
       <ActivityFeedList />
     </div>
