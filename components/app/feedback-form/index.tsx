@@ -120,6 +120,7 @@ export function FeedbackForm() {
             value={value}
             onChange={onChange}
             autofocus={false}
+            editorContentClassName="min-h-[80px]"
           />
           <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
             <Tooltip>
