@@ -12,6 +12,8 @@ import { FeedbackPostEdit } from "./edit";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { useWindowSize } from "react-use";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function FeedbackPostFull({
   postId,
   className,
@@ -26,7 +28,7 @@ export function FeedbackPostFull({
   const [isEditing, setIsEditing] = useState(false);
 
   const {
-    query: { data },
+    query: { data, isPending },
   } = useFeedbackPost({ postId });
 
   useEffect(() => {
@@ -34,6 +36,36 @@ export function FeedbackPostFull({
       onLoaded?.();
     }
   }, [data, onLoaded]);
+
+  if (isPending) {
+    return (
+      <div className={cn("mt-2 flex flex-col space-y-3", className)}>
+        <div className="mb-2.5 flex items-start justify-between">
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="flex flex-col items-stretch gap-2">
+          <div className="flex items-center justify-between gap-3.5">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="size-8 rounded-full" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="space-y-2 py-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+        <div className="flex items-center gap-2.5 pt-2">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-9 w-20" />
+        </div>
+      </div>
+    );
+  }
 
   if (data) {
     const {

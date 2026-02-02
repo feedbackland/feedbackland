@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { UserIcon } from "lucide-react";
 import { format } from "date-fns";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function FeedbackPostSidebar({
   postId,
   className,
@@ -15,8 +17,39 @@ export default function FeedbackPostSidebar({
   className?: React.ComponentProps<"div">["className"];
 }) {
   const {
-    query: { data },
+    query: { data, isPending },
   } = useFeedbackPost({ postId });
+
+  if (isPending) {
+    return (
+      <div
+        className={cn(
+          "border-border bg-background sticky top-7 mt-11 flex w-[260px] flex-col items-stretch space-y-6 rounded-md border p-4 shadow-xs",
+          className,
+        )}
+      >
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-12" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="size-8 rounded-full" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+      </div>
+    );
+  }
 
   if (data) {
     const { category, authorName, authorPhotoURL, status, createdAt } = data;

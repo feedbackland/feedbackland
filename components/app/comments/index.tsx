@@ -15,7 +15,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { MessageSquareDashed } from "lucide-react";
-// import { CommentsLoading } from "./loading";
+import { CommentsLoading } from "./loading";
 
 export function Comments({
   postId,
@@ -49,7 +49,7 @@ export function Comments({
 
   return (
     <div className={cn("", className)}>
-      {/* {isPending && <CommentsLoading />} */}
+      {isPending && <CommentsLoading />}
 
       {isError && <Error title="Error loading comments" />}
 
