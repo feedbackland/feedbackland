@@ -56,6 +56,7 @@ export function CommentInner({
           authorRole={authorRole}
           authorPhotoURL={authorPhotoURL}
           createdAt={createdAt}
+          isExpanded={isExpanded}
         />
         <CommentsOptionsMenu
           postId={postId}
