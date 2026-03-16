@@ -38,7 +38,7 @@ Most feedback tools charge per seat, gate features behind tiers, and lock you in
 <br>
 **[Create your platform &rarr;](https://get-started.feedbackland.com)**
 
-**Self-hosted** — Deploy on your own infrastructure with Vercel + Supabase + Firebase.
+**Self-hosted** — Deploy on your own infrastructure with Vercel + Supabase + Firebase. Up and running in 30 minutes.
 <br>
 **[Read the self-hosting guide &rarr;](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)**
 
