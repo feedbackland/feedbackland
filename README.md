@@ -4,7 +4,7 @@
 
 ### The open-source feedback platform.
 
-A free, unlimited, AI-powered alternative to Canny — built for teams who ship.
+A free and unlimited alternative to Canny.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
@@ -34,7 +34,7 @@ Most feedback tools charge per seat, gate features behind tiers, and lock you in
 
 ## Get Running
 
-**Cloud (recommended)** — Your own instance, free, maintained by us. Nothing to install.
+**Cloud** — Your own instance, free, cloud-hosted. Nothing to install. Up and running in 30 seconds.
 <br>
 **[Create your platform &rarr;](https://get-started.feedbackland.com)**
 
@@ -62,7 +62,6 @@ See the full admin experience without creating an account.
 | **Embeddable Widgets** | Drop a React/Next.js widget into your app to capture feedback in context. |
 | **Admin Dashboard** | Manage posts, track activity, and configure your platform from one place. |
 | **Auth & Roles** | Built-in authentication with admin and user roles out of the box. |
-| **Dark Mode** | Full dark mode support, because eyes matter. |
 
 ## Tech Stack
 
@@ -73,13 +72,13 @@ See the full admin experience without creating an account.
 | API | [tRPC](https://trpc.io) |
 | Database | [Postgres](https://www.postgresql.org) via [Kysely](https://kysely.dev) |
 | Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
-| AI | [Vercel AI SDK](https://sdk.vercel.ai) |
+| AI | [OpenRouter]([https://sdk.vercel.ai](https://openrouter.ai/) |
 | UI | [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
 | Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
 
 ## Contributing
 
-Contributions are welcome. Open an issue first to discuss what you'd like to change, then submit a PR.
+Contributions are welcome and encouraged! Open an issue first to discuss what you'd like to change, then submit a PR.
 
 ## License
 
