@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { cn, processImagesInHTML } from "@/lib/utils";
+import { processImagesInHTML } from "@/lib/utils";
 import { SendIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation } from "@tanstack/react-query";
@@ -11,11 +11,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Error } from "@/components/ui/error";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
@@ -104,7 +99,7 @@ export function FeedbackForm() {
   const hasText = value?.length > 0;
 
   return (
-    <div className={cn("")}>
+    <div>
       <SignUpInDialog
         open={showSignUpInDialog}
         initialSelectedMethod="sign-in"
@@ -113,37 +108,40 @@ export function FeedbackForm() {
         onSuccess={onSubmit}
       />
 
-      <div className={cn("flex flex-col gap-3")}>
-        <div className={cn("relative w-full")}>
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">
+          Share feedback
+        </label>
+        <div className="relative">
           <Tiptap
-            placeholder={`Describe your idea, issue, or any other feedback...`}
+            placeholder="Share an idea, report an issue, or give feedback..."
             value={value}
             onChange={onChange}
             autofocus={false}
             editorContentClassName="min-h-[80px]"
           />
-          <div className="absolute right-2.5 bottom-2.5 flex flex-row-reverse justify-end gap-2.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="submit"
-                  size="icon"
-                  variant={hasText ? "default" : "secondary"}
-                  loading={isPending}
-                  onClick={handleOnSubmitClick}
-                  disabled={!!(!hasText || isPending)}
-                  className="size-8! transition-all duration-200 disabled:opacity-70"
-                >
-                  <SendIcon className="size-4!" />
-                  <span className="sr-only">Submit feedback</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Submit feedback</TooltipContent>
-            </Tooltip>
+          <div className="absolute right-2.5 bottom-2.5">
+            <Button
+              type="submit"
+              size="sm"
+              variant={hasText ? "default" : "secondary"}
+              loading={isPending}
+              onClick={handleOnSubmitClick}
+              disabled={!!(!hasText || isPending)}
+              className="transition-all duration-200"
+            >
+              Submit feedback
+              <SendIcon className="size-3.5!" />
+            </Button>
           </div>
         </div>
-        {errorMessage.length > 0 && <Error title={errorMessage} />}
       </div>
+
+      {errorMessage.length > 0 && (
+        <div className="mt-2">
+          <Error title={errorMessage} />
+        </div>
+      )}
     </div>
   );
 }
