@@ -189,7 +189,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-lite-preview-09-2025",
+            model: "google/gemini-3.1-flash-lite-preview",
             reasoning: {
               exclude: true,
               enabled: true,

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   const { orgId } = input;
 
-  const model = openrouter("google/gemini-2.5-flash-lite-preview-09-2025");
+  const model = openrouter("google/gemini-3.1-flash-lite-preview");
 
   const feedbackPosts = await getAllActiveFeedbackPosts({
     orgId,
