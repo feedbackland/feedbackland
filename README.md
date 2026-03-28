@@ -4,7 +4,7 @@
 
 ### The open-source feedback platform.
 
-A free and unlimited alternative to Canny.
+A **free and unlimited** alternative to Canny.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
@@ -57,7 +57,7 @@ See the full admin experience without creating an account.
 | Feature | Description |
 |---|---|
 | **Feedback Board** | Public or private board where users submit, upvote, and discuss ideas. |
-| **AI Roadmap** | Automatically distills feedback into a prioritized, shareable product roadmap. |
+| **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap. |
 | **Ask AI** | Chat with your feedback data. Get instant, cited answers to product questions. |
 | **Embeddable Widgets** | Drop a React/Next.js widget into your app to capture feedback in context. |
 | **Admin Dashboard** | Manage posts, track activity, and configure your platform from one place. |
@@ -72,8 +72,7 @@ See the full admin experience without creating an account.
 | API | [tRPC](https://trpc.io) |
 | Database | [Postgres](https://www.postgresql.org) via [Kysely](https://kysely.dev) |
 | Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
-| AI | [OpenRouter]([https://sdk.vercel.ai](https://openrouter.ai/) |
-| UI | [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) |
+| UI | [shadcn/ui](https://ui.shadcn.com) |
 | Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
 
 ## Contributing
