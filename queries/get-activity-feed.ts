@@ -38,11 +38,15 @@ export async function getActivityFeedQuery({
   try {
     const offset = (page - 1) * pageSize;
     const isSearching = searchValue.length > 0;
-    const maxDistance = 0.4;
+    const maxDistance = 0.3;
     let searchVector: number[] | null = null;
 
     if (isSearching) {
       searchVector = await generateVector(searchValue);
+
+      if (!searchVector) {
+        return { items: [], totalItemsCount: 0, totalPages: 0, currentPage: page };
+      }
     }
 
     let feedbackQuery = db
@@ -50,7 +54,7 @@ export async function getActivityFeedQuery({
       .leftJoin("user", "feedback.authorId", "user.id")
       .where("feedback.orgId", "=", orgId);
 
-    if (!isSearching && status) {
+    if (status) {
       feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
     }
 
@@ -146,7 +150,8 @@ export async function getActivityFeedQuery({
     if (isSearching) {
       orderedQuery = orderedQuery
         .where("activity.distance", "<", maxDistance)
-        .orderBy("activity.distance");
+        .orderBy("activity.distance")
+        .orderBy("activity.createdAt", "desc");
     }
 
     const finalQuery = orderedQuery

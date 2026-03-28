@@ -54,7 +54,10 @@ export const updateCommentQuery = async ({
 
         return await trx
           .updateTable("comment")
-          .set({ content: clean(content), embedding })
+          .set({
+            content: clean(content),
+            ...(embedding !== null && { embedding }),
+          })
           .where("id", "=", commentId)
           .returningAll()
           .executeTakeFirstOrThrow();

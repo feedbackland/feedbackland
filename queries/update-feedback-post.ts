@@ -60,7 +60,7 @@ export const updateFeedbackPostQuery = async ({
           .set({
             title,
             description: clean(description),
-            embedding,
+            ...(embedding !== null && { embedding }),
           })
           .where("id", "=", postId)
           .where("orgId", "=", orgId)

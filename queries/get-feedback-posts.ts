@@ -29,8 +29,12 @@ export const getFeedbackPostsQuery = async ({
 }) => {
   try {
     const isSearching = searchValue.length > 0;
-    const maxDistance = 0.5;
+    const maxDistance = 0.3;
     const searchVector = isSearching ? await generateVector(searchValue) : [];
+
+    if (isSearching && !searchVector) {
+      return { feedbackPosts: [], nextCursor: undefined };
+    }
 
     let query = db
       .selectFrom("feedback")
@@ -70,6 +74,10 @@ export const getFeedbackPostsQuery = async ({
           : sql<null>`null`.as("distance"),
       ]);
 
+    if (status) {
+      query = query.where("feedback.status", "=", status);
+    }
+
     if (isSearching) {
       query = query
         .where(
@@ -77,20 +85,29 @@ export const getFeedbackPostsQuery = async ({
           "<",
           maxDistance,
         )
-        .orderBy(sql.ref("distance"));
+        .orderBy(sql.ref("distance"))
+        .orderBy("feedback.id", "desc");
 
       if (cursor && typeof cursor.distance === "number") {
-        query = query.where(
-          cosineDistance("feedback.embedding", searchVector),
-          "<",
-          cursor.distance,
+        query = query.where((eb) =>
+          eb.or([
+            eb(
+              cosineDistance("feedback.embedding", searchVector),
+              "<",
+              cursor.distance,
+            ),
+            eb.and([
+              eb(
+                cosineDistance("feedback.embedding", searchVector),
+                "=",
+                cursor.distance,
+              ),
+              eb("feedback.id", "<", cursor.id),
+            ]),
+          ]),
         );
       }
     } else {
-      if (status) {
-        query = query.where("feedback.status", "=", status);
-      }
-
       switch (orderBy) {
         case "newest":
           query = query

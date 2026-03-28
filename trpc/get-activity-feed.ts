@@ -17,7 +17,7 @@ export const getActivityFeed = adminProcedure
       categories: feedbackCategoriesSchema,
       excludeFeedback: z.boolean(),
       excludeComments: z.boolean(),
-      searchValue: z.string().trim(),
+      searchValue: z.string().trim().max(500),
     }),
   )
   .query(

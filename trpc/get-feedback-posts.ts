@@ -14,7 +14,7 @@ export const getFeedbackPosts = publicProcedure
       cursor: feedbackPostsCursorSchema,
       orderBy: feedbackOrderBySchema,
       status: feedbackStatusSchema,
-      searchValue: z.string().trim(),
+      searchValue: z.string().trim().max(500),
     }),
   )
   .query(

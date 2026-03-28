@@ -35,7 +35,7 @@ export const FeedbackPostsSearchInput = ({
     () => {
       setFeedbackPostsState((prev) => ({
         ...prev,
-        searchValue: inputValue,
+        searchValue: inputValue.length >= 2 ? inputValue : "",
       }));
     },
     delay,

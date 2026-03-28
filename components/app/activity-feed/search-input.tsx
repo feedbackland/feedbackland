@@ -30,8 +30,9 @@ export const ActivityFeedSearchInput = ({
 
   useDebounce(
     () => {
+      const value = inputValue.length >= 2 ? inputValue : "";
       if (prevInputValue !== inputValue) {
-        onDebouncedChange(inputValue);
+        onDebouncedChange(value);
       }
     },
     delay,
