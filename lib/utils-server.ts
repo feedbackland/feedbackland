@@ -3,7 +3,9 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 
-export const generateVector = async (text: string) => {
+type EmbeddingTaskType = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY";
+
+const generateVector = async (text: string, taskType: EmbeddingTaskType) => {
   try {
     const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
       method: "POST",
@@ -15,6 +17,7 @@ export const generateVector = async (text: string) => {
         model: "google/gemini-embedding-001",
         input: text,
         encoding_format: "float",
+        task_type: taskType,
       }),
     });
 
@@ -26,9 +29,13 @@ export const generateVector = async (text: string) => {
   }
 };
 
+export const generateQueryVector = async (text: string) => {
+  return generateVector(text, "RETRIEVAL_QUERY");
+};
+
 export const generateSQLEmbedding = async (text: string) => {
   try {
-    const vector = await generateVector(text);
+    const vector = await generateVector(text, "RETRIEVAL_DOCUMENT");
 
     if (vector) {
       return pgvector.toSql(vector);

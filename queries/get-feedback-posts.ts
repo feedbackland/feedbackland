@@ -8,7 +8,7 @@ import {
   FeedbackPostsCursor,
   FeedbackStatus,
 } from "@/lib/typings";
-import { generateVector } from "@/lib/utils-server";
+import { generateQueryVector } from "@/lib/utils-server";
 
 export const getFeedbackPostsQuery = async ({
   orgId,
@@ -29,8 +29,8 @@ export const getFeedbackPostsQuery = async ({
 }) => {
   try {
     const isSearching = searchValue.length > 0;
-    const maxDistance = 0.3;
-    const searchVector = isSearching ? await generateVector(searchValue) : [];
+    const maxDistance = 0.4;
+    const searchVector = isSearching ? await generateQueryVector(searchValue) : [];
 
     if (isSearching && !searchVector) {
       return { feedbackPosts: [], nextCursor: undefined };

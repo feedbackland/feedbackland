@@ -10,7 +10,7 @@ import {
   FeedbackOrderBy,
   FeedbackStatus,
 } from "@/lib/typings";
-import { generateVector } from "@/lib/utils-server";
+import { generateQueryVector } from "@/lib/utils-server";
 
 export async function getActivityFeedQuery({
   orgId,
@@ -38,14 +38,19 @@ export async function getActivityFeedQuery({
   try {
     const offset = (page - 1) * pageSize;
     const isSearching = searchValue.length > 0;
-    const maxDistance = 0.3;
+    const maxDistance = 0.4;
     let searchVector: number[] | null = null;
 
     if (isSearching) {
-      searchVector = await generateVector(searchValue);
+      searchVector = await generateQueryVector(searchValue);
 
       if (!searchVector) {
-        return { items: [], totalItemsCount: 0, totalPages: 0, currentPage: page };
+        return {
+          items: [],
+          totalItemsCount: 0,
+          totalPages: 0,
+          currentPage: page,
+        };
       }
     }
 
