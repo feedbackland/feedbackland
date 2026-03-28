@@ -223,3 +223,16 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
+
+@keyframes thinking-dot {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@utility animate-thinking-dot {
+  animation: thinking-dot 1.4s ease-in-out infinite;
+}
