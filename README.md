@@ -19,7 +19,7 @@ A **free and unlimited** alternative to Canny.
 
 &nbsp;
 
-<img width="2425" height="1689" alt="feedbackland_github" src="https://github.com/user-attachments/assets/e9fa46ad-a79c-40d3-b9b1-acaf1e27e375" />
+<img width="2425" height="8157" alt="feedbackland_github_2" src="https://github.com/user-attachments/assets/0463f1ef-4e63-42b4-a13e-d8078c0c896e" />
 
 &nbsp;
 
