@@ -67,10 +67,10 @@ See the full admin experience without creating an account.
 
 | Layer | Technology |
 |---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
+| Framework | [Next.js 16](https://nextjs.org) |
 | Language | [TypeScript](https://www.typescriptlang.org) |
 | API | [tRPC](https://trpc.io) |
-| Database | [Postgres](https://www.postgresql.org) via [Kysely](https://kysely.dev) |
+| Database | [Postgres](https://www.postgresql.org) |
 | Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
 | UI | [shadcn/ui](https://ui.shadcn.com) |
 | Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
