@@ -19,7 +19,12 @@ import { InsightsEmpty } from "./empty";
 import { InsightsFilterBar } from "./filter-bar";
 import { useAtom } from "jotai";
 import { insightsStateAtom, InsightsState } from "@/lib/atoms";
-import { RefreshCw } from "lucide-react";
+import { InfoIcon, RefreshCw } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import dynamic from "next/dynamic";
 
 const InsightsDownloadButton = dynamic(
@@ -125,9 +130,31 @@ export function Insights() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">
-            {isGenerating ? "Generating AI Roadmap..." : "AI Roadmap"}
-          </h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-semibold tracking-tight">
+              {isGenerating ? "Generating AI Roadmap..." : "AI Roadmap"}
+            </h2>
+            {!isGenerating && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-6 cursor-help"
+                    aria-label="About AI Roadmap"
+                  >
+                    <InfoIcon className="text-muted-foreground size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="max-w-64">
+                    AI analyzes your feedback to surface key themes, prioritize
+                    feature requests, and suggest a roadmap.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
           {!isGenerating && hasInsights && (
             <p className="mt-0.5 text-sm text-muted-foreground">
               Last generated on{" "}
