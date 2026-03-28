@@ -32,6 +32,25 @@ Most feedback tools charge per seat, gate features behind tiers, and lock you in
 - **Works where your users are.** Standalone board, embeddable widget, or drop-in React/Next.js components — your call.
 - **Modern stack, no compromises.** Next.js 16, TypeScript, tRPC, Tailwind, shadcn/ui, Kysely, and Postgres.
 
+## Features
+
+| Feature | Description |
+|---|---|
+| **Feedback Board** | Public or private board where users submit, upvote, and discuss ideas. |
+| **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap. Exportable as PDF. |
+| **Ask AI** | Chat with your feedback data. Get instant, cited answers to product questions. |
+| **Semantic Search** | Find feedback by meaning, not just keywords, powered by pgvector embeddings. |
+| **Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. |
+| **Status Workflow** | Track posts through Under Consideration, Planned, In Progress, Done, and Declined. |
+| **Categories** | Organize feedback as ideas, issues, or general feedback. |
+| **Comments & Threads** | Nested comment threads with editing, deletion, and upvoting. |
+| **Activity Feed** | Real-time feed of new posts and comments with unread tracking. |
+| **Embeddable Widgets** | Drop a React/Next.js widget into your app with a built-in configurator and live preview. |
+| **Admin Dashboard** | Manage posts, track activity, invite team members, and configure your platform. |
+| **SSO / OAuth** | Google and Microsoft sign-in out of the box, plus email/password auth. |
+| **Org Customization** | Custom logo, title, description, and subdomain per organization. |
+| **Dark Mode** | Full dark mode support across the entire UI. |
+
 ## Get Running
 
 **Cloud** — Your own instance, free, cloud-hosted. Nothing to install. Up and running in 30 seconds.
@@ -52,32 +71,46 @@ See the full admin experience without creating an account.
 | **Email** | `admin@demo.com` |
 | **Password** | `demo1234` |
 
-## Features
-
-| Feature | Description |
-|---|---|
-| **Feedback Board** | Public or private board where users submit, upvote, and discuss ideas. |
-| **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap. |
-| **Ask AI** | Chat with your feedback data. Get instant, cited answers to product questions. |
-| **Embeddable Widgets** | Drop a React/Next.js widget into your app to capture feedback in context. |
-| **Admin Dashboard** | Manage posts, track activity, and configure your platform from one place. |
-| **Auth & Roles** | Built-in authentication with admin and user roles out of the box. |
-
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) |
-| Language | [TypeScript](https://www.typescriptlang.org) |
+| Language | [TypeScript](https://www.typescriptlang.org) (strict) |
 | API | [tRPC](https://trpc.io) |
-| Database | [Postgres](https://www.postgresql.org) |
+| Database | [PostgreSQL](https://www.postgresql.org) + [Kysely](https://kysely.dev) |
+| Search | [pgvector](https://github.com/pgvector/pgvector) |
 | Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
-| UI | [shadcn/ui](https://ui.shadcn.com) |
+| UI | [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS v4](https://tailwindcss.com) |
+| AI | [OpenRouter](https://openrouter.ai) |
+| Email | [Resend](https://resend.com) |
 | Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
+
+## Local Development
+
+**Prerequisites:** Node.js 18+, PostgreSQL
+
+```bash
+git clone https://github.com/feedbackland/feedbackland.git
+cd feedbackland
+cp .env.example .env.local   # fill in your values
+npm install
+npm run migrate-up
+npm run dev
+```
+
+See the [self-hosting guide](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) for details on setting up each environment variable.
 
 ## Contributing
 
-Contributions are welcome and encouraged! Open an issue first to discuss what you'd like to change, then submit a PR.
+Contributions are welcome and encouraged! To get started:
+
+1. Open an [issue](https://github.com/feedbackland/feedbackland/issues) to discuss what you'd like to change.
+2. Fork the repo and set up local development (see above).
+3. Run `npm run lint` before submitting a PR.
+4. Submit a PR and reference the issue.
+
+The codebase uses TypeScript strict mode, Tailwind CSS, and shadcn/ui conventions.
 
 ## License
 
