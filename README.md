@@ -19,9 +19,7 @@ A **free and unlimited** alternative to Canny.
 
 &nbsp;
 
-<img width="2425" height="1964" alt="github_1" src="https://github.com/user-attachments/assets/cc4610ed-693f-4322-b9ef-b99b8b787b52" />
-<img width="2425" height="1964" alt="github_2" src="https://github.com/user-attachments/assets/016592b7-78b9-4944-bc78-83a3d9a1bd03" />
-<img width="2425" height="1964" alt="github_3" src="https://github.com/user-attachments/assets/3e855ad1-c53a-4bb8-927c-abbdc9c92596" />
+<img width="2425" height="1821" alt="feedbackland_github_4" src="https://github.com/user-attachments/assets/72e5a7ab-ffbf-4f76-b9de-8bda15b6a78b" />
 
 &nbsp;
 
