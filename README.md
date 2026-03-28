@@ -19,7 +19,7 @@ A **free and unlimited** alternative to Canny.
 
 &nbsp;
 
-<img width="1920" height="1280" alt="Feedbackland Dashboard" src="https://github.com/user-attachments/assets/411b719f-cf2e-4fd1-a308-f3270f30ad3f" />
+<img width="2425" height="1689" alt="feedbackland_github" src="https://github.com/user-attachments/assets/e9fa46ad-a79c-40d3-b9b1-acaf1e27e375" />
 
 &nbsp;
 
@@ -67,10 +67,10 @@ See the full admin experience without creating an account.
 
 | Layer | Technology |
 |---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
+| Framework | [Next.js 16](https://nextjs.org) |
 | Language | [TypeScript](https://www.typescriptlang.org) |
 | API | [tRPC](https://trpc.io) |
-| Database | [Postgres](https://www.postgresql.org) via [Kysely](https://kysely.dev) |
+| Database | [Postgres](https://www.postgresql.org) |
 | Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
 | UI | [shadcn/ui](https://ui.shadcn.com) |
 | Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
