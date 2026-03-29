@@ -108,17 +108,15 @@ export function FeedbackForm() {
         onSuccess={onSubmit}
       />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium leading-none">
-          Share feedback
-        </label>
+      <div className="bg-background rounded-lg border border-border shadow-xs overflow-hidden focus-within:ring-1 focus-within:ring-ring focus-within:shadow-sm transition-shadow duration-200">
         <div className="relative">
           <Tiptap
             placeholder="Share an idea, report an issue, or give feedback..."
             value={value}
             onChange={onChange}
             autofocus={false}
-            editorContentClassName="min-h-[80px]"
+            editorContentClassName="min-h-[60px]"
+            className="border-transparent! shadow-none! hover:shadow-none! ring-0!"
           />
           <div className="absolute right-2.5 bottom-2.5">
             <Button
@@ -135,13 +133,13 @@ export function FeedbackForm() {
             </Button>
           </div>
         </div>
-      </div>
 
-      {errorMessage.length > 0 && (
-        <div className="mt-2">
-          <Error title={errorMessage} />
-        </div>
-      )}
+        {errorMessage.length > 0 && (
+          <div className="px-4 pb-3">
+            <Error title={errorMessage} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
