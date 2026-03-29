@@ -236,3 +236,10 @@ ALTER TABLE ONLY "public"."user_org"
 
 ALTER TABLE ONLY "public"."user_upvote"
     ADD CONSTRAINT "user_upvote_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE CASCADE;
+
+-- Storage Policies for images bucket
+INSERT INTO "storage"."buckets" (id, name, public) VALUES ('images', 'images', true) ON CONFLICT DO NOTHING;
+
+CREATE POLICY "Allow anon uploads" ON "storage"."objects" FOR INSERT TO "public" WITH CHECK (bucket_id = 'images');
+CREATE POLICY "Allow anon updates" ON "storage"."objects" FOR UPDATE TO "public" USING (bucket_id = 'images');
+CREATE POLICY "Allow anon deletes" ON "storage"."objects" FOR DELETE TO "public" USING (bucket_id = 'images');
