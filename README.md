@@ -4,7 +4,7 @@
 
 ### The open-source feedback platform.
 
-A **free and unlimited** alternative to Canny.
+A forever free and unlimited alternative to Canny.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
@@ -13,7 +13,7 @@ A **free and unlimited** alternative to Canny.
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/feedbackland/feedbackland/pulls)
 
-[Live Demo](https://demo.feedbackland.com) &middot; [Get Started Free](https://get-started.feedbackland.com) &middot; [Self-Host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+[Live Demo](https://demo.feedbackland.com) &middot; [Get Started](https://get-started.feedbackland.com) &middot; [Self-Host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 </div>
 
@@ -25,10 +25,8 @@ A **free and unlimited** alternative to Canny.
 
 ## Why Feedbackland?
 
-Most feedback tools charge per seat, gate features behind tiers, and lock you into their ecosystem. Feedbackland is different:
-
-- **Free forever, no limits.** Unlimited feedback, users, and admins. MIT licensed. No upgrade walls.
-- **AI that actually helps.** Auto-generate a prioritized roadmap from raw feedback, or ask questions like *"What do users hate about the login flow?"* and get cited answers instantly.
+- **Free forever, no limits.** Unlimited feedback, users, and admins. MIT licensed (a.k.a. do whatever you want with it)
+- **AI that actually helps.** Auto-generate a prioritized roadmap from raw feedback. Ask questions like *"What do users hate about the login flow?"* and get cited answers instantly.
 - **Works where your users are.** Standalone board, embeddable widget, or drop-in React/Next.js components — your call.
 - **Modern stack, no compromises.** Next.js 16, TypeScript, tRPC, Tailwind, shadcn/ui, Kysely, and Postgres.
 
@@ -42,7 +40,7 @@ Most feedback tools charge per seat, gate features behind tiers, and lock you in
 | **Semantic Search** | Find feedback by meaning, not just keywords, powered by pgvector embeddings. |
 | **Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. |
 | **Status Workflow** | Track posts through Under Consideration, Planned, In Progress, Done, and Declined. |
-| **Categories** | Organize feedback as ideas, issues, or general feedback. |
+| **Categories** | Ai automatically categorised feedback as ideas, issues, or general feedback. |
 | **Comments & Threads** | Nested comment threads with editing, deletion, and upvoting. |
 | **Activity Feed** | Real-time feed of new posts and comments with unread tracking. |
 | **Embeddable Widgets** | Drop a React/Next.js widget into your app with a built-in configurator and live preview. |
@@ -63,7 +61,7 @@ Most feedback tools charge per seat, gate features behind tiers, and lock you in
 
 ## Demo
 
-See the full admin experience without creating an account.
+See the full admin experience.
 
 | | |
 |---|---|
@@ -109,8 +107,6 @@ Contributions are welcome and encouraged! To get started:
 2. Fork the repo and set up local development (see above).
 3. Run `npm run lint` before submitting a PR.
 4. Submit a PR and reference the issue.
-
-The codebase uses TypeScript strict mode, Tailwind CSS, and shadcn/ui conventions.
 
 ## License
 
