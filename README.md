@@ -2,9 +2,10 @@
 
 # Feedbackland
 
-### The open-source feedback platform.
+### The open-source, AI-powered feedback platform.
 
-A forever free and unlimited alternative to Canny.
+**The true open-source, forever-free alternative to Canny.** <br>
+Stop paying thousands of dollars a year to listen to your users. No paywalls, no limits, no vendor lock-in.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
@@ -13,7 +14,7 @@ A forever free and unlimited alternative to Canny.
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/feedbackland/feedbackland/pulls)
 
-[Live Demo](https://demo.feedbackland.com) &middot; [Get Started](https://get-started.feedbackland.com) &middot; [Self-Host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
+[Live Demo](https://demo.feedbackland.com) &middot; [Get Started Free](https://get-started.feedbackland.com) &middot; [Self-Hosting Guide](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
 </div>
 
@@ -23,45 +24,55 @@ A forever free and unlimited alternative to Canny.
 
 &nbsp;
 
-## Why Feedbackland?
+## 🛑 Stop paying for user feedback
 
-- **Free forever, no limits.** Unlimited feedback, users, and admins. MIT licensed (a.k.a. do whatever you want with it)
-- **AI that actually helps.** Auto-generate a prioritized roadmap from raw feedback. Ask questions like *"What do users hate about the login flow?"* and get cited answers instantly.
-- **Works where your users are.** Standalone board, embeddable widget, or drop-in React/Next.js components — your call.
-- **Modern stack, no compromises.** Next.js 16, TypeScript, tRPC, Tailwind, shadcn/ui, Kysely, and Postgres.
+Tools like Canny, Upvoty, and UserVoice lock basic features like SSO, white-labeling, and unlimited admins behind enterprise paywalls costing hundreds or thousands of dollars a month. 
 
-## Features
+**Feedbackland is different.** We believe collecting user feedback should be a fundamental right for every product team, from solo founders to large enterprises. That's why Feedbackland is built as a **true open-source (MIT)** platform. You retain complete ownership of your data, with no feature gating and no artificial limits.
+
+## ✨ Why Feedbackland?
+
+- **100% Free & Open Source.** Unlimited feedback, unlimited users, and unlimited admins. The MIT license means you have complete freedom to use, modify, and distribute the software.
+- **AI That Actually Helps.** Don't just collect feedback—understand it. Auto-generate prioritized roadmaps from raw posts. Ask your data questions like *"What do our enterprise users hate about the login flow?"* and get cited answers instantly.
+- **Works Where Your Users Are.** Deploy a standalone feedback board, embed a drop-in widget in your app, or use our React/Next.js components. The friction to leave feedback is zero.
+- **Modern Stack, No Compromises.** Built for scale and developer happiness using Next.js 16, TypeScript, tRPC, Tailwind CSS, shadcn/ui, Kysely, and PostgreSQL.
+
+## 🚀 Features
+
+Everything you need to build better products, without the enterprise price tag.
 
 | Feature | Description |
 |---|---|
-| **Feedback Board** | Public or private board where users submit, upvote, and discuss ideas. |
-| **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap. Exportable as PDF. |
-| **Ask AI** | Chat with your feedback data. Get instant, cited answers to product questions. |
-| **Semantic Search** | Find feedback by meaning, not just keywords, powered by pgvector embeddings. |
-| **Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. |
-| **Status Workflow** | Track posts through Under Consideration, Planned, In Progress, Done, and Declined. |
-| **Categories** | Ai automatically categorised feedback as ideas, issues, or general feedback. |
-| **Comments & Threads** | Nested comment threads with editing, deletion, and upvoting. |
+| **Feedback Boards** | Public or private boards where users can submit, upvote, and discuss ideas. |
+| **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap (exportable as PDF). |
+| **Ask AI** | Chat with your feedback data. Get instant, cited answers to complex product questions. |
+| **Semantic Search** | Find feedback by meaning, not just keywords. Powered by `pgvector` embeddings. |
+| **Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. Keep your boards clean automatically. |
+| **Status Workflows** | Keep users in the loop. Track posts through *Under Consideration, Planned, In Progress, Done,* and *Declined*. |
+| **Smart Categories** | AI automatically categorizes incoming feedback as ideas, bugs, or general feedback. |
+| **Comments & Threads** | Nested comment threads with editing, deletion, and upvoting to foster community discussion. |
 | **Activity Feed** | Real-time feed of new posts and comments with unread tracking. |
 | **Embeddable Widgets** | Drop a React/Next.js widget into your app with a built-in configurator and live preview. |
-| **Admin Dashboard** | Manage posts, track activity, invite team members, and configure your platform. |
-| **SSO / OAuth** | Google and Microsoft sign-in out of the box, plus email/password auth. |
-| **Org Customization** | Custom logo, title, description, and subdomain per organization. |
-| **Dark Mode** | Full dark mode support across the entire UI. |
+| **Admin Dashboard** | Manage posts, track platform activity, invite team members, and configure your settings. |
+| **SSO / OAuth included** | Google and Microsoft sign-in out of the box, plus email/password auth—*features competitors charge $400+/mo for.* |
+| **Org Customization** | Fully white-label your board. Custom logo, title, description, and subdomain per organization. |
+| **Dark Mode** | First-class dark mode support across the entire UI. |
 
-## Get Running
+## 📦 Get Running
 
-**Cloud** — Your own instance, free, cloud-hosted. Nothing to install. Up and running in 30 seconds.
-<br>
-**[Create your platform &rarr;](https://get-started.feedbackland.com)**
+Choose the deployment method that works best for you.
 
-**Self-hosted** — Deploy on your own infrastructure with Vercel + Supabase + Firebase. Up and running in 30 minutes.
-<br>
-**[Read the self-hosting guide &rarr;](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)**
+**☁️ Cloud Hosted (Fastest)**<br>
+Your own instance, free, and cloud-hosted by us. Nothing to install, no credit card required. Up and running in 30 seconds.
+&rarr; **[Create your platform](https://get-started.feedbackland.com)**
 
-## Demo
+**🖥️ Self-Hosted (Total Control)**<br>
+Deploy on your own infrastructure with Vercel + Supabase + Firebase. Own your data completely. Up and running in 30 minutes.
+&rarr; **[Read the self-hosting guide](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)**
 
-See the full admin experience.
+## 🎮 Live Demo
+
+Want to see what it looks like under the hood? Check out the full admin experience with sample data.
 
 | | |
 |---|---|
@@ -69,45 +80,44 @@ See the full admin experience.
 | **Email** | `admin@demo.com` |
 | **Password** | `demo1234` |
 
-## Tech Stack
+## 🛠️ Tech Stack
+
+Built with modern, battle-tested tools to ensure top-tier performance and developer experience.
 
 | Layer | Technology |
 |---|---|
-| Framework | [Next.js 16](https://nextjs.org) |
-| Language | [TypeScript](https://www.typescriptlang.org) (strict) |
-| API | [tRPC](https://trpc.io) |
-| Database | [PostgreSQL](https://www.postgresql.org) + [Kysely](https://kysely.dev) |
-| Search | [pgvector](https://github.com/pgvector/pgvector) |
-| Auth | [Firebase Auth](https://firebase.google.com/products/auth) |
-| UI | [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS v4](https://tailwindcss.com) |
-| AI | [OpenRouter](https://openrouter.ai) |
-| Email | [Resend](https://resend.com) |
-| Hosting | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
+| **Framework** | [Next.js 16](https://nextjs.org) |
+| **Language** | [TypeScript](https://www.typescriptlang.org) (strict) |
+| **API** | [tRPC](https://trpc.io) |
+| **Database** | [PostgreSQL](https://www.postgresql.org) + [Kysely](https://kysely.dev) |
+| **Search** | [pgvector](https://github.com/pgvector/pgvector) |
+| **Auth** | [Firebase Auth](https://firebase.google.com/products/auth) |
+| **UI** | [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS v4](https://tailwindcss.com) |
+| **AI** | [OpenRouter](https://openrouter.ai) |
+| **Email** | [Resend](https://resend.com) |
+| **Hosting** | [Vercel](https://vercel.com) + [Supabase](https://supabase.com) |
 
-## Local Development
+## 💻 Local Development
+
+Want to contribute or customize your self-hosted instance? 
 
 **Prerequisites:** Node.js 18+, PostgreSQL
 
 ```bash
-git clone https://github.com/feedbackland/feedbackland.git
+# 1. Clone the repository
+git clone [https://github.com/feedbackland/feedbackland.git](https://github.com/feedbackland/feedbackland.git)
+
+# 2. Enter the directory
 cd feedbackland
+
+# 3. Set up environment variables
 cp .env.example .env.local   # fill in your values
+
+# 4. Install dependencies
 npm install
+
+# 5. Run database migrations
 npm run migrate-up
+
+# 6. Start the development server
 npm run dev
-```
-
-See the [self-hosting guide](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) for details on setting up each environment variable.
-
-## Contributing
-
-Contributions are welcome and encouraged! To get started:
-
-1. Open an [issue](https://github.com/feedbackland/feedbackland/issues) to discuss what you'd like to change.
-2. Fork the repo and set up local development (see above).
-3. Run `npm run lint` before submitting a PR.
-4. Submit a PR and reference the issue.
-
-## License
-
-MIT &copy; [Feedbackland](https://github.com/feedbackland/feedbackland)
