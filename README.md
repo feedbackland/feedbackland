@@ -47,14 +47,14 @@ Everything you need to build better products, without the enterprise price tag.
 | **AI Roadmap** | Automatically distills all feedback into a prioritized, shareable product roadmap (exportable as PDF). |
 | **Ask AI** | Chat with your feedback data. Get instant, cited answers to complex product questions. |
 | **Semantic Search** | Find feedback by meaning, not just keywords. Powered by `pgvector` embeddings. |
-| **Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. Keep your boards clean automatically. |
+| **Automatic Content Moderation** | AI-powered automatic detection of spam, abuse, and inappropriate content. Keep your boards clean automatically. |
 | **Status Workflows** | Keep users in the loop. Track posts through *Under Consideration, Planned, In Progress, Done,* and *Declined*. |
 | **Smart Categories** | AI automatically categorizes incoming feedback as ideas, bugs, or general feedback. |
 | **Comments & Threads** | Nested comment threads with editing, deletion, and upvoting to foster community discussion. |
 | **Activity Feed** | Real-time feed of new posts and comments with unread tracking. |
 | **Embeddable Widgets** | Drop a React/Next.js widget into your app with a built-in configurator and live preview. |
 | **Admin Dashboard** | Manage posts, track platform activity, invite team members, and configure your settings. |
-| **SSO / OAuth included** | Google and Microsoft sign-in out of the box, plus email/password auth—*features competitors charge $400+/mo for.* |
+| **SSO / OAuth included** | Google and Microsoft sign-in out of the box, plus email/password auth. |
 | **Org Customization** | Fully white-label your board. Custom logo, title, description, and subdomain per organization. |
 | **Dark Mode** | First-class dark mode support across the entire UI. |
 
