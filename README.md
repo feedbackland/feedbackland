@@ -5,7 +5,6 @@
 **The open-source, AI-powered feedback platform.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
 
 [Live Demo](https://demo.feedbackland.com) &middot; [Get Started Free](https://get-started.feedbackland.com) &middot; [Self-Hosting Guide](SELFHOSTING.md)
@@ -36,10 +35,10 @@ Experience the full admin interface with sample data:
 
 Choose the deployment path that fits your needs:
 
-**1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance. No credit card required.  
+**1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance. No credit card required.
 &rarr; **[Create your platform in 30 seconds](https://get-started.feedbackland.com)**
 
-**2. Self-Hosted (Total Control)** Own your infrastructure (Vercel + Supabase + Firebase).  
+**2. Self-Hosted (Total Control)** Own your infrastructure (Vercel + Supabase + Firebase).
 &rarr; **[Read the 30-minute self-hosting guide](SELFHOSTING.md)**
 
 **3. Local Development** ```bash
@@ -48,4 +47,4 @@ cd feedbackland
 cp .env.example .env.local   # Configure your variables
 npm install
 npm run migrate-up
-npm run dev
+npm run dev```
