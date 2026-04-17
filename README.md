@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**The open-source, AI-powered feedback platform.**
+**The open-source feedback platform.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
@@ -17,7 +17,7 @@
 
 ## Stop paying for user feedback
 
-Tools like Canny and Upvoty lock basic features like SSO and unlimited admins behind enterprise paywalls. **Feedbackland is a true open-source (MIT), forever-free alternative.** No feature gating, no artificial limits, and total ownership of your data.
+Tools like Canny and Upvoty lock basic features like SSO and unlimited admins behind enterprise paywalls. **Feedbackland is a true open-source (MIT), forever-free alternative.** No feature gating, no limits, and total ownership of your data.
 
 ## Core Features
 
