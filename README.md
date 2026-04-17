@@ -15,7 +15,7 @@
 
 </div>
 
-## 🛑 Stop paying to hear from your users
+## Stop paying to get feedback from your users
 
 Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you with strict usage limits and lock essential features—like SSO, white-labeling, or multiple admins behind expensive paywalls.
 
@@ -25,19 +25,19 @@ Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you 
 * **Zero Feature Gating:** All features are freely available, including SSO, white-labeling and AI Insights.
 * **Zero Strings Attached:** No hidden paywalls, no vendor lock-in, and absolute ownership of your data.
 
-## ✨ Core Features
+## Core Features
 
 * **AI-Powered Insights:** Auto-generate prioritized roadmaps and ask our AI any question about your feedback data.
 * **Zero-Friction UX:** Deploy a standalone board or embed our drop-in widget directly into your application.
 * **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO.
 * **Modern Stack:** Built for speed and scale with Next.js, PostgreSQL, and Tailwind.
 
-## 🎮 Live Demo
+## Live Demo
 
 Experience the full platform:
 &rarr; **[demo.feedbackland.com](https://demo.feedbackland.com)** *(Login: `admin@demo.com` / `demo1234`)*
 
-## 🚀 Get Started
+## Get Started
 
 Choose the deployment path that fits your needs:
 
