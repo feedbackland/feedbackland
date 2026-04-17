@@ -34,17 +34,17 @@ Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you 
 
 ## 🎮 Live Demo
 
-Experience the full platform including admin interface:
+Experience the full platform:
 &rarr; **[demo.feedbackland.com](https://demo.feedbackland.com)** *(Login: `admin@demo.com` / `demo1234`)*
 
 ## 🚀 Get Started
 
 Choose the deployment path that fits your needs:
 
-**1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance. No credit card required.
+**1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance.
 &rarr; **[Create your platform in 30 seconds](https://get-started.feedbackland.com)**
 
-**2. Self-Hosted (Total Control)** Own your infrastructure completely (Vercel + Supabase + Firebase).
+**2. Self-Hosted (Total Control)** Own your platform completely.
 &rarr; **[Read the 30-minute self-hosting guide](SELFHOSTING.md)**
 
 **3. Local Development** 
