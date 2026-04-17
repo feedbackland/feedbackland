@@ -20,7 +20,7 @@ Stop paying thousands of dollars a year to listen to your users. No paywalls, no
 
 &nbsp;
 
-<img width="2425" height="1821" alt="feedbackland_github_4" src="https://github.com/user-attachments/assets/72e5a7ab-ffbf-4f76-b9de-8bda15b6a78b" />
+<img width="2425" height="1871" alt="feedbackland_github_5" src="https://github.com/user-attachments/assets/b14c3a84-19af-4ca6-b4e7-560c6db8c2e2" />
 
 &nbsp;
 
