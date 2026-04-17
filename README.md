@@ -17,19 +17,19 @@
 
 ## 🛑 Stop paying to hear from your users
 
-Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you with strict usage limits and lock essential features—like SSO, white-labeling, or simply adding a second admin—behind expensive enterprise paywalls.
+Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you with strict usage limits and lock essential features—like SSO, white-labeling, or multiple admins behind expensive paywalls.
 
 **Feedbackland is radically simple: completely free, true open-source (MIT), and forever unrestricted.**
 
 * **Zero Limits:** Unlimited posts, unlimited tracked users, unlimited boards, and unlimited admins.
-* **Zero Feature Gating:** Every "enterprise" feature (SSO, AI insights, custom workflows) is unlocked for everyone from day one.
+* **Zero Feature Gating:** All features are freely available, including SSO, white-labeling and AI Insights.
 * **Zero Strings Attached:** No hidden paywalls, no vendor lock-in, and absolute ownership of your data.
 
 ## ✨ Core Features
 
-* **AI-Powered Insights:** Auto-generate prioritized roadmaps, automatically moderate spam, and use semantic search to "chat" with your feedback data.
+* **AI-Powered Insights:** Auto-generate prioritized roadmaps and ask our AI any question about your feedback data.
 * **Zero-Friction UX:** Deploy a standalone board or embed our drop-in widget directly into your application.
-* **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO (Google/Microsoft).
+* **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO.
 * **Modern Stack:** Built for speed and scale with Next.js, PostgreSQL, and Tailwind.
 
 ## 🎮 Live Demo
