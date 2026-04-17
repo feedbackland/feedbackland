@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**The open-source feedback platform.**
+**The 100% free, unlimited, and open-source feedback platform.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
@@ -15,33 +15,39 @@
 
 </div>
 
-## Stop paying for user feedback
+## 🛑 Stop paying to hear from your users
 
-Tools like Canny and Upvoty lock basic features like SSO and unlimited admins behind enterprise paywalls. **Feedbackland is a true open-source (MIT), forever-free alternative.** No feature gating, no limits, and total ownership of your data.
+Platforms like Canny and Upvoty bait you with basic free tiers, only to hit you with strict usage limits and lock essential features—like SSO, white-labeling, or simply adding a second admin—behind expensive enterprise paywalls.
 
-## Core Features
+**Feedbackland is radically simple: completely free, true open-source (MIT), and forever unrestricted.**
 
-* **100% Free & Open Source:** Unlimited feedback, unlimited users, and unlimited admins.
-* **AI-Powered:** Auto-generate prioritized roadmaps, auto-moderate spam, and use semantic search to "chat" with your user feedback.
-* **Zero-Friction UX:** Deploy as a standalone board. Embed the drop-in widget directly into your app.
+* **Zero Limits:** Unlimited posts, unlimited tracked users, unlimited boards, and unlimited admins.
+* **Zero Feature Gating:** Every "enterprise" feature (SSO, AI insights, custom workflows) is unlocked for everyone from day one.
+* **Zero Strings Attached:** No hidden paywalls, no vendor lock-in, and absolute ownership of your data.
+
+## ✨ Core Features
+
+* **AI-Powered Insights:** Auto-generate prioritized roadmaps, automatically moderate spam, and use semantic search to "chat" with your feedback data.
+* **Zero-Friction UX:** Deploy a standalone board or embed our drop-in widget directly into your application.
 * **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO (Google/Microsoft).
+* **Modern Stack:** Built for speed and scale with Next.js, PostgreSQL, and Tailwind.
 
-## Live Demo
+## 🎮 Live Demo
 
-Experience the full admin interface with sample data:
+Experience the full platform including admin interface:
 &rarr; **[demo.feedbackland.com](https://demo.feedbackland.com)** *(Login: `admin@demo.com` / `demo1234`)*
 
-## Get Started
+## 🚀 Get Started
 
 Choose the deployment path that fits your needs:
 
 **1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance. No credit card required.
 &rarr; **[Create your platform in 30 seconds](https://get-started.feedbackland.com)**
 
-**2. Self-Hosted (Total Control)** Own your infrastructure (Vercel + Supabase + Firebase).
+**2. Self-Hosted (Total Control)** Own your infrastructure completely (Vercel + Supabase + Firebase).
 &rarr; **[Read the 30-minute self-hosting guide](SELFHOSTING.md)**
 
-**3. Local Development** 
+**3. Local Development** 
 ```bash
 git clone [https://github.com/feedbackland/feedbackland.git](https://github.com/feedbackland/feedbackland.git)
 cd feedbackland
