@@ -12,7 +12,7 @@
 
 <br>
 
-![Feedbackland Dashboard](https://github.com/user-attachments/assets/b14c3a84-19af-4ca6-b4e7-560c6db8c2e2)
+![Feedbackland Dashboard](https://github.com/user-attachments/assets/38be9d66-5fb9-40e1-b450-cdeb47ae704c)
 
 </div>
 
@@ -23,8 +23,8 @@ Tools like Canny and Upvoty lock basic features like SSO and unlimited admins be
 ## Core Features
 
 * **100% Free & Open Source:** Unlimited feedback, unlimited users, and unlimited admins.
-* **AI-Powered Insights:** Auto-generate prioritized roadmaps, auto-moderate spam, and use semantic search to "chat" with your user feedback.
-* **Zero-Friction UX:** Deploy standalone boards, or embed our drop-in React/Next.js widgets directly into your app.
+* **AI-Powered:** Auto-generate prioritized roadmaps, auto-moderate spam, and use semantic search to "chat" with your user feedback.
+* **Zero-Friction UX:** Deploy as a standalone board. Embed the drop-in widget directly into your app.
 * **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO (Google/Microsoft).
 
 ## Live Demo
