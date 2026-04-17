@@ -41,10 +41,12 @@ Choose the deployment path that fits your needs:
 **2. Self-Hosted (Total Control)** Own your infrastructure (Vercel + Supabase + Firebase).
 &rarr; **[Read the 30-minute self-hosting guide](SELFHOSTING.md)**
 
-**3. Local Development** ```bash
+**3. Local Development** 
+```bash
 git clone [https://github.com/feedbackland/feedbackland.git](https://github.com/feedbackland/feedbackland.git)
 cd feedbackland
 cp .env.example .env.local   # Configure your variables
 npm install
 npm run migrate-up
-npm run dev```
+npm run dev
+```
