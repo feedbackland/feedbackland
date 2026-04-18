@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**The open-source feedback platform.**
+**Free and open-source feedback platform. No limits, no paywalls, no vendor lock-in.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
@@ -15,31 +15,28 @@
 
 </div>
 
-## Free and open-source
+---
 
-**Feedbackland is radically simple: completely free, true open-source (MIT), and forever unrestricted.**
+Feedbackland is MIT-licensed and costs nothing — whether you use our hosted version or run it yourself.
 
-* **Zero Limits:** Unlimited posts, unlimited tracked users, unlimited boards, and unlimited admins.
-* **Zero Feature Gating:** All features are freely available, including SSO, white-labeling and AI Insights.
-* **Zero Strings Attached:** No hidden paywalls, no vendor lock-in, and absolute ownership of your data.
+**Everything is included, for free:**
 
-## Core Features
+- Unlimited posts, users, boards, and admins
+- SSO, white-labeling, custom domains
+- AI-powered insights and roadmap generation
+- Embeddable widget or standalone board
+- Threaded comments, upvotes, status tracking
+- Full data ownership — no lock-in
 
-* **AI-Powered Insights:** Auto-generate prioritized roadmaps and ask our AI any question about your feedback data.
-* **Zero-Friction UX:** Deploy a standalone board or embed our drop-in widget directly into your application.
-* **Complete Workflows:** Custom status tracking, smart categorization, threaded comments, and built-in SSO.
-* **Modern Stack:** Built for speed and scale with Next.js, PostgreSQL, and Tailwind.
-
-## Live Demo
-
-Experience the full platform:
-&rarr; **[demo.feedbackland.com](https://demo.feedbackland.com)** *(Login: `admin@demo.com` / `demo1234`)*
+---
 
 ## Get Started
 
-**1. Cloud Hosted (Fastest)** Your own free, cloud-hosted instance.
-&rarr; **[Create your platform in 30 seconds](https://get-started.feedbackland.com)**
+**Cloud hosted** — your own instance, free, running in 30 seconds.
+&rarr; [get-started.feedbackland.com](https://get-started.feedbackland.com)
 
-**2. Self-Hosted (Total Control)** Own your platform completely.
-&rarr; **[Read the 30-minute self-hosting guide](SELFHOSTING.md)**
+**Self-hosted** — deploy to your own infrastructure.
+&rarr; [Self-Hosting Guide](SELFHOSTING.md)
 
+**Live demo** — login: `admin@demo.com` / `demo1234`
+&rarr; [demo.feedbackland.com](https://demo.feedbackland.com)
