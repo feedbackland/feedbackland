@@ -190,7 +190,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           photoURL: user.photoURL,
         });
       } else {
-        destroySession();
+        // On the demo platform, automatically sign in as admin so visitors
+        // are always logged in without any manual step or visible credentials.
+        if (
+          typeof window !== "undefined" &&
+          window.location.hostname === "demo.feedbackland.com"
+        ) {
+          try {
+            // signInWithEmailAndPassword will trigger onAuthStateChanged again
+            // with the authenticated user, which flows into createSession above.
+            await signInWithEmailAndPassword(
+              auth,
+              "admin@demo.com",
+              "demo1234",
+            );
+          } catch {
+            // If auto-login fails for any reason, fall back to an empty session
+            // so the app doesn't hang in a loading state.
+            destroySession();
+          }
+        } else {
+          destroySession();
+        }
       }
     });
 

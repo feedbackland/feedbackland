@@ -40,7 +40,7 @@
 **Self-hosted** — deploy to your own infrastructure.
 &rarr; [Self-Hosting Guide](SELFHOSTING.md)
 
-**Live demo** — login: `admin@demo.com` / `demo1234`
+**Live demo**
 &rarr; [demo.feedbackland.com](https://demo.feedbackland.com)
 
 ---

@@ -9,7 +9,6 @@ import { TRPCClientProvider } from "@/providers/trpc-client";
 import { JotaiProvider } from "@/providers/jotai";
 import { ThemeProvider } from "@/providers/theme";
 import { Toaster } from "@/components/ui/sonner";
-import { DemoBanner } from "@/components/demo-banner";
 
 export const metadata: Metadata = {
   title: "Feedbackland",
@@ -66,7 +65,6 @@ export default function RootLayout({
                 <TooltipProvider delayDuration={0}>
                   <JotaiProvider>
                     <NuqsAdapter>
-                      <DemoBanner />
                       {children}
                       <Toaster />
                     </NuqsAdapter>
