@@ -25,9 +25,12 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSetAtom } from "jotai";
+import { adminInviteSuccessUrlAtom } from "@/lib/atoms";
 
 export function AdminsTableRow({ admin }: { admin: Admin }) {
   const { session } = useAuth();
+  const setSuccessUrl = useSetAtom(adminInviteSuccessUrlAtom);
 
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
     useState(false);
@@ -40,6 +43,20 @@ export function AdminsTableRow({ admin }: { admin: Admin }) {
     if (admin.status === "invited" && admin.adminInviteId) {
       await deleteAdminInvite.mutateAsync({
         adminInviteId: admin.adminInviteId,
+      });
+
+      setSuccessUrl((currentUrl) => {
+        if (
+          currentUrl?.includes(
+            `admin-invite-email=${encodeURIComponent(admin.email)}`,
+          )
+        ) {
+          return null;
+        }
+        if (currentUrl?.includes(`admin-invite-email=${admin.email}`)) {
+          return null;
+        }
+        return currentUrl;
       });
 
       toast.success("Invitation successfully revoked", {

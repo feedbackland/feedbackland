@@ -51,3 +51,5 @@ export const insightsStateAtom = atomWithReset<InsightsState>({
   searchValue: "",
   sortBy: "priority",
 });
+
+export const adminInviteSuccessUrlAtom = atomWithReset<string | null>(null);

@@ -5,8 +5,6 @@ import { createOrgQuery } from "@/queries/create-org";
 import { createOrgSchema } from "./validations";
 import { claimOrgSchema } from "@/lib/schemas";
 import { claimOrgQuery } from "@/queries/claim-org";
-import { resend } from "@/lib/resend";
-import { WelcomeEmail } from "@/components/emails/welcome";
 import {
   getIsSelfHosted,
   getOverlayWidgetCodeSnippet,
@@ -35,30 +33,6 @@ export const claimOrgAction = actionClient
   .action(async ({ parsedInput: { userId, userEmail, orgId } }) => {
     try {
       const org = await claimOrgQuery({ userId, orgId });
-
-      if (userEmail) {
-        const overlayWidgetCodeSnippet = getOverlayWidgetCodeSnippet({
-          orgId,
-          orgSubdomain: org.orgSubdomain,
-        });
-
-        const sender = process.env.RESEND_EMAIL_SENDER!;
-        const isSelfHosted = getIsSelfHosted("server");
-        const vercelUrl = getVercelUrl();
-        const from = !isSelfHosted ? `Feedbackland <${sender}>` : sender;
-        const platformUrl = !isSelfHosted
-          ? `https://${orgId}.feedbackland.com`
-          : `${vercelUrl}/${org.orgSubdomain}`;
-
-        await resend?.emails.send({
-          from,
-          to: [userEmail],
-          subject: "Your Feedbackland platform is ready!",
-          react: WelcomeEmail({
-            platformUrl,
-          }),
-        });
-      }
 
       return { success: true, org };
     } catch (error) {

@@ -1,9 +1,6 @@
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { createAdminInviteQuery } from "@/queries/create-admin-invite";
-import { resend } from "@/lib/resend";
-import { AdminInviteEmail } from "@/components/emails/admin-invite";
-import { getIsSelfHosted } from "@/lib/utils";
 
 export const createAdminInvite = adminProcedure
   .input(
@@ -26,19 +23,8 @@ export const createAdminInvite = adminProcedure
         userId,
       });
 
-      const sender = process.env.RESEND_EMAIL_SENDER!;
-      const isSelfHosted = getIsSelfHosted("server");
-      const from = !isSelfHosted ? `Feedbackland <${sender}>` : sender;
-
-      await resend?.emails.send({
-        from,
-        to: [email],
-        subject: "Feedbackland - Admin invitation",
-        react: AdminInviteEmail({
-          invitedBy,
-          inviteLink: `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`,
-        }),
-      });
+      const inviteLink = `${platformUrl}?admin-invite-token=${adminInvite.token}&admin-invite-email=${email}`;
+      return { success: true, inviteLink };
     } catch (error) {
       throw error;
     }
