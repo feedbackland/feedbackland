@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**The 100% free, unlimited, and open-source feedback platform.**
+**The free, unlimited, and open-source feedback platform.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
@@ -12,6 +12,8 @@
 <br>
 
 ![Feedbackland Dashboard](https://github.com/user-attachments/assets/38be9d66-5fb9-40e1-b450-cdeb47ae704c)
+
+![Feedbackland Dashboard](https://github.com/user-attachments/assets/39671ac5-00dd-4197-a591-eba16c210b1d)
 
 </div>
 
