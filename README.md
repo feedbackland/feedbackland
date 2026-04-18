@@ -2,12 +2,12 @@
 
 # Feedbackland
 
-**Free and open-source feedback platform. No limits, no paywalls, no vendor lock-in.**
+**Free and open-source feedback platform**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
 
-[Live Demo](https://demo.feedbackland.com) &middot; [Get Started Free](https://get-started.feedbackland.com) &middot; [Self-Hosting Guide](SELFHOSTING.md)
+[Demo](https://demo.feedbackland.com) &middot; [Get Started](https://get-started.feedbackland.com) &middot; [Self-Hosting Guide](SELFHOSTING.md)
 
 <br>
 
@@ -17,16 +17,16 @@
 
 ---
 
-Feedbackland is MIT-licensed and costs nothing — whether you use our hosted version or run it yourself.
+Feedbackland is MIT-licensed and costs nothing.
 
 **Everything is included, for free:**
 
-- Unlimited posts, users, boards, and admins
-- SSO, white-labeling, custom domains
-- AI-powered insights and roadmap generation
-- Embeddable widget or standalone board
+- Standalone feedback board
+- Embeddable widgets
+- Unlimited posts, users, admins
 - Threaded comments, upvotes, status tracking
-- Full data ownership — no lock-in
+- Full admin dashboard
+- AI-powered insights
 
 ---
 
