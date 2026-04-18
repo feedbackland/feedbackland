@@ -30,6 +30,7 @@ import { getAdminInvite } from "./get-admin-invite";
 import { setAllActivitiesSeen } from "./set-all-activities-seen";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
+import { rewriteFeedback } from "./rewrite-feedback";
 
 export const appRouter = router({
   updateFeedbackPostStatus,
@@ -64,6 +65,7 @@ export const appRouter = router({
   deleteAdmin,
   updateUser,
   getUserSession,
+  rewriteFeedback,
 });
 
 export type AppRouter = typeof appRouter;

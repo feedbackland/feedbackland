@@ -56,8 +56,19 @@ export const MinimalTiptapEditor = ({
   });
 
   useEffect(() => {
+    if (!editor) return;
+
     if (value === "" || !value) {
-      editor?.commands?.clearContent();
+      editor.commands.clearContent();
+      return;
+    }
+
+    // Only set content when the value differs from what the editor currently has.
+    // This prevents infinite loops when the editor's own onChange triggers a re-render
+    // (in that case, the value prop matches the editor's HTML output exactly).
+    const currentHTML = editor.getHTML();
+    if (value !== currentHTML) {
+      editor.commands.setContent(value);
     }
   }, [value, editor]);
 
