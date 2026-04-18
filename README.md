@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
 
-[Demo](https://demo.feedbackland.com) &middot; [Get Started](https://get-started.feedbackland.com) &middot; [Self-Hosting Guide](SELFHOSTING.md)
+[Demo](https://demo.feedbackland.com) &middot; [Create your platform](https://get-started.feedbackland.com) &middot; [Self-Hosting guide](SELFHOSTING.md)
 
 <br>
 
