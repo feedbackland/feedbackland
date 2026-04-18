@@ -47,19 +47,4 @@
 
 ## Open-Source Technologies
 
-Feedbackland is built on the following open-source projects:
-
-| Technology                                                  | Purpose                           |
-| ----------------------------------------------------------- | --------------------------------- |
-| [Next.js](https://github.com/vercel/next.js)                | React framework & routing         |
-| [React](https://github.com/facebook/react)                  | UI library                        |
-| [Supabase](https://github.com/supabase/supabase)            | Database, auth, and realtime      |
-| [tRPC](https://github.com/trpc/trpc)                        | End-to-end type-safe API          |
-| [Kysely](https://github.com/kysely-org/kysely)              | Type-safe SQL query builder       |
-| [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) | Styling                           |
-| [shadcn/ui](https://github.com/shadcn-ui/ui)                | UI components (built on Radix UI) |
-| [Tiptap](https://github.com/ueberdosis/tiptap)              | Rich text editor                  |
-| [Vercel AI SDK](https://github.com/vercel/ai)               | AI features & chatbot             |
-| [TanStack Query](https://github.com/TanStack/query)         | Data fetching & caching           |
-| [Zod](https://github.com/colinhacks/zod)                    | Schema validation                 |
-| [Firebase](https://github.com/firebase/firebase-js-sdk)     | Google/Microsoft SSO              |
+[Next.js](https://github.com/vercel/next.js) · [React](https://github.com/facebook/react) · [PostgreSQL](https://github.com/postgres/postgres) · [tRPC](https://github.com/trpc/trpc) · [Kysely](https://github.com/kysely-org/kysely) · [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) · [shadcn/ui](https://github.com/shadcn-ui/ui) · [Tiptap](https://github.com/ueberdosis/tiptap) · [Zod](https://github.com/colinhacks/zod)
