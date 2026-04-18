@@ -19,14 +19,14 @@
 
 **Everything is included, for free:**
 
-- Standalone feedback board with its own URL
-- Embeddable widgets for capturing feedback directly in your React/Next.js app
+- Standalone feedback board
+- Embeddable React widgets
 - Unlimited posts, users, admins
 - Threaded comments, upvotes, status tracking
 - SSO (Google/Microsoft) + email/password login
 - Full admin dashboard
 - AI-powered roadmap generation
-- AI chatbot to ask any questions about your platform's data
+- AI chatbot to chat with your platform's data
 
 ---
 
