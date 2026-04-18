@@ -21,12 +21,14 @@ Feedbackland is MIT-licensed and costs nothing.
 
 **Everything is included, for free:**
 
-- Standalone feedback board
-- Embeddable widgets
+- Standalone feedback board with its own URL
+- Embeddable widgets for capturing feedback directly in your React/Next.js app
 - Unlimited posts, users, admins
 - Threaded comments, upvotes, status tracking
+- SSO (Google/Microsoft) + email/password login
 - Full admin dashboard
-- AI-powered insights
+- AI-powered roadmap generation
+- AI chatbot to ask any questions about your platform's feedback data
 
 ---
 
