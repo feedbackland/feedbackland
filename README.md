@@ -11,8 +11,6 @@
 
 <br>
 
-![Feedbackland Dashboard](https://github.com/user-attachments/assets/38be9d66-5fb9-40e1-b450-cdeb47ae704c)
-
 ![Feedbackland Dashboard](https://github.com/user-attachments/assets/39671ac5-00dd-4197-a591-eba16c210b1d)
 
 </div>
