@@ -17,8 +17,6 @@
 
 ---
 
-Feedbackland is MIT-licensed and costs nothing.
-
 **Everything is included, for free:**
 
 - Standalone feedback board with its own URL
@@ -28,7 +26,7 @@ Feedbackland is MIT-licensed and costs nothing.
 - SSO (Google/Microsoft) + email/password login
 - Full admin dashboard
 - AI-powered roadmap generation
-- AI chatbot to ask any questions about your platform's feedback data
+- AI chatbot to ask any questions about your platform's data
 
 ---
 
