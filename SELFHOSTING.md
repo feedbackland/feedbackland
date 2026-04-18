@@ -12,13 +12,12 @@ Deploy your own instance of Feedbackland. This guide walks you through every cli
 
 **You will create free accounts on:**
 
-| Service | What it does | Free tier |
-|---|---|---|
-| [Supabase](https://supabase.com) | Database + file storage | 2 projects, 500 MB |
-| [Firebase](https://firebase.google.com) | User login (authentication) | Generous free tier |
-| [Resend](https://resend.com) | Sends transactional emails | 3,000 emails/month |
-| [OpenRouter](https://openrouter.ai) | Powers AI features | Pay-as-you-go (some free models available) |
-| [Vercel](https://vercel.com) | Hosts the app | Hobby tier is free |
+| Service                                 | What it does                | Free tier                                  |
+| --------------------------------------- | --------------------------- | ------------------------------------------ |
+| [Supabase](https://supabase.com)        | Database + file storage     | 2 projects, 500 MB                         |
+| [Firebase](https://firebase.google.com) | User login (authentication) | Generous free tier                         |
+| [OpenRouter](https://openrouter.ai)     | Powers AI features          | Pay-as-you-go (some free models available) |
+| [Vercel](https://vercel.com)            | Hosts the app               | Hobby tier is free                         |
 
 > All credentials you collect will go into a single `.env` file. Keep a text editor open to paste them as you go.
 
@@ -57,7 +56,7 @@ Open the new `.env` file in your editor. Leave `SELF_HOSTED` and `NEXT_PUBLIC_SE
 
 ### 2.2 &mdash; Enable the Vector Extension
 
-The database schema requires the `vector` extension (which provides the `halfvec` type). You must enable it **before** running the schema.
+> **CRITICAL:** The database schema requires the `vector` extension (which provides the `halfvec` type). You must enable it **before** running the schema.
 
 1. In the Supabase sidebar, click **Database**.
 2. Click **Extensions**.
@@ -96,22 +95,21 @@ Feedbackland connects to the database directly via postgres, and uses the Supaba
 ### 2.6 &mdash; Collect Your Supabase Credentials
 
 **Project Reference ID:**
+
 1. Go to **Project Settings** > **General**.
-2. Look for **Reference ID** (a short string like `abcdefghijkl`).
-3. Copy it.
+2. Copy the **Reference ID** (a short string like `abcdefghijkl`).
 
 **Anon / Public Key:**
+
 1. Go to **Project Settings** > **API Keys**.
 2. Copy the key labeled `anon` `public`.
 
 **Database Connection String:**
+
 1. Click the **Connect** button in the top navigation bar.
 2. Select **Transaction Pooler**.
-3. Copy the connection string. It looks like this:
-   ```
-   postgresql://postgres.abcdefghijkl:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
-   ```
-4. Replace `[YOUR-PASSWORD]` exactly with the database password you saved in step 2.1.
+3. Copy the connection string (it looks similar to `postgresql://postgres.abcdefghijkl:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`).
+4. Replace `[YOUR-PASSWORD]` exactly with the password you saved in step 2.1.
 
 **Paste into your `.env` file:**
 
@@ -130,7 +128,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 1. Go to [console.firebase.google.com](https://console.firebase.google.com).
 2. Click **Create a project** (or **Add project**).
 3. Give it a name (e.g. `feedbackland`).
-4. Follow the prompts (you can disable Google Analytics).
+4. Follow the prompts (**Tip:** Disable Google Analytics for a simpler setup).
 5. Click **Create project**, then **Continue** when it finishes.
 
 ### 3.2 &mdash; Register a Web App
@@ -148,7 +146,7 @@ const firebaseConfig = {
   projectId: "your-project",
   storageBucket: "your-project.firebasestorage.app",
   messagingSenderId: "123456789",
-  appId: "1:123456789:web:abc123"
+  appId: "1:123456789:web:abc123",
 };
 ```
 
@@ -183,33 +181,20 @@ export const firebaseConfig = {
 2. Go to the **Service accounts** tab.
 3. Click **Generate new private key**, then **Generate key**.
 4. A JSON file will download. Open it in a text editor.
-5. Find `project_id`, `client_email`, and `private_key` and paste them into your `.env` file:
+5. Find `project_id`, `client_email`, and `private_key` and paste them into your `.env` file. (For `FIREBASE_DATABASE_URL`, use `https://YOUR_PROJECT_ID.firebaseio.com`):
 
 ```env
 FIREBASE_PROJECT_ID=your-project
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEv...your full key here...\n-----END PRIVATE KEY-----\n"
+FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
 ```
 
 > **Important:** Wrap the `FIREBASE_PRIVATE_KEY` value in **double quotes** in your `.env` file (as shown above).
 
 ---
 
-## Step 4 &mdash; Get API Keys
-
-### 4.1 &mdash; Resend (Email)
-
-1. Go to [resend.com](https://resend.com) and create an account.
-2. Go to **API Keys** and click **Create API Key**.
-3. Go to **Domains**, add + verify a domain you own.
-4. Paste the key and sender string into your `.env`:
-
-```env
-RESEND_API_KEY=re_123abc...
-RESEND_EMAIL_SENDER=feedback@your-verified-domain.com
-```
-
-### 4.2 &mdash; OpenRouter (AI)
+## Step 4 &mdash; Get OpenRouter API Key (AI)
 
 1. Go to [openrouter.ai](https://openrouter.ai) and create an account.
 2. Go to **Keys**, create one, and copy it:
@@ -222,7 +207,7 @@ OPENROUTER_API_KEY=sk-or-v1-...
 
 ## Step 5 &mdash; Deploy to Vercel
 
-If you've followed the steps closely, your local `.env` file should now be completely filled out with all 11 variables.
+If you've followed the steps closely, your local `.env` file should now be completely filled out with all 10 variables.
 
 Before deploying to Vercel, you must commit and push your modified `firebaseConfig.ts` file to your GitHub fork:
 
@@ -279,7 +264,7 @@ Open your Vercel URL in a browser. You will be redirected to `/get-started` wher
 ### Build fails on Vercel
 
 - **Missing environment variable:** Check that all variables from your `.env.example` are set. A common miss is forgetting `SELF_HOSTED=true` or `NEXT_PUBLIC_SELF_HOSTED=true`.
-- **`FIREBASE_PRIVATE_KEY` errors:** If Vercel logs complain about parsing keys, ensure you pasted the entire exact multiline string. 
+- **`FIREBASE_PRIVATE_KEY` errors:** If Vercel logs complain about parsing keys, ensure you pasted the entire exact multiline string.
 
 ### SQL schema fails in Supabase
 
