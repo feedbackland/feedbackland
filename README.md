@@ -23,9 +23,9 @@
 
 - Standalone feedback board
 - Embeddable React widgets
-- Unlimited posts, users, admins
+- Unlimited posts, users and admins
 - Threaded comments, upvotes, status tracking
-- SSO (Google/Microsoft) + email/password login
+- SSO (Google/Microsoft) & email/password login
 - Full admin dashboard
 - AI-powered roadmap generation
 - AI chatbot to chat with your platform's data
@@ -34,10 +34,10 @@
 
 ## Get Started
 
-**Cloud hosted** — your own instance, free, running in 30 seconds.
+**Cloud hosted** — your own instance, free, up & running in 30 seconds.
 &rarr; [get-started.feedbackland.com](https://get-started.feedbackland.com)
 
-**Self-hosted** — deploy to your own infrastructure.
+**Self-hosted** — host Feedbackland yourself using Vercel, Supabase and Firebase.
 &rarr; [Self-Hosting Guide](SELFHOSTING.md)
 
 **Live demo**
@@ -45,6 +45,6 @@
 
 ---
 
-## Open-Source Technologies
+## Built With
 
 [Next.js](https://github.com/vercel/next.js) · [React](https://github.com/facebook/react) · [PostgreSQL](https://github.com/postgres/postgres) · [tRPC](https://github.com/trpc/trpc) · [Kysely](https://github.com/kysely-org/kysely) · [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) · [shadcn/ui](https://github.com/shadcn-ui/ui) · [Tiptap](https://github.com/ueberdosis/tiptap) · [Zod](https://github.com/colinhacks/zod)
