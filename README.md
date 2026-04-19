@@ -17,7 +17,7 @@
 
 ## Features
 
-**The full platform, including all features, is free and open-sourced under the MIT license (a.k.a. do whatever you want with it).**
+**The full platform is free and open-sourced under the MIT license (a.k.a. do whatever you want with it).**
 
 - Standalone feedback board
 - Embeddable React widgets
