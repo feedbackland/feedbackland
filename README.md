@@ -17,7 +17,7 @@
 
 ## Features
 
-**Everything is included, for free:**
+**Everything is included for free:**
 
 - Standalone feedback board
 - Embeddable React widgets
@@ -27,6 +27,8 @@
 - Full admin dashboard
 - AI-powered roadmap generation
 - AI chatbot to chat with your platform's data
+- NO feature gating, NO usage limits, NO paywalls
+- Free and open-source under the MIT license (a.k.a. do whatever you want with it!)
 
 ## Get Started
 
