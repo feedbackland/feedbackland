@@ -15,8 +15,6 @@
 
 </div>
 
----
-
 ## Features
 
 **Everything is included, for free:**
@@ -30,8 +28,6 @@
 - AI-powered roadmap generation
 - AI chatbot to chat with your platform's data
 
----
-
 ## Get Started
 
 **Cloud hosted** — your own instance, free, up & running in 30 seconds.
@@ -42,8 +38,6 @@
 
 **Live demo**
 &rarr; [demo.feedbackland.com](https://demo.feedbackland.com)
-
----
 
 ## Built With
 
