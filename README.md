@@ -17,23 +17,23 @@
 
 ## Features
 
-**The full platform is free and open-sourced under the MIT license (a.k.a. do whatever you want with it).**
+Feedbackland is an open-source, free feedback platform that offers the following features:
 
-- Standalone feedback board
-- Embeddable React widgets
-- Unlimited posts, users and admins
+- Feedback board accessible as a standalone website 
+- Embeddable React widgets to collect in-app feedback
+- Unlimited everything: feedback posts, users, admins
 - Threaded comments, upvotes, status tracking
 - SSO (Google/Microsoft) & email/password login
-- Full admin dashboard
-- AI-powered roadmap generation
-- AI chatbot to chat with your platform's data
+- Admin dashboard: View and manage all feedback submissions & comments
+- AI-powered roadmap: Let AI generate transform feedback into a prioritized roadmap
+- Ask AI: Chat with your platform's data
 
 ## Get Started
 
 **Cloud hosted** — your own instance, free, up & running in 30 seconds.
 &rarr; [get-started.feedbackland.com](https://get-started.feedbackland.com)
 
-**Self-hosted** — host Feedbackland yourself using Vercel, Supabase and Firebase.
+**Self-hosted** — host Feedbackland yourself in 30 min. using Vercel, Supabase and Firebase.
 &rarr; [Self-Hosting Guide](SELFHOSTING.md)
 
 **Live demo**
