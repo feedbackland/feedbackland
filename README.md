@@ -17,7 +17,7 @@
 
 ## Features
 
-Feedbackland is an open-source, free feedback platform that offers the following features:
+[Feedbackland](https://feedbackland.com) is an open-source, free feedback platform that offers the following features:
 
 - Feedback board accessible as a standalone website 
 - Embeddable React widgets to collect in-app feedback
