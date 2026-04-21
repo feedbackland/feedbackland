@@ -19,7 +19,7 @@
 
 - 100% free and open-source (MIT licensed, a.k.a. do whatever you want)
 - Cloud-hosted (setup in 30 seconds) or self-hostable
-- Standalone feedback board: gather feedback via a standalone website (e.g. your-company.feedbackland.com)
+- Standalone feedback board: gather feedback via a standalone website (e.g. your-org.feedbackland.com)
 - Embeddable widgets: collect feedback directly in your React/Next.js app or website
 - Threaded comments, upvotes and status tracking
 - SSO (Google/Microsoft) & email/password login
