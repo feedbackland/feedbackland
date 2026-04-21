@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**Free and open-source feedback platform**
+**The free and open-source feedback platform**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Self-Hosted](https://img.shields.io/badge/self--hosted-ready-green)](SELFHOSTING.md)
