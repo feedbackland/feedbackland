@@ -17,6 +17,7 @@
 
 ## Features
 
+- 100% free and open-source (MIT licensed)
 - Feedback board accessible as a standalone website 
 - React widgets to collect feedback directly in your app or on your website
 - Threaded comments, upvotes and status tracking
