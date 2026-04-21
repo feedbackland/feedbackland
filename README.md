@@ -24,7 +24,7 @@
 - SSO (Google/Microsoft) & email/password login
 - Admin dashboard: View and manage all feedback submissions & comments
 - AI Roadmap: Automatically transforms feedback into a prioritized roadmap
-- Ask AI: Ask any question about your platform's data
+- Ask AI: Ask our AI any question about your platform's data
 
 ## Get Started
 
