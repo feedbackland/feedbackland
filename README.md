@@ -17,16 +17,13 @@
 
 ## Features
 
-[Feedbackland](https://feedbackland.com) is an open-source, free feedback platform that offers the following features:
-
 - Feedback board accessible as a standalone website 
-- Embeddable React widgets to collect in-app feedback
-- Unlimited everything: feedback posts, users, admins
-- Threaded comments, upvotes, status tracking
+- React widgets to collect feedback directly in your app or on your website
+- Threaded comments, upvotes and status tracking
 - SSO (Google/Microsoft) & email/password login
 - Admin dashboard: View and manage all feedback submissions & comments
-- AI-powered roadmap: Let AI generate transform feedback into a prioritized roadmap
-- Ask AI: Chat with your platform's data
+- AI Roadmap: Automatically transforms feedback into a prioritized roadmap
+- Ask AI: Ask any question about your platform's data
 
 ## Get Started
 
