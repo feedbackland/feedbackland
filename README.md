@@ -24,7 +24,7 @@
 - Threaded comments, upvotes and status tracking
 - SSO (Google/Microsoft) & email/password login
 - Admin dashboard: View and manage all feedback submissions & comments
-- AI Roadmap: Automatically transforms feedback into a prioritized roadmap
+- AI Roadmap: Automatically transform feedback into a prioritized roadmap
 - Ask AI: Ask our AI any question about your platform's data
 
 ## Get Started
