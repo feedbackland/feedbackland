@@ -15,11 +15,12 @@
 
 </div>
 
-## Features
+## Features available out of the box
 
 - 100% free and open-source (MIT licensed)
-- Feedback board accessible as a standalone website 
-- React widgets to collect feedback directly in your app or on your website
+- Cloud-hosted (setup in 30 seconds) or self-hostable
+- Standalone feedback board: gather feedback via a standalone website (e.g. your-company.feedbackland.com)
+- Embeddable widgets: collect feedback directly in your React/Next.js app or website
 - Threaded comments, upvotes and status tracking
 - SSO (Google/Microsoft) & email/password login
 - Admin dashboard: View and manage all feedback submissions & comments
