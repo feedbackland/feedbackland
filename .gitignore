@@ -51,3 +51,10 @@ tmpclaude-*
 
 nul
 NUL
+
+# workspace package: build output and lockfile/.env safety
+feedbackland-react/dist/
+feedbackland-react/node_modules/
+feedbackland-react/.npmrc
+feedbackland-react/.env*
+feedbackland-react/*.tsbuildinfo
