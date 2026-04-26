@@ -2,7 +2,9 @@
   "name": "feedbackland",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["feedbackland-react"],
+  "workspaces": [
+    "feedbackland-react"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "npm run build -w feedbackland-react && next build",
@@ -13,7 +15,8 @@
     "migrate-up": "npx kysely migrate:up",
     "migrate-down": "npx kysely migrate:down",
     "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts",
-    "schema-dump": "npx supabase db dump -f db/schema.sql"
+    "schema-dump": "npx supabase db dump -f db/schema.sql",
+    "widget-dev": "npm run build:watch -w feedbackland-react"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.64",
