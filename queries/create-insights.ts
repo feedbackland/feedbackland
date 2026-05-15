@@ -9,30 +9,28 @@ type InsightInput = Omit<
   "id" | "createdAt" | "updatedAt"
 >;
 
-export const createInsightsQuery = async (insightsToCreate: InsightInput[]) => {
-  const orgId = insightsToCreate[0].orgId;
+export const createInsightsQuery = async ({
+  orgId,
+  insights,
+}: {
+  orgId: string;
+  insights: InsightInput[];
+}) => {
+  return await db.transaction().execute(async (trx) => {
+    await trx
+      .deleteFrom("insights")
+      .where("insights.orgId", "=", orgId)
+      .execute();
 
-  try {
-    return await db.transaction().execute(async (trx) => {
+    if (insights.length > 0) {
+      await trx.insertInto("insights").values(insights).execute();
+
       await trx
-        .deleteFrom("insights")
-        .where("insights.orgId", "=", orgId)
+        .insertInto("insight_reports")
+        .values({ orgId })
         .execute();
+    }
 
-      if (insightsToCreate?.length > 0) {
-        await trx.insertInto("insights").values(insightsToCreate).execute();
-
-        await trx
-          .insertInto("insight_reports")
-          .values({
-            orgId,
-          })
-          .execute();
-      }
-
-      return true;
-    });
-  } catch (error) {
-    throw error;
-  }
+    return true;
+  });
 };
