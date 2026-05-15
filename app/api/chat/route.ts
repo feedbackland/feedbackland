@@ -1,4 +1,5 @@
 import { getAllActiveFeedbackPosts } from "@/queries/get-all-active-feedback-posts";
+import { LLM_MODEL } from "@/lib/utils-server";
 import { convertToModelMessages, streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
 
   const { orgId } = input;
 
-  const model = openrouter("google/gemini-3.1-flash-lite-preview");
+  const model = openrouter(LLM_MODEL);
 
   const feedbackPosts = await getAllActiveFeedbackPosts({
     orgId,

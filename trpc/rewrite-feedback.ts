@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
+import { LLM_MODEL } from "@/lib/utils-server";
 
 export const rewriteFeedback = publicProcedure
   .input(
@@ -30,7 +31,7 @@ Rules:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.1-flash-lite-preview",
+          model: LLM_MODEL,
           messages: [
             {
               role: "system",

@@ -3,6 +3,8 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 
+export const LLM_MODEL = "google/gemini-3.1-flash-lite";
+
 type EmbeddingTaskType = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY";
 
 const generateVector = async (text: string, taskType: EmbeddingTaskType) => {
@@ -102,7 +104,7 @@ export const isInappropriateCheck = async ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.1-flash-lite-preview",
+          model: LLM_MODEL,
           messages,
           response_format: { type: "json_object" },
         }),

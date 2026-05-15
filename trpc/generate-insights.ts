@@ -3,6 +3,7 @@ import { getAllActiveFeedbackPosts } from "@/queries/get-all-active-feedback-pos
 import { createInsightsQuery } from "@/queries/create-insights";
 import { z } from "zod/v4";
 import { feedbackCategorySchema, feedbackStatusSchema } from "@/lib/schemas";
+import { LLM_MODEL } from "@/lib/utils-server";
 
 const insightsOutputSchema = z.array(
   z.object({
@@ -189,7 +190,7 @@ export const generateInsights = adminProcedure.mutation(async (opts) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3.1-flash-lite-preview",
+            model: LLM_MODEL,
             reasoning: {
               exclude: true,
               enabled: true,

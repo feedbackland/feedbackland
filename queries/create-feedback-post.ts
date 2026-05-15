@@ -8,6 +8,7 @@ import {
   getImageUrls,
   getPlainText,
   isInappropriateCheck,
+  LLM_MODEL,
 } from "@/lib/utils-server";
 
 const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
@@ -54,7 +55,7 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.1-flash-lite-preview",
+          model: LLM_MODEL,
           messages: [
             {
               role: "system",
