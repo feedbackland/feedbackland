@@ -1,6 +1,6 @@
 {
   "name": "feedbackland-react",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "Drop-in React feedback widget. Slide-in drawer or popover; embeds a Feedbackland board via iframe (or your self-hosted instance) and submits feedback through a hosted API.",
   "keywords": [
     "feedback",
@@ -54,47 +54,47 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.11.0",
+    "lucide-react": "^1.16.0",
     "penpal": "^7.0.6",
     "react-focus-on": "^3.10.2",
-    "react-hook-form": "^7.74.0",
-    "tailwind-merge": "^3.5.0",
+    "react-hook-form": "^7.76.0",
+    "tailwind-merge": "^3.6.0",
     "uuid": "^14.0.0",
     "vaul": "^1.1.2",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@rollup/plugin-commonjs": "^29.0.2",
-    "@tailwindcss/vite": "^4.2.4",
-    "@types/node": "^25.6.0",
-    "@types/react": "^19.2.14",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^9.39.4",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^10.4.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.5.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "globals": "^17.6.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "rollup-preserve-directives": "^1.1.3",
-    "tailwindcss": "^4.2.4",
+    "tailwindcss": "^4.3.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.59.0",
-    "vite": "^8.0.10",
+    "typescript-eslint": "^8.59.4",
+    "vite": "^8.0.14",
     "vite-plugin-css-injected-by-js": "^5.0.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^5.0.1"
   }
 }
