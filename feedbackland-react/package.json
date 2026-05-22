@@ -1,14 +1,41 @@
 {
   "name": "feedbackland-react",
   "version": "2.8.0",
+  "description": "Drop-in React feedback widget. Slide-in drawer or popover; embeds a Feedbackland board via iframe (or your self-hosted instance) and submits feedback through a hosted API.",
+  "keywords": [
+    "feedback",
+    "react",
+    "widget",
+    "embed",
+    "saas",
+    "drawer",
+    "popover",
+    "feedbackland",
+    "user-feedback",
+    "in-app-feedback"
+  ],
+  "license": "MIT",
+  "author": "Feedbackland",
+  "homepage": "https://github.com/feedbackland/feedbackland-react#readme",
+  "bugs": {
+    "url": "https://github.com/feedbackland/feedbackland-react/issues"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "module": "./dist/feedbackland-react.js",
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/feedbackland-react.js",
-      "types": "./dist/src/index.d.ts"
-    }
+      "default": "./dist/feedbackland-react.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -22,13 +49,12 @@
     "dev": "tsc -b && vite",
     "build": "tsc -b && vite build",
     "build:watch": "vite build --watch",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "prepublishOnly": "npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-separator": "^1.1.8",
@@ -37,9 +63,6 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.11.0",
     "penpal": "^7.0.6",
-    "radix-ui": "^1.4.3",
-    "react-device-detect": "^2.2.3",
-    "react-focus-lock": "^2.13.7",
     "react-focus-on": "^3.10.2",
     "react-hook-form": "^7.74.0",
     "react-use": "^17.6.0",

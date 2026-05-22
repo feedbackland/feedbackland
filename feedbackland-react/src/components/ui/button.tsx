@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Slot as SlotPrimitive } from "radix-ui";
+import { Slot, Slottable } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -54,7 +54,7 @@ const Button = ({
   disabled,
   ...props
 }: ButtonProps) => {
-  const Comp = asChild ? SlotPrimitive.Slot : "button";
+  const Comp = asChild ? Slot : "button";
   return (
     <Comp
       className={cn(
@@ -71,7 +71,7 @@ const Button = ({
           />
         </div>
       )}
-      <SlotPrimitive.Slottable>
+      <Slottable>
         <span
           className={cn(
             "fl:inline-flex fl:items-center fl:justify-center fl:gap-2",
@@ -80,7 +80,7 @@ const Button = ({
         >
           {children}
         </span>
-      </SlotPrimitive.Slottable>
+      </Slottable>
     </Comp>
   );
 };
