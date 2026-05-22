@@ -8,10 +8,11 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { cn, validateUUID } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { XIcon } from "lucide-react";
 import { FocusOn } from "react-focus-on";
-import { useDarkMode } from "./hooks/use-dark-mode";
+import { useTheme } from "./hooks/use-theme";
+import { resolvePlatformUrls } from "./lib/resolve-platform-urls";
 
 const IFRAME_TIMEOUT_MS = 15000;
 
@@ -78,7 +79,8 @@ export const OverlayWidget = memo(
     const [iframeError, setIframeError] = useState(false);
     const [iframeTimedOut, setIframeTimedOut] = useState(false);
     const [iframeKey, setIframeKey] = useState(0);
-    const isDarkMode = useDarkMode();
+    const theme = useTheme();
+    const isDarkMode = theme === "dark";
 
     // Stable per-instance id for the dialog's accessible-name target.
     const titleId = useMemo(
@@ -87,27 +89,15 @@ export const OverlayWidget = memo(
     );
 
     // ----- Resolve the iframe source URL -----
+    const { boardUrl, origin: boardOrigin } = useMemo(
+      () => resolvePlatformUrls({ platformId, url }),
+      [platformId, url],
+    );
+
     const platformUrl = useMemo(() => {
-      const mode = isDarkMode ? "dark" : "light";
-
-      if (url) {
-        try {
-          new URL(url); // validate parses
-          return `${url}?mode=${mode}`;
-        } catch {
-          console.warn(
-            "[feedbackland-react] Invalid `url` prop, ignoring:",
-            url,
-          );
-        }
-      }
-
-      if (platformId && validateUUID(platformId)) {
-        return `https://${platformId}.feedbackland.com?mode=${mode}`;
-      }
-
-      return undefined;
-    }, [platformId, isDarkMode, url]);
+      if (!boardUrl) return undefined;
+      return `${boardUrl}?mode=${isDarkMode ? "dark" : "light"}`;
+    }, [boardUrl, isDarkMode]);
 
     // Reset iframe load/error state when the URL changes (dark-mode toggle)
     // or when the user retries by bumping iframeKey.
@@ -121,20 +111,9 @@ export const OverlayWidget = memo(
     // Inject a deduplicated preconnect link so the browser resolves DNS +
     // establishes TCP+TLS before the iframe needs to fetch content.
     useEffect(() => {
-      let domain: string | null = null;
-      try {
-        if (url) {
-          domain = new URL(url).origin;
-        } else if (platformId && validateUUID(platformId)) {
-          domain = `https://${platformId}.feedbackland.com`;
-        }
-      } catch {
-        // Invalid `url` — already warned above; skip preconnect.
-      }
-
-      if (!domain) return;
-      return acquirePreconnect(domain);
-    }, [platformId, url]);
+      if (!boardOrigin) return;
+      return acquirePreconnect(boardOrigin);
+    }, [boardOrigin]);
 
     // ----- Iframe load timeout -----
     // If the iframe doesn't fire `onLoad` within IFRAME_TIMEOUT_MS after the

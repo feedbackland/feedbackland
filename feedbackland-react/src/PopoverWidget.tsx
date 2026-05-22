@@ -16,11 +16,12 @@ import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useDarkMode } from "./hooks/use-dark-mode";
+import { useTheme } from "./hooks/use-theme";
+import { useMediaQuery } from "./hooks/use-media-query";
+import { resolvePlatformUrls } from "./lib/resolve-platform-urls";
 import { cn, validateUUID } from "@/lib/utils";
 import { CircleCheck, InfoIcon, XCircle } from "lucide-react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { useWindowSize } from "react-use";
 import {
   Drawer,
   DrawerContent,
@@ -30,6 +31,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+const DESKTOP_BREAKPOINT_QUERY = "(min-width: 768px)";
+
 const formSchema = z.object({
   description: z
     .string()
@@ -38,8 +41,6 @@ const formSchema = z.object({
     .max(1000, "Feedback must be at most 1000 characters."),
 });
 
-const DEFAULT_BOARD_DOMAIN = "feedbackland.com";
-const DEFAULT_API_ENDPOINT = "https://api.feedbackland.com/api/feedback/create";
 const STATUS_RESET_DELAY_MS = 100;
 
 export const PopoverWidget = memo(
@@ -57,37 +58,21 @@ export const PopoverWidget = memo(
       "active",
     );
 
-    const isDarkMode = useDarkMode();
+    const theme = useTheme();
+    const isDarkMode = theme === "dark";
+    const isDesktop = useMediaQuery(DESKTOP_BREAKPOINT_QUERY, true);
 
-    const { width } = useWindowSize();
+    // Resolve URLs once from `platformId` / `url`; thread dark-mode propagation
+    // through the board href as a query param (the API endpoint is theme-agnostic).
+    const { boardUrl: resolvedBoardUrl, apiUrl } = useMemo(
+      () => resolvePlatformUrls({ platformId, url }),
+      [platformId, url],
+    );
 
-    // Resolve URLs honoring the optional `url` prop, with dark-mode propagation.
-    // Falls back to the public Feedbackland SaaS when `url` isn't provided.
-    const { boardUrl, apiUrl } = useMemo(() => {
-      const mode = isDarkMode ? "dark" : "light";
-      let resolvedBoard: string | undefined;
-      let resolvedApi: string = DEFAULT_API_ENDPOINT;
-
-      if (url) {
-        try {
-          const parsed = new URL(url);
-          const base = `${parsed.origin}${parsed.pathname.replace(/\/$/, "")}`;
-          resolvedBoard = `${base}?mode=${mode}`;
-          resolvedApi = `${base}/api/feedback/create`;
-        } catch {
-          console.warn(
-            "[feedbackland-react] Invalid `url` prop, ignoring:",
-            url,
-          );
-        }
-      }
-
-      if (!resolvedBoard && platformId && validateUUID(platformId)) {
-        resolvedBoard = `https://${platformId}.${DEFAULT_BOARD_DOMAIN}?mode=${mode}`;
-      }
-
-      return { boardUrl: resolvedBoard, apiUrl: resolvedApi };
-    }, [platformId, url, isDarkMode]);
+    const boardUrl = useMemo(() => {
+      if (!resolvedBoardUrl) return undefined;
+      return `${resolvedBoardUrl}?mode=${isDarkMode ? "dark" : "light"}`;
+    }, [resolvedBoardUrl, isDarkMode]);
 
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
@@ -290,7 +275,7 @@ export const PopoverWidget = memo(
       </Drawer>
     );
 
-    if (width > 768) {
+    if (isDesktop) {
       component = (
         <Popover onOpenChange={onOpenChange}>
           <PopoverTrigger asChild className={cn("", { dark: isDarkMode })}>
