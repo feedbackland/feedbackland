@@ -5,7 +5,7 @@ import {
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
-  useAssistantApi,
+  useAui,
 } from "@assistant-ui/react";
 import {
   ArrowUpIcon,
@@ -143,7 +143,7 @@ const SuggestedPrompt: FC<SuggestedPromptProps> = ({
   label,
   prompt,
 }) => {
-  const api = useAssistantApi();
+  const api = useAui();
 
   const handleClick = () => {
     const composer = api.composer();
