@@ -75,7 +75,7 @@ Both render the full board inside an iframe, inherit your app's light/dark theme
 | --- | --- |
 | **Hosted** — live in under a minute, free forever | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
 | **Self-hosted** — Docker, Vercel, Supabase, bare metal | [SELFHOSTING.md](SELFHOSTING.md) |
-| **Live demo** — real board, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
+| **Live demo** — real board, admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
 > [!TIP]
 > Hosted and self-hosted share the exact same codebase. No feature-gating, ever.
