@@ -56,6 +56,9 @@ import { FeedbackButton } from "feedbackland-react";
 <FeedbackButton platformId="your-platform-id" />
 ```
 
+> [!TIP]
+> Don't paste `your-platform-id` by hand. After you create a board, your admin panel's **Widget** page renders this snippet with the real ID pre-filled, plus a live preview and interactive controls for every prop.
+
 Two flavors:
 
 |                  | **Drawer** (default)                | **Popover**                                |

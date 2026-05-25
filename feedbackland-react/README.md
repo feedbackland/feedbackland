@@ -39,8 +39,8 @@ export function App() {
 
 That's the whole integration. The widget ships its own scoped styles — no CSS import, no provider, no setup.
 
-> **Where do I get a `platformId`?**
-> Create a board on [feedbackland.com](https://feedbackland.com) (free, MIT-licensed — or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) the whole thing). Your ID is shown on the **Widget** page of the admin panel.
+> **Don't write this by hand.**
+> Create a board on [feedbackland.com](https://feedbackland.com) (free, MIT-licensed — or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) the whole thing). Your admin panel's **Widget** page renders this exact snippet with your `platformId` pre-filled, alongside a live preview and interactive controls for every prop — copy straight from there.
 
 ## Two flavors
 
