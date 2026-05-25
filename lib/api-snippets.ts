@@ -1,32 +1,35 @@
+const ENDPOINT_PATH = "/api/feedback/create";
+
+export const EXAMPLE_DESCRIPTION = "We need a dark mode option in the settings.";
+
 type SnippetParams = {
   url: string;
   orgId: string;
-  description: string;
 };
 
-const ENDPOINT_PATH = "/api/feedback/create";
+const buildEndpointUrl = (url: string) =>
+  url.length > 0
+    ? `${url}${ENDPOINT_PATH}`
+    : `https://your-platform.com${ENDPOINT_PATH}`;
 
-const fallbackUrl = (url: string) =>
-  url.length > 0 ? `${url}${ENDPOINT_PATH}` : `https://your-platform.com${ENDPOINT_PATH}`;
-
-export function buildCurl({ url, orgId, description }: SnippetParams): string {
-  const body = JSON.stringify({ orgId, description });
-  const escapedBody = body.replace(/'/g, "'\\''");
+export function buildCurl({ url, orgId }: SnippetParams): string {
+  const body = JSON.stringify({ orgId, description: EXAMPLE_DESCRIPTION });
+  const escaped = body.replace(/'/g, "'\\''");
   return [
-    `curl -X POST ${fallbackUrl(url)} \\`,
+    `curl -X POST ${buildEndpointUrl(url)} \\`,
     `  -H "Content-Type: application/json" \\`,
-    `  -d '${escapedBody}'`,
+    `  -d '${escaped}'`,
   ].join("\n");
 }
 
-export function buildJs({ url, orgId, description }: SnippetParams): string {
+export function buildJs({ url, orgId }: SnippetParams): string {
   return [
-    `const response = await fetch("${fallbackUrl(url)}", {`,
+    `const response = await fetch("${buildEndpointUrl(url)}", {`,
     `  method: "POST",`,
     `  headers: { "Content-Type": "application/json" },`,
     `  body: JSON.stringify({`,
     `    orgId: ${JSON.stringify(orgId)},`,
-    `    description: ${JSON.stringify(description)},`,
+    `    description: ${JSON.stringify(EXAMPLE_DESCRIPTION)},`,
     `  }),`,
     `});`,
     ``,
@@ -35,15 +38,15 @@ export function buildJs({ url, orgId, description }: SnippetParams): string {
   ].join("\n");
 }
 
-export function buildPython({ url, orgId, description }: SnippetParams): string {
+export function buildPython({ url, orgId }: SnippetParams): string {
   return [
     `import requests`,
     ``,
     `response = requests.post(`,
-    `    ${JSON.stringify(fallbackUrl(url))},`,
+    `    ${JSON.stringify(buildEndpointUrl(url))},`,
     `    json={`,
     `        "orgId": ${JSON.stringify(orgId)},`,
-    `        "description": ${JSON.stringify(description)},`,
+    `        "description": ${JSON.stringify(EXAMPLE_DESCRIPTION)},`,
     `    },`,
     `)`,
     ``,

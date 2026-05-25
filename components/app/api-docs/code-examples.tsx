@@ -12,23 +12,9 @@ import { buildCurl, buildJs, buildPython } from "@/lib/api-snippets";
 
 type Language = "curl" | "js" | "python";
 
-const PLACEHOLDER_DESCRIPTION = "Your feedback here";
-
-export function CodeExamples({
-  url,
-  orgId,
-  description,
-}: {
-  url: string;
-  orgId: string;
-  description: string;
-}) {
+export function CodeExamples({ url, orgId }: { url: string; orgId: string }) {
   const [language, setLanguage] = useState<Language>("curl");
-
-  const effective =
-    description.trim().length > 0 ? description : PLACEHOLDER_DESCRIPTION;
-
-  const params = { url, orgId, description: effective };
+  const params = { url, orgId };
 
   return (
     <Tabs
