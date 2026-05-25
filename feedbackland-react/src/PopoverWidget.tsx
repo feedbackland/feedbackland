@@ -58,6 +58,12 @@ export const PopoverWidget = memo(
       "active",
     );
 
+    // Open state is lifted here (not delegated to Radix Popover / Drawer in
+    // uncontrolled mode) so the open status survives a swap between the
+    // Popover (desktop) and Drawer (mobile) renderers when the viewport
+    // crosses the breakpoint while the widget is open.
+    const [open, setOpen] = useState(false);
+
     const theme = useTheme();
     const isDarkMode = theme === "dark";
     const isDesktop = useMediaQuery(DESKTOP_BREAKPOINT_QUERY, true);
@@ -132,10 +138,13 @@ export const PopoverWidget = memo(
     // Tracked in a ref + cleared on unmount to avoid setState-on-unmounted warnings.
     const resetTimeoutRef = useRef<number | null>(null);
 
-    const onOpenChange = () => {
+    const onOpenChange = (next: boolean) => {
+      setOpen(next);
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
       }
+      // Wait for the close animation before flipping the form back to its
+      // "active" state, so success/error UI doesn't flash on the way out.
       resetTimeoutRef.current = window.setTimeout(() => {
         setStatus("active");
         resetTimeoutRef.current = null;
@@ -261,7 +270,7 @@ export const PopoverWidget = memo(
     );
 
     let component = (
-      <Drawer onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="fl-scope fl:p-4">
           <DrawerHeader className="fl:sr-only">
@@ -277,7 +286,7 @@ export const PopoverWidget = memo(
 
     if (isDesktop) {
       component = (
-        <Popover onOpenChange={onOpenChange}>
+        <Popover open={open} onOpenChange={onOpenChange}>
           <PopoverTrigger asChild className={cn("", { dark: isDarkMode })}>
             {children}
           </PopoverTrigger>

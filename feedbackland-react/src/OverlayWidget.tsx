@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 import { XIcon } from "lucide-react";
 import { FocusOn } from "react-focus-on";
@@ -99,6 +100,25 @@ export const OverlayWidget = memo(
       return `${boardUrl}?mode=${isDarkMode ? "dark" : "light"}`;
     }, [boardUrl, isDarkMode]);
 
+    // True when neither a parseable `url` nor a valid-UUID `platformId` was
+    // supplied — the trigger still works but the panel renders a configuration
+    // error instead of an iframe.
+    const hasConfigError = !boardUrl;
+
+    // Log a clear, single dev-time error when the component is rendered with
+    // unresolvable configuration. Helps integrators catch typos / wrong props
+    // without having to click the trigger first.
+    useEffect(() => {
+      if (hasConfigError) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "[feedbackland-react] <FeedbackButton> cannot resolve a board URL — " +
+            "pass a valid UUID `platformId` or a fully-qualified `url`. " +
+            `Received platformId=${JSON.stringify(platformId)}, url=${JSON.stringify(url)}.`,
+        );
+      }
+    }, [hasConfigError, platformId, url]);
+
     // Reset iframe load/error state when the URL changes (dark-mode toggle)
     // or when the user retries by bumping iframeKey.
     useEffect(() => {
@@ -118,20 +138,29 @@ export const OverlayWidget = memo(
     // ----- Iframe load timeout -----
     // If the iframe doesn't fire `onLoad` within IFRAME_TIMEOUT_MS after the
     // overlay opens, surface an error panel so the user isn't stuck on shimmer.
+    // Skipped when there's no iframe to wait on (config error case).
     useEffect(() => {
-      if (!isOpened || iframeLoaded || iframeError || iframeTimedOut) return;
+      if (
+        !isOpened ||
+        iframeLoaded ||
+        iframeError ||
+        iframeTimedOut ||
+        hasConfigError
+      )
+        return;
       const id = window.setTimeout(() => {
         setIframeTimedOut(true);
       }, IFRAME_TIMEOUT_MS);
       return () => window.clearTimeout(id);
-    }, [isOpened, iframeLoaded, iframeError, iframeTimedOut]);
+    }, [isOpened, iframeLoaded, iframeError, iframeTimedOut, hasConfigError]);
 
     // ----- Handlers -----
+    // Always allow opening — when configuration is invalid the panel will
+    // render an inline error so the user (and integrator) gets feedback
+    // instead of an unresponsive button.
     const handleOpen = useCallback(() => {
-      if (platformUrl) {
-        setIsOpened(true);
-      }
-    }, [platformUrl]);
+      setIsOpened(true);
+    }, []);
 
     const handleClose = useCallback(() => {
       setIsOpened(false);
@@ -149,14 +178,17 @@ export const OverlayWidget = memo(
       setIframeKey((k) => k + 1);
     }, []);
 
-    const showError = iframeError || iframeTimedOut;
+    const showError = iframeError || iframeTimedOut || hasConfigError;
 
     return (
       <>
-        {/* Trigger — host's own button is provided as children */}
-        <div onClick={handleOpen} className={cn("", { dark: isDarkMode })}>
+        {/* Trigger — Slot merges the open handler into whatever element the
+            host passes (a native <button>, an asChild element, etc.) so
+            keyboard activation behaves exactly like the unwrapped trigger
+            would. Same semantics as PopoverWidget's Radix triggers. */}
+        <Slot onClick={handleOpen} className={cn({ dark: isDarkMode })}>
           {children}
-        </div>
+        </Slot>
 
         {/* Portal: always mounted so the iframe starts loading immediately */}
         {typeof document !== "undefined" &&
@@ -211,18 +243,29 @@ export const OverlayWidget = memo(
                   </h2>
 
                   <div className="fl:w-full fl:h-full fl:relative">
-                    <iframe
-                      key={iframeKey}
-                      src={platformUrl}
-                      onLoad={handleIframeLoad}
-                      onError={handleIframeError}
-                      className={cn(
-                        "fl:w-full fl:h-full fl:overflow-hidden fl:border-0 fl:border-none fl:outline-none fl:ring-0 fl:shadow-none fl:m-0 fl:p-0",
-                      )}
-                      loading="eager"
-                      allow="clipboard-write"
-                      title="Share your feedback"
-                    />
+                    {/* Iframe is only rendered when the config is valid.
+                        Otherwise the showError block below takes over and
+                        explains what went wrong. */}
+                    {!hasConfigError && (
+                      <iframe
+                        key={iframeKey}
+                        src={platformUrl}
+                        onLoad={handleIframeLoad}
+                        onError={handleIframeError}
+                        className={cn(
+                          "fl:w-full fl:h-full fl:overflow-hidden fl:border-0 fl:border-none fl:outline-none fl:ring-0 fl:shadow-none fl:m-0 fl:p-0",
+                        )}
+                        loading="eager"
+                        // Sandbox: defense-in-depth on top of cross-origin SOP.
+                        // Allow scripts + same-origin (board auth/storage),
+                        // form submission, and popups (for OAuth flows /
+                        // open-in-new-tab links). `allow-popups-to-escape-sandbox`
+                        // lets those popups load as normal pages.
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                        allow="clipboard-write"
+                        title="Share your feedback"
+                      />
+                    )}
 
                     {/* Shimmer skeleton while the iframe loads (and no error) */}
                     {isOpened && !iframeLoaded && !showError && (
@@ -250,39 +293,48 @@ export const OverlayWidget = memo(
                       </div>
                     )}
 
-                    {/* Error fallback when the iframe fails or times out */}
+                    {/* Error fallback for both iframe load failures and
+                        unresolvable configuration. Config errors hide the
+                        retry button (retry can't help bad props) and show
+                        an integrator-targeted message instead. */}
                     {showError && (
                       <div
                         role="alert"
                         className="fl:absolute fl:inset-0 fl:z-10 fl:bg-background fl:flex fl:flex-col fl:items-center fl:justify-center fl:gap-3 fl:p-6 fl:text-center"
                       >
                         <div className="fl:text-base fl:font-semibold fl:text-foreground">
-                          We couldn't load the feedback board
+                          {hasConfigError
+                            ? "Feedback widget misconfigured"
+                            : "We couldn't load the feedback board"}
                         </div>
                         <div className="fl:text-sm fl:text-muted-foreground fl:max-w-sm">
-                          {iframeTimedOut
-                            ? "Loading took longer than expected. Please check your connection and try again."
-                            : "Something went wrong while loading. Please try again."}
+                          {hasConfigError
+                            ? "The widget needs a valid `platformId` (UUID) or `url` prop. Check the developer console for details."
+                            : iframeTimedOut
+                              ? "Loading took longer than expected. Please check your connection and try again."
+                              : "Something went wrong while loading. Please try again."}
                         </div>
-                        <div className="fl:flex fl:items-center fl:gap-2 fl:mt-2">
-                          <button
-                            type="button"
-                            onClick={handleRetry}
-                            className="fl:inline-flex fl:items-center fl:justify-center fl:rounded-md fl:bg-primary fl:text-primary-foreground fl:text-sm fl:font-medium fl:px-4 fl:h-9 fl:cursor-pointer fl:hover:bg-primary/90 fl:focus-visible:outline-2 fl:focus-visible:outline-offset-2 fl:focus-visible:outline-ring"
-                          >
-                            Try again
-                          </button>
-                          {platformUrl && (
-                            <a
-                              href={platformUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="fl:inline-flex fl:items-center fl:justify-center fl:rounded-md fl:border fl:border-border fl:bg-background fl:text-foreground fl:text-sm fl:font-medium fl:px-4 fl:h-9 fl:hover:bg-accent fl:focus-visible:outline-2 fl:focus-visible:outline-offset-2 fl:focus-visible:outline-ring"
+                        {!hasConfigError && (
+                          <div className="fl:flex fl:items-center fl:gap-2 fl:mt-2">
+                            <button
+                              type="button"
+                              onClick={handleRetry}
+                              className="fl:inline-flex fl:items-center fl:justify-center fl:rounded-md fl:bg-primary fl:text-primary-foreground fl:text-sm fl:font-medium fl:px-4 fl:h-9 fl:cursor-pointer fl:hover:bg-primary/90 fl:focus-visible:outline-2 fl:focus-visible:outline-offset-2 fl:focus-visible:outline-ring"
                             >
-                              Open in new tab
-                            </a>
-                          )}
-                        </div>
+                              Try again
+                            </button>
+                            {platformUrl && (
+                              <a
+                                href={platformUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="fl:inline-flex fl:items-center fl:justify-center fl:rounded-md fl:border fl:border-border fl:bg-background fl:text-foreground fl:text-sm fl:font-medium fl:px-4 fl:h-9 fl:hover:bg-accent fl:focus-visible:outline-2 fl:focus-visible:outline-offset-2 fl:focus-visible:outline-ring"
+                              >
+                                Open in new tab
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
