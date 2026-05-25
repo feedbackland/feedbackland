@@ -53,32 +53,34 @@ npm install feedbackland-react
 ```tsx
 import { FeedbackButton } from "feedbackland-react";
 
-// Drawer (default) — full-height side panel with backdrop and focus trap.
-// Best for a focused, dedicated feedback flow.
-<FeedbackButton platformId="your-platform-id" widget="drawer" />
-
-// Popover — compact panel anchored to the button, stays inside the page.
-// Best for contextual feedback ("Suggest an improvement to this feature").
-<FeedbackButton platformId="your-platform-id" widget="popover" />
+<FeedbackButton platformId="your-platform-id" />
 ```
 
-| Variant     | Looks like                       | Use it when                                                |
-| ----------- | -------------------------------- | ---------------------------------------------------------- |
-| **Drawer**  | Slide-in panel from the right    | Feedback deserves a focused, full-height experience        |
-| **Popover** | Anchored bubble next to the button | The user should stay in flow — inline, contextual feedback |
+Two flavors:
 
-Both render the full board inside an iframe, inherit your app's light/dark theme, and ship the same submission, voting, and commenting features.
+|                  | **Drawer** (default)                | **Popover**                                |
+| ---------------- | ----------------------------------- | ------------------------------------------ |
+| Layout           | Slide-in side panel, full height    | Anchored inline form, stays in the page    |
+| What it shows    | Your entire feedback board (iframe) | A single-shot submission form (no iframe)  |
+| Mobile           | Same drawer                         | Bottom sheet (auto via media query)        |
+| Use when         | A dedicated feedback experience     | Contextual, in-flow feedback               |
 
-### Style it your way (Tailwind, your own button, anything)
+Switch flavors with the `widget` prop:
 
 ```tsx
-// 1. Quick overrides via className
+<FeedbackButton platformId="..." widget="popover" />
+```
+
+### Customize the trigger
+
+```tsx
+// Tailwind override — tailwind-merge resolves conflicts, your classes win
 <FeedbackButton platformId="..." className="bg-red-500 rounded-full px-8" />
 
-// 2. Strip the built-in styling — keep the widget's <button>, all Tailwind, no fight
-<FeedbackButton platformId="..." variant="unstyled" className="my-button-styles" />
+// Strip every internal class — start fresh with your own
+<FeedbackButton platformId="..." variant="unstyled" className="my-button" />
 
-// 3. Bring your own trigger — full control. The widget just wires the click.
+// Bring your own element — Radix-style asChild, total control
 <FeedbackButton platformId="..." asChild>
   <button className="any tailwind you want">
     <FeedbackIcon /> Give feedback
@@ -86,7 +88,10 @@ Both render the full board inside an iframe, inherit your app's light/dark theme
 </FeedbackButton>
 ```
 
-`asChild` follows the Radix pattern — your child element becomes the trigger and keeps its own `onClick`, `ref`, ARIA attributes, etc.
+`asChild` merges the open handler into your child element, which keeps its own `onClick`, `ref`, and ARIA attributes.
+
+> [!NOTE]
+> **Full widget docs** — props reference, accessibility guarantees, bundle internals, self-hosted usage — live in the package README: [`feedbackland-react/README.md`](feedbackland-react/README.md). The package is also on [npm](https://www.npmjs.com/package/feedbackland-react).
 
 ## Get started
 
