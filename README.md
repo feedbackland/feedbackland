@@ -4,7 +4,7 @@
 
 **The open-source feedback platform with AI built in.**
 
-Collect ideas, bugs, and requests. An AI clusters them into a ranked roadmap and answers questions across every post. Drop a one-line widget into your app. Free, MIT, no limits.
+Collect ideas, bugs, and requests. Drop a one-line widget into your app. AI automatically provides the insights you need to improve your product. Free, MIT, no limits.
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
