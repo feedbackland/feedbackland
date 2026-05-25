@@ -69,6 +69,25 @@ import { FeedbackButton } from "feedbackland-react";
 
 Both render the full board inside an iframe, inherit your app's light/dark theme, and ship the same submission, voting, and commenting features.
 
+### Style it your way (Tailwind, your own button, anything)
+
+```tsx
+// 1. Quick overrides via className
+<FeedbackButton platformId="..." className="bg-red-500 rounded-full px-8" />
+
+// 2. Strip the built-in styling — keep the widget's <button>, all Tailwind, no fight
+<FeedbackButton platformId="..." variant="unstyled" className="my-button-styles" />
+
+// 3. Bring your own trigger — full control. The widget just wires the click.
+<FeedbackButton platformId="..." asChild>
+  <button className="any tailwind you want">
+    <FeedbackIcon /> Give feedback
+  </button>
+</FeedbackButton>
+```
+
+`asChild` follows the Radix pattern — your child element becomes the trigger and keeps its own `onClick`, `ref`, ARIA attributes, etc.
+
 ## Get started
 
 | Path | |

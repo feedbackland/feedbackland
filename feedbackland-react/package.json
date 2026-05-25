@@ -1,6 +1,6 @@
 {
   "name": "feedbackland-react",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "description": "Drop-in React feedback widget. Slide-in drawer or popover; embeds a Feedbackland board via iframe (or your self-hosted instance) and submits feedback through a hosted API.",
   "keywords": [
     "feedback",
