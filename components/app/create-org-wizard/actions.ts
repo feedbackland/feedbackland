@@ -5,11 +5,6 @@ import { createOrgQuery } from "@/queries/create-org";
 import { createOrgSchema } from "./validations";
 import { claimOrgSchema } from "@/lib/schemas";
 import { claimOrgQuery } from "@/queries/claim-org";
-import {
-  getIsSelfHosted,
-  getOverlayWidgetCodeSnippet,
-  getVercelUrl,
-} from "@/lib/utils";
 
 export const createOrgAction = actionClient
   .inputSchema(createOrgSchema)
