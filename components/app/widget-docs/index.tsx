@@ -191,7 +191,7 @@ export function WidgetDocs({
               </code>{" "}
               prop —{" "}
               <a
-                href="https://github.com/feedbackland/feedbackland-react#readme"
+                href="https://github.com/feedbackland/feedbackland/tree/main/feedbackland-react#readme"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground inline-flex items-center gap-0.5 underline-offset-4 hover:underline"
