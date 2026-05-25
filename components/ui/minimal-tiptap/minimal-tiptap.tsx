@@ -72,13 +72,39 @@ export const MinimalTiptapEditor = ({
     }
   }, [value, editor]);
 
-  if (!editor) {
-    return null;
-  }
-
   const handleOnClick = () => {
-    editor.commands.focus();
+    editor?.commands.focus();
   };
+
+  if (!editor) {
+    // Render a static mirror of Tiptap's empty-editor DOM so the placeholder
+    // is visible from the first paint. Without this the component returns
+    // null until `useEditor` finishes initializing post-hydration
+    // (immediatelyRender: false is required for SSR), leaving a blank hole
+    // that only filled in after the user moved/scrolled.
+    return (
+      <div
+        className={cn(
+          "border-input dark:bg-input/30 flex w-full cursor-text flex-col rounded-md border shadow-xs",
+          isDisabled && "cursor-not-allowed",
+          className,
+        )}
+        aria-busy="true"
+      >
+        <div className={cn("minimal-tiptap-editor", editorContentClassName)}>
+          <div className={cn("ProseMirror", props.editorClassName)}>
+            <p
+              className="text-node is-editor-empty"
+              data-placeholder={props.placeholder ?? ""}
+            >
+              <br />
+            </p>
+          </div>
+        </div>
+        {showToolbar && <div className="flex h-12 items-center px-2" />}
+      </div>
+    );
+  }
 
   return (
     <MeasuredContainer

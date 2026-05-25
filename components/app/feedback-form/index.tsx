@@ -179,7 +179,7 @@ export function FeedbackForm() {
       <div className="bg-background border-border focus-within:ring-ring overflow-hidden rounded-lg border shadow-xs transition-shadow duration-200 focus-within:shadow-sm focus-within:ring-1">
         <div className="relative">
           <Tiptap
-            placeholder="Share an idea, report an issue, or give feedback..."
+            placeholder="Share any feedback..."
             value={value}
             onChange={onChange}
             autofocus={false}
