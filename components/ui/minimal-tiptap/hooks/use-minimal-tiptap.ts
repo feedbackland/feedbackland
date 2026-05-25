@@ -276,7 +276,13 @@ const createExtensions = (placeholder: string) => [
       return "";
     },
     showOnlyWhenEditable: true,
-    includeChildren: true,
+    // Intentionally keep `includeChildren` at its default (`false`).
+    // Setting it to true forces the Placeholder extension into a
+    // viewport-scan code path that depends on a `scroll` event firing
+    // before the decoration is applied to a freshly-mounted empty
+    // editor — which made the placeholder only appear after the user
+    // scrolled. The default path resolves the empty node directly from
+    // the selection anchor and renders the placeholder on first paint.
   }),
 ];
 
