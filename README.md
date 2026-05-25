@@ -4,13 +4,12 @@
 
 **The open-source feedback platform with AI built in.**
 
-Collect ideas, bugs, and requests. An AI clusters them into a ranked roadmap and answers questions across every post. Drop a one-line widget into your app. Free, MIT, no limits — forever.
+Collect ideas, bugs, and requests. Drop a one-line widget into your app. AI automatically provides the insights you need to improve your product. Free, MIT, no limits.
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="SELFHOSTING.md"><img alt="Self-hosted ready" src="https://img.shields.io/badge/self--hosted-ready-green"></a>
   <a href="https://github.com/feedbackland/feedbackland/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/feedbackland/feedbackland?color=blue"></a>
-  <a href="https://github.com/feedbackland/feedbackland/discussions"><img alt="Discussions" src="https://img.shields.io/github/discussions/feedbackland/feedbackland?color=blue"></a>
   <a href="https://github.com/feedbackland/feedbackland/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/feedbackland/feedbackland?style=social"></a>
 </p>
 
@@ -30,20 +29,20 @@ Collect ideas, bugs, and requests. An AI clusters them into a ranked roadmap and
 
 ## Why Feedbackland?
 
-- 🤖 **AI does the boring parts.** Duplicates cluster. Posts rank by demand. The roadmap rewrites itself as feedback lands.
-- 💬 **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
-- ⚛️ **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
-- 🆓 **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
+- **AI does the boring parts.** Duplicates cluster. Posts rank by demand. The roadmap rewrites itself as feedback lands.
+- **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
+- **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
+- **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
 
 ## Features
 
-- 📋 Public feedback board with comments, upvotes, statuses, full-text + semantic search
-- ⚛️ Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
-- 🤖 AI-generated roadmap that refreshes itself
-- 💬 Ask AI across every post, comment, and upvote
-- 📨 REST API to pipe feedback in from anywhere
-- 🔐 SSO (Google, Microsoft) and email/password
-- 🛠 Admin dashboard — moderate, tag, respond, export
+- Public feedback board with comments, upvotes, statuses, full-text + semantic search
+- Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
+- AI-generated roadmap that refreshes itself
+- Ask AI across every post, comment, and upvote
+- REST API to pipe feedback in from anywhere
+- SSO (Google, Microsoft) and email/password
+- Admin dashboard — moderate, tag, respond, export
 
 ## Embed the widget
 
@@ -79,7 +78,7 @@ Both render the full board inside an iframe, inherit your app's light/dark theme
 | **Live demo** — real board, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
 > [!TIP]
-> Hosted and self-hosted are the same codebase. No feature-gating, ever.
+> Hosted and self-hosted share the exact same codebase. No feature-gating, ever.
 
 ## How it compares
 
@@ -92,8 +91,6 @@ Both render the full board inside an iframe, inherit your app's light/dark theme
 | **AI duplicate clustering**  |        ✅        |          ✅          |            —             |         —          |
 | **AI-generated roadmap**     |        ✅        |          —           |            —             |         —          |
 | **Ask AI over your feedback**|        ✅        |          —           |            —             |         —          |
-
-<sub>Canny, Featurebase, and Fider are solid tools — Feedbackland is for teams who want to own their data, keep their roadmap intelligent, and never see a per-user invoice. Pricing accurate as of May 2026; check each product's site for current terms.</sub>
 
 ## Built with
 
