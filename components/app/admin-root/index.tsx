@@ -56,6 +56,10 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
             <TabsTrigger value="widget" asChild>
               <Link href={`${adminBasePath}/widget`}>Widget</Link>
             </TabsTrigger>
+
+            <TabsTrigger value="api" asChild>
+              <Link href={`${adminBasePath}/api`}>API</Link>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="mt-6">{children}</div>
