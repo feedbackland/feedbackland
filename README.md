@@ -2,9 +2,9 @@
 
 # Feedbackland
 
-**The open-source feedback platform.**
+**The open-source feedback platform with AI built in.**
 
-Collect ideas, bugs, and feature requests. An AI clusters them into a ranked roadmap. Embed it anywhere with a one-line widget. Free, MIT-licensed, no limits.
+Collect ideas, bugs, and requests. An AI clusters them into a ranked roadmap and answers questions across every post. Drop a one-line widget into your app. Free, MIT, no limits — forever.
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
@@ -15,9 +15,8 @@ Collect ideas, bugs, and feature requests. An AI clusters them into a ranked roa
 </p>
 
 <p>
-  <a href="https://get-started.feedbackland.com"><b>Create your platform →</b></a> ·
+  <a href="https://get-started.feedbackland.com"><b>Create your board →</b></a> ·
   <a href="https://demo.feedbackland.com">Live demo</a> ·
-  <a href="https://feedbackland.com">Website</a> ·
   <a href="SELFHOSTING.md">Self-host</a>
 </p>
 
@@ -31,28 +30,22 @@ Collect ideas, bugs, and feature requests. An AI clusters them into a ranked roa
 
 ## Why Feedbackland?
 
-- **Free forever.** The entire hosted product is free. No trial, no freemium tier, no sales call.
-- **MIT-licensed.** Fork it, sell it, embed it. No AGPL viral clause.
-- **Widget-native.** One React component and your users post feedback without leaving your app.
-- **AI-first.** Duplicates cluster themselves. The roadmap builds itself. You ship.
-- **Self-hostable.** Docker, Vercel, Supabase, or bare metal. Your data, your infra, your call.
-
-No credit card. No seat cap. No per-user pricing — ever.
-
-> [!TIP]
-> **Live in under a minute.** [Create your platform](https://get-started.feedbackland.com) — or [try the demo](https://demo.feedbackland.com) first.
+- 🤖 **AI does the boring parts.** Duplicates cluster. Posts rank by demand. The roadmap rewrites itself as feedback lands.
+- 💬 **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
+- ⚛️ **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
+- 🆓 **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
 
 ## Features
 
-- **Public feedback board** — posts, threaded comments, upvotes, status tracking, search.
-- **Embeddable React widget** — `feedbackland-react` ships a popover and a drawer variant. One-line install.
-- **AI-generated roadmap** — posts cluster by intent, rank by demand, and the roadmap updates as new feedback lands.
-- **Ask AI** — ask plain-English questions across every post, comment, and upvote.
-- **Admin dashboard** — moderate, tag, respond, and export from a single inbox.
-- **SSO + email auth** — Google, Microsoft, or email/password.
-- **REST API** — migrate in, pipe posts from your app, export whenever you want.
+- 📋 Public feedback board with comments, upvotes, statuses, full-text + semantic search
+- ⚛️ Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
+- 🤖 AI-generated roadmap that refreshes itself
+- 💬 Ask AI across every post, comment, and upvote
+- 📨 REST API to pipe feedback in from anywhere
+- 🔐 SSO (Google, Microsoft) and email/password
+- 🛠 Admin dashboard — moderate, tag, respond, export
 
-## Install the widget
+## Embed the widget
 
 ```bash
 npm install feedbackland-react
@@ -61,53 +54,55 @@ npm install feedbackland-react
 ```tsx
 import { FeedbackButton } from "feedbackland-react";
 
-export function GiveFeedback() {
-  return (
-    <FeedbackButton platformId="your-platform-id" widget="popover" />
-  );
-}
+// Drawer (default) — full-height side panel with backdrop and focus trap.
+// Best for a focused, dedicated feedback flow.
+<FeedbackButton platformId="your-platform-id" widget="drawer" />
+
+// Popover — compact panel anchored to the button, stays inside the page.
+// Best for contextual feedback ("Suggest an improvement to this feature").
+<FeedbackButton platformId="your-platform-id" widget="popover" />
 ```
 
-Your users can post feedback without leaving your app.
+| Variant     | Looks like                       | Use it when                                                |
+| ----------- | -------------------------------- | ---------------------------------------------------------- |
+| **Drawer**  | Slide-in panel from the right    | Feedback deserves a focused, full-height experience        |
+| **Popover** | Anchored bubble next to the button | The user should stay in flow — inline, contextual feedback |
+
+Both render the full board inside an iframe, inherit your app's light/dark theme, and ship the same submission, voting, and commenting features.
 
 ## Get started
 
-**Hosted** — live in about a minute. Free forever.
-→ [get-started.feedbackland.com](https://get-started.feedbackland.com)
+| Path | |
+| --- | --- |
+| **Hosted** — live in under a minute, free forever | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
+| **Self-hosted** — Docker, Vercel, Supabase, bare metal | [SELFHOSTING.md](SELFHOSTING.md) |
+| **Live demo** — real board, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
-**Self-hosted** — Docker, Vercel, Supabase, or bare metal. Same codebase as the hosted version — no feature-gating.
-→ [Self-Hosting Guide](SELFHOSTING.md)
-
-**Live demo** — real board, real widget, no signup.
-→ [demo.feedbackland.com](https://demo.feedbackland.com)
+> [!TIP]
+> Hosted and self-hosted are the same codebase. No feature-gating, ever.
 
 ## How it compares
 
-|                              | Feedbackland  | Canny        | Featurebase  | Fider        |
-| ---------------------------- | :-----------: | :----------: | :----------: | :----------: |
-| License                      | **MIT**       | Proprietary  | Proprietary  | AGPL         |
-| Price                        | **Free**      | $99+/mo      | Free (cap)   | $49/mo cloud |
-| Self-hostable                | ✅            | —            | —            | ✅           |
-| User limits                  | **None**      | Per-user     | Seat cap     | None         |
-| Built-in widgets             | ✅            | ✅           | ✅           | —            |
-| AI-generated roadmap         | ✅            | —            | —            | —            |
-| Ask-in-English analytics     | ✅            | —            | Limited      | —            |
-| Hosted setup                 | **<1 min**    | Sales call   | Signup       | Self only    |
+|                              |   Feedbackland   |        Canny         |       Featurebase        |       Fider        |
+| ---------------------------- | :--------------: | :------------------: | :----------------------: | :----------------: |
+| **License**                  |       MIT        |     Proprietary      |       Proprietary        |        AGPL        |
+| **Self-host**                |        ✅        |          —           |            —             |         ✅         |
+| **Free hosted plan**         |    Unlimited     |     25-user cap      |        Trial only        |         —          |
+| **Paid pricing**             |     **None**     |  $19+/mo, per-user   |   $29+/seat + AI usage   |   $49+/mo cloud    |
+| **AI duplicate clustering**  |        ✅        |          ✅          |            —             |         —          |
+| **AI-generated roadmap**     |        ✅        |          —           |            —             |         —          |
+| **Ask AI over your feedback**|        ✅        |          —           |            —             |         —          |
 
-Canny, Featurebase, and Fider are great tools. Feedbackland is for teams who want to own their data and never get a pricing surprise.
-
-<sub>Competitor pricing and licensing accurate at time of writing; check each product's site for current terms.</sub>
+<sub>Canny, Featurebase, and Fider are solid tools — Feedbackland is for teams who want to own their data, keep their roadmap intelligent, and never see a per-user invoice. Pricing accurate as of May 2026; check each product's site for current terms.</sub>
 
 ## Built with
 
-[Next.js](https://github.com/vercel/next.js) · [React](https://github.com/facebook/react) · [TypeScript](https://github.com/microsoft/TypeScript) · [PostgreSQL](https://github.com/postgres/postgres) · [tRPC](https://github.com/trpc/trpc) · [Kysely](https://github.com/kysely-org/kysely) · [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) · [shadcn/ui](https://github.com/shadcn-ui/ui) · [Tiptap](https://github.com/ueberdosis/tiptap) · [Zod](https://github.com/colinhacks/zod)
+[Next.js](https://github.com/vercel/next.js) · [React](https://github.com/facebook/react) · [TypeScript](https://github.com/microsoft/TypeScript) · [PostgreSQL](https://github.com/postgres/postgres) · [tRPC](https://github.com/trpc/trpc) · [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) · [shadcn/ui](https://github.com/shadcn-ui/ui) · [Tiptap](https://github.com/ueberdosis/tiptap)
 
 ## Community
 
-- **Discussions** — [ask questions, share ideas](https://github.com/feedbackland/feedbackland/discussions)
-- **Issues** — [file bugs or feature requests](https://github.com/feedbackland/feedbackland/issues)
-- **Releases** — [changelog](https://github.com/feedbackland/feedbackland/releases). We ship regularly.
+[Discussions](https://github.com/feedbackland/feedbackland/discussions) · [Issues](https://github.com/feedbackland/feedbackland/issues) · [Releases](https://github.com/feedbackland/feedbackland/releases)
 
 ## License
 
-[MIT](LICENSE) — do whatever you want with it.
+[MIT](LICENSE) — fork it, run it, sell it.
