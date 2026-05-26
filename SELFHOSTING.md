@@ -38,7 +38,7 @@ across them, paste them into Vercel, and ship.
 
 | Service                                 | What it does                | Free tier                                                      |
 | --------------------------------------- | --------------------------- | -------------------------------------------------------------- |
-| [Supabase](https://supabase.com)        | Postgres database + image storage | 2 projects · 500 MB DB · 1 GB storage · 50k monthly auth users |
+| [Supabase](https://supabase.com)        | Postgres database + image storage | 2 projects · 500 MB DB · 1 GB storage |
 | [Firebase](https://firebase.google.com) | User authentication         | Generous Spark plan, no credit card required                   |
 | [OpenRouter](https://openrouter.ai)     | LLM for AI roadmap, search, rewrite | Pay-as-you-go · free models available                    |
 | [Vercel](https://vercel.com)            | Hosts the Next.js app       | Hobby plan is free for non-commercial use                      |
