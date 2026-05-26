@@ -106,8 +106,8 @@ Switch flavors with the `widget` prop:
 | Path | |
 | --- | --- |
 | **Hosted** — live in under a minute, free forever | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
-| **Self-hosted** — Docker, Vercel, Supabase, bare metal | [SELFHOSTING.md](SELFHOSTING.md) |
-| **Live demo** — real board, admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
+| **Self-hosted** — live in under 30 min using Vercel, Supabase, Firebase Auth | [SELFHOSTING.md](SELFHOSTING.md) |
+| **Live demo** — real board, full admin access, no signup required | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
 > [!TIP]
 > Hosted and self-hosted share the exact same codebase. No feature-gating, ever.
