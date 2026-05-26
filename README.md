@@ -4,7 +4,10 @@
 
 **The open-source feedback platform**
 
-Collect user feedback via in-app widgets, a dedicated website, or API endpoint. Let AI turn it into actionable to-dos. Free, open-source, and unlimited.
+<p>
+<div>Collect user feedback via in-app widgets, a dedicated website, or API endpoint.</div>
+<div>Let AI turn it into actionable to-dos. Free, open-source, and unlimited.</div>
+</p>
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
