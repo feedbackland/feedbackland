@@ -49,7 +49,7 @@
 
 ## Embed the widget
 
-[Check out the widgets on the live demo](https://demo.feedbackland.com/admin/widget)
+[Check out the widgets on the live demo platform](https://demo.feedbackland.com/admin/widget)
 
 ```bash
 npm install feedbackland-react
