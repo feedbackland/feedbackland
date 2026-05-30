@@ -18,15 +18,8 @@ export function ActivityFeedHeader({ unseenCount }: { unseenCount: number }) {
   };
 
   return (
-    <div className="mb-4 flex items-start justify-between gap-4">
-      <div>
-        <h2 className="h5">Activity</h2>
-        <p className="text-muted-foreground mt-0.5 text-sm">
-          {hasUnseen
-            ? `${unseenCount} new since you last looked`
-            : "You're all caught up"}
-        </p>
-      </div>
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <h2 className="h5">Activity</h2>
 
       <Button
         variant="outline"

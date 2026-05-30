@@ -9,11 +9,9 @@ import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-drop
 import { Toggle } from "@/components/ui/toggle";
 
 export function ActivityFeedToolbar({
-  counts,
-  unseen,
+  unseenCounts,
 }: {
-  counts: Record<ActivityCategory, number>;
-  unseen: Record<ActivityCategory, boolean>;
+  unseenCounts: Record<ActivityCategory, number>;
 }) {
   const [state, setState] = useAtom(activtyFeedStateAtom);
   const { category, orderBy, status, unseenOnly } = state;
@@ -47,8 +45,7 @@ export function ActivityFeedToolbar({
     <div className="mb-4 flex flex-col gap-3">
       <ActivityCategoryFilter
         value={category}
-        counts={counts}
-        unseen={unseen}
+        unseenCounts={unseenCounts}
         commentsDisabled={status !== null}
         onChange={handleCategory}
       />
