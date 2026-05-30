@@ -150,7 +150,9 @@ main column, and a trailing action area.
   - For **unseen** rows only, a hover-revealed ghost **Mark as read** button
     (`Check` icon + tooltip) that calls `useSetActivitiesSeen([id])` without
     navigating — dismiss noise without opening it.
-- **Unseen treatment**: a 2px left accent bar (`bg-primary`) + bold title +
+- **Unseen treatment**: a 2px left accent bar (blue —
+  `border-l-blue-600` / `dark:border-l-blue-500`, the conventional "unread"
+  signal, matching the unseen dots on the filter segments) + bold title +
   very subtle row tint (`bg-muted/30`). Replaces the inline blue dot with a
   scannable inbox-style accent. Seen rows are flat.
 
