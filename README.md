@@ -2,9 +2,12 @@
 
 # Feedbackland
 
-**The open-source feedback platform with AI built in.**
+**The open-source feedback platform**
 
-Collect ideas, bugs, and requests. Drop a one-line widget into your app. AI automatically provides the insights you need to improve your product. Free, MIT, no limits.
+<p>
+<div>Collect user feedback via in-app widgets, a dedicated website, or API endpoint.</div>
+<div>Let AI turn it into actionable to-dos. Free, open-source, and unlimited.</div>
+</p>
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
@@ -29,22 +32,24 @@ Collect ideas, bugs, and requests. Drop a one-line widget into your app. AI auto
 
 ## Why Feedbackland?
 
-- **AI does the boring parts.** Duplicates cluster. Posts rank by demand. The roadmap rewrites itself as feedback lands.
+- **AI does the boring parts.** AI automatically writes your roadmap as feedback lands.
 - **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
 - **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
 - **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
 
 ## Features
 
-- Public feedback board with comments, upvotes, statuses, full-text + semantic search
+- Public feedback board with comments, upvotes, statuses, semantic search
 - Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
-- AI-generated roadmap that refreshes itself
-- Ask AI across every post, comment, and upvote
+- AI-generated roadmap
+- Ask AI anything about all your collected feedback
 - REST API to pipe feedback in from anywhere
 - SSO (Google, Microsoft) and email/password
-- Admin dashboard — moderate, tag, respond, export
+- Admin dashboard — moderate, tag, respond, export feedback
 
 ## Embed the widget
+
+[Check out the widgets on the live demo platform](https://demo.feedbackland.com/admin/widget)
 
 ```bash
 npm install feedbackland-react
@@ -57,7 +62,7 @@ import { FeedbackButton } from "feedbackland-react";
 ```
 
 > [!TIP]
-> Don't paste `your-platform-id` by hand. After you create a board, your admin panel's **Widget** page renders this snippet with the real ID pre-filled, plus a live preview and interactive controls for every prop.
+> After you create a board, your admin panel's **Widget** page renders this snippet with the real ID pre-filled, plus a live preview and interactive controls for every prop.
 
 Two flavors:
 
@@ -101,8 +106,8 @@ Switch flavors with the `widget` prop:
 | Path | |
 | --- | --- |
 | **Hosted** — live in under a minute, free forever | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
-| **Self-hosted** — Docker, Vercel, Supabase, bare metal | [SELFHOSTING.md](SELFHOSTING.md) |
-| **Live demo** — real board, admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
+| **Self-hosted** — live in under 30 min using Vercel, Supabase, Firebase Auth | [SELFHOSTING.md](SELFHOSTING.md) |
+| **Live demo** — real board, full admin access, no signup required | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
 > [!TIP]
 > Hosted and self-hosted share the exact same codebase. No feature-gating, ever.
