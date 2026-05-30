@@ -56,8 +56,12 @@ export function ActivityFeedToolbar({
           pressed={unseenOnly}
           onPressedChange={handleUnseen}
           aria-label="Show unseen only"
-          className="self-start px-3 sm:self-auto"
+          className="group/unseen data-[state=on]:border-primary data-[state=on]:bg-accent self-start px-3 sm:self-auto"
         >
+          <span
+            aria-hidden
+            className="size-2 rounded-full bg-muted-foreground/40 transition-colors group-data-[state=on]/unseen:bg-blue-600 dark:group-data-[state=on]/unseen:bg-blue-500"
+          />
           Unseen only
         </Toggle>
 
