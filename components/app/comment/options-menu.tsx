@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -113,7 +113,7 @@ export function CommentsOptionsMenu({
             )}
             <DropdownMenuItem
               onClick={() => setIsDeleteConfirmationOpen(true)}
-              className="text-red-700! hover:bg-red-700/5! dark:text-red-500! dark:hover:bg-red-500/10!"
+              className="text-destructive focus:text-destructive focus:bg-destructive/10"
             >
               Delete comment
             </DropdownMenuItem>
@@ -141,6 +141,7 @@ export function CommentsOptionsMenu({
               <AlertDialogAction
                 onClick={handleDelete}
                 disabled={deleteComment.isPending}
+                className={buttonVariants({ variant: "destructive" })}
               >
                 Delete
               </AlertDialogAction>
