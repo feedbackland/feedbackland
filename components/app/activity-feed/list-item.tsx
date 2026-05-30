@@ -5,18 +5,34 @@ import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
-import Link from "next/link";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import Link from "next/link";
+import {
+  ArrowBigUp,
   BadgeAlert,
-  BugIcon,
-  Inbox,
+  Check,
   Lightbulb,
   MessageSquare,
   NotebookText,
+  UserIcon,
 } from "lucide-react";
+
+function CategoryIcon({ item }: { item: ActivityFeedItem }) {
+  const className = "size-4";
+  if (item.type === "comment") return <MessageSquare className={className} />;
+  if (item.category === "idea") return <Lightbulb className={className} />;
+  if (item.category === "issue") return <BadgeAlert className={className} />;
+  return <NotebookText className={className} />;
+}
 
 export function ActivityFeedListItem({
   item,
@@ -28,95 +44,136 @@ export function ActivityFeedListItem({
   const platformUrl = usePlatformUrl();
   const setActivitySeen = useSetActivitiesSeen();
 
-  const { status, type, category, createdAt, title, content, postId } = item;
+  const {
+    id,
+    postId,
+    type,
+    category,
+    status,
+    title,
+    content,
+    createdAt,
+    upvotes,
+    commentCount,
+    authorName,
+    authorPhotoURL,
+    isSeen,
+  } = item;
 
-  const handleOnClick = (itemId: string) => {
-    setActivitySeen?.mutate({
-      itemIds: [itemId],
-    });
-  };
+  const isComment = type === "comment";
+  const isUnseen = !isSeen;
+
+  const markSeen = () => setActivitySeen?.mutate({ itemIds: [id] });
 
   return (
     <div
       className={cn(
-        "border-border flex flex-1 items-center gap-6 border-b py-4 pr-2 pl-3",
+        "group/item border-border relative flex items-start gap-3 border-b border-l-2 py-4 pr-2 pl-3 transition-colors",
+        isUnseen ? "border-l-primary bg-muted/30" : "border-l-transparent",
         className,
       )}
     >
-      <div className="flex flex-1 items-stretch gap-2">
-        <div className="border-border flex items-center justify-center rounded-md border px-3 shadow-xs">
-          {item.type === "comment" && <MessageSquare className="size-4!" />}
+      <div className="text-muted-foreground border-border bg-background mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border">
+        <CategoryIcon item={item} />
+      </div>
 
-          {item.type !== "comment" && category === "idea" && (
-            <Lightbulb className="size-4!" />
+      <Link
+        href={`${platformUrl}/${postId}`}
+        onClick={markSeen}
+        className="group/link flex min-w-0 flex-1 flex-col items-stretch"
+      >
+        <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
+          {isComment ? (
+            <span className="truncate">
+              Comment · <span className="text-foreground/80">"{title}"</span>
+            </span>
+          ) : (
+            <span className="capitalize">
+              {capitalizeFirstLetter(category || "")}
+            </span>
           )}
-
-          {item.type !== "comment" && category === "general feedback" && (
-            <NotebookText className="size-4!" />
-          )}
-
-          {item.type !== "comment" && category === "issue" && (
-            <BadgeAlert className="size-4!" />
+          {!isComment && status && (
+            <>
+              <span className="text-[8px]">•</span>
+              <span
+                className={cn("capitalize", `text-${status.replace(" ", "-")}`)}
+              >
+                {status}
+              </span>
+            </>
           )}
         </div>
 
-        <Link
-          key={item.id}
-          href={`${platformUrl}/${item.postId}`}
-          onClick={() => handleOnClick(item.id)}
-          className="group flex flex-1 flex-col items-stretch hover:cursor-pointer"
-        >
-          <div className="text-muted-foreground mb-0.5 flex flex-wrap items-center gap-1 text-xs font-normal">
-            <span className="capitalize">
-              {capitalizeFirstLetter(
-                type === "comment" ? type : category || "",
-              )}
-            </span>
-            <span className="text-[8px]">•</span>
-            <span>{timeAgo.format(createdAt, "mini-now")} ago</span>
-            {status && (
-              <>
-                <span className="text-[8px]">•</span>
-                <span
-                  className={cn(
-                    "capitalize",
-                    `text-${status.replace(" ", "-")}`,
-                  )}
-                >
-                  {status}
-                </span>
-              </>
-            )}
-          </div>
-
+        {!isComment && (
           <h3
             className={cn(
-              "mb-2 flex items-center gap-2.5 text-sm font-semibold group-hover:underline",
+              "mt-0.5 text-sm group-hover/link:underline",
+              isUnseen ? "font-semibold" : "font-medium",
             )}
           >
-            <span>{title}</span>
-            {!item.isSeen && (
-              <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-500" />
-            )}
+            {title}
           </h3>
+        )}
 
-          <TiptapOutput
-            content={content}
-            forbiddenTags={["a", "pre", "img"]}
-            className={cn(
-              "text-muted-foreground! line-clamp-4 text-sm!",
-              !item.isSeen && "font-semibold!",
-            )}
-          />
-        </Link>
+        <TiptapOutput
+          content={content}
+          forbiddenTags={["a", "pre", "img"]}
+          className={cn(
+            "text-muted-foreground! mt-1 line-clamp-1 text-sm! sm:line-clamp-2",
+            isComment && isUnseen && "text-foreground! font-medium!",
+          )}
+        />
 
-        <div className="-mt-2">
-          {type === "comment" ? (
-            <CommentsOptionsMenu postId={postId} commentId={item.id} />
-          ) : (
-            <FeedbackPostOptionsMenu postId={postId} />
+        <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          <span className="flex items-center gap-1.5">
+            <Avatar className="size-4">
+              <AvatarImage src={authorPhotoURL || undefined} alt="" />
+              <AvatarFallback className="text-[9px]">
+                {authorName?.charAt(0) || <UserIcon className="size-2.5" />}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-foreground/80 font-medium">
+              {authorName || "Anonymous"}
+            </span>
+          </span>
+          <span className="text-[8px]">•</span>
+          <span>{timeAgo.format(createdAt, "mini-now")} ago</span>
+          <span className="text-[8px]">•</span>
+          <span className="flex items-center gap-0.5">
+            <ArrowBigUp className="size-3.5" />
+            {upvotes}
+          </span>
+          {!isComment && (
+            <span className="flex items-center gap-0.5">
+              <MessageSquare className="size-3" />
+              {commentCount ?? 0}
+            </span>
           )}
         </div>
+      </Link>
+
+      <div className="flex shrink-0 items-center gap-0.5">
+        {isUnseen && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Mark as read"
+                onClick={markSeen}
+                className="text-muted-foreground hover:text-primary size-7 opacity-0 transition-opacity group-hover/item:opacity-100 focus-visible:opacity-100"
+              >
+                <Check className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Mark as read</TooltipContent>
+          </Tooltip>
+        )}
+        {isComment ? (
+          <CommentsOptionsMenu postId={postId} commentId={id} />
+        ) : (
+          <FeedbackPostOptionsMenu postId={postId} />
+        )}
       </div>
     </div>
   );
