@@ -53,25 +53,28 @@ export function ActivityFeedToolbar({
         onChange={handleCategory}
       />
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Toggle
           variant="outline"
-          size="sm"
           pressed={unseenOnly}
           onPressedChange={handleUnseen}
           aria-label="Show unseen only"
-          className="shrink-0"
+          className="self-start px-3 sm:self-auto"
         >
           Unseen only
         </Toggle>
 
-        <div className="flex min-w-0 items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <SortingFilteringDropdown
             orderBy={orderBy}
             status={status}
             onChange={handleSortingFiltering}
+            variant="outline"
           />
-          <ActivityFeedSearchInput onDebouncedChange={handleSearch} />
+          <ActivityFeedSearchInput
+            onDebouncedChange={handleSearch}
+            className="w-full sm:w-64"
+          />
         </div>
       </div>
     </div>

@@ -69,7 +69,9 @@ export function ActivityFeedListItem({
     <div
       className={cn(
         "group/item border-border relative flex items-start gap-3 border-b border-l-2 py-4 pr-2 pl-3 transition-colors",
-        isUnseen ? "border-l-blue-600 bg-muted/30 dark:border-l-blue-500" : "border-l-transparent",
+        isUnseen
+          ? "border-l-blue-600 bg-muted/30 dark:border-l-blue-500"
+          : "border-l-transparent",
         className,
       )}
     >
@@ -126,10 +128,10 @@ export function ActivityFeedListItem({
 
         <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
           <span className="flex items-center gap-1.5">
-            <Avatar className="size-4">
+            <Avatar className="size-5">
               <AvatarImage src={authorPhotoURL || undefined} alt="" />
-              <AvatarFallback className="text-[9px]">
-                {authorName?.charAt(0) || <UserIcon className="size-2.5" />}
+              <AvatarFallback className="text-[10px]">
+                {authorName?.charAt(0) || <UserIcon className="size-3" />}
               </AvatarFallback>
             </Avatar>
             <span className="text-foreground/80 font-medium">
@@ -139,13 +141,13 @@ export function ActivityFeedListItem({
           <span className="text-[8px]">•</span>
           <span>{timeAgo.format(createdAt, "mini-now")} ago</span>
           <span className="text-[8px]">•</span>
-          <span className="flex items-center gap-0.5">
+          <span className="flex items-center gap-0.5 tabular-nums">
             <ArrowBigUp className="size-3.5" />
             {upvotes}
           </span>
           {!isComment && (
-            <span className="flex items-center gap-0.5">
-              <MessageSquare className="size-3" />
+            <span className="flex items-center gap-0.5 tabular-nums">
+              <MessageSquare className="size-3.5" />
               {commentCount ?? 0}
             </span>
           )}
@@ -161,7 +163,7 @@ export function ActivityFeedListItem({
                 size="icon"
                 aria-label="Mark as read"
                 onClick={markSeen}
-                className="text-muted-foreground hover:text-primary size-7 opacity-0 transition-opacity group-hover/item:opacity-100 focus-visible:opacity-100"
+                className="text-muted-foreground hover:text-primary h-fit w-fit px-1.5 py-1.5 opacity-0 transition-opacity group-hover/item:opacity-100 focus-visible:opacity-100"
               >
                 <Check className="size-4" />
               </Button>

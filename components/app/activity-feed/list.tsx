@@ -103,7 +103,7 @@ export function ActivityFeedList() {
             {isFetchingNextPage ? "Loading more activity" : ""}
           </span>
           {isFetchingNextPage && (
-            <div className="flex items-center justify-start gap-2 p-4">
+            <div className="border-border text-muted-foreground flex items-center justify-start gap-2 border-t p-4">
               <Spinner />
               <span className="text-sm">Loading more activity...</span>
             </div>

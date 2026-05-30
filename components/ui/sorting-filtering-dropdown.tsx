@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FeedbackOrderBy, FeedbackStatus } from "@/lib/typings";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 export function SortingFilteringDropdown({
   orderBy,
   status,
   onChange,
+  variant = "link",
 }: {
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
@@ -26,6 +27,7 @@ export function SortingFilteringDropdown({
     orderBy: FeedbackOrderBy;
     status: FeedbackStatus;
   }) => void;
+  variant?: "link" | "outline";
 }) {
   const getDropdownName = () => {
     let orderByName = "Newest";
@@ -41,9 +43,9 @@ export function SortingFilteringDropdown({
         {orderByName}
         {status && ", "}
         {status && (
-          <div className={cn(`text-${status.replace(" ", "-")}`)}>
+          <span className={cn(`text-${status.replace(" ", "-")}`)}>
             {capitalizeFirstLetter(status)}
-          </div>
+          </span>
         )}
       </>
     );
@@ -60,13 +62,21 @@ export function SortingFilteringDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="link"
-          className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
-        >
-          {getDropdownName()}
-          <ChevronDown className="size-3.5!" />
-        </Button>
+        {variant === "outline" ? (
+          <Button variant="outline" className="gap-1.5">
+            <ArrowUpDown className="size-3.5!" />
+            <span className="truncate">{getDropdownName()}</span>
+            <ChevronDown className="text-muted-foreground size-3.5!" />
+          </Button>
+        ) : (
+          <Button
+            variant="link"
+            className="text-muted-foreground hover:text-primary h-auto p-0 hover:no-underline"
+          >
+            {getDropdownName()}
+            <ChevronDown className="size-3.5!" />
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="flex w-full flex-row">
         <DropdownMenuRadioGroup
@@ -84,8 +94,6 @@ export function SortingFilteringDropdown({
             Most commented
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
-
-        {/* <DropdownMenuSeparator /> */}
 
         <DropdownMenuRadioGroup
           value={status ? status : "all"}

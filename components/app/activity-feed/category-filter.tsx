@@ -46,9 +46,9 @@ export function ActivityCategoryFilter({
           key={seg.value}
           value={seg.value}
           disabled={seg.value === "comments" && commentsDisabled}
-          aria-label={`${seg.label}, ${counts[seg.value]} items${
-            unseen[seg.value] ? ", has new" : ""
-          }`}
+          aria-label={`${seg.label}, ${counts[seg.value]} ${
+            counts[seg.value] === 1 ? "item" : "items"
+          }${unseen[seg.value] ? ", has new" : ""}`}
           className="data-[state=on]:border-primary data-[state=on]:bg-accent shrink-0 gap-1.5 whitespace-nowrap"
         >
           <span>{seg.label}</span>
