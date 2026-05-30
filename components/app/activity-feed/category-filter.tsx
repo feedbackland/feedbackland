@@ -1,7 +1,6 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
 
 export type ActivityCategory =
   | "all"
@@ -38,7 +37,7 @@ export function ActivityCategoryFilter({
       onValueChange={(v) => {
         if (v) onChange(v as ActivityCategory);
       }}
-      className="w-fit max-w-full justify-start gap-0 overflow-x-auto rounded-md shadow-xs"
+      className="w-full justify-start gap-1.5 overflow-x-auto"
     >
       {SEGMENTS.map((seg) => {
         const count = unseenCounts[seg.value] ?? 0;
@@ -48,11 +47,7 @@ export function ActivityCategoryFilter({
             value={seg.value}
             disabled={seg.value === "comments" && commentsDisabled}
             aria-label={`${seg.label}${count > 0 ? `, ${count} new` : ""}`}
-            className={cn(
-              "shrink-0 gap-1.5 rounded-none border-l-0 px-3 whitespace-nowrap shadow-none",
-              "first:rounded-l-md first:border-l last:rounded-r-md",
-              "data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
-            )}
+            className="data-[state=on]:border-primary data-[state=on]:bg-accent shrink-0 gap-1.5 px-3 whitespace-nowrap"
           >
             <span>{seg.label}</span>
             {count > 0 && (
