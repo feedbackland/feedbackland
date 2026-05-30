@@ -69,7 +69,7 @@ export function ActivityFeedListItem({
     <div
       className={cn(
         "group/item border-border relative flex items-start gap-3 border-b border-l-2 py-4 pr-2 pl-3 transition-colors",
-        isUnseen ? "border-l-primary bg-muted/30" : "border-l-transparent",
+        isUnseen ? "border-l-blue-600 bg-muted/30 dark:border-l-blue-500" : "border-l-transparent",
         className,
       )}
     >

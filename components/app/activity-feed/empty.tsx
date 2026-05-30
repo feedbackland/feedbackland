@@ -9,7 +9,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
-import { CheckCheck, Inbox, SearchX } from "lucide-react";
+import { CheckCheck, Inbox, ListFilter, SearchX } from "lucide-react";
 
 export type ActivityEmptyVariant =
   | "platform"
@@ -45,7 +45,7 @@ export function ActivityFeedEmpty({
       actionLabel: "Clear search",
     },
     filter: {
-      icon: <SearchX />,
+      icon: <ListFilter />,
       title: "Nothing here",
       description: "No activity matches the current filters.",
       actionLabel: "Reset filters",
