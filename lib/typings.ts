@@ -50,6 +50,7 @@ export type ActivityFeedItem = {
   commentCount: string | null;
   authorId: string | null;
   authorName?: string | null;
+  authorPhotoURL?: string | null;
   isSeen?: boolean;
 };
 

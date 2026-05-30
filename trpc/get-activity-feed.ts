@@ -47,6 +47,7 @@ export const getActivityFeed = adminProcedure
             excludeFeedback,
             excludeComments,
             searchValue,
+            unseenOnly: false,
           });
 
         return {
