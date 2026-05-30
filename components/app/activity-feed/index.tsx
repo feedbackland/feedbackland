@@ -14,11 +14,7 @@ export function ActivityFeed() {
   const totalUnseen = metaData?.totalUnseenCount ?? 0;
 
   const counts: Record<ActivityCategory, number> = {
-    all:
-      (metaData?.totalIdeasPostCount ?? 0) +
-      (metaData?.totalIssuesPostCount ?? 0) +
-      (metaData?.totalGeneralFeedbackPostCount ?? 0) +
-      (metaData?.totalCommentCount ?? 0),
+    all: (metaData?.totalPostCount ?? 0) + (metaData?.totalCommentCount ?? 0),
     idea: metaData?.totalIdeasPostCount ?? 0,
     issue: metaData?.totalIssuesPostCount ?? 0,
     "general feedback": metaData?.totalGeneralFeedbackPostCount ?? 0,

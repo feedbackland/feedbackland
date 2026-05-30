@@ -72,6 +72,9 @@ export const getActivityFeedMetaDataQuery = async ({
         sql<number>`COUNT(CASE WHEN activity.type = 'comment' THEN 1 END)::int`.as(
           "totalCommentCount",
         ),
+        sql<number>`COUNT(CASE WHEN activity.type = 'post' THEN 1 END)::int`.as(
+          "totalPostCount",
+        ),
       ]);
 
     const counts = await finalQuery.executeTakeFirst();
@@ -87,6 +90,7 @@ export const getActivityFeedMetaDataQuery = async ({
       totalIssuesPostCount: counts?.totalIssuesPostCount ?? 0,
       totalGeneralFeedbackPostCount: counts?.totalGeneralFeedbackPostCount ?? 0,
       totalCommentCount: counts?.totalCommentCount ?? 0,
+      totalPostCount: counts?.totalPostCount ?? 0,
     };
   } catch (error) {
     throw error;
