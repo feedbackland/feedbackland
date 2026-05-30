@@ -29,10 +29,10 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
     return (
       <div>
         <Tabs
-          className="relative h-10 w-full overflow-x-auto overflow-y-hidden"
           value={getValue()}
+          className="w-full overflow-x-auto overflow-y-hidden"
         >
-          <TabsList className="absolute flex h-10">
+          <TabsList className="w-max">
             <TabsTrigger value="activity" asChild>
               <Link href={`${adminBasePath}/activity`}>Activity</Link>
             </TabsTrigger>
