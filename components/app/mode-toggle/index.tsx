@@ -17,8 +17,8 @@ export function ModeToggle() {
       <TooltipTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground relative size-8!"
+          size="icon-sm"
+          className="text-muted-foreground hover:text-foreground relative"
           onClick={() =>
             setTheme((theme) => (theme === "dark" ? "light" : "dark"))
           }
