@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import {
   FeedbackCategories,
@@ -8,7 +8,6 @@ import {
 
 export function useActivityFeed({
   enabled,
-  page,
   pageSize,
   orderBy,
   status,
@@ -16,9 +15,9 @@ export function useActivityFeed({
   excludeFeedback,
   excludeComments,
   searchValue,
+  unseenOnly,
 }: {
   enabled: boolean;
-  page: number;
   pageSize: number;
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
@@ -26,11 +25,11 @@ export function useActivityFeed({
   excludeFeedback: boolean;
   excludeComments: boolean;
   searchValue: string;
+  unseenOnly: boolean;
 }) {
   const trpc = useTRPC();
-  const trpcQuery = trpc.getActivityFeed.queryOptions(
+  const trpcQuery = trpc.getActivityFeed.infiniteQueryOptions(
     {
-      page,
       pageSize,
       orderBy,
       status,
@@ -38,12 +37,14 @@ export function useActivityFeed({
       excludeFeedback,
       excludeComments,
       searchValue,
+      unseenOnly,
     },
     {
       enabled,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
     },
   );
   const queryKey = trpcQuery.queryKey;
-  const query = useQuery(trpcQuery);
+  const query = useInfiniteQuery(trpcQuery);
   return { queryKey, query };
 }

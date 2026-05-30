@@ -1,53 +1,42 @@
 "use client";
 
+import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
+import { ActivityFeedHeader } from "./header";
+import { ActivityFeedToolbar } from "./toolbar";
 import { ActivityFeedList } from "./list";
-import { Button } from "@/components/ui/button";
-import { useSetAllActivitiesSeen } from "@/hooks/use-set-all-activities-seen";
-import { Check, Eye } from "lucide-react";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-import { useState } from "react";
+import { ActivityCategory } from "./category-filter";
 
 export function ActivityFeed() {
-  const [isCompleted, setIsCompleted] = useState(false);
+  const {
+    query: { data: metaData },
+  } = useActivityFeedMetaData({ enabled: true });
 
-  const allActivitiesSeen = useSetAllActivitiesSeen();
+  const totalUnseen = metaData?.totalUnseenCount ?? 0;
 
-  const handleOnClick = async () => {
-    await allActivitiesSeen.mutateAsync();
-    setIsCompleted(true);
-    setTimeout(() => setIsCompleted(false), 3000);
+  const counts: Record<ActivityCategory, number> = {
+    all:
+      (metaData?.totalIdeasPostCount ?? 0) +
+      (metaData?.totalIssuesPostCount ?? 0) +
+      (metaData?.totalGeneralFeedbackPostCount ?? 0) +
+      (metaData?.totalCommentCount ?? 0),
+    idea: metaData?.totalIdeasPostCount ?? 0,
+    issue: metaData?.totalIssuesPostCount ?? 0,
+    "general feedback": metaData?.totalGeneralFeedbackPostCount ?? 0,
+    comments: metaData?.totalCommentCount ?? 0,
+  };
+
+  const unseen: Record<ActivityCategory, boolean> = {
+    all: totalUnseen > 0,
+    idea: (metaData?.unseenIdeasPostCount ?? 0) > 0,
+    issue: (metaData?.unseenIssuesPostCount ?? 0) > 0,
+    "general feedback": (metaData?.unseenGeneralFeedbackPostCount ?? 0) > 0,
+    comments: (metaData?.unseenCommentCount ?? 0) > 0,
   };
 
   return (
-    <div className="">
-      <div className="-mt-1 mb-5 flex items-center justify-between">
-        <h2 className="h5">Activity</h2>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              loading={allActivitiesSeen.isPending}
-              onClick={handleOnClick}
-              variant="outline"
-              size="icon"
-            >
-              {isCompleted ? (
-                <>
-                  <Check className="size-4" />
-                </>
-              ) : (
-                <>
-                  <Eye className="size-4" />
-                </>
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Mark all activities as read</TooltipContent>
-        </Tooltip>
-      </div>
+    <div>
+      <ActivityFeedHeader unseenCount={totalUnseen} />
+      <ActivityFeedToolbar counts={counts} unseen={unseen} />
       <ActivityFeedList />
     </div>
   );
