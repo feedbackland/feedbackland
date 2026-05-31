@@ -17,6 +17,7 @@ export function SortingFilteringDropdown({
   status,
   onChange,
   variant = "link",
+  className,
 }: {
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
@@ -28,6 +29,7 @@ export function SortingFilteringDropdown({
     status: FeedbackStatus;
   }) => void;
   variant?: "link" | "outline";
+  className?: string;
 }) {
   const getDropdownName = () => {
     let orderByName = "Newest";
@@ -63,7 +65,7 @@ export function SortingFilteringDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {variant === "outline" ? (
-          <Button variant="outline" className="gap-1.5">
+          <Button variant="outline" className={cn("gap-1.5", className)}>
             <ArrowUpDown className="size-3.5!" />
             <span className="truncate">{getDropdownName()}</span>
             <ChevronDown className="text-muted-foreground size-3.5!" />
