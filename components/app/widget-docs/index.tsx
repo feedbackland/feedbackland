@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
 import { useVercelUrl } from "@/hooks/use-vercel-url";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 import {
   buildPlaygroundSnippet,
   type Variant,
@@ -58,6 +59,7 @@ export function WidgetDocs({
 }) {
   const isSelfHosted = useIsSelfHosted();
   const vercelUrl = useVercelUrl();
+  const platformUrl = usePlatformUrl();
 
   const [widget, setWidget] = useState<Widget>("drawer");
   const [text, setText] = useState("Feedback");
@@ -65,25 +67,47 @@ export function WidgetDocs({
   const [size, setSize] = useState<Size>("default");
   const [className, setClassName] = useState("");
 
-  // Self-hosted instances need an explicit `url` so the widget knows
-  // where to load the board iframe from.
-  const url = useMemo(() => {
+  // URL baked into the copyable snippet. Hosted customers omit it (the widget
+  // resolves the board from `platformId`); self-hosted instances need it
+  // explicit so the widget knows where to load the board iframe from.
+  const snippetUrl = useMemo(() => {
     if (!isSelfHosted || !vercelUrl) return undefined;
     return `${vercelUrl}/${orgSubdomain}`;
   }, [isSelfHosted, vercelUrl, orgSubdomain]);
+
+  // URL the live preview actually embeds: always the board at the current
+  // origin — the admin's own board, whether that's the local dev server, a
+  // self-hosted instance, or their hosted subdomain. Without this the preview
+  // falls back to the production `<orgId>.feedbackland.com` board that
+  // `platformId` alone resolves to, so a local/self-hosted admin would preview
+  // (and submit feedback to) the wrong board entirely. Guarded to a valid
+  // absolute http(s) URL so a transient null/relative value (e.g. mid HMR
+  // reload) is never forwarded to the widget as a malformed `url` prop.
+  const previewUrl = useMemo(() => {
+    const candidate = platformUrl ?? snippetUrl;
+    if (!candidate) return undefined;
+    try {
+      const { protocol } = new URL(candidate);
+      return protocol === "http:" || protocol === "https:"
+        ? candidate
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [platformUrl, snippetUrl]);
 
   const snippet = useMemo(
     () =>
       buildPlaygroundSnippet({
         orgId,
-        url,
+        url: snippetUrl,
         widget,
         text,
         variant,
         size,
         className,
       }),
-    [orgId, url, widget, text, variant, size, className],
+    [orgId, snippetUrl, widget, text, variant, size, className],
   );
 
   return (
@@ -216,7 +240,7 @@ export function WidgetDocs({
           <div className="relative flex min-h-[140px] w-full items-center justify-center px-4 py-8">
             <FeedbackButton
               platformId={orgId}
-              url={url}
+              url={previewUrl}
               widget={widget}
               text={text || "Feedback"}
               variant={variant}

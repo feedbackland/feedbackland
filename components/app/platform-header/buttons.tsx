@@ -28,11 +28,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useInIframe } from "@/hooks/use-in-iframe";
+import { useIsDrawerEmbed } from "@/providers/embed";
 import { ModeToggle } from "@/components/app/mode-toggle";
 
 export function PlatformHeaderButtons() {
-  const inIframe = useInIframe();
+  const isDrawerEmbed = useIsDrawerEmbed();
   const pathname = usePathname();
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const [isAccountSettingsDialogOpen, setIsAccountSettingsDialogOpen] =
@@ -63,7 +63,7 @@ export function PlatformHeaderButtons() {
           <Link
             className="xs:block hidden"
             href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
-            target={inIframe ? "_blank" : "_self"}
+            target={isDrawerEmbed ? "_blank" : "_self"}
           >
             <Button variant="ghost" size="sm">
               {isAdminPage ? (

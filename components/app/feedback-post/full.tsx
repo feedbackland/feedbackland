@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { FeedbackPostOptionsMenu } from "./options-menu";
 import { FeedbackPostEdit } from "./edit";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
-import { useWindowSize } from "react-use";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { Badge } from "@/components/ui/badge";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,7 +24,7 @@ export function FeedbackPostFull({
   className?: React.ComponentProps<"div">["className"];
   onLoaded?: () => void;
 }) {
-  const { width } = useWindowSize();
+  const isDesktop = useIsDesktop();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -46,7 +46,7 @@ export function FeedbackPostFull({
             <Skeleton className="size-8 shrink-0 rounded-lg" />
             <Skeleton className="h-7 w-3/5" />
           </div>
-          {width < 768 && (
+          {!isDesktop && (
             <div className="mt-1 flex items-center gap-1.5">
               <Skeleton className="h-3 w-28" />
               <Skeleton className="h-3 w-10" />
@@ -110,7 +110,7 @@ export function FeedbackPostFull({
                   />
                 </div>
               </div>
-              {width < 768 && (
+              {!isDesktop && (
                 <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-normal">
                   <span>Posted by {authorName || "Anonymous user"}</span>
                   <span className="text-muted-foreground/50">·</span>

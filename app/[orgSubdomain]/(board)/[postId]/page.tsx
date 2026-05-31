@@ -5,15 +5,15 @@ import { FeedbackPostFull } from "@/components/app/feedback-post/full";
 import { CommentForm } from "@/components/app/comment-form";
 import { Comments } from "@/components/app/comments";
 import FeedbackPostSidebar from "@/components/app/feedback-post-sidebar";
-import { useWindowSize } from "react-use";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export default function FeedbackPostPage() {
-  const { width } = useWindowSize();
+  const isDesktop = useIsDesktop();
   const { postId } = useParams<{ postId: string }>();
 
   return (
     <div className="flex flex-row items-start gap-11">
-      {width >= 768 && <FeedbackPostSidebar postId={postId} />}
+      {isDesktop && <FeedbackPostSidebar postId={postId} />}
       <div className="border-border bg-background w-full min-w-0 flex-1 rounded-lg border shadow-xs">
         <div className="p-5">
           <FeedbackPostFull postId={postId} />

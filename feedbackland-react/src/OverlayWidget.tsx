@@ -39,6 +39,13 @@ const READY_FALLBACK_SHORT_MS = 2500;
 const LOADING_MESSAGE = "feedbackland:loading";
 const READY_MESSAGE = "feedbackland:ready";
 
+// Tells the embedded board it is being rendered inside this slide-in drawer
+// (rather than standalone), so it can tailor its chrome — currently it hides its
+// page header so the feedback form is the topmost element. An explicit signal,
+// not iframe-detection, so a board embedded some other way is unaffected. Read
+// on the board side by `EmbedProvider` (providers/embed.tsx).
+const EMBED_SURFACE = "drawer";
+
 // Module-level reference counter so multiple <FeedbackButton> instances
 // targeting the same domain share a single <link rel="preconnect"> element
 // rather than duplicating it on every mount.
@@ -132,7 +139,11 @@ export const OverlayWidget = memo(
 
     const platformUrl = useMemo(() => {
       if (!boardUrl) return undefined;
-      return `${boardUrl}?mode=${isDarkMode ? "dark" : "light"}`;
+      const params = new URLSearchParams({
+        mode: isDarkMode ? "dark" : "light",
+        embed: EMBED_SURFACE,
+      });
+      return `${boardUrl}?${params.toString()}`;
     }, [boardUrl, isDarkMode]);
 
     // True when neither a parseable `url` nor a valid-UUID `platformId` was

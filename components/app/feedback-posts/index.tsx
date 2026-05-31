@@ -9,10 +9,10 @@ import { FeedbackPostsLoading } from "./loading";
 import { SortingFilteringDropdown } from "@/components/ui/sorting-filtering-dropdown";
 import { feedbackPostsStateAtom, previousPathnameAtom } from "@/lib/atoms";
 import { useAtom, useAtomValue } from "jotai";
-import { useInIframe } from "@/hooks/use-in-iframe";
+import { useIsDrawerEmbed } from "@/providers/embed";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { cn, isUuidV4 } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useWindowSize } from "react-use";
 import { FeedbackPostsEmpty } from "./empty";
 import { Separator } from "@/components/ui/separator";
 
@@ -30,12 +30,12 @@ function isInViewport(el: Element) {
 }
 
 export function FeedbackPosts() {
-  const { width } = useWindowSize();
+  const isDesktop = useIsDesktop();
   const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
   const [feedbackPostsState, setFeedbackPostsState] = useAtom(
     feedbackPostsStateAtom,
   );
-  const inIframe = useInIframe();
+  const isDrawerEmbed = useIsDrawerEmbed();
   const previousPathname = useAtomValue(previousPathnameAtom);
   const previousPathnameLastSegment = previousPathname?.split("/").pop();
   const postIdToScrollIntoView = isUuidV4(previousPathnameLastSegment || "")
@@ -89,7 +89,7 @@ export function FeedbackPosts() {
 
   useEffect(() => {
     if (
-      inIframe &&
+      isDrawerEmbed &&
       postIdToScrollIntoView &&
       !isScrolledIntoView &&
       !isPending
@@ -108,7 +108,7 @@ export function FeedbackPosts() {
         }, 20);
       }
     }
-  }, [inIframe, postIdToScrollIntoView, isScrolledIntoView, isPending]);
+  }, [isDrawerEmbed, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
   const hasPosts =
     !isPending && !isError && Array.isArray(posts) && posts.length > 0;
@@ -125,7 +125,7 @@ export function FeedbackPosts() {
   return (
     <div className="">
       {!!((!isPending && !isPlatformEmpty) || isSearchActive) &&
-        width < 768 && (
+        !isDesktop && (
           <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-4">
             <SortingFilteringDropdown
               orderBy={orderBy}

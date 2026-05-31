@@ -4,16 +4,16 @@ import { cn } from "@/lib/utils";
 import { FeedbackPostsSidebarSearch } from "./search";
 import FeedbackPostsSidebarFilter from "./filter";
 import FeedbackPostsSidebarOrder from "./order";
-import { useWindowSize } from "react-use";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export default function FeedbackPostsSidebar({
   className,
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const { width } = useWindowSize();
+  const isDesktop = useIsDesktop();
 
-  if (width >= 768) {
+  if (isDesktop) {
     return (
       <div
         className={cn(
