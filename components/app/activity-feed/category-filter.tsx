@@ -1,6 +1,15 @@
 "use client";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, Tag } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export type ActivityCategory =
   | "all"
@@ -9,12 +18,16 @@ export type ActivityCategory =
   | "general feedback"
   | "comments";
 
-const SEGMENTS: { value: ActivityCategory; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "idea", label: "Ideas" },
-  { value: "issue", label: "Issues" },
-  { value: "general feedback", label: "General" },
-  { value: "comments", label: "Comments" },
+const SEGMENTS: {
+  value: ActivityCategory;
+  trigger: string;
+  item: string;
+}[] = [
+  { value: "all", trigger: "All types", item: "All activity" },
+  { value: "idea", trigger: "Ideas", item: "Ideas" },
+  { value: "issue", trigger: "Issues", item: "Issues" },
+  { value: "general feedback", trigger: "General", item: "General" },
+  { value: "comments", trigger: "Comments", item: "Comments" },
 ];
 
 export function ActivityCategoryFilter({
@@ -22,42 +35,51 @@ export function ActivityCategoryFilter({
   unseenCounts,
   commentsDisabled,
   onChange,
+  className,
 }: {
   value: ActivityCategory;
   unseenCounts: Record<ActivityCategory, number>;
   commentsDisabled: boolean;
   onChange: (value: ActivityCategory) => void;
+  className?: string;
 }) {
+  const active = SEGMENTS.find((s) => s.value === value) ?? SEGMENTS[0];
+
   return (
-    <ToggleGroup
-      type="single"
-      variant="outline"
-      size="sm"
-      value={value}
-      onValueChange={(v) => {
-        if (v) onChange(v as ActivityCategory);
-      }}
-      className="w-full justify-start gap-1.5 overflow-x-auto"
-    >
-      {SEGMENTS.map((seg) => {
-        const count = unseenCounts[seg.value] ?? 0;
-        return (
-          <ToggleGroupItem
-            key={seg.value}
-            value={seg.value}
-            disabled={seg.value === "comments" && commentsDisabled}
-            aria-label={`${seg.label}${count > 0 ? `, ${count} new` : ""}`}
-            className="data-[state=on]:border-primary data-[state=on]:bg-accent shrink-0 gap-1.5 px-3 whitespace-nowrap"
-          >
-            <span>{seg.label}</span>
-            {count > 0 && (
-              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-medium tabular-nums text-white dark:bg-blue-500">
-                {count}
-              </span>
-            )}
-          </ToggleGroupItem>
-        );
-      })}
-    </ToggleGroup>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className={cn("gap-1.5", className)}>
+          <Tag className="size-3.5!" />
+          <span className="truncate">{active.trigger}</span>
+          <ChevronDown className="text-muted-foreground size-3.5!" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(v) => onChange(v as ActivityCategory)}
+        >
+          {SEGMENTS.map((seg) => {
+            const count = unseenCounts[seg.value] ?? 0;
+            const disabled = seg.value === "comments" && commentsDisabled;
+            return (
+              <DropdownMenuRadioItem
+                key={seg.value}
+                value={seg.value}
+                disabled={disabled}
+                aria-label={`${seg.item}${count > 0 ? `, ${count} new` : ""}`}
+              >
+                <span>{seg.item}</span>
+                {count > 0 && (
+                  <span className="ml-auto inline-flex h-5 items-center rounded-full border border-blue-100 bg-blue-50 px-1.5 text-[10px] font-medium tabular-nums text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
+                    {count} new
+                  </span>
+                )}
+              </DropdownMenuRadioItem>
+            );
+          })}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
