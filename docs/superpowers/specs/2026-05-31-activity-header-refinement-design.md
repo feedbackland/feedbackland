@@ -1,7 +1,7 @@
 # Activity Header — Compact Inbox Toolbar (Refinement)
 
 **Date:** 2026-05-31
-**Status:** Approved (design)
+**Status:** Implemented (plan `2026-05-31-activity-header-refinement.md`)
 **Author:** Claude (with David)
 **Builds on:** `2026-05-30-admin-activity-page-overhaul-design.md` (the broader page
 overhaul, now implemented). This refines only the **header region** that overhaul
