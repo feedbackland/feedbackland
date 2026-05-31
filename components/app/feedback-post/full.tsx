@@ -61,8 +61,8 @@ export function FeedbackPostFull({
           <Skeleton className="h-4 w-3/5" />
         </div>
         <div className="flex items-center gap-2 pt-1">
-          <Skeleton className="h-9 w-[72px] rounded-md" />
-          <Skeleton className="h-9 w-[72px] rounded-md" />
+          <Skeleton className="h-[25px] w-16 rounded-md" />
+          <Skeleton className="h-[25px] w-16 rounded-md" />
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
@@ -14,8 +15,29 @@ import { XIcon } from "lucide-react";
 import { FocusOn } from "react-focus-on";
 import { useTheme } from "./hooks/use-theme";
 import { resolvePlatformUrls } from "./lib/resolve-platform-urls";
+import { BoardSkeleton } from "./BoardSkeleton";
 
 const IFRAME_TIMEOUT_MS = 15000;
+
+// Once the iframe's document has loaded, how long to wait before revealing it
+// anyway (a safety net so the panel can never get stuck on the shimmer):
+//  - LONG, when the board has announced it speaks the readiness protocol — we
+//    know a `ready` signal is coming, so wait it out. Kept below
+//    IFRAME_TIMEOUT_MS so a genuinely failed load still surfaces as an error.
+//  - SHORT, when no protocol handshake was seen (an older / self-hosted board
+//    that never signals readiness) — degrade gracefully to roughly the legacy
+//    "reveal once loaded" behaviour instead of stalling on the shimmer.
+const READY_FALLBACK_LONG_MS = 12000;
+const READY_FALLBACK_SHORT_MS = 2500;
+
+// Cross-origin readiness protocol exchanged with the embedded board:
+//  - "loading": posted at parse time (board boot script) — "I speak this
+//    protocol, wait for my ready".
+//  - "ready":   posted once the board has fully loaded (platform-loading-gate).
+// We keep the shimmer up until "ready" so the user never sees the board's own
+// multi-stage hydration/data-loading shifts.
+const LOADING_MESSAGE = "feedbackland:loading";
+const READY_MESSAGE = "feedbackland:ready";
 
 // Module-level reference counter so multiple <FeedbackButton> instances
 // targeting the same domain share a single <link rel="preconnect"> element
@@ -80,8 +102,21 @@ export const OverlayWidget = memo(
     const [iframeError, setIframeError] = useState(false);
     const [iframeTimedOut, setIframeTimedOut] = useState(false);
     const [iframeKey, setIframeKey] = useState(0);
+    // True once the board has posted its "ready" signal (or we've waited long
+    // enough). This — not the iframe's `onLoad` — is what dismisses the shimmer,
+    // because `onLoad` fires at document load, long before the board's React app
+    // has hydrated and fetched its data.
+    const [platformReady, setPlatformReady] = useState(false);
+    const [readyFallback, setReadyFallback] = useState(false);
+    // Whether the board has announced it speaks the readiness protocol. Decides
+    // how long we're willing to wait for the `ready` signal before giving up.
+    const [protocolDetected, setProtocolDetected] = useState(false);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
     const theme = useTheme();
     const isDarkMode = theme === "dark";
+
+    // The board is safe to show once it signalled ready (or the fallback elapsed).
+    const contentReady = platformReady || readyFallback;
 
     // Stable per-instance id for the dialog's accessible-name target.
     const titleId = useMemo(
@@ -119,13 +154,72 @@ export const OverlayWidget = memo(
       }
     }, [hasConfigError, platformId, url]);
 
-    // Reset iframe load/error state when the URL changes (dark-mode toggle)
+    // Reset iframe load/error/ready state when the URL changes (dark-mode toggle)
     // or when the user retries by bumping iframeKey.
     useEffect(() => {
       setIframeLoaded(false);
       setIframeError(false);
       setIframeTimedOut(false);
+      setPlatformReady(false);
+      setReadyFallback(false);
+      setProtocolDetected(false);
     }, [platformUrl, iframeKey]);
+
+    // ----- Board readiness signal -----
+    // The board posts `{ type: "feedbackland:ready" }` to its parent once it has
+    // fully loaded. We listen on mount (so a board that finishes loading while
+    // still in the background — the iframe is always mounted — is captured before
+    // the user even opens the panel, giving an instant, shift-free reveal). We
+    // verify `event.source` is *our* iframe rather than checking origin, because
+    // the board may have redirected to a different sub-domain than the one we
+    // navigated to (the `<uuid>.feedbackland.com` → org-subdomain redirect).
+    useEffect(() => {
+      const onMessage = (event: MessageEvent) => {
+        const frame = iframeRef.current;
+        if (!frame || event.source !== frame.contentWindow) return;
+        if (!event.data || typeof event.data !== "object") return;
+        if (event.data.type === LOADING_MESSAGE) {
+          setProtocolDetected(true);
+        } else if (event.data.type === READY_MESSAGE) {
+          // A board that signals ready necessarily speaks the protocol, even if
+          // the earlier "loading" ping was missed.
+          setProtocolDetected(true);
+          setPlatformReady(true);
+        }
+      };
+      window.addEventListener("message", onMessage);
+      return () => window.removeEventListener("message", onMessage);
+    }, []);
+
+    // ----- Readiness fallback -----
+    // If the document loaded but no ready signal arrives in time, reveal anyway
+    // so the panel can never get stuck on the shimmer. We wait longer when the
+    // board has announced the protocol (a `ready` is coming) than when it hasn't
+    // (an older board that will never signal — degrade gracefully).
+    useEffect(() => {
+      if (
+        !isOpened ||
+        !iframeLoaded ||
+        platformReady ||
+        readyFallback ||
+        hasConfigError
+      )
+        return;
+      const id = window.setTimeout(
+        () => {
+          setReadyFallback(true);
+        },
+        protocolDetected ? READY_FALLBACK_LONG_MS : READY_FALLBACK_SHORT_MS,
+      );
+      return () => window.clearTimeout(id);
+    }, [
+      isOpened,
+      iframeLoaded,
+      platformReady,
+      readyFallback,
+      protocolDetected,
+      hasConfigError,
+    ]);
 
     // ----- Connection pre-warming -----
     // Inject a deduplicated preconnect link so the browser resolves DNS +
@@ -249,6 +343,7 @@ export const OverlayWidget = memo(
                     {!hasConfigError && (
                       <iframe
                         key={iframeKey}
+                        ref={iframeRef}
                         src={platformUrl}
                         onLoad={handleIframeLoad}
                         onError={handleIframeError}
@@ -267,31 +362,12 @@ export const OverlayWidget = memo(
                       />
                     )}
 
-                    {/* Shimmer skeleton while the iframe loads (and no error) */}
-                    {isOpened && !iframeLoaded && !showError && (
-                      <div
-                        className="fl:absolute fl:inset-0 fl:z-10 fl:bg-background fl:flex fl:flex-col fl:gap-4 fl:p-6 fl:overflow-hidden"
-                        aria-hidden="true"
-                      >
-                        {/* Header shimmer */}
-                        <div className="fl:flex fl:items-center fl:justify-between">
-                          <div className="fl:h-6 fl:w-28 fl:rounded-md fl:bg-muted fl:animate-pulse" />
-                          <div className="fl:flex fl:gap-2">
-                            <div className="fl:size-8 fl:rounded-md fl:bg-muted fl:animate-pulse" />
-                            <div className="fl:size-8 fl:rounded-md fl:bg-muted fl:animate-pulse" />
-                          </div>
-                        </div>
-                        {/* Body shimmer */}
-                        <div className="fl:flex-1 fl:flex fl:flex-col fl:gap-3 fl:mt-2">
-                          <div className="fl:h-4 fl:w-full fl:rounded fl:bg-muted fl:animate-pulse" />
-                          <div className="fl:h-4 fl:w-3/4 fl:rounded fl:bg-muted fl:animate-pulse" />
-                          <div className="fl:h-4 fl:w-5/6 fl:rounded fl:bg-muted fl:animate-pulse" />
-                          <div className="fl:h-12 fl:w-full fl:rounded-lg fl:bg-muted fl:animate-pulse fl:mt-4" />
-                          <div className="fl:h-12 fl:w-full fl:rounded-lg fl:bg-muted fl:animate-pulse" />
-                          <div className="fl:h-12 fl:w-full fl:rounded-lg fl:bg-muted fl:animate-pulse" />
-                        </div>
-                      </div>
-                    )}
+                    {/* Skeleton mirroring the board's narrow layout, shown until
+                        the board signals it's fully ready (and no error). Holding
+                        it past the iframe's `onLoad` until the board's ready signal
+                        hides the board's multi-stage hydration/data-loading shifts,
+                        and matching the board's shape makes the reveal seamless. */}
+                    {isOpened && !contentReady && !showError && <BoardSkeleton />}
 
                     {/* Error fallback for both iframe load failures and
                         unresolvable configuration. Config errors hide the

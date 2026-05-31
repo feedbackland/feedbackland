@@ -8,30 +8,39 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Mirrors <AdminsTable />: a bordered card holding a 3-column table — Admin
+// (name + email stacked), Status (badge), and a right-aligned action (delete).
 export function AdminsTableLoading() {
   const numberOfRows = 3;
 
   return (
-    <div className="border-border rounded-md border shadow-xs">
-      <Table className="">
+    <div className="bg-background border-border rounded-md border shadow-xs">
+      <Table>
         <TableHeader>
-          <TableRow className="">
-            <TableHead className="w-[60%]">
-              <Skeleton className="h-5 w-20" />
+          <TableRow>
+            <TableHead>
+              <Skeleton className="h-4 w-16" />
             </TableHead>
-            <TableHead className="w-[40%]">
-              <Skeleton className="h-5 w-20" />
+            <TableHead>
+              <Skeleton className="h-4 w-16" />
             </TableHead>
+            <TableHead className="text-right" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {Array.from({ length: numberOfRows }).map((_, index) => (
-            <TableRow key={index} className="">
+            <TableRow key={index}>
               <TableCell>
-                <Skeleton className="h-4" />
+                <div className="flex flex-col gap-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-44" />
+                </div>
               </TableCell>
-              <TableCell className="">
-                <Skeleton className="h-4" />
+              <TableCell>
+                <Skeleton className="h-5 w-16 rounded-md" />
+              </TableCell>
+              <TableCell className="text-right">
+                <Skeleton className="ml-auto size-8 rounded-md" />
               </TableCell>
             </TableRow>
           ))}
