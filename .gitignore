@@ -48,6 +48,7 @@ next-env.d.ts
 # claude
 tmpclaude-*
 .tmplclaude*
+.superpowers/
 
 nul
 NUL
