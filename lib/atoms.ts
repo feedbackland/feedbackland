@@ -14,22 +14,16 @@ export const previousPathnameAtom = atomWithReset<string | undefined>(
 
 export const activtyFeedStateAtom = atomWithReset<{
   searchValue: string;
-  page: number;
   orderBy: FeedbackOrderBy;
   status: FeedbackStatus;
-  ideasSelected: boolean;
-  issuesSelected: boolean;
-  generalFeedbackSelected: boolean;
-  commentsSelected: boolean;
+  category: "all" | "idea" | "issue" | "general feedback" | "comments";
+  unseenOnly: boolean;
 }>({
   searchValue: "",
-  page: 1,
   orderBy: "newest",
   status: null,
-  ideasSelected: false,
-  issuesSelected: false,
-  generalFeedbackSelected: false,
-  commentsSelected: false,
+  category: "all",
+  unseenOnly: false,
 });
 
 export const feedbackPostsStateAtom = atomWithReset<{

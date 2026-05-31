@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, MouseEvent } from "react";
-import { CheckIcon, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -24,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlatformUrl } from "@/hooks/use-platform-url";
 import { usePathname, useRouter } from "next/navigation";
@@ -94,19 +96,6 @@ export function FeedbackPostOptionsMenu({
     );
   };
 
-  const handleStatusChange: ({
-    status,
-    event,
-  }: {
-    status: FeedbackStatus;
-    event: MouseEvent<HTMLDivElement>;
-  }) => void = async ({ status, event }) => {
-    updateStatus.mutate({
-      postId,
-      status,
-    });
-  };
-
   const isAuthor = session?.user?.id === authorId;
   const isVisible = !!(isAuthor || isAdmin);
   const status = data?.status;
@@ -129,10 +118,10 @@ export function FeedbackPostOptionsMenu({
               <span className="sr-only">Options</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="">
+          <DropdownMenuContent align="end">
             <DropdownMenuGroup>
               {onEdit !== undefined && (
-                <DropdownMenuItem onClick={() => onEdit?.()} className="">
+                <DropdownMenuItem onClick={() => onEdit?.()}>
                   Edit post
                 </DropdownMenuItem>
               )}
@@ -140,71 +129,49 @@ export function FeedbackPostOptionsMenu({
                 <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent className="w-48">
-                    <DropdownMenuItem
-                      className="flex items-center justify-between"
-                      onClick={(e) =>
-                        handleStatusChange({ status: null, event: e })
-                      }
-                    >
-                      <span>No status</span>
-                      {status === null && <CheckIcon />}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) =>
-                        handleStatusChange({
-                          status: "under consideration",
-                          event: e,
+                    <DropdownMenuRadioGroup
+                      value={status ?? "none"}
+                      onValueChange={(value) =>
+                        updateStatus.mutate({
+                          postId,
+                          status:
+                            value === "none"
+                              ? null
+                              : (value as FeedbackStatus),
                         })
                       }
-                      className="text-under-consideration hover:text-under-consideration! flex items-center justify-between"
                     >
-                      <span>Under consideration</span>
-                      {status === "under consideration" && (
-                        <CheckIcon className="text-under-consideration" />
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) =>
-                        handleStatusChange({ status: "planned", event: e })
-                      }
-                      className="text-planned hover:text-planned! flex items-center justify-between"
-                    >
-                      <span>Planned</span>
-                      {status === "planned" && (
-                        <CheckIcon className="text-planned" />
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) =>
-                        handleStatusChange({ status: "in progress", event: e })
-                      }
-                      className="text-in-progress hover:text-in-progress! flex items-center justify-between"
-                    >
-                      <span>In Progress</span>
-                      {status === "in progress" && (
-                        <CheckIcon className="text-in-progress" />
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) =>
-                        handleStatusChange({ status: "done", event: e })
-                      }
-                      className="text-done hover:text-done! flex items-center justify-between"
-                    >
-                      <span>Done</span>
-                      {status === "done" && <CheckIcon className="text-done" />}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) =>
-                        handleStatusChange({ status: "declined", event: e })
-                      }
-                      className="text-declined hover:text-declined! flex items-center justify-between"
-                    >
-                      <span>Declined</span>
-                      {status === "declined" && (
-                        <CheckIcon className="text-declined" />
-                      )}
-                    </DropdownMenuItem>
+                      <DropdownMenuRadioItem value="none">
+                        No status
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="under consideration"
+                        className="text-under-consideration!"
+                      >
+                        Under consideration
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="planned"
+                        className="text-planned!"
+                      >
+                        Planned
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="in progress"
+                        className="text-in-progress!"
+                      >
+                        In progress
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="done" className="text-done!">
+                        Done
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="declined"
+                        className="text-declined!"
+                      >
+                        Declined
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
               </DropdownMenuSub>
@@ -213,7 +180,7 @@ export function FeedbackPostOptionsMenu({
             <DropdownMenuGroup>
               <DropdownMenuItem
                 onClick={() => setIsDeleteConfirmationOpen(true)}
-                className="text-red-700! hover:bg-red-700/5! dark:text-red-500! dark:hover:bg-red-500/10!"
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 Delete post
               </DropdownMenuItem>
@@ -242,6 +209,7 @@ export function FeedbackPostOptionsMenu({
               <AlertDialogAction
                 onClick={handleDelete}
                 disabled={deletePost.isPending}
+                className={buttonVariants({ variant: "destructive" })}
               >
                 Delete
               </AlertDialogAction>

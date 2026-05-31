@@ -80,9 +80,9 @@ export function PlatformHeaderButtons() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="icon"
+                size="icon-sm"
                 variant="ghost"
-                className="text-muted-foreground hover:text-foreground size-8!"
+                className="text-muted-foreground hover:text-foreground"
                 onClick={() => setIsSignUpInDialogOpen(true)}
               >
                 <LogInIcon className="size-4!" />
@@ -99,8 +99,8 @@ export function PlatformHeaderButtons() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="size-8! rounded-full"
+                    size="icon-sm"
+                    className="rounded-full"
                   >
                     <Avatar className="size-6!">
                       <AvatarImage

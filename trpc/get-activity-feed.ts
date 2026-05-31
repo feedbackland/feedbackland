@@ -10,7 +10,7 @@ import {
 export const getActivityFeed = adminProcedure
   .input(
     z.object({
-      page: z.number().min(1),
+      cursor: z.number().min(1).nullish(),
       pageSize: z.number().min(1).max(100),
       orderBy: feedbackOrderBySchema,
       status: feedbackStatusSchema,
@@ -18,12 +18,13 @@ export const getActivityFeed = adminProcedure
       excludeFeedback: z.boolean(),
       excludeComments: z.boolean(),
       searchValue: z.string().trim().max(500),
+      unseenOnly: z.boolean(),
     }),
   )
   .query(
     async ({
       input: {
-        page,
+        cursor,
         pageSize,
         orderBy,
         status,
@@ -31,32 +32,35 @@ export const getActivityFeed = adminProcedure
         excludeFeedback,
         excludeComments,
         searchValue,
+        unseenOnly,
       },
       ctx: { orgId, userId },
     }) => {
-      try {
-        const { items, totalItemsCount, totalPages, currentPage } =
-          await getActivityFeedQuery({
-            orgId,
-            userId,
-            page,
-            pageSize,
-            orderBy,
-            status,
-            categories,
-            excludeFeedback,
-            excludeComments,
-            searchValue,
-          });
+      const page = cursor ?? 1;
 
-        return {
-          items,
-          totalItemsCount,
-          totalPages,
-          currentPage,
-        };
-      } catch (error) {
-        throw error;
-      }
+      const { items, totalItemsCount, totalPages, currentPage } =
+        await getActivityFeedQuery({
+          orgId,
+          userId,
+          page,
+          pageSize,
+          orderBy,
+          status,
+          categories,
+          excludeFeedback,
+          excludeComments,
+          searchValue,
+          unseenOnly,
+        });
+
+      const nextCursor = currentPage < totalPages ? currentPage + 1 : undefined;
+
+      return {
+        items,
+        totalItemsCount,
+        totalPages,
+        currentPage,
+        nextCursor,
+      };
     },
   );

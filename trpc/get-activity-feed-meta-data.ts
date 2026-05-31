@@ -12,10 +12,6 @@ export const getActivityFeedMetaData = adminProcedure
         unseenIssuesPostCount,
         unseenGeneralFeedbackPostCount,
         unseenCommentCount,
-        totalIdeasPostCount,
-        totalIssuesPostCount,
-        totalGeneralFeedbackPostCount,
-        totalCommentCount,
       } = await getActivityFeedMetaDataQuery({
         orgId,
         userId,
@@ -27,10 +23,6 @@ export const getActivityFeedMetaData = adminProcedure
         unseenIssuesPostCount,
         unseenGeneralFeedbackPostCount,
         unseenCommentCount,
-        totalIdeasPostCount,
-        totalIssuesPostCount,
-        totalGeneralFeedbackPostCount,
-        totalCommentCount,
       };
     } catch (error) {
       throw error;

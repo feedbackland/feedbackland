@@ -27,6 +27,7 @@ export const getActivityFeedMetaDataQuery = async ({
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
       .where("feedback.orgId", "=", orgId)
+      .where("comment.content", "not like", "Updated status to%")
       .select([
         "comment.id",
         sql<FeedbackCategory | null>`null`.as("category"),
@@ -59,18 +60,6 @@ export const getActivityFeedMetaDataQuery = async ({
         sql<number>`COUNT(CASE WHEN activity.type = 'comment' AND activity_seen."userId" IS NULL THEN 1 END)::int`.as(
           "unseenCommentCount",
         ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'idea' THEN 1 END)::int`.as(
-          "totalIdeasPostCount",
-        ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'issue' THEN 1 END)::int`.as(
-          "totalIssuesPostCount",
-        ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'post' AND activity.category = 'general feedback' THEN 1 END)::int`.as(
-          "totalGeneralFeedbackPostCount",
-        ),
-        sql<number>`COUNT(CASE WHEN activity.type = 'comment' THEN 1 END)::int`.as(
-          "totalCommentCount",
-        ),
       ]);
 
     const counts = await finalQuery.executeTakeFirst();
@@ -79,13 +68,8 @@ export const getActivityFeedMetaDataQuery = async ({
       totalUnseenCount: counts?.totalUnseenCount ?? 0,
       unseenIdeasPostCount: counts?.unseenIdeasPostCount ?? 0,
       unseenIssuesPostCount: counts?.unseenIssuesPostCount ?? 0,
-      unseenGeneralFeedbackPostCount:
-        counts?.unseenGeneralFeedbackPostCount ?? 0,
+      unseenGeneralFeedbackPostCount: counts?.unseenGeneralFeedbackPostCount ?? 0,
       unseenCommentCount: counts?.unseenCommentCount ?? 0,
-      totalIdeasPostCount: counts?.totalIdeasPostCount ?? 0,
-      totalIssuesPostCount: counts?.totalIssuesPostCount ?? 0,
-      totalGeneralFeedbackPostCount: counts?.totalGeneralFeedbackPostCount ?? 0,
-      totalCommentCount: counts?.totalCommentCount ?? 0,
     };
   } catch (error) {
     throw error;

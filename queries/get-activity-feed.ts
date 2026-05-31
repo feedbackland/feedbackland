@@ -23,6 +23,7 @@ export async function getActivityFeedQuery({
   excludeFeedback,
   excludeComments,
   searchValue,
+  unseenOnly,
 }: {
   orgId: string;
   userId: string;
@@ -34,6 +35,7 @@ export async function getActivityFeedQuery({
   excludeFeedback: boolean;
   excludeComments: boolean;
   searchValue: string;
+  unseenOnly: boolean;
 }) {
   try {
     const offset = (page - 1) * pageSize;
@@ -88,10 +90,11 @@ export async function getActivityFeedQuery({
           .selectFrom("comment")
           .select(eb.fn.countAll<string>().as("commentCount"))
           .whereRef("comment.postId", "=", "feedback.id")
-          // .where("content", "not like", "Updated status to%")
+          .where("comment.content", "not like", "Updated status to%")
           .as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
+      "user.photoURL as authorPhotoURL",
       ...(isSearching
         ? [cosineDistance("feedback.embedding", searchVector).as("distance")]
         : [sql<null>`null`.as("distance")]),
@@ -102,7 +105,7 @@ export async function getActivityFeedQuery({
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
       .where("feedback.orgId", "=", orgId)
-      // .where("content", "not like", "Updated status to%")
+      .where("comment.content", "not like", "Updated status to%")
       .select([
         "feedback.orgId",
         "comment.id",
@@ -118,6 +121,7 @@ export async function getActivityFeedQuery({
         sql<string>`'0'`.as("commentCount"),
         "user.id as authorId",
         "user.name as authorName",
+        "user.photoURL as authorPhotoURL",
         ...(isSearching
           ? [cosineDistance("comment.embedding", searchVector).as("distance")]
           : [sql<null>`null`.as("distance")]),
@@ -128,7 +132,7 @@ export async function getActivityFeedQuery({
     );
 
     if (status) {
-      // only include feedback records if status is selected
+      // status is a post-only concept ⇒ only feedback records
       activityQuery = db.selectFrom(feedbackCTE.as("activity"));
     }
 
@@ -159,12 +163,17 @@ export async function getActivityFeedQuery({
         .orderBy("activity.createdAt", "desc");
     }
 
-    const finalQuery = orderedQuery
-      .leftJoin("activity_seen", (join) =>
-        join
-          .onRef("activity.id", "=", "activity_seen.itemId")
-          .on("activity_seen.userId", "=", userId),
-      )
+    let joinedQuery = orderedQuery.leftJoin("activity_seen", (join) =>
+      join
+        .onRef("activity.id", "=", "activity_seen.itemId")
+        .on("activity_seen.userId", "=", userId),
+    );
+
+    if (unseenOnly) {
+      joinedQuery = joinedQuery.where("activity_seen.userId", "is", null);
+    }
+
+    const finalQuery = joinedQuery
       .selectAll()
       .select((eb) => [
         eb("activity_seen.userId", "is not", null).as("isSeen"),
