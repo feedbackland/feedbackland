@@ -60,10 +60,8 @@ That's the whole integration — no CSS import, no provider, no backend.
 | **Hosted** — a board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
 | **Self-host** — Vercel + Supabase + Firebase, ~15 min | [SELFHOSTING.md](SELFHOSTING.md) |
 
-Same code either way. Upvotes, comments, statuses, admin panel, anonymous or Google/Microsoft/email sign-in and dark mode are all there. Self-hosting needs an [OpenRouter](https://openrouter.ai) key for the AI features; the board works without one.
-
-**Not yet:** no email notifications · no public changelog · young project, expect breaking changes. [Open an issue](https://github.com/feedbackland/feedbackland/issues) to shorten this list.
+[Open an issue](https://github.com/feedbackland/feedbackland/issues) to shorten this list.
 
 ## License
 
-[MIT](LICENSE) — fork it, run it, sell it.
+[MIT](LICENSE) — fork it, run it, own it.
