@@ -234,9 +234,13 @@ export const getFeedbackPostsQuery = async ({
           commentCount: Number(lastItem.commentCount),
           upvotes: Number(lastItem.upvotes),
           createdAt: lastItem.createdAtExact,
+          // Test the type, not truthiness: `<=>` returns double precision and
+          // an exact embedding match is 0, which would drop `distance` from the
+          // cursor. The next page's guard would then find no distance, apply no
+          // cursor predicate at all, and hand back page one forever.
           distance:
-            isSearching && lastItem.distance
-              ? Number(lastItem.distance)
+            isSearching && typeof lastItem.distance === "number"
+              ? lastItem.distance
               : undefined,
         };
       }

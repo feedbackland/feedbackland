@@ -163,6 +163,16 @@ export async function getActivityFeedQuery({
         .orderBy("activity.createdAt", "desc");
     }
 
+    // Every sort above is on a non-unique column, and this feed pages by
+    // OFFSET. Postgres does not promise any particular order within a tie, so
+    // two requests for two different pages could order the same tie group
+    // differently and the admin would silently lose one item and see another
+    // twice. upvotes is the worst case: a whole board collapses into a handful
+    // of tie groups. activity.id is unique across the union — post ids and
+    // comment ids are both uuids — so ordering by it last makes the sort total
+    // and the page boundaries reproducible.
+    orderedQuery = orderedQuery.orderBy("activity.id", "desc");
+
     let joinedQuery = orderedQuery.leftJoin("activity_seen", (join) =>
       join
         .onRef("activity.id", "=", "activity_seen.itemId")

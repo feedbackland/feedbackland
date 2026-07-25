@@ -1,6 +1,7 @@
 "server-only";
 
 import { db } from "@/db/db";
+import { sql } from "kysely";
 
 export const getCommentsQuery = async ({
   orgId,
@@ -51,32 +52,62 @@ export const getCommentsQuery = async ({
             .else(false)
             .end()
             .as("hasUserUpvote"),
+        // createdAt is stored to microseconds but the driver hands back a JS
+        // Date, which only holds milliseconds. Paging on the rounded value
+        // strands every comment inside the cursor's millisecond, so keep an
+        // exact copy for the cursor. Stripped again before returning.
+        sql<string>`to_char(${sql.ref("comment.createdAt")} at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`.as(
+          "createdAtExact",
+        ),
       ])
       .where("comment.postId", "=", postId);
 
     if (cursor) {
-      query = query.where("comment.createdAt", "<", new Date(cursor.createdAt));
+      // Compare against the exact stored timestamp rather than reconstructing a
+      // Date, which would round to milliseconds again. id breaks ties so the
+      // sort is total and two comments in the same instant cannot hide each
+      // other across a page boundary.
+      const at = sql<Date>`${cursor.createdAt}::timestamptz`;
+
+      query = query.where((eb) =>
+        eb.or([
+          eb("comment.createdAt", "<", at),
+          eb.and([
+            eb("comment.createdAt", "=", at),
+            eb("comment.id", "<", cursor.id),
+          ]),
+        ]),
+      );
     }
 
-    query = query.orderBy("comment.createdAt", "desc").limit(limit + 1);
+    query = query
+      .orderBy("comment.createdAt", "desc")
+      .orderBy("comment.id", "desc")
+      .limit(limit + 1);
 
-    const comments = await query.execute();
+    const rows = await query.execute();
+
+    // createdAtExact exists only to build the cursor; keep it off the wire.
+    const comments = rows.map(
+      ({ createdAtExact: _createdAtExact, ...comment }) => comment,
+    );
 
     let nextCursor: typeof cursor | undefined = undefined;
 
-    if (comments.length > limit) {
+    if (rows.length > limit) {
       // Drop the look-ahead row, then key the cursor off the last row actually
       // being returned. Keying it off the look-ahead row lost that row: the
       // next page asks for createdAt strictly older than the cursor, so the
       // comment the cursor pointed at was skipped.
+      rows.pop();
       comments.pop();
 
-      const lastItem = comments[comments.length - 1];
+      const lastItem = rows[rows.length - 1];
 
       if (lastItem) {
         nextCursor = {
           id: lastItem.id,
-          createdAt: lastItem.createdAt.toISOString(),
+          createdAt: lastItem.createdAtExact,
         };
       }
     }
