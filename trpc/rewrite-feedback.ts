@@ -42,7 +42,6 @@ Rules:
               content: `Please improve this feedback post:\n\n${description}`,
             },
           ],
-          temperature: 0.3,
         }),
       },
     );

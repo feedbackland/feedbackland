@@ -3,7 +3,7 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 
-export const LLM_MODEL = "google/gemini-3.1-flash-lite";
+export const LLM_MODEL = "google/gemini-3.5-flash-lite";
 
 type EmbeddingTaskType = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY";
 

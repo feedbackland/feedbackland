@@ -11,7 +11,6 @@ const MAX_INPUT_POSTS = 400;
 const MAX_TITLE_CHARS = 200;
 const MAX_DESCRIPTION_CHARS = 800;
 const LLM_TIMEOUT_MS = 90_000;
-const LLM_TEMPERATURE = 0.2;
 const LLM_MAX_ATTEMPTS = 3;
 const LLM_RETRY_BASE_DELAY_MS = 800;
 
@@ -124,10 +123,7 @@ const normalize = (
 const selectForLLM = (posts: NormalizedFeedback[]): NormalizedFeedback[] => {
   if (posts.length <= MAX_INPUT_POSTS) return posts;
   return [...posts]
-    .sort(
-      (a, b) =>
-        b.upvotes + b.commentCount - (a.upvotes + a.commentCount),
-    )
+    .sort((a, b) => b.upvotes + b.commentCount - (a.upvotes + a.commentCount))
     .slice(0, MAX_INPUT_POSTS);
 };
 
@@ -181,7 +177,6 @@ Produce the JSON object now. Sort by priority desc. Max ${MAX_INSIGHTS} items.`;
         model: LLM_MODEL,
         reasoning: { exclude: true, enabled: true },
         response_format: { type: "json_object" },
-        temperature: LLM_TEMPERATURE,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -210,9 +205,7 @@ Produce the JSON object now. Sort by priority desc. Max ${MAX_INSIGHTS} items.`;
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error(
-      `LLM content is not valid JSON: ${cleaned.slice(0, 200)}`,
-    );
+    throw new Error(`LLM content is not valid JSON: ${cleaned.slice(0, 200)}`);
   }
 
   // Tolerate the LLM returning a bare array instead of {"insights": [...]}.
