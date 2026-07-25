@@ -108,7 +108,12 @@ export const getFeedbackPostsQuery = async ({
         );
       }
     } else {
-      switch (orderBy) {
+      // orderBy is nullable app-wide (FeedbackOrderBy) and the activity feed
+      // already reads null as the default ordering. Match it: a caller that
+      // omits a sort should get the default list, not a failed request.
+      const sortBy = orderBy ?? "newest";
+
+      switch (sortBy) {
         case "newest":
           query = query
             .orderBy("feedback.createdAt", "desc")
@@ -124,13 +129,15 @@ export const getFeedbackPostsQuery = async ({
             .orderBy("commentCount", "desc")
             .orderBy("feedback.id", "desc");
           break;
-        default:
-          throw new Error(`Unsupported orderBy value: ${orderBy}`);
+        default: {
+          const exhaustiveCheck: never = sortBy;
+          throw new Error(`Unsupported orderBy value: ${exhaustiveCheck}`);
+        }
       }
 
       if (cursor) {
         query = query.where((eb) => {
-          switch (orderBy) {
+          switch (sortBy) {
             case "newest":
               return eb.or([
                 eb("feedback.createdAt", "<", new Date(cursor.createdAt)),
@@ -174,7 +181,7 @@ export const getFeedbackPostsQuery = async ({
                 ]),
               ]);
             default:
-              const innerExhaustiveCheck: never = orderBy;
+              const innerExhaustiveCheck: never = sortBy;
               throw new Error(
                 `Unsupported orderBy value in cursor logic: ${innerExhaustiveCheck}`,
               );
