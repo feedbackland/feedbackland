@@ -275,35 +275,3 @@ export const processImagesInHTML = async (html: string) => {
   return modifiedHTML;
 };
 
-export const getPriorityLabel = (priorityScore: number) => {
-  if (priorityScore < 40) {
-    return "Low priority";
-  } else if (priorityScore < 70) {
-    return "Medium priority";
-  } else if (priorityScore < 95) {
-    return "High priority";
-  }
-
-  return "Critical priority";
-};
-
-export const getPriorityLevel = (
-  priorityScore: number,
-): "low" | "medium" | "high" | "critical" => {
-  if (priorityScore < 40) return "low";
-  if (priorityScore < 70) return "medium";
-  if (priorityScore < 95) return "high";
-  return "critical";
-};
-
-export const getPriorityColor = (priorityScore: number) => {
-  if (priorityScore < 40) {
-    return "blue";
-  } else if (priorityScore < 70) {
-    return "green";
-  } else if (priorityScore < 95) {
-    return "orange";
-  }
-
-  return "red";
-};

@@ -60,8 +60,8 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
               <Link href={`${adminBasePath}/activity`}>Activity</Link>
             </TabsTrigger>
 
-            <TabsTrigger value="ai-roadmap" asChild>
-              <Link href={`${adminBasePath}/ai-roadmap`}>AI Roadmap</Link>
+            <TabsTrigger value="insights" asChild>
+              <Link href={`${adminBasePath}/insights`}>Insights</Link>
             </TabsTrigger>
 
             <TabsTrigger value="ask-ai" asChild>

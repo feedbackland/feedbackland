@@ -448,9 +448,16 @@ export interface Feedback {
 }
 
 export interface InsightReports {
+  archivedInsightCount: Generated<Numeric>;
   createdAt: Generated<Timestamp>;
   id: Generated<Int8>;
+  model: string | null;
+  newInsightCount: Generated<Numeric>;
   orgId: string;
+  postsAnalyzed: Generated<Numeric>;
+  postsClustered: Generated<Numeric>;
+  postsTotal: Generated<Numeric>;
+  insightCount: Generated<Numeric>;
 }
 
 export interface Insights {
@@ -458,10 +465,17 @@ export interface Insights {
   commentCount: Generated<Numeric>;
   createdAt: Generated<Timestamp>;
   description: string;
+  effort: string | null;
+  firstSeenAt: Generated<Timestamp>;
   id: Generated<string>;
   ids: string[];
+  isArchived: Generated<boolean>;
+  lastSeenAt: Generated<Timestamp>;
+  momentum: Generated<Numeric>;
   orgId: string;
   priority: Generated<Numeric>;
+  reach: Generated<Numeric>;
+  signals: Json | null;
   status: FeedbackStatus | null;
   title: string;
   upvotes: Generated<Numeric>;

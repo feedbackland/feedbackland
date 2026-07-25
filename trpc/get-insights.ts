@@ -1,39 +1,11 @@
-import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
-import { insightsCursorSchema } from "@/lib/schemas";
-import { getInsightsQuery, getAllInsightsQuery } from "@/queries/get-insights"; // Import getAllInsightsQuery
+import { getInsightsQuery } from "@/queries/get-insights";
 
-export const getInsights = adminProcedure
-  .input(
-    z.object({
-      limit: z.number().min(1).max(100),
-      cursor: insightsCursorSchema,
-    }),
-  )
-  .query(async ({ input: { limit, cursor }, ctx: { orgId } }) => {
-    try {
-      const { items, nextCursor } = await getInsightsQuery({
-        orgId,
-        limit,
-        cursor,
-      });
-
-      return {
-        items,
-        nextCursor,
-      };
-    } catch (error) {
-      throw error;
-    }
-  });
-
-export const getAllInsights = adminProcedure
-  .input(z.object({}))
-  .query(async ({ ctx: { orgId } }) => {
-    try {
-      const insights = await getAllInsightsQuery({ orgId });
-      return insights;
-    } catch (error) {
-      throw error;
-    }
-  });
+/**
+ * The insights is capped at a few dozen insights and every one of them is needed
+ * to rank, filter and export the list, so it is fetched whole. Paging it would
+ * only make client-side sorting and search silently wrong.
+ */
+export const getInsights = adminProcedure.query(async ({ ctx }) => {
+  return await getInsightsQuery({ orgId: ctx.orgId });
+});

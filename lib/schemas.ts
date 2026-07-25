@@ -45,13 +45,8 @@ export const feedbackPostsCursorSchema = z
   })
   .nullish();
 
-export const insightsCursorSchema = z
-  .object({
-    id: z.string(),
-    createdAt: z.iso.datetime({ offset: true }),
-    priority: z.number().min(0),
-  })
-  .nullish();
+/** Rough size of an insight: small, medium, large. Set by the model. */
+export const insightEffortSchema = z.enum(["s", "m", "l"]).nullable();
 
 export const orgSubdomainSchema = z
   .string()
