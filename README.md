@@ -2,11 +2,11 @@
 
 # Feedbackland
 
-**The open-source feedback platform**
+**An open-source feedback board that triages itself.**
 
 <p>
-<div>Collect user feedback via in-app widgets, a dedicated website, or API endpoint.</div>
-<div>Let AI turn it into actionable to-dos. Free, open-source, and unlimited.</div>
+<div>Your users write one sentence. Feedbackland titles it, categorizes it,</div>
+<div>merges the duplicates, and keeps a prioritized roadmap up to date.</div>
 </p>
 
 <p>
@@ -24,33 +24,65 @@
 
 <br>
 
-![Feedbackland Dashboard](https://github.com/user-attachments/assets/39671ac5-00dd-4197-a591-eba16c210b1d)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/homepage_dark_mode.png">
+  <img alt="A Feedbackland board" src="screenshots/homepage_light_mode.png">
+</picture>
 
 </div>
 
 ---
 
-## Why Feedbackland?
+## The problem
 
-- **AI does the boring parts.** One click reads every open post, groups the duplicates, and ranks what's left by how many distinct people are asking, how fast that's growing, and how badly the problem hurts — with the score broken down so you can see why.
-- **One click to close the loop.** When an insight is dealt with, set its status once and every post behind it updates on your public board. Insights keep their identity between runs, so you can see what gained ground since last time.
-- **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
-- **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
-- **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
+Feedback tools are easy to install and hard to keep. Within a few months the board is a pile
+of near-duplicate posts nobody has read, and turning it into a roadmap is an afternoon of
+manual sorting that never happens.
 
-## Features
+Feedbackland does that sorting on every submission, automatically.
 
-- Public feedback board with comments, upvotes, statuses, semantic search
-- Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
-- Insights — a ranked list of what to build or fix next, generated from your feedback, with an explainable score and one-click status updates back to the board
-- Ask AI anything about all your collected feedback
-- REST API to pipe feedback in from anywhere
-- SSO (Google, Microsoft) and email/password
-- Admin dashboard — moderate, tag, respond to feedback
+## What that means concretely
 
-## Embed the widget
+**Posting is one text box.** No title field, no category dropdown. The user describes the
+problem; an LLM writes the title and files it as *idea*, *issue*, or *general feedback*. Fewer
+fields means more people finish the form.
 
-[Check out the widgets on the live demo platform](https://demo.feedbackland.com/admin/widget)
+**The roadmap writes itself.** One click bundles posts that describe the same underlying need
+("dark mode", "night theme", "black background" → *Add Dark Mode*) and scores each item 0–100
+on severity, reach (upvotes + comments), and category. Up to 400 posts in, up to 50 prioritized
+items out.
+
+**You can ask questions.** *"What do people complain about most since the redesign?"* — answered
+against every active post on your board, streamed.
+
+**Search understands meaning.** Posts and comments are embedded into Postgres (`pgvector`), so
+searching *"can't log in"* also surfaces *"auth times out"*.
+
+**Spam never lands.** Text and any uploaded images are moderated at submission time and
+rejected before they reach your board.
+
+<table>
+<tr>
+<td width="50%">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/ai_roadmap_dark_mode.png">
+  <img alt="AI-generated roadmap" src="screenshots/ai_roadmap_light_mode.png">
+</picture>
+<p align="center"><sub><b>AI roadmap</b> — duplicates merged, priority scored</sub></p>
+</td>
+<td width="50%">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/ask_ai_dark_mode.png">
+  <img alt="Ask AI about your feedback" src="screenshots/ask_ai_light_mode.png">
+</picture>
+<p align="center"><sub><b>Ask AI</b> — plain-English questions over your feedback</sub></p>
+</td>
+</tr>
+</table>
+
+## Three ways in
+
+**1. Embeddable React widget** — users never leave your product.
 
 ```bash
 npm install feedbackland-react
@@ -59,71 +91,75 @@ npm install feedbackland-react
 ```tsx
 import { FeedbackButton } from "feedbackland-react";
 
-<FeedbackButton platformId="your-platform-id" />
+<FeedbackButton platformId="your-platform-id" />;
 ```
 
-> [!TIP]
-> After you create a board, your admin panel's **Widget** page renders this snippet with the real ID pre-filled, plus a live preview and interactive controls for every prop.
+That's the whole integration — no CSS import, no provider. Two flavors: a slide-in **drawer**
+holding your full board, or an anchored **popover** with a single submission form
+(`widget="popover"`). ~110 KB gzipped, React 17/18/19, SSR-safe, styles isolated in both
+directions.
 
-Two flavors:
+> Full props reference, styling escape hatches, and accessibility notes:
+> [`feedbackland-react/README.md`](feedbackland-react/README.md) · [npm](https://www.npmjs.com/package/feedbackland-react)
 
-|                  | **Drawer** (default)                | **Popover**                                |
-| ---------------- | ----------------------------------- | ------------------------------------------ |
-| Layout           | Slide-in side panel, full height    | Anchored inline form, stays in the page    |
-| What it shows    | Your entire feedback board (iframe) | A single-shot submission form (no iframe)  |
-| Mobile           | Same drawer                         | Bottom sheet (auto via media query)        |
-| Use when         | A dedicated feedback experience     | Contextual, in-flow feedback               |
+**2. A hosted board** at your own subdomain — public, linkable, works without the widget.
 
-Switch flavors with the `widget` prop:
+**3. A REST endpoint** — pipe in feedback from a Slack bot, a support inbox, or a CLI.
 
-```tsx
-<FeedbackButton platformId="..." widget="popover" />
+```bash
+curl -X POST https://your-board.com/api/feedback/create \
+  -H "Content-Type: application/json" \
+  -d '{"orgId": "your-platform-id", "description": "We need dark mode in settings."}'
 ```
 
-### Customize the trigger
+## Everything else
 
-```tsx
-// Tailwind override — tailwind-merge resolves conflicts, your classes win
-<FeedbackButton platformId="..." className="bg-red-500 rounded-full px-8" />
-
-// Strip every internal class — start fresh with your own
-<FeedbackButton platformId="..." variant="unstyled" className="my-button" />
-
-// Bring your own element — Radix-style asChild, total control
-<FeedbackButton platformId="..." asChild>
-  <button className="any tailwind you want">
-    <FeedbackIcon /> Give feedback
-  </button>
-</FeedbackButton>
-```
-
-`asChild` merges the open handler into your child element, which keeps its own `onClick`, `ref`, and ARIA attributes.
-
-> [!NOTE]
-> **Full widget docs** — props reference, accessibility guarantees, bundle internals, self-hosted usage — live in the package README: [`feedbackland-react/README.md`](feedbackland-react/README.md). The package is also on [npm](https://www.npmjs.com/package/feedbackland-react).
+- Upvotes, comments with `@`-mentions, image uploads, rich text
+- Five statuses: under consideration · planned · in progress · done · declined
+- Filter by category, sort by newest / upvotes / comments
+- Admin dashboard — moderate, retag, respond, set status, invite fellow admins
+- Activity feed with unread tracking
+- Optional AI pass to clean up a post's writing before it's submitted
+- Sign-in with Google, Microsoft, or email/password
+- Light and dark mode; the widget follows your app's theme
 
 ## Get started
 
-| Path | |
+| | |
 | --- | --- |
-| **Hosted** — live in under a minute, free forever | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
-| **Self-hosted** — live in under 30 min using Vercel, Supabase, Firebase Auth | [SELFHOSTING.md](SELFHOSTING.md) |
-| **Live demo** — real board, full admin access, no signup required | [demo.feedbackland.com](https://demo.feedbackland.com) |
+| **Hosted** — a working board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
+| **Self-hosted** — Vercel + Supabase + Firebase, ~15 minutes | [SELFHOSTING.md](SELFHOSTING.md) |
+| **Live demo** — real board with full admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
-> [!TIP]
-> Hosted and self-hosted share the exact same codebase. No feature-gating, ever.
+Hosted and self-hosted run the same code. Nothing is feature-gated and there is no paid tier to
+upgrade to. Self-hosting costs whatever your own Supabase, Vercel, and LLM usage costs —
+typically nothing to start.
 
 ## How it compares
 
-|                              |   Feedbackland   |        Canny         |       Featurebase        |       Fider        |
-| ---------------------------- | :--------------: | :------------------: | :----------------------: | :----------------: |
-| **License**                  |       MIT        |     Proprietary      |       Proprietary        |        AGPL        |
-| **Self-host**                |        ✅        |          —           |            —             |         ✅         |
-| **Free hosted plan**         |    Unlimited     |     25-user cap      |        Trial only        |         —          |
-| **Paid pricing**             |     **None**     |  $19+/mo, per-user   |   $29+/seat + AI usage   |   $49+/mo cloud    |
-| **AI duplicate clustering**  |        ✅        |          ✅          |            —             |         —          |
-| **Ranked insights**          |        ✅        |          —           |            —             |         —          |
-| **Ask AI over your feedback**|        ✅        |          —           |            —             |         —          |
+|                               | Feedbackland |    Canny    | Featurebase | Fider |
+| ----------------------------- | :----------: | :---------: | :---------: | :---: |
+| **License**                   |     MIT      | Proprietary | Proprietary | AGPL  |
+| **Self-hostable**             |      ✅      |      —      |      —      |  ✅   |
+| **Auto title + category**     |      ✅      |      —      |      —      |   —   |
+| **AI-generated roadmap**      |      ✅      |      —      |      —      |   —   |
+| **Ask AI over your feedback** |      ✅      |      —      |      —      |   —   |
+| **Semantic search**           |      ✅      |      —      |      —      |   —   |
+| **AI duplicate merging**      |      ✅      |     ✅      |      —      |   —   |
+
+<sub>Based on each project's public documentation. Feature sets change — worth verifying before you decide.</sub>
+
+## Not there yet
+
+Being straight about the gaps, so you can judge the fit:
+
+- **No email notifications.** Activity lives in the in-app feed; no digests or reply alerts yet.
+- **No public changelog**, and no posting on behalf of a user.
+- **Young project.** Expect rough edges and breaking changes between releases.
+- **Self-hosting needs an LLM key.** Everything AI-related runs through your own OpenRouter key.
+  The board works fine without one; the AI features won't.
+
+Missing something you need? [Open an issue](https://github.com/feedbackland/feedbackland/issues) — that's how this list gets shorter.
 
 ## Built with
 
