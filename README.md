@@ -2,23 +2,22 @@
 
 # Feedbackland
 
-**An open-source feedback board that triages itself.**
+**An open-source feedback board that tells you what to build next.**
 
 <p>
-<div>Your users write one sentence. Feedbackland titles it, categorizes it,</div>
-<div>merges the duplicates, and keeps a prioritized roadmap up to date.</div>
+Your users write one sentence. Feedbackland titles it, files it, groups it with<br>
+every other post asking for the same thing, and ranks what comes out.
 </p>
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="SELFHOSTING.md"><img alt="Self-hosted ready" src="https://img.shields.io/badge/self--hosted-ready-green"></a>
   <a href="https://github.com/feedbackland/feedbackland/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/feedbackland/feedbackland?color=blue"></a>
   <a href="https://github.com/feedbackland/feedbackland/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/feedbackland/feedbackland?style=social"></a>
 </p>
 
 <p>
-  <a href="https://get-started.feedbackland.com"><b>Create your board →</b></a> ·
-  <a href="https://demo.feedbackland.com">Live demo</a> ·
+  <a href="https://demo.feedbackland.com"><b>Live demo →</b></a> ·
+  <a href="https://get-started.feedbackland.com">Create a board</a> ·
   <a href="SELFHOSTING.md">Self-host</a>
 </p>
 
@@ -33,56 +32,61 @@
 
 ---
 
-## The problem
+## Why
 
-Feedback tools are easy to install and hard to keep. Within a few months the board is a pile
-of near-duplicate posts nobody has read, and turning it into a roadmap is an afternoon of
-manual sorting that never happens.
+A feedback board is easy to launch and hard to keep. Posting is a form — title, category,
+description, preview — so plenty of people start and don't finish. What does land arrives
+as thirty posts describing the same problem thirty ways, and reading all of them is an
+afternoon that never gets scheduled. Six months in, the board is an archive.
 
-Feedbackland does that sorting on every submission, automatically.
+Feedbackland works on both ends of that. Posting is one text box. Reading is a page that
+groups the whole board into a ranked list of things to do — and shows the arithmetic behind
+the ranking, so you can disagree with it.
 
-## What that means concretely
+If you've used Canny, Featurebase or Fider, the shape is familiar. The difference is what
+happens after the feedback lands.
 
-**Posting is one text box.** No title field, no category dropdown. The user describes the
-problem; an LLM writes the title and files it as *idea*, *issue*, or *general feedback*. Fewer
-fields means more people finish the form.
+## Posting is one text box
 
-**The roadmap writes itself.** One click bundles posts that describe the same underlying need
-("dark mode", "night theme", "black background" → *Add Dark Mode*) and scores each item 0–100
-on severity, reach (upvotes + comments), and category. Up to 400 posts in, up to 50 prioritized
-items out.
+No title field, no category dropdown — the user describes the problem and hits send. Fewer
+fields means more people finish the form, and that's the whole reason for it.
 
-**You can ask questions.** *"What do people complain about most since the redesign?"* — answered
-against every active post on your board, streamed.
+A model writes the title and files the post as **idea**, **issue** or **general feedback**.
+Text and any attached images are checked for abuse in the same pass and rejected before they
+reach your board. The post is embedded into Postgres (`pgvector`) on the way in, so searching
+*"can't log in"* also turns up *"auth times out"*.
 
-**Search understands meaning.** Posts and comments are embedded into Postgres (`pgvector`), so
-searching *"can't log in"* also surfaces *"auth times out"*.
+## Insights: what to build next
 
-**Spam never lands.** Text and any uploaded images are moderated at submission time and
-rejected before they reach your board.
+One click reads the board and returns a ranked list. Posts describing the same underlying
+need collapse into one item — *dark mode*, *night theme* and *black background* are one
+insight, not three.
 
-<table>
-<tr>
-<td width="50%">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/ai_roadmap_dark_mode.png">
-  <img alt="AI-generated roadmap" src="screenshots/ai_roadmap_light_mode.png">
-</picture>
-<p align="center"><sub><b>AI roadmap</b> — duplicates merged, priority scored</sub></p>
-</td>
-<td width="50%">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/ask_ai_dark_mode.png">
-  <img alt="Ask AI about your feedback" src="screenshots/ask_ai_light_mode.png">
-</picture>
-<p align="center"><sub><b>Ask AI</b> — plain-English questions over your feedback</sub></p>
-</td>
-</tr>
-</table>
+The ranking is computed from your data, not asserted by the model:
 
-## Three ways in
+- **Reach** (40%) — distinct people behind it. One person upvoting three duplicates counts
+  once.
+- **Momentum** (35%) — recent posts, upvotes and comments, halving in weight every 21 days.
+- **Severity** (25%) — the model's read of the damage the problem does. It's told to judge
+  the problem alone and ignore how many people asked, because demand is already counted above.
+- **Effort** — a small/medium/large estimate that nudges quick wins up and big builds down.
 
-**1. Embeddable React widget** — users never leave your product.
+The model does the judging — which posts belong together, how bad the problem is, how big
+the build. Everything countable is measured against your database, and the server does the
+weighting. Where batches get merged, the model returns only which ones to combine, never new
+text. Open a score and you see the parts it came from.
+
+Every run states what it read — *84 posts → 19 insights · 6 new · 5 not grouped* — including
+what it couldn't group. Insights keep their identity between runs, so you get *+3 people
+since last run* instead of a fresh list each time. Setting a status on an insight sets it on
+every post behind it. Up to 1000 posts per run.
+
+Separately, **Ask AI** answers plain questions against every active post on your board:
+*"What do people complain about most since the redesign?"*
+
+## Adding it to your product
+
+**A React widget** — users never leave your app.
 
 ```bash
 npm install feedbackland-react
@@ -99,65 +103,53 @@ holding your full board, or an anchored **popover** with a single submission for
 (`widget="popover"`). ~110 KB gzipped, React 17/18/19, SSR-safe, styles isolated in both
 directions.
 
-> Full props reference, styling escape hatches, and accessibility notes:
+> Props, styling escape hatches and accessibility notes:
 > [`feedbackland-react/README.md`](feedbackland-react/README.md) · [npm](https://www.npmjs.com/package/feedbackland-react)
 
-**2. A hosted board** at your own subdomain — public, linkable, works without the widget.
+**A hosted board** at your own subdomain — public, linkable, works without the widget.
 
-**3. A REST endpoint** — pipe in feedback from a Slack bot, a support inbox, or a CLI.
+**A REST endpoint** — pipe feedback in from a Slack bot, a support inbox, a CLI.
 
 ```bash
-curl -X POST https://your-board.com/api/feedback/create \
+curl -X POST https://your-board.feedbackland.com/api/feedback/create \
   -H "Content-Type: application/json" \
   -d '{"orgId": "your-platform-id", "description": "We need dark mode in settings."}'
 ```
 
+<sub><code>orgId</code> is the same ID the widget takes as <code>platformId</code>. Both are on your admin panel's Widget page.</sub>
+
 ## Everything else
 
-- Upvotes, comments with `@`-mentions, image uploads, rich text
+- Upvotes, comments with `@`-mentions, rich text, image uploads
 - Five statuses: under consideration · planned · in progress · done · declined
-- Filter by category, sort by newest / upvotes / comments
-- Admin dashboard — moderate, retag, respond, set status, invite fellow admins
-- Activity feed with unread tracking
+- Filter the board by status; sort by newest, most upvoted or most commented
+- Admin panel — edit, delete, reply, set status, invite other admins
+- Activity feed with unread tracking, filterable by category
 - Optional AI pass to clean up a post's writing before it's submitted
-- Sign-in with Google, Microsoft, or email/password
+- Sign in with Google, Microsoft, or email and password
 - Light and dark mode; the widget follows your app's theme
 
-## Get started
+## Try it
 
 | | |
 | --- | --- |
-| **Hosted** — a working board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
+| **Live demo** — a real board with full admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
+| **Hosted** — your own board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
 | **Self-hosted** — Vercel + Supabase + Firebase, ~15 minutes | [SELFHOSTING.md](SELFHOSTING.md) |
-| **Live demo** — real board with full admin access, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 
-Hosted and self-hosted run the same code. Nothing is feature-gated and there is no paid tier to
-upgrade to. Self-hosting costs whatever your own Supabase, Vercel, and LLM usage costs —
-typically nothing to start.
-
-## How it compares
-
-|                               | Feedbackland |    Canny    | Featurebase | Fider |
-| ----------------------------- | :----------: | :---------: | :---------: | :---: |
-| **License**                   |     MIT      | Proprietary | Proprietary | AGPL  |
-| **Self-hostable**             |      ✅      |      —      |      —      |  ✅   |
-| **Auto title + category**     |      ✅      |      —      |      —      |   —   |
-| **AI-generated roadmap**      |      ✅      |      —      |      —      |   —   |
-| **Ask AI over your feedback** |      ✅      |      —      |      —      |   —   |
-| **Semantic search**           |      ✅      |      —      |      —      |   —   |
-| **AI duplicate merging**      |      ✅      |     ✅      |      —      |   —   |
-
-<sub>Based on each project's public documentation. Feature sets change — worth verifying before you decide.</sub>
+Hosted and self-hosted run the same code. Nothing is feature-gated and there's no paid tier.
+Self-hosting costs what your own usage costs — Supabase and Vercel have free tiers that cover
+a small board, and every AI feature runs on one cheap model through a single OpenRouter key.
 
 ## Not there yet
 
-Being straight about the gaps, so you can judge the fit:
+The gaps, so you can judge the fit:
 
-- **No email notifications.** Activity lives in the in-app feed; no digests or reply alerts yet.
+- **No email notifications.** Activity lives in the in-app feed — no digests, no reply alerts.
 - **No public changelog**, and no posting on behalf of a user.
 - **Young project.** Expect rough edges and breaking changes between releases.
-- **Self-hosting needs an LLM key.** Everything AI-related runs through your own OpenRouter key.
-  The board works fine without one; the AI features won't.
+- **Self-hosting needs an OpenRouter key.** The board works fine without one; every AI
+  feature goes quiet.
 
 Missing something you need? [Open an issue](https://github.com/feedbackland/feedbackland/issues) — that's how this list gets shorter.
 
@@ -165,10 +157,8 @@ Missing something you need? [Open an issue](https://github.com/feedbackland/feed
 
 [Next.js](https://github.com/vercel/next.js) · [React](https://github.com/facebook/react) · [TypeScript](https://github.com/microsoft/TypeScript) · [PostgreSQL](https://github.com/postgres/postgres) · [tRPC](https://github.com/trpc/trpc) · [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) · [shadcn/ui](https://github.com/shadcn-ui/ui) · [Tiptap](https://github.com/ueberdosis/tiptap)
 
-## Community
-
-[Discussions](https://github.com/feedbackland/feedbackland/discussions) · [Issues](https://github.com/feedbackland/feedbackland/issues) · [Releases](https://github.com/feedbackland/feedbackland/releases)
-
 ## License
 
 [MIT](LICENSE) — fork it, run it, sell it.
+
+<sub><a href="https://github.com/feedbackland/feedbackland/discussions">Discussions</a> · <a href="https://github.com/feedbackland/feedbackland/issues">Issues</a> · <a href="https://github.com/feedbackland/feedbackland/releases">Releases</a></sub>

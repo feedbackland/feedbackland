@@ -20,6 +20,9 @@ import type { Insight } from "@/lib/typings";
  * One component of the score. A single hue across all three bars: they measure
  * different things but the same quantity — how much this insight has of it — so
  * colouring them apart would imply a distinction that is not there.
+ *
+ * The weight sits in the label rather than in a hover title, because how much
+ * each part counts is half of what this panel is here to explain.
  */
 function ScoreBar({
   label,
@@ -33,9 +36,14 @@ function ScoreBar({
   weight: number;
 }) {
   return (
-    <div className="grid grid-cols-[6.5rem_1fr_1.75rem] items-center gap-2">
+    <div className="grid grid-cols-[7rem_1fr_1.75rem] items-center gap-2">
       <div className="min-w-0">
-        <div className="truncate text-xs font-medium">{label}</div>
+        <div className="truncate text-xs font-medium">
+          {label}{" "}
+          <span className="text-muted-foreground font-normal tabular-nums">
+            {Math.round(weight * 100)}%
+          </span>
+        </div>
         <div className="text-muted-foreground truncate text-[11px]">
           {detail}
         </div>
@@ -45,8 +53,7 @@ function ScoreBar({
           everything the bar says. */}
       <div
         aria-hidden
-        title={`${Math.round(weight * 100)}% of the score`}
-        className="bg-muted h-1.5 overflow-hidden rounded-full"
+        className="bg-foreground/10 h-1.5 overflow-hidden rounded-full"
       >
         <div
           className="bg-foreground/70 h-full rounded-full"
@@ -84,7 +91,7 @@ export function InsightSignal({ insight }: { insight: Insight }) {
   const meter = (
     <>
       {driver && (
-        <span className="text-muted-foreground text-xs whitespace-nowrap">
+        <span className="text-muted-foreground xs:inline hidden text-xs font-medium whitespace-nowrap select-none">
           {driver}
         </span>
       )}
@@ -98,8 +105,8 @@ export function InsightSignal({ insight }: { insight: Insight }) {
               // and even without colour.
               ["h-1.5", "h-2", "h-2.5", "h-3", "h-3.5"][index],
               index < filled
-                ? "bg-foreground/75 group-hover/signal:bg-foreground"
-                : "bg-muted-foreground/20",
+                ? "bg-foreground/80 group-hover/signal:bg-foreground"
+                : "bg-foreground/15",
             )}
           />
         ))}
@@ -107,7 +114,10 @@ export function InsightSignal({ insight }: { insight: Insight }) {
     </>
   );
 
-  const shell = "flex shrink-0 items-center gap-2 rounded-md px-1.5 py-1";
+  // The negative right margin lands the last bar on the row's content edge, so
+  // the meters line up with the status controls below them.
+  const shell =
+    "-mr-1.5 flex shrink-0 items-center gap-2 rounded-md px-1.5 py-1";
 
   // Rows written before the score was broken down have nothing to explain, so
   // they show the meter without pretending to be interactive.

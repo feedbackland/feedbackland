@@ -91,19 +91,28 @@ triage state of its own.
 
 ```
 Insights                                                    [⟳ Regenerate]
-84 posts → 19 insights · 6 new · 5 not grouped · 2 hours ago  ← run strip (popover)
+The themes that keep coming up across your feedback, ranked
+by what to build or fix next.
+
+[🔍 Search insights        ]  Showing 4 of 19
 
 ┌──────────────────────────────────────────────────────────────────────────┐
+│  84 posts → 19 insights · 6 new · 5 not grouped        2 hours ago  ⓘ    │ ← run strip
+├──────────────────────────────────────────────────────────────────────────┤
 │  Fix Safari login failures                          Widely asked  ▁▂▃▄▅  │
 │  Users on Safari 17 are signed out part-way through a session and        │
 │  lose unsaved work.                                                      │
-│  34 people · ↗+9 · 12 posts ⌄                      [● In progress ▾]     │
+│  34 people ↗+9   [12 posts ⌄]                      [● In progress ▾]     │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  Let people export a board to CSV                        Surging  ▁▂▃▄▁  │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  Make search find partial and near matches      NEW               ▁▂▃▁▁  │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
+
+Three layers, each answering a different question. The header says what the
+page is for and never changes. The strip says what this particular run did, and
+sits on the list because that list is its output. The rows are the insights.
 
 Three controls per row, each doing one job:
 
@@ -143,6 +152,58 @@ are behind it, whether that grew since the last run, and the way in to the
 evidence. Effort still shapes the score and is explained in the popover, but it
 is not repeated on the row; the imperative title already says whether something
 is a fix or a feature, so a separate label for that was redundant.
+
+## The page says what it is (UI pass, same day)
+
+The first build put the run's numbers directly under the `Insights` heading, in
+place of the description. That meant the moment you generated once, the page
+stopped explaining itself: from then on the only prose on the screen was a stats
+string, and a stats string cannot say *many individual posts in, a handful of
+recurring themes out* — which is the entire point of the page. Six changes, all
+inside the existing design system:
+
+1. **The description is permanent, and the run moved onto the list.** The
+   heading now always carries "The themes that keep coming up across your
+   feedback, ranked by what to build or fix next." The run's counts became the
+   head of the list card — `84 posts → 19 insights`, with the two numbers set in
+   medium and "6 new · 5 not grouped" as smaller footnotes to them, and the run
+   detail behind the timestamp. Provenance belongs on the artefact it produced.
+2. **One primary action per screen.** Before the first run, the header's button
+   and the empty state's button said the same thing twice; the header now omits
+   its action while the list is empty and the empty state owns the call. Once a
+   run exists, Regenerate drops to `outline` — the insights are the thing worth
+   looking at, not the button that made them. `Sparkles` for the first
+   generation, `RefreshCw` for a re-run: the icon says which one it is.
+3. **The status palette stopped leaking.** The NEW marker was
+   `text-in-progress` — the blue that means a feedback status — and the empty
+   state's icon was `text-under-consideration` purple. NEW is now a
+   `secondary` Badge and the empty-state icon is neutral, so those five colours
+   mean exactly one thing again. That icon is also now `Layers` rather than
+   `Sparkles`: separate posts stacked into one says more about the page than a
+   sparkle does.
+4. **Prose got a measure.** At the board's 1000px content width the description
+   ran past 100 characters a line. It is capped at `max-w-xl`; the width it
+   gives up is the column the meter and the status control sit in, so the right
+   edge reads as one column instead of two ragged ones.
+5. **The disclosure looks like a control.** "12 posts" kept its role as the way
+   in to the evidence but gained a button's padding, hover and focus ring, and
+   the panel it opens now names itself — "The feedback behind this insight" —
+   which is the page's thesis restated where the grouping is actually visible.
+   The panel also animates open with the Accordion's own height transition
+   (keyed to Collapsible's height variable, `motion-reduce` respected) rather
+   than snapping and shunting every row below it.
+6. **Smaller corrections.** Score weights moved from a hover `title` into the
+   breakdown's labels (`Reach 40%`), because how much each part counts is half
+   of what that panel exists to explain; the reach delta uses the design
+   system's Tooltip instead of a native `title`; the search row reports "Showing
+   4 of 19" so the strip's count never silently disagrees with the rows;
+   `evidence.tsx` stopped building Tailwind classes at runtime
+   (`` `text-${status.replace(" ", "-")}` ``) and uses `STATUS_TEXT_CLASS`; and
+   the loading skeleton, which had drifted (two buttons where the header has
+   one, no strip), mirrors the real layout again and no longer draws a second
+   header when it renders under a real one.
+
+`run-summary.tsx` became `run-strip.tsx`, the only file renamed.
 
 ## Scoring
 
@@ -260,6 +321,16 @@ posts does not flood the activity feed.
 - Rendered against a temporary mock harness and reviewed in light and dark mode
   at the real 1024px content width: header, run strip, rows, score popover,
   status menu, expanded evidence, and the first-run empty state.
+- The UI pass was re-verified the same way, through a throwaway route that
+  mounted the real components over mock insights (the evidence query seeded into
+  the React Query cache so expanding a row hit no network). Screenshotted in
+  both themes across all five states — list, loading, first run, no feedback, no
+  matches — plus the expanded evidence panel, the score breakdown popover and
+  the generating banner. Two defects were found by looking rather than reading:
+  the duplicated call to action on the first-run screen, and the loading
+  skeleton drawing a second header when it rendered beneath a real one. The
+  route was deleted afterwards; `npx tsc --noEmit` and `npx next build` are both
+  clean, TypeScript check included.
 
 Two bugs were found by the live run and fixed:
 

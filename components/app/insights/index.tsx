@@ -7,10 +7,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { useInsights } from "@/hooks/use-insights";
 import { useGenerateInsights } from "@/hooks/use-generate-insights";
 import { InsightsHeader } from "./header";
+import { InsightsRunStrip } from "./run-strip";
 import { InsightsSearch } from "./search";
 import { InsightRow } from "./insight-row";
 import { InsightsLoading } from "./loading";
-import { InsightsFirstRun, InsightsNoFeedback, InsightsNoMatches } from "./empty";
+import {
+  InsightsFirstRun,
+  InsightsNoFeedback,
+  InsightsNoMatches,
+} from "./empty";
 
 /** Below this many insights the whole list fits on screen, so search is noise. */
 const SEARCH_THRESHOLD = 8;
@@ -70,13 +75,11 @@ export function Insights() {
   if (insights.length === 0) {
     return (
       <div>
-        <InsightsHeader
-          run={run}
-          onGenerate={handleGenerate}
-          isGenerating={isGenerating}
-        />
+        {/* No action up here: the empty state below is the call to action, and
+            when there is no feedback at all there is nothing to act on. */}
+        <InsightsHeader hasRun={!!run} />
         {isGenerating ? (
-          <InsightsLoading />
+          <InsightsLoading showHeader={false} />
         ) : openPostCount === 0 ? (
           <InsightsNoFeedback />
         ) : (
@@ -93,7 +96,7 @@ export function Insights() {
   return (
     <div>
       <InsightsHeader
-        run={run}
+        hasRun={!!run}
         onGenerate={handleGenerate}
         isGenerating={isGenerating}
       />
@@ -101,7 +104,7 @@ export function Insights() {
       {isGenerating && (
         <div
           role="status"
-          className="border-border bg-muted/40 text-muted-foreground mb-4 flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm"
+          className="border-border bg-muted/40 text-muted-foreground mb-4 flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm"
         >
           <Spinner className="size-4 shrink-0" />
           <span>
@@ -112,10 +115,17 @@ export function Insights() {
       )}
 
       {insights.length >= SEARCH_THRESHOLD && (
-        <InsightsSearch value={search} onChange={setSearch} />
+        <InsightsSearch
+          value={search}
+          onChange={setSearch}
+          matchCount={visible.length}
+          total={insights.length}
+        />
       )}
 
-      <div className="border-border bg-background rounded-lg border shadow-xs">
+      <div className="border-border bg-background overflow-hidden rounded-lg border shadow-xs">
+        {run && <InsightsRunStrip run={run} />}
+
         {visible.map((insight) => (
           <InsightRow key={insight.id} insight={insight} />
         ))}
