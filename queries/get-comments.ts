@@ -65,12 +65,18 @@ export const getCommentsQuery = async ({
     let nextCursor: typeof cursor | undefined = undefined;
 
     if (comments.length > limit) {
-      const nextItem = comments.pop();
+      // Drop the look-ahead row, then key the cursor off the last row actually
+      // being returned. Keying it off the look-ahead row lost that row: the
+      // next page asks for createdAt strictly older than the cursor, so the
+      // comment the cursor pointed at was skipped.
+      comments.pop();
 
-      if (nextItem) {
+      const lastItem = comments[comments.length - 1];
+
+      if (lastItem) {
         nextCursor = {
-          id: nextItem?.id,
-          createdAt: nextItem.createdAt.toISOString(),
+          id: lastItem.id,
+          createdAt: lastItem.createdAt.toISOString(),
         };
       }
     }

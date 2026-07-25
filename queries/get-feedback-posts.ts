@@ -72,6 +72,13 @@ export const getFeedbackPostsQuery = async ({
         isSearching
           ? cosineDistance("feedback.embedding", searchVector).as("distance")
           : sql<null>`null`.as("distance"),
+        // createdAt is stored to microseconds, but the driver hands back a JS
+        // Date, which only holds milliseconds. Paging on the rounded value
+        // silently strands every row inside the cursor's millisecond, so keep
+        // an exact copy for the cursor. Stripped again before returning.
+        sql<string>`to_char(${sql.ref("feedback.createdAt")} at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`.as(
+          "createdAtExact",
+        ),
       ]);
 
     if (status) {
@@ -89,11 +96,15 @@ export const getFeedbackPostsQuery = async ({
         .orderBy("feedback.id", "desc");
 
       if (cursor && typeof cursor.distance === "number") {
+        // Search orders by distance ascending, so the next page is the rows
+        // *further* from the query than the cursor. Comparing "<" here walked
+        // backwards into rows already returned, so the list never advanced and
+        // never ran out. The id tiebreak stays "<" because id is ordered desc.
         query = query.where((eb) =>
           eb.or([
             eb(
               cosineDistance("feedback.embedding", searchVector),
-              "<",
+              ">",
               cursor.distance,
             ),
             eb.and([
@@ -138,14 +149,20 @@ export const getFeedbackPostsQuery = async ({
       if (cursor) {
         query = query.where((eb) => {
           switch (sortBy) {
-            case "newest":
+            case "newest": {
+              // Compare against the exact stored timestamp, not `new Date(...)`
+              // — that would round to milliseconds again and drop the rows this
+              // cursor is meant to resume from.
+              const at = sql<Date>`${cursor.createdAt}::timestamptz`;
+
               return eb.or([
-                eb("feedback.createdAt", "<", new Date(cursor.createdAt)),
+                eb("feedback.createdAt", "<", at),
                 eb.and([
-                  eb("feedback.createdAt", "=", new Date(cursor.createdAt)),
+                  eb("feedback.createdAt", "=", at),
                   eb("feedback.id", "<", cursor.id),
                 ]),
               ]);
+            }
             case "upvotes":
               const cursorUpvotesStr = String(cursor.upvotes);
               return eb.or([
@@ -192,22 +209,34 @@ export const getFeedbackPostsQuery = async ({
 
     query = query.limit(limit + 1);
 
-    const feedbackPosts = await query.execute();
+    const rows = await query.execute();
+
+    // createdAtExact exists only to build the cursor; keep it off the wire.
+    const feedbackPosts = rows.map(
+      ({ createdAtExact: _createdAtExact, ...post }) => post,
+    );
 
     let nextCursor: FeedbackPostsCursor | undefined = undefined;
 
-    if (feedbackPosts.length > limit) {
-      const nextItem = feedbackPosts.pop();
+    if (rows.length > limit) {
+      // Drop the look-ahead row, then key the cursor off the last row actually
+      // being returned. Keying it off the look-ahead row lost that row: the
+      // next page filters strictly past the cursor, so the row the cursor
+      // pointed at was skipped -- one post per page boundary.
+      rows.pop();
+      feedbackPosts.pop();
 
-      if (nextItem) {
+      const lastItem = rows[rows.length - 1];
+
+      if (lastItem) {
         nextCursor = {
-          id: nextItem.id,
-          commentCount: Number(nextItem.commentCount),
-          upvotes: Number(nextItem.upvotes),
-          createdAt: nextItem.createdAt.toISOString(),
+          id: lastItem.id,
+          commentCount: Number(lastItem.commentCount),
+          upvotes: Number(lastItem.upvotes),
+          createdAt: lastItem.createdAtExact,
           distance:
-            isSearching && nextItem.distance
-              ? Number(nextItem.distance)
+            isSearching && lastItem.distance
+              ? Number(lastItem.distance)
               : undefined,
         };
       }
