@@ -32,9 +32,7 @@ across them, paste them into Vercel, and ship.
 
 - A [GitHub](https://github.com) account
 - [Git](https://git-scm.com) installed
-- *(Optional, for local testing only)* [Node.js 20.19+, 22.12+, or 23+](https://nodejs.org)
-  and `npm`. Older 20.x/22.x releases cannot `require()` an ES module, which
-  `firebase-admin` needs to load its auth dependency.
+- *(Optional, for local testing only)* [Node.js 20+](https://nodejs.org) and `npm`
 
 **Accounts you'll create (all free):**
 
