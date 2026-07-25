@@ -20,7 +20,7 @@ export const GlobalOrgState = memo(() => {
   const setPreviousPathnameAtom = useSetAtom(previousPathnameAtom);
   const setActivityFeedState = useSetAtom(activtyFeedStateAtom);
   const setFeedbackPostsState = useSetAtom(feedbackPostsStateAtom);
-  const setExpandedInsightsAtom = useSetAtom(expandedInsightsAtom);
+  const setExpandedInsights = useSetAtom(expandedInsightsAtom);
   const subdomain = useSubdomain();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export const GlobalOrgState = memo(() => {
     }
 
     if (prevPage === "insights" && !isUuidV4(nextPage)) {
-      setExpandedInsightsAtom(RESET);
+      setExpandedInsights(RESET);
     }
 
     if (prevPage === "" && !isUuidV4(nextPage)) {
@@ -54,7 +54,7 @@ export const GlobalOrgState = memo(() => {
     setPreviousPathnameAtom,
     setActivityFeedState,
     setFeedbackPostsState,
-    setExpandedInsightsAtom,
+    setExpandedInsights,
   ]);
 
   return null;

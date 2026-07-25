@@ -40,7 +40,7 @@ across them, paste them into Vercel, and ship.
 | --------------------------------------- | --------------------------- | -------------------------------------------------------------- |
 | [Supabase](https://supabase.com)        | Postgres database + image storage | 2 projects · 500 MB DB · 1 GB storage |
 | [Firebase](https://firebase.google.com) | User authentication         | Generous Spark plan, no credit card required                   |
-| [OpenRouter](https://openrouter.ai)     | LLM for AI roadmap, search, rewrite | Pay-as-you-go · free models available                    |
+| [OpenRouter](https://openrouter.ai)     | LLM for insights, search, rewrite | Pay-as-you-go · free models available                    |
 | [Vercel](https://vercel.com)            | Hosts the Next.js app       | Hobby plan is free for non-commercial use                      |
 
 > [!IMPORTANT]
@@ -432,10 +432,22 @@ When Feedbackland ships new releases, pull them into your fork:
 
 1. On your GitHub fork page, click **Sync fork** → **Update branch**.
 2. Vercel detects the new commit and rebuilds automatically.
+3. Check `db/migrations/` for any `.sql` file newer than your last update. Run
+   each one in order in the Supabase **SQL Editor**, the same way you ran
+   `db/schema.sql` during setup. Every migration is idempotent, so running one
+   twice is harmless.
 
 For breaking changes, check the
 [Releases](https://github.com/feedbackland/feedbackland/releases) page for
 migration notes.
+
+### Insights on the Vercel Hobby plan
+
+Generating insights reads your whole board and calls the model several times,
+so it asks Vercel for up to 300 seconds. The Hobby plan caps functions at 60
+seconds, which is plenty for a few hundred posts but can time out on a large
+board. If **Generate** fails with a timeout, upgrade the project to Pro (or
+self-host the app somewhere without a function ceiling).
 
 ---
 

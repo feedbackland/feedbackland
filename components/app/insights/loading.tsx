@@ -1,57 +1,45 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardHeader,
-  CardAction,
-  CardContent,
-} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-// Mirrors the <Insight /> card: bg-background, gap-0/py-0 override, a header with
-// the title (col 1) + a priority badge as CardAction (col 2, rounded-md outline),
-// a meta row (status badge + upvote/comment counts), a 1–2 line description, and
-// the collapsible "Based on N feedback posts" footer (border-t). Badges are
-// rounded-md (not pills) to match the real outline <Badge />.
-const TITLE_WIDTHS = ["w-3/4", "w-2/3", "w-4/5", "w-1/2", "w-[70%]"] as const;
+// Mirrors <InsightRow />: title + signal meter, a description, and the meta line
+// with the status control on the right.
+const TITLE_WIDTHS = ["w-2/5", "w-1/2", "w-1/3", "w-[45%]", "w-2/5"];
 
 export function InsightsLoading() {
   return (
-    <div className="space-y-6">
-      {/* Filter bar: search + sort */}
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-9 w-full max-w-sm" />
-        <Skeleton className="h-9 w-24" />
+    <div>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="size-9" />
+          <Skeleton className="h-9 w-28" />
+        </div>
       </div>
 
-      {/* Insight cards */}
-      <div className="space-y-6">
-        {TITLE_WIDTHS.map((titleW, index) => (
-          <Card
+      <div className="border-border bg-background rounded-lg border shadow-xs">
+        {TITLE_WIDTHS.map((width, index) => (
+          <div
             key={index}
-            className="bg-background gap-0 overflow-hidden py-0"
+            className="border-border border-b px-3 py-3.5 last:border-b-0 sm:px-4"
           >
-            <CardHeader className="pt-5">
-              <Skeleton className={cn("h-5", titleW)} />
-              <CardAction>
-                <Skeleton className="h-5 w-24 rounded-md" />
-              </CardAction>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-5 w-16 rounded-md" />
-                <Skeleton className="h-4 w-10" />
-                <Skeleton className="h-4 w-10" />
+            <div className="min-w-0 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <Skeleton className={cn("h-4", width)} />
+                <Skeleton className="h-1 w-9 shrink-0 rounded-full" />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-1.5 pt-3 pb-5">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-4/5" />
-            </CardContent>
-            {/* collapsible "Based on N feedback posts" footer */}
-            <div className="border-border border-t px-6 py-3">
-              <Skeleton className="h-3 w-44" />
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-3/4" />
+              <div className="flex items-center justify-between gap-3 pt-0.5">
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-7 w-28 shrink-0 rounded-md" />
+              </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </div>

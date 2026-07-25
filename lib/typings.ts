@@ -7,7 +7,7 @@ import {
   userRoleSchema,
   feedbackPostsCursorSchema,
   feedbackCategoriesSchema,
-  insightsCursorSchema,
+  insightEffortSchema,
 } from "./schemas";
 
 export type FeedbackStatus = z.infer<typeof feedbackStatusSchema>;
@@ -24,7 +24,7 @@ export type UserRole = z.infer<typeof userRoleSchema>;
 
 export type FeedbackPostsCursor = z.infer<typeof feedbackPostsCursorSchema>;
 
-export type InsightsCursor = z.infer<typeof insightsCursorSchema>;
+export type InsightEffort = z.infer<typeof insightEffortSchema>;
 
 export type Admin = {
   userId: string | null;
@@ -54,19 +54,81 @@ export type ActivityFeedItem = {
   isSeen?: boolean;
 };
 
-// Define a type for insights data as it's received from the query (unwrapped Kysely types)
-export type InsightData = {
+/**
+ * Everything that went into an insight's priority score, kept so the score can be
+ * shown as a breakdown rather than asserted as a number. `reachScore` and
+ * `momentumScore` are normalised against the strongest insight in the same run;
+ * `severityScore` is the model's absolute judgement.
+ */
+export type InsightSignals = {
+  reachScore: number;
+  momentumScore: number;
+  severityScore: number;
+  effortMultiplier: number;
+  postCount: number;
+  upvotes: number;
+  commentCount: number;
+  reach: number;
+  recentPostCount: number;
+  recentUpvotes: number;
+  recentCommentCount: number;
+  latestActivityAt: string | null;
+  evidence: string;
+  confidence: number;
+  previous: {
+    priority: number;
+    reach: number;
+    postCount: number;
+    at: string;
+  } | null;
+};
+
+/**
+ * An insight as the client consumes it: numerics already parsed, and the
+ * post ids under a name that says what they are.
+ *
+ * `status` is rolled up from the live feedback posts on every read rather than
+ * stored, so it can never drift from what the board actually says.
+ */
+export type Insight = {
   id: string;
-  orgId: string;
   title: string;
   description: string;
-  category: FeedbackCategory | null;
-  status: FeedbackStatus | null;
-  upvotes: string; // Numeric from DB often comes as string
-  commentCount: string; // Numeric from DB often comes as string
-  priority: string; // Numeric from DB often comes as string
-  ids: string[];
-  createdAt: Date; // Timestamp from DB often comes as Date object
+  postIds: string[];
+  priority: number;
+  reach: number;
+  momentum: number;
+  upvotes: number;
+  commentCount: number;
+  effort: InsightEffort;
+  /** The status every post shares, or null when they have none or disagree. */
+  status: FeedbackStatus;
+  /** True when the posts carry more than one status. */
+  isMixedStatus: boolean;
+  category: FeedbackCategory;
+  signals: InsightSignals | null;
+  firstSeenAt: Date;
+  lastSeenAt: Date;
+  isNew: boolean;
+};
+
+/** Summary of the most recent analysis run — the page's coverage strip. */
+export type InsightsRun = {
+  createdAt: Date;
+  postsTotal: number;
+  postsAnalyzed: number;
+  postsClustered: number;
+  insightCount: number;
+  newInsightCount: number;
+  archivedInsightCount: number;
+  model: string | null;
+};
+
+export type Insights = {
+  insights: Insight[];
+  run: InsightsRun | null;
+  /** Open posts available to analyse right now, for the empty and first-run states. */
+  openPostCount: number;
 };
 
 export type IframeParentAPI = {

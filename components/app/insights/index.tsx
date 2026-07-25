@@ -1,253 +1,129 @@
 "use client";
 
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { useTRPC } from "@/providers/trpc-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useInsights } from "@/hooks/use-insights";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Error } from "@/components/ui/error";
-import { Insight } from "@/components/app/insight";
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyContent,
-} from "@/components/ui/empty";
-import { useInView } from "react-intersection-observer";
+import { Spinner } from "@/components/ui/spinner";
+import { useInsights } from "@/hooks/use-insights";
+import { useGenerateInsights } from "@/hooks/use-generate-insights";
+import { InsightsHeader } from "./header";
+import { InsightsSearch } from "./search";
+import { InsightRow } from "./insight-row";
 import { InsightsLoading } from "./loading";
-import { InsightsEmpty } from "./empty";
-import { InsightsFilterBar } from "./filter-bar";
-import { useAtom } from "jotai";
-import { insightsStateAtom, InsightsState } from "@/lib/atoms";
-import { InfoIcon, RefreshCw } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import dynamic from "next/dynamic";
+import { InsightsFirstRun, InsightsNoFeedback, InsightsNoMatches } from "./empty";
 
-const InsightsDownloadButton = dynamic(
-  () =>
-    import("./download-button").then(
-      ({ InsightsDownloadButton }) => InsightsDownloadButton,
-    ),
-  {
-    ssr: false,
-  },
-);
+/** Below this many insights the whole list fits on screen, so search is noise. */
+const SEARCH_THRESHOLD = 8;
 
 export function Insights() {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const [state, setState] = useAtom(insightsStateAtom);
-
-  const generateInsightsMutation = useMutation(
-    trpc.generateInsights.mutationOptions({
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.getInsights.queryKey().slice(0, 1),
-        });
-      },
-    }),
-  );
-
+  const [search, setSearch] = useState("");
   const {
-    query: {
-      data,
-      fetchNextPage,
-      hasNextPage,
-      isFetchingNextPage,
-      isPending,
-      isError,
-    },
-  } = useInsights({ enabled: !generateInsightsMutation?.isPending });
+    query: { data, isPending, isError },
+  } = useInsights();
+  const generate = useGenerateInsights();
 
-  const { ref } = useInView({
-    onChange: (inView) => {
-      if (inView && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-  });
+  const insights = useMemo(() => data?.insights ?? [], [data?.insights]);
+  const run = data?.run ?? null;
 
-  const handleGenerateClick = () => {
-    queryClient.removeQueries({
-      queryKey: trpc.getInsights.queryKey().slice(0, 1),
-      exact: false,
+  const handleGenerate = () => {
+    generate.mutate(undefined, {
+      onSuccess: () =>
+        toast.success("Insights updated", { position: "top-right" }),
+      onError: (error) =>
+        toast.error(error.message || "The analysis didn't finish.", {
+          position: "top-right",
+        }),
     });
-
-    generateInsightsMutation.mutate();
   };
 
-  const handleStateChange = (updates: Partial<InsightsState>) => {
-    setState((prev) => ({ ...prev, ...updates }));
-  };
+  // The whole insights is in memory, so search runs over every insight rather
+  // than over whatever happened to be loaded.
+  const visible = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return insights;
 
-  const isGenerating = generateInsightsMutation.isPending;
-  const isGeneratingError = !isGenerating && generateInsightsMutation.isError;
-  const insights = data?.pages.flatMap((page) => page.items) || [];
-  const hasInsights = !isPending && !isGenerating && insights?.length > 0;
-  const hasNoInsights = !isPending && !isGenerating && !hasInsights;
-  const isInitialEmptyState = !isGenerating && hasNoInsights;
+    return insights.filter(
+      (insight) =>
+        insight.title.toLowerCase().includes(term) ||
+        insight.description.toLowerCase().includes(term) ||
+        (insight.signals?.evidence ?? "").toLowerCase().includes(term),
+    );
+  }, [insights, search]);
 
-  // Filter and sort insights based on state
-  const filteredInsights = useMemo(() => {
-    let result = [...insights];
+  if (isPending) return <InsightsLoading />;
 
-    // Apply search filter
-    if (state.searchValue) {
-      const search = state.searchValue.toLowerCase();
-      result = result.filter(
-        (i) =>
-          i.title.toLowerCase().includes(search) ||
-          i.description.toLowerCase().includes(search),
-      );
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      switch (state.sortBy) {
-        case "priority":
-          return Number(b.priority) - Number(a.priority);
-        case "upvotes":
-          return Number(b.upvotes) - Number(a.upvotes);
-        case "commentCount":
-          return Number(b.commentCount) - Number(a.commentCount);
-        case "newest":
-        default:
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-      }
-    });
-
-    return result;
-  }, [insights, state]);
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-lg font-semibold tracking-tight">
-              {isGenerating ? "Generating AI Roadmap..." : "AI Roadmap"}
-            </h2>
-            {!isGenerating && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-6 cursor-help"
-                    aria-label="About AI Roadmap"
-                  >
-                    <InfoIcon className="text-muted-foreground size-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="max-w-64">
-                    AI analyzes your feedback to surface key themes, prioritize
-                    feature requests, and suggest a roadmap.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-          {!isGenerating && hasInsights && (
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Last generated on{" "}
-              {new Date(insights[0].createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          )}
-          {isGenerating && (
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Analyzing your feedback... This might take a few minutes.
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {hasInsights && <InsightsDownloadButton />}
-          <Button
-            onClick={handleGenerateClick}
-            loading={isGenerating}
-            className="gap-2"
-          >
-            <RefreshCw className="size-4" />
-            {hasInsights ? "Regenerate" : "Generate"}
-          </Button>
-        </div>
+  if (isError) {
+    return (
+      <div>
+        <h2 className="h5 mb-4">Insights</h2>
+        <Error
+          title="Could not load your insights"
+          description="Something went wrong reading them. Reload the page to try again."
+        />
       </div>
+    );
+  }
 
-      {/* Loading State */}
-      {!!(isGenerating || isPending) && <InsightsLoading />}
+  const isGenerating = generate.isPending;
+  const openPostCount = data?.openPostCount ?? 0;
 
-      {/* Error States */}
-      {isGeneratingError && (
-        <Error
-          title="Could not generate AI roadmap"
-          description="An error occurred while trying to generate the AI roadmap. Please try again."
-          className="mb-4"
-        />
-      )}
-
-      {!isGeneratingError && isError && (
-        <Error
-          title="Could not load AI roadmap"
-          description="An error occurred while trying to load the AI roadmap. Please try again."
-          className="mb-4"
-        />
-      )}
-
-      {/* Empty State */}
-      {isInitialEmptyState && (
-        <InsightsEmpty
-          onGenerate={handleGenerateClick}
+  if (insights.length === 0) {
+    return (
+      <div>
+        <InsightsHeader
+          run={run}
+          onGenerate={handleGenerate}
           isGenerating={isGenerating}
         />
+        {isGenerating ? (
+          <InsightsLoading />
+        ) : openPostCount === 0 ? (
+          <InsightsNoFeedback />
+        ) : (
+          <InsightsFirstRun
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            postCount={openPostCount}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <InsightsHeader
+        run={run}
+        onGenerate={handleGenerate}
+        isGenerating={isGenerating}
+      />
+
+      {isGenerating && (
+        <div
+          role="status"
+          className="border-border bg-muted/40 text-muted-foreground mb-4 flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm"
+        >
+          <Spinner className="size-4 shrink-0" />
+          <span>
+            Reading your feedback. What&apos;s below stays put until the new
+            insights are ready.
+          </span>
+        </div>
       )}
 
-      {/* Content when insights exist */}
-      {hasInsights && (
-        <>
-          {/* Filter Bar */}
-          <InsightsFilterBar state={state} onStateChange={handleStateChange} />
-
-          {/* Insights List */}
-          <div className="flex flex-col items-stretch space-y-6">
-            {filteredInsights.map((item) => (
-              <Insight key={item.id} item={item} />
-            ))}
-
-            {/* No results message */}
-            {filteredInsights.length === 0 && state.searchValue && (
-              <Empty className="py-16">
-                <EmptyHeader>
-                  <EmptyTitle>No insights match your search</EmptyTitle>
-                </EmptyHeader>
-                <EmptyContent>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => handleStateChange({ searchValue: "" })}
-                  >
-                    Clear search
-                  </Button>
-                </EmptyContent>
-              </Empty>
-            )}
-
-            {/* Infinite scroll trigger */}
-            <div ref={ref} className="h-1 w-full" />
-          </div>
-        </>
+      {insights.length >= SEARCH_THRESHOLD && (
+        <InsightsSearch value={search} onChange={setSearch} />
       )}
+
+      <div className="border-border bg-background rounded-lg border shadow-xs">
+        {visible.map((insight) => (
+          <InsightRow key={insight.id} insight={insight} />
+        ))}
+
+        {visible.length === 0 && (
+          <InsightsNoMatches onClear={() => setSearch("")} />
+        )}
+      </div>
     </div>
   );
 }

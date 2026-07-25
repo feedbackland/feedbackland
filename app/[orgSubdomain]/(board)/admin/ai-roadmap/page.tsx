@@ -1,12 +1,22 @@
 "use client";
 
-import { Insights } from "@/components/app/insights";
-import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { usePlatformUrl } from "@/hooks/use-platform-url";
 
-export default function AIRoadmapPage() {
-  const { isAdmin } = useAuth();
+/**
+ * The page moved to /admin/insights. This keeps existing bookmarks and links
+ * working; it renders nothing and can be deleted once enough time has passed.
+ */
+export default function AIRoadmapRedirectPage() {
+  const platformUrl = usePlatformUrl();
+  const router = useRouter();
 
-  if (isAdmin) {
-    return <Insights />;
-  }
+  useEffect(() => {
+    if (platformUrl) {
+      router.replace(`${platformUrl}/admin/insights`);
+    }
+  }, [platformUrl, router]);
+
+  return null;
 }

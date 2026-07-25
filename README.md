@@ -32,7 +32,8 @@
 
 ## Why Feedbackland?
 
-- **AI does the boring parts.** AI automatically writes your roadmap as feedback lands.
+- **AI does the boring parts.** One click reads every open post, groups the duplicates, and ranks what's left by how many distinct people are asking, how fast that's growing, and how badly the problem hurts — with the score broken down so you can see why.
+- **One click to close the loop.** When an insight is dealt with, set its status once and every post behind it updates on your public board. Insights keep their identity between runs, so you can see what gained ground since last time.
 - **Ask in plain English.** *"What do paying users complain about most?"* — real answers from your real feedback.
 - **One-line widget, two flavors.** Drop a slide-in **drawer** or an anchored **popover** into your React app. Users never leave your product.
 - **Free forever.** MIT, self-hostable, no seat caps, no per-user pricing — ever.
@@ -41,11 +42,11 @@
 
 - Public feedback board with comments, upvotes, statuses, semantic search
 - Embeddable React widget in two variants — slide-in **drawer** or anchored **popover**
-- AI-generated roadmap
+- Insights — a ranked list of what to build or fix next, generated from your feedback, with an explainable score and one-click status updates back to the board
 - Ask AI anything about all your collected feedback
 - REST API to pipe feedback in from anywhere
 - SSO (Google, Microsoft) and email/password
-- Admin dashboard — moderate, tag, respond, export feedback
+- Admin dashboard — moderate, tag, respond to feedback
 
 ## Embed the widget
 
@@ -121,7 +122,7 @@ Switch flavors with the `widget` prop:
 | **Free hosted plan**         |    Unlimited     |     25-user cap      |        Trial only        |         —          |
 | **Paid pricing**             |     **None**     |  $19+/mo, per-user   |   $29+/seat + AI usage   |   $49+/mo cloud    |
 | **AI duplicate clustering**  |        ✅        |          ✅          |            —             |         —          |
-| **AI-generated roadmap**     |        ✅        |          —           |            —             |         —          |
+| **Ranked insights**          |        ✅        |          —           |            —             |         —          |
 | **Ask AI over your feedback**|        ✅        |          —           |            —             |         —          |
 
 ## Built with

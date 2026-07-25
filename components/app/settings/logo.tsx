@@ -45,7 +45,10 @@ export function Logo({
     });
   };
 
-  const onDrop = async (acceptedFiles: FileWithPath[]) => {
+  // react-dropzone types onDrop as <T extends File>(files: T[], …), so the
+  // parameter has to be File[] — FileWithPath[] is narrower than the generic's
+  // constraint and will not assign. Nothing here reads `path` anyway.
+  const onDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     const base64Image = await fileToBase64(file);
     setLocalImage(base64Image);
