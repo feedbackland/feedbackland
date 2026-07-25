@@ -4,7 +4,7 @@
 
 **An open-source feedback board that tells you what to build next.**
 
-<p>Drop the widget into your app in a minute. MIT licensed, free, never priced per user.</p>
+<p>Drop the widget into your app in a minute. MIT licensed, free forever.</p>
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
@@ -28,12 +28,10 @@
 
 </div>
 
----
-
 ## Why
 
-- **Know what to build next — without reading 200 posts.** Duplicates merge into themes, ranked by how many people, how urgent, how recent. Open a score and you see the arithmetic, so you can disagree with it.
-- **Never a bill that grows with you.** MIT, no paid tier, no feature gates. Familiar shape if you've used Canny or Fider — but nothing is priced per user, and you can fork it.
+- **Know what to build next without reading 200 posts.** Duplicates merge into themes, ranked by how many people, how urgent, how recent. Open a score and you see the arithmetic, so you can disagree with it.
+- **Free forever.** MIT, no paid tier, no feature gates. Familiar shape if you've used Canny or Fider — but nothing is priced per user, and you can fork it.
 - **Every channel in one list.** `POST` one endpoint to pipe feedback in from Slack, a support inbox or a CLI.
 
 ## The widget
