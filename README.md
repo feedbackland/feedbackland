@@ -5,7 +5,7 @@
 **An open-source feedback board that tells you what to build next.**
 
 <p>
-  Open-source. MIT licensed. Free forever.
+  Open-source. MIT licensed. Self-hostable. Free forever.
 </p>
 
 <p>
