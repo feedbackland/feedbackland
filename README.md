@@ -48,6 +48,7 @@ Feedbackland works on both ends of that:
 </picture>
 <p align="center"><sub><b>Insights</b> — the board compressed into ranked themes</sub></p>
 </div>
+<br>
 <div>
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/widget_opened_light_mode.png">
