@@ -5,8 +5,7 @@
 **An open-source feedback board that tells you what to build next.**
 
 <p>
-  Your users write one sentence. Feedbackland titles it, files it, merges the duplicates —<br>
-  and turns the whole board into a ranked list of what to build, with the arithmetic shown.
+  Your users write one sentence feedback. Feedbackland titles it, files it, merges the duplicates and turns the whole board into a ranked list of what to build.
 </p>
 
 <p>
