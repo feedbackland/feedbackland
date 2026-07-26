@@ -70,10 +70,9 @@ curl -X POST https://api.feedbackland.com/api/feedback/create \
 
 ## Run it
 
-| | |
-| **Demo** — full admin, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
-| **Hosted** — a board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
-| **Self-host** — Vercel + Supabase + Firebase, ~15 min | [SELFHOSTING.md](SELFHOSTING.md) |
+**Demo** — full admin, no signup | [demo.feedbackland.com](https://demo.feedbackland.com)
+**Hosted** — a board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com)
+**Self-host** — Vercel + Supabase + Firebase, ~15 min | [SELFHOSTING.md](SELFHOSTING.md)
 
 Hosted and self-hosted run the same code. Nothing is feature-gated, nothing is priced per seat.
 
