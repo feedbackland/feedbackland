@@ -1,20 +1,16 @@
 "use client";
 
-import AskAI from "@/components/app/ask-ai";
-import { AskAILoading } from "@/components/app/ask-ai/loading";
-import { useOrg } from "@/hooks/use-org";
+import AskAi from "@/components/app/ask-ai";
+import { AskAiLoading } from "@/components/app/ask-ai/loading";
 import { useAuth } from "@/hooks/use-auth";
 
-export default function AskAIPage() {
-  const { isAdmin } = useAuth();
+export default function AskAiPage() {
+  const { isAdmin, isLoaded } = useAuth();
 
-  const {
-    query: { data: org, isPending },
-  } = useOrg();
-
+  // No wait on the org: the chat resolves it server-side from the caller's own
+  // token, so all this page needs to know is who is asking.
+  if (!isLoaded) return <AskAiLoading />;
   if (!isAdmin) return null;
-  if (isPending) return <AskAILoading />;
-  if (!org?.id) return null;
 
-  return <AskAI orgId={org.id} />;
+  return <AskAi />;
 }

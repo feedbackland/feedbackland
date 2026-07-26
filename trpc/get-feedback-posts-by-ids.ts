@@ -8,9 +8,9 @@ export const getFeedbackPostsByIds = publicProcedure
       ids: z.array(z.string()).min(1),
     }),
   )
-  .query(async ({ input: { ids } }) => {
+  .query(async ({ input: { ids }, ctx: { orgId } }) => {
     try {
-      const feedbackPosts = await getFeedbackPostsByIdsQuery({ ids });
+      const feedbackPosts = await getFeedbackPostsByIdsQuery({ ids, orgId });
       return feedbackPosts;
     } catch (error) {
       throw error;
