@@ -27,12 +27,57 @@ export const CITATION_SCHEME = "post:";
 export const UUID_PATTERN =
   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
-const CITATION_PATTERN = new RegExp(
-  `\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`,
+const UUID_EXACT = new RegExp(`^${UUID_PATTERN}$`, "i");
+
+/**
+ * Every shape a model plausibly writes a citation in.
+ *
+ * The prompt asks for one — a markdown link — but the model answering here is a
+ * small, fast one, and the difference between "cited" and "not cited" is the
+ * difference between an answer the admin can act on and one they cannot. So the
+ * bar for being understood is low: name the scheme and the id, in a link, in
+ * brackets, in parentheses, or on its own. Anything carrying a real id counts.
+ *
+ * `normaliseCitations` folds all of them into the link form, so everything
+ * downstream — the gap rule, the renderer, the source list, the copy button —
+ * only ever has one shape to deal with.
+ */
+const CITATION_FORMS = new RegExp(
+  [
+    // [7](post:id) — what the prompt asks for.
+    `\\[[^\\]\\n]{0,40}\\]\\(\\s*${CITATION_SCHEME}\\s*(${UUID_PATTERN})\\s*\\)`,
+    // [[post:id]] or (post:id) and the single-bracket variants.
+    `\\[{1,2}\\s*${CITATION_SCHEME}\\s*(${UUID_PATTERN})\\s*\\]{1,2}`,
+    `\\(\\s*${CITATION_SCHEME}\\s*(${UUID_PATTERN})\\s*\\)`,
+    // A bare token.
+    `${CITATION_SCHEME}\\s*(${UUID_PATTERN})`,
+  ].join("|"),
   "gi",
 );
 
-const UUID_EXACT = new RegExp(`^${UUID_PATTERN}$`, "i");
+const citedId = (groups: (string | undefined)[]) =>
+  groups.find((group) => !!group)?.toLowerCase() ?? null;
+
+/**
+ * Citation-shaped markup carrying something that is not a post id — the model
+ * writing out a placeholder, or an id it mangled. Markdown will not even parse
+ * `[1](post:<the id>)` as a link, so left alone it sits in the answer as raw
+ * punctuation. The claim it was attached to is still the model's claim; it just
+ * goes uncited.
+ */
+const MALFORMED_CITATION = new RegExp(
+  `[ \\t]*\\[[^\\]\\n]{0,40}\\]\\(\\s*${CITATION_SCHEME}(?!\\s*${UUID_PATTERN}\\s*\\))[^)\\n]{0,60}\\)`,
+  "gi",
+);
+
+/** Rewrites every recognised citation into the one canonical link form. */
+export const normaliseCitations = (text: string) =>
+  text
+    .replace(CITATION_FORMS, (match, ...rest) => {
+      const id = citedId(rest.slice(0, 4) as (string | undefined)[]);
+      return id ? `[1](${CITATION_SCHEME}${id})` : match;
+    })
+    .replace(MALFORMED_CITATION, "");
 
 /** The post id a citation link points at, or null if it points somewhere else. */
 export const getCitedPostId = (href: string): string | null => {
@@ -52,8 +97,9 @@ export const getCitedPostId = (href: string): string | null => {
 export const extractCitedPostIds = (text: string): string[] => {
   const seen = new Set<string>();
 
-  for (const match of text.matchAll(CITATION_PATTERN)) {
-    seen.add(match[1].toLowerCase());
+  for (const match of text.matchAll(CITATION_FORMS)) {
+    const id = citedId(match.slice(1, 5));
+    if (id) seen.add(id);
   }
 
   return [...seen];
@@ -71,7 +117,7 @@ export const rewriteCitationsForCopy = (
 ): string => {
   if (!platformUrl) return text;
 
-  return text.replace(
+  return normaliseCitations(text).replace(
     new RegExp(`\\]\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`, "gi"),
     (_match, postId: string) => `](${platformUrl}/${postId})`,
   );

@@ -13,7 +13,12 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { Citation } from "@/components/app/ask-ai/citations";
-import { CITATION_SCHEME, UUID_PATTERN, getCitedPostId } from "@/lib/ask-ai";
+import {
+  CITATION_SCHEME,
+  UUID_PATTERN,
+  getCitedPostId,
+  normaliseCitations,
+} from "@/lib/ask-ai";
 import { cn } from "@/lib/utils";
 
 /**
@@ -91,7 +96,12 @@ const CITATION_GAP = new RegExp(
 const UNFINISHED_CITATION =
   /[ \t]*\[[^\]\n]{0,8}(?:\](?:\((?:p(?:o(?:s(?:t(?::[0-9a-fA-F-]*)?)?)?)?)?)?)?$/;
 
-const closeCitationGaps = (text: string) => text.replace(CITATION_GAP, "");
+/**
+ * Normalise first: every recognised citation shape becomes the link form, so the
+ * gap rule below has one thing to look for and the renderer one thing to match.
+ */
+const closeCitationGaps = (text: string) =>
+  normaliseCitations(text).replace(CITATION_GAP, "");
 
 const tidyStreamingText = (text: string) =>
   closeCitationGaps(text).replace(UNFINISHED_CITATION, "");
