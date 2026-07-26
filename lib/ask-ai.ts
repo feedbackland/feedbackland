@@ -24,15 +24,21 @@ export const ASK_AI_MAX_DESCRIPTION_CHARS = 400;
  */
 export const CITATION_SCHEME = "post:";
 
-const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+export const UUID_PATTERN =
+  "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
-const CITATION_PATTERN = new RegExp(`\\(${CITATION_SCHEME}(${UUID})\\)`, "gi");
+const CITATION_PATTERN = new RegExp(
+  `\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`,
+  "gi",
+);
+
+const UUID_EXACT = new RegExp(`^${UUID_PATTERN}$`, "i");
 
 /** The post id a citation link points at, or null if it points somewhere else. */
 export const getCitedPostId = (href: string): string | null => {
   if (!href.toLowerCase().startsWith(CITATION_SCHEME)) return null;
   const id = href.slice(CITATION_SCHEME.length).trim().toLowerCase();
-  return new RegExp(`^${UUID}$`, "i").test(id) ? id : null;
+  return UUID_EXACT.test(id) ? id : null;
 };
 
 /**
@@ -66,7 +72,7 @@ export const rewriteCitationsForCopy = (
   if (!platformUrl) return text;
 
   return text.replace(
-    new RegExp(`\\]\\(${CITATION_SCHEME}(${UUID})\\)`, "gi"),
+    new RegExp(`\\]\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`, "gi"),
     (_match, postId: string) => `](${platformUrl}/${postId})`,
   );
 };

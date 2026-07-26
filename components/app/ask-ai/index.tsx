@@ -6,12 +6,15 @@ import {
   useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
 import { getIdToken } from "firebase/auth";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/client";
-import { getSubdomain } from "@/lib/utils";
+import { cn, getSubdomain } from "@/lib/utils";
 import { useFeedbackPostCount } from "@/hooks/use-feedback-post-count";
 import { AskAiHeader } from "@/components/app/ask-ai/header";
-import { AskAiThread } from "@/components/app/ask-ai/thread";
+import {
+  ASK_AI_THREAD_HEIGHT,
+  AskAiThread,
+} from "@/components/app/ask-ai/thread";
 import {
   clearStoredThread,
   readStoredThread,
@@ -35,6 +38,14 @@ const authHeaders = async (): Promise<Record<string, string>> => {
     ...(!!subdomain && { subdomain }),
   };
 };
+
+/**
+ * The admin's own time zone, so "what came in today" means their day and not
+ * Greenwich's. Only the browser knows it, so it travels with the request.
+ */
+const requestBody = () => ({
+  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+});
 
 export default function AskAi() {
   // Bumped to start over. Remounting the session is what guarantees the thread,
@@ -73,7 +84,11 @@ function AskAiSession({
   const [restoredMessages] = useState(readStoredThread);
 
   const [transport] = useState(
-    () => new AssistantChatTransport({ headers: authHeaders }),
+    () =>
+      new AssistantChatTransport({
+        headers: authHeaders,
+        body: requestBody,
+      }),
   );
 
   const runtime = useChatRuntime({
@@ -82,10 +97,34 @@ function AskAiSession({
     onFinish: ({ messages }) => saveStoredThread(messages),
   });
 
+  // The restored thread comes out of sessionStorage, which the server cannot
+  // read — so rendering it on the first pass would make the server's HTML and
+  // the client's disagree, and React does not repair that. Waiting a tick keeps
+  // this component correct on its own, rather than relying on the page above it
+  // happening to hold it back until auth resolves.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <AskAiHeader onNewChat={onNewChat} />
-      <AskAiThread postCount={postCount} />
+      {mounted ? (
+        <AskAiThread postCount={postCount} />
+      ) : (
+        <AskAiThreadPlaceholder />
+      )}
     </AssistantRuntimeProvider>
+  );
+}
+
+/** Holds the thread's space for the one render before mount. */
+function AskAiThreadPlaceholder() {
+  return (
+    <div
+      className={cn(
+        "bg-background border-border w-full rounded-lg border shadow-xs",
+        ASK_AI_THREAD_HEIGHT,
+      )}
+    />
   );
 }

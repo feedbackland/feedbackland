@@ -67,7 +67,7 @@ export function AskAiThread({
   return (
     <ThreadPrimitive.Root
       className={cn(
-        "aui-root aui-thread-root bg-background border-border @container relative flex w-full flex-col overflow-hidden rounded-lg border shadow-xs",
+        "aui-root aui-thread-root bg-background border-border relative flex w-full flex-col overflow-hidden rounded-lg border shadow-xs",
         ASK_AI_THREAD_HEIGHT,
       )}
       style={{ ["--thread-max-width" as string]: "44rem" }}
@@ -264,6 +264,7 @@ const AssistantMessage: FC = () => {
     <MessagePrimitive.Root
       className="group relative flex w-full flex-col py-4 text-sm"
       data-role="assistant"
+      aria-busy={isRunning}
     >
       <CitationsProvider postIds={citedPostIds} isComplete={!isRunning}>
         {isRunning && text.length === 0 && <Thinking />}
