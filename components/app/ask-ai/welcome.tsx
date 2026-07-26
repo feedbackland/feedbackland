@@ -37,10 +37,26 @@ const QUESTIONS = [
  * cannot.
  */
 function Scope({ postCount }: { postCount: number | null | undefined }) {
+  // Each branch owns its own element rather than filling a shared <p>: the
+  // placeholder is a div, and a div inside a paragraph is invalid HTML that the
+  // browser silently reparents, which breaks hydration. Both branches occupy the
+  // same one-line box, so nothing moves when the count lands.
   if (postCount === undefined) {
-    return <Skeleton className="h-4 w-56" />;
+    return (
+      <div className="mt-1.5 flex h-5 items-center">
+        <Skeleton className="h-4 w-56" />
+      </div>
+    );
   }
 
+  return (
+    <p className="text-muted-foreground mt-1.5 min-h-5 text-sm">
+      <ScopeText postCount={postCount} />
+    </p>
+  );
+}
+
+function ScopeText({ postCount }: { postCount: number | null }) {
   // The count could not be read. Still true, still worth saying — and better
   // than a skeleton that pulses forever.
   if (postCount === null) {
@@ -73,9 +89,7 @@ export function AskAiWelcome({
       <h2 className="text-foreground text-lg font-medium tracking-tight">
         What do you want to know?
       </h2>
-      <p className="text-muted-foreground mt-1.5 flex min-h-5 items-center text-sm">
-        <Scope postCount={postCount} />
-      </p>
+      <Scope postCount={postCount} />
     </div>
   );
 }
