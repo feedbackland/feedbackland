@@ -21,13 +21,6 @@
   <a href="SELFHOSTING.md">Self-host</a>
 </p>
 
-<br>
-
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="screenshots/insights_light_mode.png">
-  <img alt="Insights" src="screenshots/insights_light_mode.png">
-</picture>
-
 </div>
 
 ## Why
