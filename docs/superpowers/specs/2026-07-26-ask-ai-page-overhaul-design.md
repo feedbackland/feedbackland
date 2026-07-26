@@ -209,6 +209,65 @@ text for when it is a real bug, and a retry that reruns the message.
 | `app/[orgSubdomain]/(board)/admin/ask-ai/page.tsx` | no longer waits on the org |
 | `components/ui/assistant-ui/{thread,thread-list,attachment,markdown-text,tool-fallback}.tsx` | deleted |
 
+## Audit
+
+The page was then driven end to end through a mock streaming endpoint — a real
+`useChatRuntime`, real transport, real markdown renderer — because most of what
+went wrong only goes wrong mid-stream. Seven defects came out of it.
+
+**Citations assembled themselves in public.** Markdown only knows `[1](post:…)`
+is a link once the closing bracket arrives, so 46 characters of markup sat in the
+answer for about half a second per citation. The unfinished tail is now withheld
+until complete, scoped to the part still streaming so finished text is never
+touched.
+
+**The answer jumped backwards five times per answer.** assistant-ui's typewriter
+reveal tracks progress by index and cannot cope with text that changes length
+behind it — which is exactly what withholding a tail does. `smooth={false}`.
+Model tokens arrive a few characters at a time anyway, so the text still flows;
+it just never un-writes itself. Measured: 0 raw-markup frames and 0 backwards
+steps, against 14 and 5 before.
+
+**Model-emitted images were fetched.** Post content steers the model, so a
+prompt-injected `![](https://…)` reported the admin's IP to whoever wrote the
+post. Images are disallowed; an answer about feedback has no use for one.
+
+**Dead links looked clickable.** `javascript:`, `data:` and `vbscript:` were
+already stripped of their href, but still rendered as anchors that navigated the
+admin off the page. Links with no usable href render as text — which also fixes a
+malformed citation looking like a real one.
+
+**A post could close the corpus fence.** `</posts>` written into a description
+survives `getPlainText` verbatim, putting attacker text outside the "this is
+data" boundary. The tag is defused in both title and description.
+
+**Every date was UTC.** "What came in today" was wrong for part of every day for
+anyone far from Greenwich, and one of the three suggested questions is about
+time. The browser sends its zone; the route formats every date in it and falls
+back to UTC on anything unrecognised.
+
+**Smaller:** a task list drew a bullet beside its checkbox; the gap-closing rule
+ate the space before malformed citations too; the session now guarantees its own
+hydration safety rather than relying on the page above it to hold it back until
+auth resolves.
+
+Confirmed clean: no console errors through send → stream → reload → new chat →
+error; `sessionStorage` restore end to end; the composer caps at 160px and
+scrolls internally; no horizontal overflow at 390px; `javascript:`/`data:`/raw
+`<script>` all inert.
+
+### Known and accepted
+
+- A citation written inside a fenced code block would be counted as a source
+  without a matching inline reference. The model has no reason to do it.
+- Whether the model reliably emits the citation format can only be confirmed
+  against the live model. Everything downstream is verified, and the failure
+  modes are contained: an id that resolves to nothing disappears, a malformed one
+  renders as text. The worst case is an answer with fewer citations, not a broken
+  page.
+- `maxDuration` is left at 30s. A large board plus a long answer could exceed it;
+  raising it needs to be checked against the deployment's plan limit.
+
 ## Deliberately not done
 
 - **Tool calling.** Letting the model query the database would scale past 300
