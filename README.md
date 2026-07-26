@@ -25,7 +25,7 @@
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/homepage_dark_mode.png">
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/homepage_light_mode.png">
   <img alt="A Feedbackland board" src="screenshots/homepage_light_mode.png">
 </picture>
 
@@ -41,26 +41,20 @@ Feedbackland works on both ends of that:
 - **Reading is a ranked list.** *Insights* merges posts that ask for the same thing ("dark mode", "night theme", "black background" → one theme) and ranks every theme by how many people are behind it, how fast it's growing, and how much the problem hurts. Click a score and the arithmetic opens up — you can check it, and you can disagree with it.
 - **Closing the loop is one click.** Set *planned*, *in progress* or *done* on an insight and every post behind it updates. Ask AI answers plain-English questions about your feedback. Search works by meaning, so "can't log in" finds "auth times out".
 
-<table>
-<tr>
-<td width="50%">
+<div>
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/insights_dark_mode.png">
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/insights_light_mode.png">
   <img alt="Insights — feedback merged into ranked themes" src="screenshots/insights_light_mode.png">
 </picture>
 <p align="center"><sub><b>Insights</b> — the board compressed into ranked themes</sub></p>
-</td>
-</tr>
-<tr>
-<td width="50%">
+</div>
+<div>
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/widget_opened_dark_mode.png">
+  <source media="(prefers-color-scheme: dark)" srcset="screenshots/widget_opened_light_mode.png">
   <img alt="The widget — the full board in a drawer inside your app" src="screenshots/widget_opened_light_mode.png">
 </picture>
 <p align="center"><sub><b>The widget</b> — your full board, inside your app</sub></p>
-</td>
-</tr>
-</table>
+</div>
 
 ## Getting feedback in
 
