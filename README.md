@@ -24,13 +24,6 @@
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="screenshots/homepage_light_mode.png">
-  <img alt="A Feedbackland board" src="screenshots/homepage_light_mode.png">
-</picture>
-
-<br />
-
-<picture>
   <source media="(prefers-color-scheme: light)" srcset="screenshots/insights_light_mode.png">
   <img alt="Insights" src="screenshots/insights_light_mode.png">
 </picture>
