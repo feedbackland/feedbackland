@@ -24,8 +24,15 @@
 <br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/homepage_light_mode.png">
+  <source media="(prefers-color-scheme: light)" srcset="screenshots/homepage_light_mode.png">
   <img alt="A Feedbackland board" src="screenshots/homepage_light_mode.png">
+</picture>
+
+<br />
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="screenshots/insights_light_mode.png">
+  <img alt="Insights" src="screenshots/insights_light_mode.png">
 </picture>
 
 </div>
@@ -39,22 +46,6 @@ Feedbackland works on both ends of that:
 - **Posting is one text box.** No title field, no category picker — the title gets written for you, the post gets filed as idea, issue or general feedback, and spam (text *and* images) is screened out before it lands. Users sign in with Google, Microsoft or email — or post anonymously.
 - **Reading is a ranked list.** *Insights* merges posts that ask for the same thing ("dark mode", "night theme", "black background" → one theme) and ranks every theme by how many people are behind it, how fast it's growing, and how much the problem hurts. Click a score and the arithmetic opens up — you can check it, and you can disagree with it.
 - **Closing the loop is one click.** Set *planned*, *in progress* or *done* on an insight and every post behind it updates. Ask AI answers plain-English questions about your feedback. Search works by meaning, so "can't log in" finds "auth times out".
-
-<div>
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/insights_light_mode.png">
-  <img alt="Insights — feedback merged into ranked themes" src="screenshots/insights_light_mode.png">
-</picture>
-<p align="center"><sub><b>Insights</b> — the board compressed into ranked themes</sub></p>
-</div>
-<br>
-<div>
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="screenshots/widget_opened_light_mode.png">
-  <img alt="The widget — the full board in a drawer inside your app" src="screenshots/widget_opened_light_mode.png">
-</picture>
-<p align="center"><sub><b>The widget</b> — your full board, inside your app</sub></p>
-</div>
 
 ## Getting feedback in
 
@@ -87,7 +78,6 @@ curl -X POST https://api.feedbackland.com/api/feedback/create \
 ## Run it
 
 | | |
-| --- | --- |
 | **Demo** — full admin, no signup | [demo.feedbackland.com](https://demo.feedbackland.com) |
 | **Hosted** — a board in about a minute | [get-started.feedbackland.com](https://get-started.feedbackland.com) |
 | **Self-host** — Vercel + Supabase + Firebase, ~15 min | [SELFHOSTING.md](SELFHOSTING.md) |
