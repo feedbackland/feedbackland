@@ -42,8 +42,16 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
 
 const createExtensions = (placeholder: string) => [
   StarterKit.configure({
+    // Turned off because this list registers its own version of each below.
+    // StarterKit bundles Link and Underline (see its dependencies), so leaving
+    // them on registered `link` and `underline` twice — Tiptap warns about the
+    // duplicate names, and which copy wins is not defined. That matters for
+    // Link in particular: ours drops `javascript:` hrefs in `parseHTML` and adds
+    // the click/Escape plugins the link bubble menu relies on.
     horizontalRule: false,
     codeBlock: false,
+    link: false,
+    underline: false,
     paragraph: { HTMLAttributes: { class: "text-node" } },
     heading: { HTMLAttributes: { class: "heading-node" } },
     blockquote: { HTMLAttributes: { class: "block-node" } },
