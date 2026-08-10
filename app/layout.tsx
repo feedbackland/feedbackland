@@ -86,7 +86,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${roboto_mono.variable}`}
     >
-      <body className="bg-muted/40 dark:bg-background">
+      <body className="bg-muted/50 dark:bg-background">
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
         <Suspense>
           <ThemeProvider>
