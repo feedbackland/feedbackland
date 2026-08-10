@@ -9,6 +9,7 @@ import {
   getPlainText,
   isInappropriateCheck,
   LLM_MODEL,
+  REASONING,
 } from "@/lib/utils-server";
 
 const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
@@ -66,6 +67,9 @@ const getTitleAndCategory = async ({ plainText }: { plainText: string }) => {
               content: plainText,
             },
           ],
+          // Runs alongside the moderation check while the author waits. A title
+          // and a three-way label do not need deliberation.
+          reasoning: REASONING.mechanical,
           response_format: { type: "json_object" },
         }),
       },

@@ -9,7 +9,7 @@ import {
   ASK_AI_MAX_POSTS,
   CITATION_SCHEME,
 } from "@/lib/ask-ai";
-import { LLM_MODEL, getPlainText } from "@/lib/utils-server";
+import { LLM_MODEL, REASONING, getPlainText } from "@/lib/utils-server";
 
 export const maxDuration = 30;
 
@@ -73,6 +73,31 @@ const dateFormatter = (timeZone: string) =>
   });
 
 /**
+ * Which calendar day a moment falls on in the admin's own zone, counted in days.
+ *
+ * Read off the same formatter that prints the dates, so an age can never
+ * disagree with the date beside it, and taken from the calendar rather than from
+ * elapsed milliseconds — a post from yesterday evening is "1 day ago" even
+ * though only eight hours have passed, which is what an admin means by it.
+ *
+ * Being a whole day rather than an instant is also what makes the corpus
+ * cacheable. The model serves a repeated prefix from its prompt cache at a
+ * quarter of the input price, but only byte for byte, and this prompt is rebuilt
+ * from scratch on every turn. Ages measured from `Date.now()` drift: with 300
+ * posts, roughly two of them tick over to a new rounded age during a ten-minute
+ * conversation, and because the match is on the prefix, the first one to move
+ * discards every post after it. Pinned to the calendar day, the prompt is
+ * identical for the rest of the day and every turn after the first reads cached.
+ */
+const dayNumber = (formatDate: Intl.DateTimeFormat, date: Date) => {
+  const parts = formatDate.formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((entry) => entry.type === type)?.value);
+
+  return Date.UTC(part("year"), part("month") - 1, part("day")) / DAY_MS;
+};
+
+/**
  * One post, as the model reads it.
  *
  * Title first because it is the most identifying line, then the facts on one
@@ -83,14 +108,11 @@ const dateFormatter = (timeZone: string) =>
 const formatPost = (
   post: Awaited<ReturnType<typeof getFeedbackCorpusQuery>>[number],
   index: number,
-  now: Date,
+  todayNumber: number,
   formatDate: Intl.DateTimeFormat,
 ) => {
   const createdAt = new Date(post.createdAt);
-  const ageDays = Math.max(
-    0,
-    Math.round((now.getTime() - createdAt.getTime()) / DAY_MS),
-  );
+  const ageDays = Math.max(0, todayNumber - dayNumber(formatDate, createdAt));
   const description = truncate(
     defuse(getPlainText(post.description ?? "").trim()),
     ASK_AI_MAX_DESCRIPTION_CHARS,
@@ -200,6 +222,8 @@ export async function POST(req: Request) {
     formatDate = dateFormatter("UTC");
   }
 
+  const todayNumber = dayNumber(formatDate, now);
+
   const [corpus, total] = await Promise.all([
     getFeedbackCorpusQuery({ orgId, limit: ASK_AI_MAX_POSTS }),
     getFeedbackPostCountQuery({ orgId }),
@@ -207,17 +231,45 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openrouter(LLM_MODEL),
-    // Low, for the same reason the insights run is low: the answers are claims
-    // about data, and the same question asked twice should not get two stories.
-    temperature: 0.2,
-    system: buildSystemPrompt({
-      posts: corpus
-        .map((post, index) => formatPost(post, index, now, formatDate))
-        .join("\n\n"),
-      total: Math.max(total, corpus.length),
-      included: corpus.length,
-      today: formatDate.format(now),
-    }),
+    // No temperature. Gemini 3 is documented to loop or degrade below its
+    // default of 1.0, and what actually keeps these answers honest is the prompt
+    // and the citations it has to produce, not a narrow sampling window.
+    providerOptions: {
+      openrouter: {
+        // This prompt promises exact counts, and the cheapest level does not
+        // deliver them — asked to count posts in a seeded board it answered 16
+        // where the answer was 17, while one level up got it right. One level up
+        // is also faster than the model's own default, so the ceiling on this
+        // route gets easier rather than tighter.
+        reasoning: { ...REASONING.analytical },
+      },
+    },
+    // The corpus is the overwhelming majority of this prompt and it is re-sent
+    // in full on every turn, so it is worth marking as cacheable: a repeated
+    // prefix is billed at a quarter of the input price. Passed as a message
+    // rather than a bare string only because that is the shape that can carry
+    // the breakpoint.
+    //
+    // The breakpoint is doing real work. Left implicit, the model caches this
+    // prompt only on a best-effort basis — measured against a board-sized
+    // prompt it recovered 82% on one attempt and nothing at all on the next.
+    // Marked explicitly it recovered all of it, every time. The cache lives for
+    // about five minutes and does not renew, so it pays on a conversation
+    // someone is actually having and quietly does nothing on one they abandon.
+    system: {
+      role: "system",
+      content: buildSystemPrompt({
+        posts: corpus
+          .map((post, index) => formatPost(post, index, todayNumber, formatDate))
+          .join("\n\n"),
+        total: Math.max(total, corpus.length),
+        included: corpus.length,
+        today: formatDate.format(now),
+      }),
+      providerOptions: {
+        openrouter: { cacheControl: { type: "ephemeral" } },
+      },
+    },
     messages,
   });
 

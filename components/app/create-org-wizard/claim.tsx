@@ -7,6 +7,7 @@ import { claimOrgAction } from "./actions";
 import { CreateOrgWrapper } from "./wrapper";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { auth } from "@/lib/firebase/client";
 
 export function CreateOrgClaim({ onSuccess }: { onSuccess: () => void }) {
   const { refreshSession } = useAuth();
@@ -28,14 +29,15 @@ export function CreateOrgClaim({ onSuccess }: { onSuccess: () => void }) {
               setSelectedMethod(newSelectedMethod)
             }
             onSuccess={async (session) => {
-              const userId = session?.user?.id;
-              const userEmail = session?.user?.email;
               const orgId = session?.org?.id;
+              // Sign-in just resolved, so currentUser is set. Send its ID token
+              // and let the server derive the uid — the claim grants admin, so
+              // the client can't be trusted to name the user itself.
+              const idToken = await auth.currentUser?.getIdToken();
 
-              if (userId && orgId) {
+              if (idToken && orgId) {
                 await claimOrg({
-                  userId,
-                  userEmail,
+                  idToken,
                   orgId,
                 });
 

@@ -19,7 +19,7 @@ import {
   SCORE_WEIGHTS,
   clamp,
 } from "@/lib/insights";
-import { LLM_MODEL, getPlainText } from "@/lib/utils-server";
+import { LLM_MODEL, REASONING, getPlainText } from "@/lib/utils-server";
 
 const CHUNK_SIZE = 200;
 const MAX_CHUNKS = 5;
@@ -260,10 +260,18 @@ const callModel = async ({
     signal,
     body: JSON.stringify({
       model: LLM_MODEL,
-      // Low temperature keeps insight titles stable between runs, which is what
-      // lets the same insight be recognised and keep its decision.
-      temperature: 0.2,
-      reasoning: { exclude: true, enabled: true },
+      // No temperature. Gemini 3 is documented to loop or degrade below its
+      // default of 1.0, and the run-to-run stability the old low setting was
+      // reaching for does not come from wording anyway: `matchToExisting` pairs
+      // an insight with its previous self by how much their post ids overlap,
+      // so a retitled insight still keeps its identity and its decision.
+      //
+      // Grouping a few hundred posts and rating severity is the one genuinely
+      // deliberative call in the app, so it is the one that keeps a real
+      // thinking budget. Stated outright rather than left to the model default,
+      // which differs per model. `exclude` drops the reasoning from the
+      // response; it does not stop it being generated or billed.
+      reasoning: { ...REASONING.deliberative, exclude: true },
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
