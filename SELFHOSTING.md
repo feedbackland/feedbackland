@@ -133,7 +133,7 @@ You should see **"Success. No rows returned"** — that's the all-clear.
 > - Creates every table, index, foreign key, and enum the app needs.
 > - Creates a public `images` storage bucket so uploaded screenshots are
 >   reachable from a browser.
-> - Adds three policies on that bucket allowing upload / update / delete.
+> - Adds one policy on that bucket allowing image uploads.
 >
 > You don't need to touch Supabase Storage manually — the script handles it.
 

@@ -28,8 +28,10 @@ export const upsertUserSchema = z.object({
 });
 
 export const claimOrgSchema = z.object({
-  userId: z.string(),
-  userEmail: z.email().optional(),
+  // A Firebase ID token, not a bare user id. Claiming an org grants admin, so
+  // the server derives the user from a verified token instead of trusting the
+  // caller's word for who they are.
+  idToken: z.string().min(1),
   orgId: z.uuid(),
 });
 

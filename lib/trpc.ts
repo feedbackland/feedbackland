@@ -5,6 +5,7 @@ import z, { ZodError } from "zod/v4";
 import { getUserWithRoleAndOrgQuery } from "@/queries/get-user-with-role-and-org";
 import { getOrgQuery } from "@/queries/get-org";
 import { UserRole } from "@/lib/typings";
+import { getClientIp } from "@/lib/rate-limit";
 
 const getFirebaseUser = async (req: Request) => {
   const authorization = req.headers.get("authorization");
@@ -15,6 +16,7 @@ const getFirebaseUser = async (req: Request) => {
 
 export const createContext = async ({ req }: { req: Request }) => {
   const orgSubdomain = req?.headers?.get("subdomain");
+  const ip = getClientIp(req.headers);
   const firebaseUser = await getFirebaseUser(req);
   const userId = firebaseUser?.uid || null;
   const userEmail = firebaseUser?.email || null;
@@ -49,6 +51,7 @@ export const createContext = async ({ req }: { req: Request }) => {
     userId,
     userEmail,
     userRole,
+    ip,
   };
 };
 

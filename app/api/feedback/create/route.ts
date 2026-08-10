@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { NextResponse, type NextRequest } from "next/server";
+import { getClientIp, enforceFeedbackCreateLimit } from "@/lib/rate-limit";
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +25,20 @@ export async function POST(request: NextRequest) {
   try {
     const bodyRaw = await request.json();
     const { orgId, description } = schema.parse(bodyRaw);
+
+    // This endpoint is unauthenticated and every accepted post spends several
+    // LLM calls (moderation, titling, embedding). Cap it per source IP and per
+    // org so a leaked org id can't run up an unbounded OpenRouter bill.
+    const ip = getClientIp(request.headers);
+    const { allowed } = await enforceFeedbackCreateLimit({ ip, orgId });
+
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down and try again shortly." },
+        { status: 429, headers },
+      );
+    }
+
     const org = await createFeedbackPostQuery({
       authorId: null,
       orgId,

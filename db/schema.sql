@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS "public"."admin_invites" (
     "createdAt" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "public"."rate_limit" (
+    "key" "text" NOT NULL,
+    "count" integer DEFAULT 0 NOT NULL,
+    "windowStart" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "rate_limit_pkey" PRIMARY KEY ("key")
+);
+
 CREATE TABLE IF NOT EXISTS "public"."comment" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "content" "text" NOT NULL,
@@ -275,6 +282,7 @@ ALTER TABLE ONLY "public"."user_upvote"
 -- Storage Policies for images bucket
 INSERT INTO "storage"."buckets" (id, name, public) VALUES ('images', 'images', true) ON CONFLICT DO NOTHING;
 
+-- Uploads only. The app never updates or deletes stored objects, so granting
+-- anon UPDATE/DELETE on the whole bucket only exposed every uploaded image to
+-- being overwritten or wiped by anyone holding the public anon key.
 CREATE POLICY "Allow anon uploads" ON "storage"."objects" FOR INSERT TO "public" WITH CHECK (bucket_id = 'images');
-CREATE POLICY "Allow anon updates" ON "storage"."objects" FOR UPDATE TO "public" USING (bucket_id = 'images');
-CREATE POLICY "Allow anon deletes" ON "storage"."objects" FOR DELETE TO "public" USING (bucket_id = 'images');

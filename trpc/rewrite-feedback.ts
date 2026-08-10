@@ -1,6 +1,8 @@
 import { z } from "zod/v4";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "@/lib/trpc";
 import { LLM_MODEL, REASONING } from "@/lib/utils-server";
+import { enforceRewriteLimit } from "@/lib/rate-limit";
 
 export const rewriteFeedback = publicProcedure
   .input(
@@ -8,7 +10,18 @@ export const rewriteFeedback = publicProcedure
       description: z.string().trim().min(1).max(10000),
     }),
   )
-  .mutation(async ({ input: { description } }) => {
+  .mutation(async ({ input: { description }, ctx: { ip, orgId } }) => {
+    // Public and unauthenticated, and each call hits the model. Cap per IP and
+    // per org so it can't be looped to burn OpenRouter credit.
+    const { allowed } = await enforceRewriteLimit({ ip, orgId });
+
+    if (!allowed) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: "Too many requests. Please slow down and try again shortly.",
+      });
+    }
+
     const systemPrompt = `You are a skilled editor who improves user feedback posts. Your job is to rewrite the user's raw feedback into a clear, professional, and well-structured version while preserving their original meaning and intent.
 
 Rules:
