@@ -290,10 +290,14 @@ export const OverlayWidget = memo(
         {/* Trigger — Slot merges the open handler into whatever element the
             host passes (a native <button>, an asChild element, etc.) so
             keyboard activation behaves exactly like the unwrapped trigger
-            would. Same semantics as PopoverWidget's Radix triggers. */}
-        <Slot onClick={handleOpen} className={cn({ dark: isDarkMode })}>
-          {children}
-        </Slot>
+            would. Same semantics as PopoverWidget's Radix triggers.
+
+            Deliberately not flagged `dark`: the trigger sits inline in the
+            host's content, so it follows the host page's appearance, not the
+            mode we resolved for our own overlay surfaces (which can come from
+            `prefers-color-scheme` while the host page is light). See the dark
+            token block in index.css. */}
+        <Slot onClick={handleOpen}>{children}</Slot>
 
         {/* Portal: always mounted so the iframe starts loading immediately */}
         {typeof document !== "undefined" &&

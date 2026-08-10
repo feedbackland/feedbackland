@@ -123,10 +123,7 @@ export const PopoverWidget = memo(
         setStatus("success");
         form.reset();
       } catch (err) {
-        console.error(
-          "[feedbackland-react] feedback submission failed:",
-          err,
-        );
+        console.error("[feedbackland-react] feedback submission failed:", err);
         setStatus("error");
       } finally {
         setIsPending(false);
@@ -272,7 +269,10 @@ export const PopoverWidget = memo(
     let component = (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
-        <DrawerContent className="fl-scope fl:p-4">
+        {/* An overlay surface, so it carries `dark` like the popover content and
+            the drawer panel. vaul portals this to document.body, so no ancestor
+            `.fl-scope` can reach it — the flag has to be on the element. */}
+        <DrawerContent className={cn("fl-scope fl:p-4", { dark: isDarkMode })}>
           <DrawerHeader className="fl:sr-only">
             <DrawerTitle>Submit your feedback</DrawerTitle>
             <DrawerDescription>
@@ -287,9 +287,9 @@ export const PopoverWidget = memo(
     if (isDesktop) {
       component = (
         <Popover open={open} onOpenChange={onOpenChange}>
-          <PopoverTrigger asChild className={cn("", { dark: isDarkMode })}>
-            {children}
-          </PopoverTrigger>
+          {/* Not flagged `dark` — the trigger follows the host page's
+              appearance, not our resolved mode. See index.css. */}
+          <PopoverTrigger asChild>{children}</PopoverTrigger>
           <PopoverContent
             className={cn("fl-scope fl:w-[400px]", { dark: isDarkMode })}
           >

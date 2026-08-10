@@ -4,7 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --breakpoint-xs: 30rem;
+  /* 480px, not 30rem. The drawer widget's loading shimmer has to switch its
+     horizontal inset on the same threshold, but it lives in the host page and
+     evaluates the condition against the host's root font-size — and a length in
+     a media/container query cannot be indirected through a custom property. An
+     absolute value is the only one both sides can agree on. See the container
+     query in feedbackland-react/src/BoardSkeleton.tsx. */
+  --breakpoint-xs: 480px;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -215,6 +221,20 @@
   }
 }
 
+/*
+  Embedded in the drawer widget, always reserve the viewport scrollbar gutter.
+  The widget's loading shimmer reserves one unconditionally (`overflow-y-scroll`,
+  so that a scrolling board and the shimmer share a content-column width), but a
+  board with only a post or two is pinned by `min-h-screen` to exactly 100vh and
+  shows no scrollbar. Without this the column widened by the scrollbar width at
+  handover and `mx-auto` shifted it sideways — the horizontal jump the shimmer's
+  geometry exists to prevent, on precisely the sparse board a new org starts with.
+  The class is set by the boot script in app/layout.tsx before first paint.
+*/
+html.fl-embed-drawer {
+  overflow-y: scroll;
+}
+
 @utility debug {
   @apply border-[1px]! border-solid! border-red-500!;
 }
@@ -225,7 +245,8 @@
 }
 
 @keyframes thinking-dot {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
   }
   50% {

@@ -25,19 +25,38 @@ const isUUID = (uuid: string) => {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 };
 
+/**
+ * Resolves a UUID subdomain to the org's real subdomain, or `null` when that
+ * cannot be determined.
+ *
+ * Returning `null` rather than throwing matters: this runs on the default widget
+ * entry point (feedbackland-react builds `https://<platformId>.feedbackland.com`),
+ * so every drawer open takes this path. `/api/org/[orgId]` answers a failed
+ * lookup with `{ error: "..." }` and status 500 — which the previous
+ * `(await response.json()) as string` accepted happily, producing the string
+ * "[object Object]" and then a redirect target of
+ * `https://[object Object].feedbackland.com`. `NextResponse.redirect` runs that
+ * through URL parsing, which throws on the bracket, so `proxy()` rejected and the
+ * visitor got a 500. Any cold start or database blip took the whole board down
+ * instead of degrading.
+ */
 const getOrgSubdomain = async ({
   orgId,
   origin,
 }: {
   orgId: string;
   origin: string;
-}) => {
+}): Promise<string | null> => {
   try {
     const response = await fetch(`${origin}/api/org/${orgId}`);
-    const orgSubdomain = (await response.json()) as string;
-    return orgSubdomain;
-  } catch (error) {
-    throw error;
+    if (!response.ok) return null;
+    const orgSubdomain: unknown = await response.json();
+    // The route returns a bare JSON string on success and an object on failure.
+    return typeof orgSubdomain === "string" && orgSubdomain.length > 0
+      ? orgSubdomain
+      : null;
+  } catch {
+    return null;
   }
 };
 
@@ -81,11 +100,35 @@ export async function proxy(req: NextRequest) {
         orgId,
         origin,
       });
-      const redirectUrl = isSubdirOrg
-        ? `${origin}/${orgSubdomain}${search}`
-        : `${protocol}//${orgSubdomain}.${mainDomain}${search}`;
 
-      response = NextResponse.redirect(redirectUrl);
+      // The path below the org is carried across so a deep link survives the
+      // hop. Dropping it silently landed every
+      // `<uuid>.feedbackland.com/<postId>` on the board index instead of the
+      // post, with the query string intact so nothing looked wrong.
+      //
+      // Where that path starts differs by deployment: on a subdomain host the
+      // org is in the hostname, so the whole pathname belongs to the org. In
+      // subdir mode (localhost / *.vercel.app) `getSubdomain` reads the org off
+      // the *first path segment*, so that segment has to be dropped before the
+      // rest is re-attached under the resolved subdomain.
+      if (orgSubdomain) {
+        const belowOrg = isSubdirOrg
+          ? pathname.split("/").filter(Boolean).slice(1)
+          : null;
+        const restPath = belowOrg
+          ? belowOrg.length
+            ? `/${belowOrg.join("/")}`
+            : ""
+          : pathname;
+
+        const redirectUrl = isSubdirOrg
+          ? `${origin}/${orgSubdomain}${restPath}${search}`
+          : `${protocol}//${orgSubdomain}.${mainDomain}${restPath}${search}`;
+
+        response = NextResponse.redirect(redirectUrl);
+      }
+      // Unresolvable: fall through with the untouched `next()` response rather
+      // than building a malformed redirect out of it.
     }
 
     if (!isUUIDSubdomain && !isSubdirOrg) {
