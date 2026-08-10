@@ -32,7 +32,12 @@ export default function PlatformRoot({
       className={cn(
         "m-auto flex w-full max-w-5xl grow flex-col items-stretch",
         {
-          "xs:px-8 px-4 py-4": isDrawerEmbed,
+          // `bg-background min-h-screen` inside the drawer so the panel is one
+          // flat surface. The body's page backdrop (`bg-muted/40`) reads as a
+          // tint against the widget's own shimmer, which paints plain
+          // `background` — enough of a difference to flash across the whole
+          // panel at the moment the shimmer hands over to the board.
+          "bg-background xs:px-8 min-h-screen px-4 py-4": isDrawerEmbed,
           "mt-4 mb-10 px-3 sm:mt-5": !isDrawerEmbed,
         },
       )}

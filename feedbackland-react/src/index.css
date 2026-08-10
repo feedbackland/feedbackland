@@ -484,7 +484,24 @@
   --fl-sidebar-ring: oklch(0.708 0 0);
 }
 
-html.dark .fl-scope {
+/*
+  Dark tokens. The widget resolves dark mode from either the host's `.dark`
+  class or the OS `prefers-color-scheme`, and marks its own surfaces (the panel,
+  the trigger) with `dark` when it does — so keying only on `html.dark` left the
+  panel painted with the light palette whenever the host signalled dark through
+  the media query alone, and the board inside the iframe (which is told the
+  resolved mode via `?mode=`) came up dark. That mismatch showed as a white
+  shimmer snapping to a dark board the moment the drawer handed over.
+
+  Custom properties inherit, so redefining them on whichever element carries
+  `dark` cascades to everything inside it:
+    - `html.dark .fl-scope` — host page in dark mode.
+    - `.fl-scope.dark`      — the drawer panel (scope and flag on one element).
+    - `.fl-scope .dark`     — a flagged trigger inside the scope wrapper.
+*/
+html.dark .fl-scope,
+.fl-scope.dark,
+.fl-scope .dark {
   --fl-background: oklch(0.145 0 0);
   --fl-foreground: oklch(0.985 0 0);
   --fl-card: oklch(0.205 0 0);

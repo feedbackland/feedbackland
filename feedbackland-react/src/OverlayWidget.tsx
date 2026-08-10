@@ -347,7 +347,12 @@ export const OverlayWidget = memo(
                     Share your feedback
                   </h2>
 
-                  <div className="fl:w-full fl:h-full fl:relative">
+                  {/* `@container` so the shimmer can switch its horizontal
+                      inset on the *panel's* width, the same width the board's
+                      `xs:` breakpoint sees inside the iframe. A media query
+                      here would read the host page's viewport instead and put
+                      the shimmer's gutter out of step with the board's. */}
+                  <div className="fl:@container fl:w-full fl:h-full fl:relative">
                     {/* Iframe is only rendered when the config is valid.
                         Otherwise the showError block below takes over and
                         explains what went wrong. */}
@@ -378,7 +383,9 @@ export const OverlayWidget = memo(
                         it past the iframe's `onLoad` until the board's ready signal
                         hides the board's multi-stage hydration/data-loading shifts,
                         and matching the board's shape makes the reveal seamless. */}
-                    {isOpened && !contentReady && !showError && <BoardSkeleton />}
+                    {isOpened && !contentReady && !showError && (
+                      <BoardSkeleton />
+                    )}
 
                     {/* Error fallback for both iframe load failures and
                         unresolvable configuration. Config errors hide the

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { validate as uuidValidate } from "uuid";
 import { version as uuidVersion } from "uuid";
 import { getIsSubdirOrg, getMaindomain, getSubdomain } from "@/lib/utils";
+import {
+  EMBED_HEADER,
+  EMBED_PARAM,
+  parseEmbedSurface,
+} from "@/lib/embed-surface";
 
 export const config = {
   matcher: [
@@ -36,8 +41,30 @@ const getOrgSubdomain = async ({
   }
 };
 
+/**
+ * Copies the request headers, replacing the embed-surface header with the value
+ * derived from `?embed=`. The board layout reads it so the server can render the
+ * embedded layout directly (see lib/embed-surface.ts).
+ *
+ * The header is always rewritten — never merged — so a caller cannot pick the
+ * board's embedded presentation by sending the header itself.
+ */
+const withEmbedHeader = (req: NextRequest) => {
+  const headers = new Headers(req.headers);
+  const surface = parseEmbedSurface(req.nextUrl.searchParams.get(EMBED_PARAM));
+
+  if (surface) {
+    headers.set(EMBED_HEADER, surface);
+  } else {
+    headers.delete(EMBED_HEADER);
+  }
+
+  return { request: { headers } };
+};
+
 export async function proxy(req: NextRequest) {
-  let response = NextResponse.next();
+  const embedHeader = withEmbedHeader(req);
+  let response = NextResponse.next(embedHeader);
   const url = req.nextUrl.clone();
   const { pathname, search, origin, protocol } = url;
   const urlString = url.toString();
@@ -63,7 +90,7 @@ export async function proxy(req: NextRequest) {
 
     if (!isUUIDSubdomain && !isSubdirOrg) {
       const newUrl = `/${subdomain}${pathname}${search}`;
-      response = NextResponse.rewrite(new URL(newUrl, req.url));
+      response = NextResponse.rewrite(new URL(newUrl, req.url), embedHeader);
     }
   }
 
