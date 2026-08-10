@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
-import { LLM_MODEL } from "@/lib/utils-server";
+import { LLM_MODEL, REASONING } from "@/lib/utils-server";
 
 export const rewriteFeedback = publicProcedure
   .input(
@@ -42,6 +42,9 @@ Rules:
               content: `Please improve this feedback post:\n\n${description}`,
             },
           ],
+          // The author is watching a spinner on their own draft. One pass over
+          // one piece of text reads the same at every level, so take the fast one.
+          reasoning: REASONING.mechanical,
         }),
       },
     );

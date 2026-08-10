@@ -3,7 +3,34 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 
-export const LLM_MODEL = "google/gemini-3.5-flash-lite";
+export const LLM_MODEL = "google/gemini-3.6-flash";
+
+/**
+ * How hard the model should think, chosen per call site.
+ *
+ * Gemini 3 models always think, and how much they think by default is a
+ * property of the model rather than of the request — Flash Lite defaulted to
+ * the least, Flash deliberates. Leaving it unset means the next model swap
+ * silently changes the latency and the bill on every one of these calls, so
+ * each one states what it needs.
+ *
+ * There is no "off": OpenRouter rejects `effort: "none"`, `enabled: false` and
+ * `max_tokens: 0` for this model with `400 Reasoning is mandatory for this
+ * endpoint and cannot be disabled`. "minimal" is the floor.
+ *
+ * The levels below are measured, not guessed. On the real prompts in this repo,
+ * "minimal" moderates and titles identically to the default while spending no
+ * reasoning tokens, but it miscounts a corpus — which is why reading the board
+ * asks for one level up.
+ */
+export const REASONING = {
+  /** Classify, label, or rewrite one piece of text. Nothing to weigh up. */
+  mechanical: { effort: "minimal" },
+  /** Read the whole board to answer a question. "minimal" counts wrong. */
+  analytical: { effort: "low" },
+  /** Group and score hundreds of posts against each other. */
+  deliberative: { effort: "medium" },
+} as const satisfies Record<string, { effort: string }>;
 
 type EmbeddingTaskType = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY";
 
@@ -106,6 +133,10 @@ export const isInappropriateCheck = async ({
         body: JSON.stringify({
           model: LLM_MODEL,
           messages,
+          // Runs on the path of every post and comment, before the author is
+          // told whether theirs was accepted, so it takes the cheapest level
+          // that still agrees with the deliberated verdict.
+          reasoning: REASONING.mechanical,
           response_format: { type: "json_object" },
         }),
       },
