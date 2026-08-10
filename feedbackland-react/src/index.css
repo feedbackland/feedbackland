@@ -2,6 +2,88 @@
 @import "tailwindcss/utilities" prefix(fl);
 @import "tw-animate-css/prefix";
 
+/*
+  The widget's unit basis.
+
+  Everything the widget draws used to be sized in `rem`, which resolves against
+  the *host document's* root font-size. The embedded board resolves the same
+  dimensions against the iframe's root instead — and the board sets no root
+  font-size, so the iframe always sits at the browser default. On a host that
+  ships `html { font-size: 62.5% }` (a common legacy reset) the two disagreed by
+  tens of pixels: the drawer's loading shimmer put the feedback form at y=40
+  against the board's y=64, and the posts list — the edge the eye actually
+  tracks — landed over 50px out.
+
+  `--fl-root` fixes the basis to the browser's own default instead:
+    - `font-size: medium` on `.fl-scope` is the UA default. Author rules on
+      `html` cannot move it, so a host's root-font-size reset is ignored.
+    - Registering `--fl-root` with `syntax: "<length>"` makes it *computed* at
+      the element that declares it, so `1em` resolves once against `.fl-scope`'s
+      own font-size and inherits downward as an absolute length. A plain
+      (unregistered) property would re-resolve `em` at each descendant, so a
+      `text-sm` child would get a smaller spacing unit than its parent.
+    - The scale tokens below are then multiples of `--fl-root` rather than `rem`.
+
+  This deliberately still tracks the visitor's browser font-size preference
+  (that preference is what `medium` means), which is exactly how the iframe's
+  root behaves — so the two stay in step for accessibility scaling while
+  ignoring host stylesheets.
+*/
+@property --fl-root {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+
+/*
+  Put the `fl:dark:*` utilities on the same signal as the dark token block near
+  the bottom of this file. Without this they fall back to Tailwind's default
+  `dark` variant — `@media (prefers-color-scheme: dark)` — so on a host that
+  implements dark mode with `html.dark` while the OS is light, the tokens
+  switched but `fl:dark:bg-input/30`, `fl:dark:border-input` and friends did not,
+  leaving light-palette inputs and buttons on a dark surface.
+
+  `.dark` as well as `.dark *`, because the widget flags its own overlay
+  surfaces on the element that also carries `.fl-scope` — utilities on that
+  element itself have to match too, which a descendant-only selector would miss.
+  Mirrors `@custom-variant dark` in app/globals.css on the board side.
+*/
+@custom-variant dark (&:is(.dark, .dark *));
+
+/*
+  Namespace the keyframes the widget drives itself.
+
+  Tailwind's `prefix(fl)` renames classes and custom properties but NOT keyframe
+  names, and keyframe names are global to the document. The widget's stylesheet is
+  injected at runtime, so it normally lands after the host's — meaning a bare
+  `@keyframes pulse` here silently redefines a host page's own `pulse`, and if the
+  host's sheet loads later instead, `fl:animate-pulse` runs *their* keyframes.
+  Either way the drawer's shimmer — the one animation this widget really cares
+  about — is at the mercy of a name collision.
+
+  Only `pulse` and `spin` are ours (`fl:animate-pulse` on the skeleton bars,
+  `fl:animate-spin` on the spinner). `enter` / `exit` come from tw-animate-css and
+  are left alone deliberately: renaming them would mean restating that library's
+  keyframes, including its whole `--tw-enter-*` / `--tw-exit-*` contract, and
+  re-doing it on every upgrade.
+*/
+@theme {
+  --animate-pulse: fl-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-spin: fl-spin 1s linear infinite;
+}
+
+@keyframes fl-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @layer base {
   .fl-scope {
     /*
@@ -450,7 +532,25 @@
 }
 
 .fl-scope {
-  --fl-radius: 0.625rem;
+  /* Unit basis — see the `@property --fl-root` block at the top of this file.
+     Declared here (unlayered) rather than in the `@layer base` reset so a host
+     stylesheet cannot outrank it. */
+  font-size: medium;
+  --fl-root: 1em;
+
+  /* Every rem-valued token Tailwind emits for this prefix, restated against
+     `--fl-root`. Ratios match Tailwind's defaults exactly (spacing .25,
+     text-xs .75, text-sm .875, text-base 1, container-sm 24, container-5xl 64).
+     The matching `--fl-text-*--line-height` tokens are unitless ratios, so they
+     follow font-size automatically and need no override. */
+  --fl-spacing: calc(var(--fl-root) * 0.25);
+  --fl-text-xs: calc(var(--fl-root) * 0.75);
+  --fl-text-sm: calc(var(--fl-root) * 0.875);
+  --fl-text-base: var(--fl-root);
+  --fl-container-sm: calc(var(--fl-root) * 24);
+  --fl-container-5xl: calc(var(--fl-root) * 64);
+
+  --fl-radius: calc(var(--fl-root) * 0.625);
   --fl-background: oklch(1 0 0);
   --fl-foreground: oklch(0.145 0 0);
   --fl-card: oklch(1 0 0);
@@ -484,7 +584,33 @@
   --fl-sidebar-ring: oklch(0.708 0 0);
 }
 
-html.dark .fl-scope {
+/*
+  Dark tokens. The widget resolves dark mode from either the host's `.dark` class
+  or the OS `prefers-color-scheme`, and marks its own *overlay* surfaces with
+  `dark` when it does — so keying only on `html.dark` left the panel painted with
+  the light palette whenever the host signalled dark through the media query
+  alone, while the board inside the iframe (told the resolved mode via `?mode=`)
+  came up dark. That mismatch showed as a white shimmer snapping to a dark board
+  the moment the drawer handed over.
+
+  Custom properties inherit, so redefining them on whichever element carries
+  `dark` cascades to everything inside it:
+    - `html.dark .fl-scope` — host page in dark mode.
+    - `.fl-scope.dark`      — an overlay surface (scope and flag on one element):
+                              the drawer panel, the popover content, the mobile
+                              sheet.
+
+  Deliberately NOT a descendant selector (`.fl-scope .dark`). The trigger lives
+  inline in the host's own content, not on one of our overlay surfaces, so it has
+  to follow the *host page's* appearance rather than the mode we resolved. A
+  descendant rule would catch it and invert it: on a light host visited with an
+  OS dark preference, `bg-primary` flips from near-black to near-white and the
+  default button turns near-invisible against the page. When the host genuinely
+  is dark, `html.dark .fl-scope` already matches the wrapper and these
+  properties inherit down to the trigger anyway.
+*/
+html.dark .fl-scope,
+.fl-scope.dark {
   --fl-background: oklch(0.145 0 0);
   --fl-foreground: oklch(0.985 0 0);
   --fl-card: oklch(0.205 0 0);

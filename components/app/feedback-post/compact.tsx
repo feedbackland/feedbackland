@@ -81,7 +81,7 @@ function Inner({
               </div>
 
               <div className="-mb-1.5 flex items-start justify-between gap-4">
-                <h2 className="text-[17px] leading-5 font-medium group-hover:underline">
+                <h2 className="text-[17px] leading-5 font-semibold group-hover:underline">
                   {title}
                 </h2>
               </div>

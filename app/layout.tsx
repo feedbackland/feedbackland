@@ -28,7 +28,16 @@ import { Toaster } from "@/components/ui/sonner";
 //     before `onLoad` and before React hydrates — guarantees the widget learns
 //     this even when hydration is slow, so it never mistakes a new board for an
 //     old one and reveals early.
-const bootScript = `(function(){try{var m=new URLSearchParams(window.location.search).get('mode');if(m==='dark'||m==='light'){window.localStorage.setItem('feedbackland-embed-theme',m);var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(m);e.style.colorScheme=m;}}catch(e){}try{if(window.parent!==window){window.parent.postMessage({type:'feedbackland:loading'},'*');}}catch(e){}})();`;
+//  3. Scrollbar gutter: when embedded in the drawer, flag <html> so it always
+//     reserves the viewport scrollbar gutter (see `html.fl-embed-drawer` in
+//     globals.css). The widget's shimmer reserves one unconditionally, so a
+//     sparse board — which `min-h-screen` pins to exactly 100vh, producing no
+//     scrollbar at all — would otherwise widen the content column by the
+//     scrollbar width the moment the shimmer handed over, shifting it sideways.
+//     Set here rather than from the layout because only the root layout owns
+//     <html>, and reading the proxy's header there would opt the last two
+//     statically-rendered routes into dynamic rendering.
+const bootScript = `(function(){try{var s=new URLSearchParams(window.location.search);var m=s.get('mode');if(m==='dark'||m==='light'){window.localStorage.setItem('feedbackland-embed-theme',m);var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(m);e.style.colorScheme=m;}if(s.get('embed')==='drawer'){document.documentElement.classList.add('fl-embed-drawer');}}catch(e){}try{if(window.parent!==window){window.parent.postMessage({type:'feedbackland:loading'},'*');}}catch(e){}})();`;
 
 export const metadata: Metadata = {
   title: "Feedbackland",

@@ -290,10 +290,14 @@ export const OverlayWidget = memo(
         {/* Trigger — Slot merges the open handler into whatever element the
             host passes (a native <button>, an asChild element, etc.) so
             keyboard activation behaves exactly like the unwrapped trigger
-            would. Same semantics as PopoverWidget's Radix triggers. */}
-        <Slot onClick={handleOpen} className={cn({ dark: isDarkMode })}>
-          {children}
-        </Slot>
+            would. Same semantics as PopoverWidget's Radix triggers.
+
+            Deliberately not flagged `dark`: the trigger sits inline in the
+            host's content, so it follows the host page's appearance, not the
+            mode we resolved for our own overlay surfaces (which can come from
+            `prefers-color-scheme` while the host page is light). See the dark
+            token block in index.css. */}
+        <Slot onClick={handleOpen}>{children}</Slot>
 
         {/* Portal: always mounted so the iframe starts loading immediately */}
         {typeof document !== "undefined" &&
@@ -347,7 +351,12 @@ export const OverlayWidget = memo(
                     Share your feedback
                   </h2>
 
-                  <div className="fl:w-full fl:h-full fl:relative">
+                  {/* `@container` so the shimmer can switch its horizontal
+                      inset on the *panel's* width, the same width the board's
+                      `xs:` breakpoint sees inside the iframe. A media query
+                      here would read the host page's viewport instead and put
+                      the shimmer's gutter out of step with the board's. */}
+                  <div className="fl:@container fl:w-full fl:h-full fl:relative">
                     {/* Iframe is only rendered when the config is valid.
                         Otherwise the showError block below takes over and
                         explains what went wrong. */}
@@ -378,7 +387,9 @@ export const OverlayWidget = memo(
                         it past the iframe's `onLoad` until the board's ready signal
                         hides the board's multi-stage hydration/data-loading shifts,
                         and matching the board's shape makes the reveal seamless. */}
-                    {isOpened && !contentReady && !showError && <BoardSkeleton />}
+                    {isOpened && !contentReady && !showError && (
+                      <BoardSkeleton />
+                    )}
 
                     {/* Error fallback for both iframe load failures and
                         unresolvable configuration. Config errors hide the
