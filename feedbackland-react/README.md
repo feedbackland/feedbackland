@@ -2,13 +2,14 @@
 
 # feedbackland-react
 
-**Drop a feedback button into your React app.** A slide-in drawer or an anchored popover — your users post ideas, bugs, and requests without ever leaving your product.
+**A feedback button for your React app. One component, one prop, done.**
+
+It connects to your [Feedbackland](https://github.com/feedbackland/feedbackland) board — free and open source (MIT).
 
 <p>
   <a href="https://www.npmjs.com/package/feedbackland-react"><img alt="npm" src="https://img.shields.io/npm/v/feedbackland-react?color=blue"></a>
   <a href="https://github.com/feedbackland/feedbackland/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="React 17 · 18 · 19" src="https://img.shields.io/badge/react-17%20%7C%2018%20%7C%2019-149eca">
-  <img alt="TypeScript" src="https://img.shields.io/badge/typescript-types%20included-3178c6">
 </p>
 
 <p>
@@ -18,8 +19,6 @@
 </p>
 
 </div>
-
----
 
 ## Install
 
@@ -32,127 +31,81 @@ npm install feedbackland-react
 ```tsx
 import { FeedbackButton } from "feedbackland-react";
 
-export function App() {
-  return <FeedbackButton platformId="your-platform-id" />;
-}
+<FeedbackButton platformId="your-platform-id" />
 ```
 
-That's the whole integration. The widget ships its own scoped styles — no CSS import, no provider, no setup.
+That's it. No CSS import, no provider, no config.
 
-> **Don't write this by hand.**
-> Create a board on [feedbackland.com](https://feedbackland.com) (free, MIT-licensed — or [self-host](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md) the whole thing). Your admin panel's **Widget** page renders this exact snippet with your `platformId` pre-filled, alongside a live preview and interactive controls for every prop — copy straight from there.
+Your `platformId` is on your board's admin **Widget** page, which shows a ready-to-copy snippet with the ID filled in. No board yet? Create one free at [feedbackland.com](https://feedbackland.com).
 
-## Two flavors
+## Drawer or popover
 
 ```tsx
-// Drawer (default) — slide-in side panel with the full board.
-<FeedbackButton platformId="..." />
-
-// Popover — anchored inline form; user stays in flow.
-<FeedbackButton platformId="..." widget="popover" />
+<FeedbackButton platformId="..." />                  // drawer (default)
+<FeedbackButton platformId="..." widget="popover" /> // popover
 ```
 
-|              | **Drawer**                              | **Popover**                                       |
-| ------------ | --------------------------------------- | ------------------------------------------------- |
-| Layout       | Slide-in side panel, full height        | Anchored to the button, inline                    |
-| Mobile       | Same drawer                             | Bottom sheet (auto via media query)               |
-| What it shows | Your entire feedback board in an iframe | A single-shot submission form                     |
-| Use when     | Feedback deserves a focused experience  | Contextual, in-the-flow feedback                  |
+**Drawer** — clicking the button slides in a panel with your full feedback board. Users post, vote, and comment without leaving your app.
 
-## Style it your way
+**Popover** — a small form next to the button. Users type, submit, done; the feedback lands on your board anonymously. On screens narrower than 768px it becomes a bottom sheet.
 
-The widget exposes four progressively more flexible ways to style the trigger button. Pick the one that fits.
+## Make the button yours
 
-**1. Default styled button** — sensible defaults:
+Four levels, from zero effort to full control:
 
 ```tsx
-<FeedbackButton platformId="..." text="Send feedback" variant="outline" size="lg" />
-```
+// 1. Built-in presets
+<FeedbackButton platformId="..." text="Give feedback" variant="outline" size="lg" />
 
-**2. Quick Tailwind override** — `tailwind-merge` resolves conflicts, your classes win:
+// 2. Add your own Tailwind classes — conflicts resolve in your favor
+<FeedbackButton platformId="..." className="rounded-full bg-violet-600 hover:bg-violet-700" />
 
-```tsx
-<FeedbackButton
-  platformId="..."
-  className="bg-red-500 hover:bg-red-600 rounded-full px-8"
-/>
-```
+// 3. Start from a bare, unstyled <button>
+<FeedbackButton platformId="..." variant="unstyled" className="your-classes" />
 
-**3. Unstyled** — strip every internal class, start from scratch:
-
-```tsx
-<FeedbackButton
-  platformId="..."
-  variant="unstyled"
-  className="rounded-full bg-emerald-500 px-4 py-2 text-white hover:bg-emerald-600"
-/>
-```
-
-**4. Bring your own button** (`asChild`) — total control, Radix-style:
-
-```tsx
+// 4. Use your own element as the button
 <FeedbackButton platformId="..." asChild>
-  <button className="any-classes-you-want">
-    <YourIcon /> Give feedback
-  </button>
+  <button onClick={yourHandler}>💬 Feedback</button>
 </FeedbackButton>
 ```
 
-`asChild` merges the open handler into your child element, which keeps its own `onClick`, `ref`, and ARIA attributes.
+With `asChild`, your element **is** the button — the widget only wires up the open handler. Your element's own `onClick`, `ref`, and ARIA attributes keep working, and `text`, `variant`, `size`, and `className` don't apply.
 
 ## Props
 
-| Prop          | Type                                                                                          | Default        | Description                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
-| `platformId`  | `string` (UUID)                                                                               | **required**   | Your organization ID — copy from the Widget admin page.                                                  |
-| `url`         | `string`                                                                                      | —              | Override the board origin. Required only for self-hosted instances.                                      |
-| `widget`      | `"drawer" \| "popover"`                                                                       | `"drawer"`     | Presentation flavor.                                                                                     |
-| `text`        | `string`                                                                                      | `"Feedback"`   | Button label. Ignored when `children` is provided.                                                       |
-| `variant`     | `"default" \| "secondary" \| "outline" \| "ghost" \| "link" \| "destructive" \| "unstyled"`   | `"default"`    | Visual style preset. `"unstyled"` removes every internal class — pair with `className`.                  |
-| `size`        | `"default" \| "sm" \| "lg" \| "icon" \| "icon-sm" \| "icon-lg"`                               | `"default"`    | Size preset.                                                                                             |
-| `className`   | `ClassValue`                                                                                  | —              | Tailwind classes merged onto the trigger via `tailwind-merge`. Yours win conflicts with widget defaults. |
-| `asChild`     | `boolean`                                                                                     | `false`        | When `true`, your child becomes the trigger directly. Requires a single React element child.             |
-| `children`    | `React.ReactNode`                                                                             | —              | Trigger label (overrides `text`), or the trigger element itself when `asChild` is `true`.                |
+| Prop         | Type                                                                                        | Default      | Description                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------- |
+| `platformId` | `string`                                                                                    | **required** | Your board's ID (a UUID). Copy it from the admin **Widget** page.                 |
+| `widget`     | `"drawer" \| "popover"`                                                                     | `"drawer"`   | What the button opens.                                                             |
+| `text`       | `string`                                                                                    | `"Feedback"` | Button label. Ignored when `children` is set.                                      |
+| `variant`    | `"default" \| "secondary" \| "outline" \| "ghost" \| "link" \| "destructive" \| "unstyled"` | `"default"`  | Button style. `"unstyled"` removes all built-in styling.                           |
+| `size`       | `"default" \| "sm" \| "lg" \| "icon" \| "icon-sm" \| "icon-lg"`                             | `"default"`  | Button size. Ignored with `variant="unstyled"`.                                    |
+| `className`  | `string` (or any `clsx` value)                                                              | —            | Extra classes for the button, merged with `tailwind-merge` — your classes win.     |
+| `asChild`    | `boolean`                                                                                   | `false`      | Use your own element as the button. Requires exactly one element child.            |
+| `children`   | `ReactNode`                                                                                 | —            | Button label — or, with `asChild`, the button element itself.                      |
+| `url`        | `string`                                                                                    | —            | Your board's full URL. Only needed when self-hosting.                              |
 
-## Self-hosted instances
+## Self-hosting?
 
-Point the widget at your own Feedbackland deployment:
+Add `url` — the full URL of your board, including the org path. Keep `platformId`: it identifies your org when feedback is submitted.
 
 ```tsx
 <FeedbackButton
   platformId="your-platform-id"
-  url="https://your-board.example.com"
+  url="https://your-app.vercel.app/your-org"
 />
 ```
 
-Self-hosting guide → [SELFHOSTING.md](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md).
+Your own admin **Widget** page generates this snippet too, `url` included. Self-hosting guide → [SELFHOSTING.md](https://github.com/feedbackland/feedbackland/blob/main/SELFHOSTING.md)
 
-## Accessibility
+## Good to know
 
-- The drawer renders a proper `role="dialog"` with `aria-modal`, `aria-labelledby`, and a visually hidden title.
-- Focus is trapped while open (`react-focus-on`) and restored to the trigger on close. Escape closes the drawer.
-- The popover delegates focus management to Radix Popover / Drawer.
-- The default trigger has full keyboard activation; `asChild` preserves your own element's `onClick`, `ref`, and ARIA attributes via Radix `Slot`.
-- The shimmer skeleton shown while the iframe loads is `aria-hidden`, so assistive tech doesn't announce decorative content.
-
-## Compatibility
-
-- **React** 17 / 18 / 19 — peer dependencies only
-- **TypeScript** — types included, strict-mode friendly
-- **SSR** — safe with Next.js (App Router and Pages), Remix, Astro
-- **Browsers** — modern evergreen (Chrome, Firefox, Safari, Edge); no IE11
-- **Node** 18+ for tooling (the runtime is browser-only)
-
-## Under the hood
-
-- **Drawer** opens a portal to `document.body`, renders the full feedback board in an `<iframe>` pointing at `https://<platformId>.feedbackland.com` (or your `url`), and traps focus with [`react-focus-on`](https://github.com/theKashey/react-focus-on). The iframe is `sandbox`ed for defense-in-depth.
-- **Popover** uses Radix Popover (desktop) / Radix Drawer (mobile) and `POST`s a single submission to `/api/feedback/create` on the board origin — no iframe, no board UI.
-- **Style isolation in both directions** — every Tailwind utility is prefixed `fl:`, every CSS variable lives on `.fl-scope`. Nothing leaks out of the widget, nothing bleeds in from your host app.
-- **CSS injected at runtime** by JS — no separate stylesheet to import. The first widget instance per page injects a `<style>` block; subsequent instances reuse it.
-- **One `<link rel="preconnect">`** per board origin is added on mount and ref-counted across instances, so the iframe handshake is warm before the user clicks.
-
-Bundle ≈ **110 KB gzipped** (ESM, tree-shakable), including a full Tailwind 4 build, Radix Popover/Drawer, the scope reset, and the iframe error/timeout UI.
+- **Styles can't collide.** Every class the widget uses is namespaced (`fl:` prefix, `.fl-scope` root), isolating its styles from your page's — in both directions.
+- **Dark mode is automatic.** The widget follows `<html class="dark">` when your app sets it, otherwise the OS preference — and reacts live to changes.
+- **Accessible.** Dialog semantics, focus trapping, and Escape-to-close are built in.
+- **Plays nice everywhere.** SSR-safe (Next.js, Remix, …), TypeScript types included, React 17/18/19.
+- **Fails loud, not silent.** With an invalid `platformId` the button still renders, the panel explains the problem, and the console tells you how to fix it.
 
 ## License
 
-MIT © [Feedbackland](https://github.com/feedbackland/feedbackland) — fork it, run it, sell it.
+[MIT](https://github.com/feedbackland/feedbackland/blob/main/LICENSE)
