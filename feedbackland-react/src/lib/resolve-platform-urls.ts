@@ -25,7 +25,11 @@ export function resolvePlatformUrls({
       const base = `${parsed.origin}${parsed.pathname.replace(/\/$/, "")}`;
       return {
         boardUrl: base,
-        apiUrl: `${base}/api/feedback/create`,
+        // The create endpoint lives at the deployment root, never under the
+        // org's path segment: a subdir-org `url` like `https://host/my-org`
+        // must not produce `/my-org/api/feedback/create` (no route answers
+        // there — 404). The org travels in the POST body as `orgId`.
+        apiUrl: `${parsed.origin}/api/feedback/create`,
         origin: parsed.origin,
       };
     } catch {
