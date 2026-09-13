@@ -3,7 +3,7 @@ import { parse, HTMLElement } from "node-html-parser";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 
-export const LLM_MODEL = "google/gemini-3.6-flash";
+export const LLM_MODEL = "google/gemini-3.8-flash";
 
 /**
  * How hard the model should think, chosen per call site.
