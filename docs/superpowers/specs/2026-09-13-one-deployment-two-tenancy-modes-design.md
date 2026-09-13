@@ -743,15 +743,33 @@ Target: an ordered, tracked, idempotent set run by a Kysely `Migrator`.
 0006_instance.sql    instance config (generated auth secret, setup code)
 ```
 
-`0001_init.sql` opens with
+### The schema must not care where pgvector lives
+
+An earlier revision pinned the extension: `CREATE SCHEMA IF NOT EXISTS
+extensions; CREATE EXTENSION vector WITH SCHEMA extensions;` with column types
+written as `"extensions"."halfvec"`. That matched Supabase, where the extension
+already lives in `extensions` — and **it breaks everywhere else**, which is
+exactly where one-click hosting happens.
+
+On Neon, Render and Railway the operator runs `CREATE EXTENSION IF NOT EXISTS
+vector` and it lands in `public`. Our `IF NOT EXISTS` then finds it already
+installed, does nothing, and leaves it in `public` — after which every
+`extensions.halfvec` reference fails and **the very first migration aborts**.
+A managed platform that helpfully pre-installs pgvector would break the deploy
+precisely because it was helpful.
+
+So the schema stops naming a location:
 
 ```sql
-CREATE SCHEMA IF NOT EXISTS extensions;
-CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS vector;      -- wherever this provider puts it
 ```
 
-so the **same DDL runs on stock Postgres and on Supabase**, leaving the
-`extensions.halfvec` column types alone. Enums are wrapped in
+and the columns and index opclasses are written **unqualified** — `halfvec(3072)`,
+`halfvec_cosine_ops`. Resolution is then by `search_path`, which is already
+handled for the runtime operator below and works out to the same mechanism for
+DDL. One schema file that is correct on Supabase (`extensions`), on Neon,
+Render and Railway (`public`), and in the bundled image, without knowing which
+it is talking to. Enums are wrapped in
 `DO … EXCEPTION WHEN duplicate_object`; the Supabase storage statements are
 dropped, since nothing uses that bucket any more.
 
@@ -815,10 +833,17 @@ reads the extension's actual schema from `pg_extension`, checks whether it is
 already reachable, and only then appends. On Supabase that is typically a
 no-op, which is the correct outcome.
 
-If a provider forbids even that, the bulletproof fallback is to stop depending
-on `search_path` by schema-qualifying the operator — `OPERATOR(extensions.<=>)`
-in a local helper replacing `cosineDistance` — immune to pooling, roles and
-privileges alike. The documented escape hatch, not the default.
+Because the extension's schema is now discovered rather than assumed, the same
+lookup serves both the DDL above and this setting: whatever `pg_extension`
+says, that is what gets appended. The migration therefore adapts to a provider
+that puts pgvector in `public`, one that puts it in `extensions`, and one that
+had already installed it before we arrived.
+
+If a provider forbids the `ALTER ROLE` entirely, the fallback is to stop
+depending on `search_path` by schema-qualifying the operator at the call site —
+`OPERATOR(<schema>.<=>)` in a local helper replacing `cosineDistance`, with the
+schema read from the same lookup — immune to pooling, roles and privileges
+alike. The documented escape hatch, not the default.
 
 ### Boot sequence
 
@@ -1118,7 +1143,77 @@ Firebase, so "take your data" means reconciling three exports. That property is
 worth more than the function-invocation cost §7 charges for it, and it is the
 honest counterweight to that trade.
 
-### Recipe 1 — self-host, single tenant (the documented default)
+### Who is actually self-hosting, and what they can do
+
+Every recipe below was written for someone comfortable in a terminal. That is
+the wrong default audience: the person who most wants their own feedback board
+often has no Docker knowledge and, realistically, will not open a terminal at
+all. "Save this YAML and run `docker compose up`" is a hard stop for them, and
+reading a setup code out of container logs is worse.
+
+So the recipes are ordered by **how little the reader has to know**, and the
+one that needs least is documented first:
+
+| | Who it's for | What they do | Terminal? |
+|---|---|---|---|
+| **One-click deploy** | anyone | Click a button, sign in, pick a password, wait ~3 min | **No** |
+| **Managed marketplace** | anyone, wants someone else to run it | Pick Feedbackland from a catalog | **No** |
+| **Docker Compose** | comfortable with a terminal | The recipes below | Yes |
+
+Everything that makes the first row possible is already in this design — zero
+required configuration, a generated secret, migrations at boot, a health
+endpoint, and a prebuilt multi-arch image. What is missing is the **template
+files that carry it**, and one schema assumption that would have broken it
+(§5, "The schema must not care where pgvector lives").
+
+### Recipe 0 — one-click deploy (the documented default)
+
+A `render.yaml` blueprint and a Railway template live in the repository, and
+the README carries the deploy buttons. The blueprint declares the whole
+instance, and every capability it relies on is confirmed to exist in the spec:
+
+| Need | Blueprint mechanism |
+|---|---|
+| Run our prebuilt image, no build step or build minutes | `image:` pointing at the GHCR tag |
+| Provision Postgres and wire it up | a `databases:` entry plus `fromDatabase` → `connectionString` |
+| Generate the auth secret | `generateValue: true` |
+| **Let the operator choose the setup code during deploy** | `sync: false`, which prompts for a value |
+| Tell the app it is behind the platform's proxy | `TRUST_PROXY=true` set by the template, since these platforms terminate TLS and forward (§3) |
+| Know when the instance is ready | `healthCheckPath: /api/health` |
+
+That last row is the one that makes this work for a non-technical user. The
+setup code exists so a public instance cannot be claimed by a stranger (§8),
+and the Docker path prints it to the terminal — useless to someone who never
+opens one. With `sync: false` the deploy wizard **asks them to choose it**,
+like any other password field, and they type it again on first visit. No logs,
+no dashboard archaeology, and the security property is unchanged.
+
+The platform also supplies **free HTTPS on a subdomain** (`*.onrender.com`,
+`*.up.railway.app`), which means the drawer widget is embeddable immediately —
+the one thing the localhost quick start cannot offer, since host pages are
+HTTPS and an HTTP board in an iframe is blocked as mixed content.
+
+**The costs are stated plainly, because surprise is the enemy here.** Render's
+free Postgres **expires 30 days after creation** and its free web services
+sleep when idle; Railway has no free tier and runs a few dollars a month. A
+non-technical operator discovering either of those a month in is a worse
+outcome than being told up front, so the docs give a small table of what each
+option really costs rather than leading with "free".
+
+### Recipe 0b — managed marketplaces
+
+The genuinely zero-knowledge option is not to deploy at all: PikaPods,
+Elestio and Cloudron let someone pick an app from a catalog and get a running
+instance with a domain and backups, from roughly $1–4/month. That is a better
+experience than anything we can build ourselves.
+
+It is not entirely in our control — it requires submitting a package to each
+catalog — so it is listed as a deliverable rather than a promise, and the docs
+link only to catalogs that actually carry Feedbackland. A Docker image that
+needs one environment variable and runs its own migrations is close to the
+ideal shape for these packagers, so the work is submission, not engineering.
+
+### Recipe 1 — Docker Compose, single tenant
 
 ```yaml
 services:
@@ -1429,7 +1524,8 @@ today — the password never leaves the server.
 Not exhaustive to the line, but every file below is *known* to need work, each
 found by tracing an actual execution path.
 
-**New** — `lib/tenancy.ts`; `lib/auth/{server,client}.ts`;
+**New** — `render.yaml` + Railway template + deploy buttons in the README;
+`lib/tenancy.ts`; `lib/auth/{server,client}.ts`;
 `app/api/auth/[...all]/route.ts`; `app/api/images/route.ts` +
 `app/api/images/[id]/route.ts`; `app/api/health/route.ts`;
 `app/api/tls-check/route.ts`; `app/api/demo-session/route.ts`; `app/setup/`;
@@ -1469,6 +1565,7 @@ verifiable.
 |---|---|---|
 | 1 | Schema + migration runner with advisory lock; `auth_*` namespace; `search_path`; `0005_fk_fixes`; entrypoint owns secret + setup code | Fresh DB converges; concurrent boots serialise; a killed migration does not wedge the next boot |
 | 2 | Dockerfile + compose + health endpoint, multi-arch | Image builds **including the widget workspace** and boots against Postgres on both architectures |
+| 2a | **One-click templates**: `render.yaml` blueprint, Railway template, deploy buttons | A person with no terminal open reaches a working board: click → sign in → choose setup code → HTTPS URL |
 | 3 | Host-based tenancy; delete `[orgSubdomain]`, subdir mode, `subdomain` header; **scope the four cross-tenant queries**; uuid→slug redirect | Single-tenant board at `/`; multi-tenant on `*.localhost`; a cross-org post/comment id is rejected on read *and* upvote |
 | 4 | Better Auth replaces Firebase; **delete `/api/user/upsert-user`** for `ensureSession`; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; the REST route is gone and unreferenced; no token survives sign-out |
 | 5 | **Drawer auth acceptance test** (verification 3) | Merge blocker |
@@ -1516,6 +1613,9 @@ point before launch — which is the single largest risk reduction in this plan.
 | `oauthPopup` and `oAuthProxy` collide on the OAuth callback, breaking drawer social sign-in for every tenant | Composition established from source — the popup marker cookie is origin-scoped, so the relay hop passes through untouched (§3) — and confirmed live by verification 7 |
 | Migrations pointed at the existing database leave old orgs and orphaned users behind | Clean slate made explicit: new project, or drop and recreate `public`, before the first migration (§12) |
 | Compose healthcheck passes during the database's own first-time setup | `pg_isready -h 127.0.0.1` forces a TCP check, which is refused while the server is socket-only |
+| A managed platform pre-installs pgvector in `public`, and the first migration aborts on `extensions.halfvec` | Extension schema discovered, never assumed; DDL unqualified (§5) — the failure would have hit every one-click platform |
+| The setup code is unreachable for someone who never opens a terminal | Deploy templates prompt for it with `sync: false`; the security property is unchanged (§7) |
+| A non-technical operator is surprised by cost or by a database expiring | Costs and limits stated per option in the docs rather than leading with "free" (§7) |
 | A backup that looks fine and will not restore | `docker compose exec -T` documented with the reason; a restore command is given beside the dump |
 | `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |
 | Serving images from Postgres changes production cost shape | Immutable edge caching absorbs the steady state; S3 adapter is the escape valve (§7) |
@@ -1529,6 +1629,13 @@ point before launch — which is the single largest risk reduction in this plan.
    widget snippet embeds and submits from another origin. Assert the absence of
    tenancy too: `/signup` 404s, settings shows no subdomain field, and nothing
    in the UI or the URLs mentions an org slug.
+2b. **The one-click path, walked by someone who does not open a terminal.**
+   From the README button: sign in, choose a setup code when prompted, wait for
+   the deploy, open the platform-provided HTTPS URL, complete setup, post
+   feedback, and embed the widget on another origin — **without a terminal, a
+   YAML file, or reading a log**. Run it against a platform whose Postgres
+   pre-installs pgvector in `public`, which is the case the schema fix in §5
+   exists for.
 2a. **Runs somewhere that is not Docker Compose.** Deploy the same image to one
    container platform that injects its own `PORT` (Cloud Run, Railway, Render
    or Fly) against a managed Postgres reached over TLS. This is the test that

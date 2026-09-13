@@ -2,13 +2,85 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-You need **Docker** (any recent version — Docker Desktop, or Docker Engine with
-the Compose plugin). Nothing else: no accounts to create, no API keys, no
-config file to fill in. The database comes with it.
+**Pick the path that sounds like you:**
+
+| | |
+|---|---|
+| **[Deploy it online in one click](#deploy-it-online-in-one-click)** | No terminal, no Docker, nothing to install. Click a button, answer two questions, wait a few minutes. **Start here if you're not sure.** |
+| **[Let someone else run it](#let-someone-else-run-it)** | Pick Feedbackland from a catalogue and it's just… running. From about $2/month. |
+| **[Run it with Docker](#run-it-with-docker)** | You're comfortable with a terminal and want it on your own machine or server. |
 
 ---
 
-## Quick start
+## Deploy it online in one click
+
+This gives you a real, public feedback board on an `https://` address, with a
+database, backups and automatic updates. You don't install anything.
+
+### What you'll need
+
+- A **GitHub account** (free — the deploy platform signs you in with it)
+- About **five minutes**
+
+That's the whole list. No API keys, no configuration files, no Docker.
+
+### Steps
+
+**1. Click a deploy button.**
+
+| Where | Button | What it costs |
+|---|---|---|
+| Render | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/feedbackland/feedbackland) | Free to try. The free database is deleted after 30 days and the free app sleeps when nobody's using it, so pick a paid database (~$7/mo) if you want to keep it. |
+| Railway | [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/feedbackland/feedbackland) | No free tier. Around $5/month for the app and database together. |
+
+**2. Sign in** with GitHub and let it create the project.
+
+**3. When it asks for a Setup code, type anything you'll remember.**
+
+This is the one thing you'll be asked for. It's a one-time password that stops
+a stranger claiming your board before you do. Write it down — you'll need it in
+about three minutes, and never again.
+
+**4. Wait for it to finish**, then open the address it gives you. It looks like
+`https://feedbackland-something.onrender.com`.
+
+**5. Fill in the form**: your setup code, your product's name, your name, your
+email, and a password.
+
+Your board is live. You're signed in as its admin, and because the address is
+already `https://`, you can put the feedback widget on your own site straight
+away.
+
+> [!TIP]
+> You can point your own domain (like `feedback.yourcompany.com`) at it later
+> from the platform's dashboard. Nothing in Feedbackland needs to change.
+
+---
+
+## Let someone else run it
+
+If you'd rather not manage anything at all, Feedbackland can be run for you by
+a managed self-hosting service. You pick it from a catalogue, it starts, and
+somebody else handles the server, the backups and the updates.
+
+These are third-party services and typically cost $1–4 per month. Links are
+listed here only once Feedbackland is actually available on them:
+
+- **PikaPods** — *(listing pending)*
+- **Elestio** — *(listing pending)*
+- **Cloudron** — *(listing pending)*
+
+> [!NOTE]
+> Your board is still yours. These services run the same open-source
+> Feedbackland, and you can export everything and move it elsewhere at any
+> time — see [Backups](#backups).
+
+---
+
+## Run it with Docker
+
+For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
+Compose plugin) and a terminal.
 
 **1. Save this as `compose.yml`:**
 
@@ -64,8 +136,7 @@ curl -O https://raw.githubusercontent.com/feedbackland/feedbackland/main/compose
 docker compose up
 ```
 
-First run pulls the images and sets up the database. When it's ready you'll see
-a setup code in the terminal:
+When it's ready you'll see a setup code in the terminal:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -77,19 +148,15 @@ a setup code in the terminal:
 ```
 
 **3. Open [http://localhost:3000](http://localhost:3000)**, paste the setup
-code, and fill in four fields: your product's name, your name, your email, and
-a password.
-
-That's it. Your board is live and you're signed in as its admin.
+code, and fill in your product's name, your name, your email and a password.
 
 > [!NOTE]
-> The setup code exists so that nobody else can claim your board if you started
-> it on a server that's reachable from the internet. It stops working the
-> moment you finish setup.
+> A board on `http://localhost` works fine for you, but the feedback **widget**
+> can't be embedded on a real website from it — browsers block insecure frames.
+> For that you need a domain with HTTPS, which is what the
+> [one-click deploy](#deploy-it-online-in-one-click) gives you for free.
 
----
-
-## Everyday commands
+### Everyday commands
 
 ```bash
 docker compose up -d      # start in the background
@@ -97,6 +164,10 @@ docker compose logs -f    # watch the logs
 docker compose down       # stop (your data is kept)
 docker compose pull       # fetch the latest version
 ```
+
+---
+
+## Backups
 
 Your data lives in the `db` Docker volume.
 
@@ -113,7 +184,8 @@ docker compose exec -T db psql -U postgres -d feedbackland < backup.sql
 ```
 
 That single file contains everything — posts, comments, accounts and uploaded
-images. Restoring it anywhere gives you your board back, whole.
+images. Restoring it anywhere gives you your board back, whole, which is also
+how you move between any of the options on this page.
 
 > [!IMPORTANT]
 > The `-T` matters. Without it Docker attaches a terminal to the command, which
@@ -124,6 +196,9 @@ images. Restoring it anywhere gives you your board back, whole.
 > `docker compose down -v` deletes the volume, and with it all your data. Take
 > a backup first.
 
+On the hosted options above, backups are handled for you by the platform — but
+the command still works if you'd like your own copy.
+
 ---
 
 ## Next steps
@@ -132,11 +207,11 @@ Everything below is optional. Your board already works without any of it.
 
 | | |
 |---|---|
-| **[Add your domain](#add-your-domain)** | Put it on `feedback.yourcompany.com` with automatic HTTPS. Needed before you can embed the widget on your site. |
-| **[Turn on AI](#turn-on-ai)** | Ranked insights, ask-questions-about-your-feedback, semantic search and automatic titles. One environment variable, and it works with a local model too. |
+| **[Turn on AI](#turn-on-ai)** | Ranked insights, ask-questions-about-your-feedback, semantic search and automatic titles. One setting, and it works with a local model too. |
 | **[Add the widget](#add-the-widget)** | Drop a feedback button into your own app. |
+| **[Use your own domain](#use-your-own-domain)** | `feedback.yourcompany.com`, with HTTPS. |
 | **[Sign in with Google](#sign-in-with-google)** | Optional, alongside email and password. |
 | **[Password resets by email](#password-resets-by-email)** | Optional. Without it, you can still generate reset links from the admin area. |
-| **[Upgrading](#upgrading)** | Pull a new image; the database updates itself. |
-| **[Environment reference](#environment-reference)** | Every setting, all of them optional except the database URL. |
-| **[Troubleshooting](#troubleshooting)** | Port already in use, connecting to your own Postgres, and other snags. |
+| **[Upgrading](#upgrading)** | The database updates itself; you just take the new version. |
+| **[Settings reference](#settings-reference)** | Everything you can configure. All of it optional except the database. |
+| **[Troubleshooting](#troubleshooting)** | Port already in use, using your own database, and other snags. |
