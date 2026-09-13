@@ -706,15 +706,20 @@ PgBouncer rejects the `options` startup parameter outright.
 
 The fix has to be a **server-side default**, applied by Postgres when the
 backend session starts, so it holds no matter which pooled connection serves a
-query. Migration `0001` sets it:
+query. Migration `0001` sets it with `ALTER ROLE CURRENT_USER IN DATABASE
+CURRENT_DATABASE() SET search_path = …`, and a role may alter its own settings
+without superuser, so this works on managed Postgres as well as the bundled
+container.
 
-```sql
-ALTER ROLE CURRENT_USER IN DATABASE CURRENT_DATABASE()
-  SET search_path = public, extensions;
-```
-
-A role may alter its own settings without superuser, so this works on managed
-Postgres as well as the bundled container. If a provider forbids even that,
+**It must append, not replace.** Production is Supabase, where the connecting
+role is `postgres` — a role Supabase's own tooling also uses, and whose
+`search_path` already contains more than `public`. Overwriting it with a flat
+`public, extensions` would be a destructive edit to a shared role in someone
+else's managed environment. So the migration reads the extension's actual
+schema from `pg_extension`, checks whether it is already reachable, and only
+then appends it to the role's existing `search_path`. On Supabase that is
+typically a no-op, which is the correct outcome: production already works and
+the migration must not "fix" it into something different. If a provider forbids even that,
 the bulletproof fallback is to stop depending on `search_path` at all by
 schema-qualifying the operator — `OPERATOR(extensions.<=>)` in a local helper
 replacing `pgvector/kysely`'s `cosineDistance` — which is immune to pooling,
@@ -760,7 +765,7 @@ two connection strings in any pooled deployment:
 
 | | Runtime | Migrations |
 |---|---|---|
-| Vercel + managed Postgres | `DATABASE_URL` — **pooled** (e.g. Supabase `:6543`), because serverless opens many short-lived connections | `DIRECT_DATABASE_URL` — session mode (`:5432`) |
+| Vercel + Supabase (production) | `DATABASE_URL` — Supabase **transaction pooler**, `:6543`, because serverless opens many short-lived connections | `DIRECT_DATABASE_URL` — Supabase **session mode**, `:5432` |
 | Docker | `DATABASE_URL` — direct; there is no pooler | falls back to `DATABASE_URL` |
 
 `DIRECT_DATABASE_URL` is optional and defaults to `DATABASE_URL`, so the
@@ -933,11 +938,34 @@ The runner stage then copies only `.next/standalone`, `.next/static` and
 `next/font/google` downloads at build time, so the build stage needs network;
 the runtime does not.
 
+**The image must be multi-architecture.** A large share of self-hosters
+develop on Apple Silicon, and an `amd64`-only image either refuses to run or
+crawls under emulation — a first impression of "this is slow and broken" for
+the audience this whole design is optimised for. CI publishes
+`linux/amd64` **and** `linux/arm64`; `pgvector/pgvector` is already multi-arch,
+so the compose file works unmodified on both.
+
 ### Health
 
 `GET /api/health` returns 200 when the database answers, 503 otherwise. The
 compose `app` service declares a healthcheck against it so orchestrators and
 `depends_on` work.
+
+### Bring-your-own Postgres needs pgvector
+
+The bundled `pgvector/pgvector` image has the extension; a self-hoster pointing
+`DATABASE_URL` at an existing Postgres may not. `CREATE EXTENSION vector` then
+fails, and the failure must read as a prerequisite rather than a crash: the
+migration aborts with a message naming the extension, the server it connected
+to, and the two ways forward (install pgvector, or use the bundled compose).
+
+Making pgvector *optional* was considered — embeddings are only written when
+an LLM is configured, so a keyless instance never reads a vector. It was
+rejected because the columns and HNSW indexes are in the base schema, and
+making the DDL conditional would fork the schema between installs for the
+benefit of a shrinking minority: pgvector is available on RDS, Cloud SQL, Neon,
+Supabase and every mainstream managed Postgres. The requirement is documented
+rather than engineered around.
 
 ### Recipe 1 — self-host, single tenant (the documented default)
 
@@ -984,10 +1012,18 @@ silently if it does not:
 
 ### Recipe 3 — multi-tenant on Vercel (this is production)
 
-`feedbackland.com` stays on Vercel. Host-based tenancy (§1) is what makes this
-work unchanged: a wildcard domain `*.feedbackland.com` added to the project
-routes every tenant to the same deployment, and Vercel issues a certificate
-per subdomain automatically. Nothing in the application knows it is on Vercel.
+`feedbackland.com` stays on **Vercel**, with **Supabase** remaining the
+Postgres. Neither changes. Host-based tenancy (§1) is what makes this work
+unchanged: a wildcard domain `*.feedbackland.com` added to the project routes
+every tenant to the same deployment, and Vercel issues a certificate per
+subdomain automatically. Nothing in the application knows it is on Vercel.
+
+What *does* change for production is narrower than it first appears. Supabase
+keeps serving the database and keeps hosting the existing image bucket, whose
+URLs stay valid (§4); what is retired is Supabase **Auth-adjacent usage** — the
+browser-held anon key and the public bucket insert policy — and Firebase. The
+Supabase project itself is not going anywhere, which is why the two connection
+strings below are its pooled and direct URLs rather than a migration.
 
 Four platform facts this depends on, each verified rather than assumed:
 
@@ -1211,7 +1247,7 @@ would otherwise lock every user out.
 | Being signed out | **Accepted.** One re-login, with the same credentials — unavoidable when the token issuer changes, and the only visible footprint |
 | `/get-started` bookmarks | Permanent redirect to `/signup` |
 | Ask-AI conversation history | Storage re-keyed from subdomain to org id, with a one-time read of the old key so history carries over |
-| `<uuid>.feedbackland.com` redirecting to the slug | No longer redirects, it resolves directly — invisible, since it is only ever loaded inside the widget's iframe |
+| `<uuid>.feedbackland.com` redirecting to the slug | **Redirect preserved** — see below |
 | Images | Legacy Supabase URLs keep resolving (§4); new uploads are relative |
 | The public demo board | See below — this one is easy to miss |
 
@@ -1219,9 +1255,39 @@ would otherwise lock every user out.
 `demo.feedbackland.com` and auto-signs visitors in as `admin@demo.com`, and
 the README links that board as the live demo. §3 deletes that block because
 credentials do not belong in source — which would silently turn the public
-demo into a signed-out board. So the behaviour is preserved, moved to
-configuration: `DEMO_HOST` plus a demo credential pair in environment, read at
-runtime. Same experience, no secret in the repository.
+demo into a signed-out board.
+
+An earlier revision said the fix was "`DEMO_HOST` plus a credential pair in
+environment". **That does not work as written**: the sign-in happens in the
+browser, so client-readable credentials would mean a `NEXT_PUBLIC_` variable —
+baked in at build time, which breaks the single published image, and still
+shipping the password to every visitor.
+
+The credentials stay **server-side** instead. `GET /api/demo-session` checks
+the resolved host against `DEMO_HOST`, calls
+`auth.api.signInEmail({ …, returnHeaders: true })` with server-only
+credentials, and returns just the bearer token; the client stores it exactly
+as it would after a normal sign-in. Verified: that call returns both a
+`set-auth-token` header and `body.token`, and the token authenticates through
+`auth.api.getSession`.
+
+This is strictly better than today, where `admin@demo.com` / `demo1234` are
+compiled into the client bundle for anyone to read. The demo board behaves
+identically and the password never leaves the server.
+
+**The uuid → slug redirect has to stay.** Host-based resolution can serve
+`<orgId>.feedbackland.com` directly, which made the existing redirect look
+redundant. It is not. The published widget builds
+`https://<platformId>.feedbackland.com` and the popover renders "view all
+feedback" links to that same origin, so dropping the redirect leaves a visitor
+who follows one sitting on a raw-uuid hostname instead of `acme.feedbackland.com`
+— a visible change to a tenant's own branded URL, which is precisely what this
+section forbids.
+
+So the canonical redirect stays, moved out of `proxy.ts` into the `(board)`
+layout: when the host is a uuid label and the resolved org has a different
+slug, redirect to the slug host preserving path and query. Inside the drawer
+this is invisible, exactly as today.
 
 ### Migrating identity
 
@@ -1234,20 +1300,53 @@ runtime. Same experience, no secret in the repository.
    and `user_upvote.userId` already holds that value, so nothing is rewritten
    and no foreign key moves. `email`, `displayName`, `photoUrl` and
    `emailVerified` come across unchanged.
-3. Passwords are stored as `auth_account.password` in a tagged legacy format
-   (`firebase-scrypt$<salt>$<hash>`). Better Auth's `emailAndPassword.password.verify`
-   detects the tag and verifies with Firebase's modified SCRYPT using the
-   exported parameters; anything untagged falls through to Better Auth's own
-   scrypt. New and changed passwords are always written in the modern format,
-   and a sign-in hook rewrites a legacy hash after it verifies, so the legacy
-   path drains over time. If that rehash proves awkward, leaving legacy hashes
+3. Passwords are stored on the `credential` account row
+   (`auth_account.providerId = "credential"`, `accountId = userId`) in a
+   tagged legacy format `firebase-scrypt$<salt>$<hash>`, and
+   `emailAndPassword.password.verify` dispatches on the tag.
+
+   **The custom `verify` must also handle modern hashes.** Its signature is
+   `({ hash, password }) => Promise<boolean>` and supplying it *replaces*
+   Better Auth's own verification entirely — so untagged hashes are delegated
+   to `verifyPassword` from `better-auth/crypto`, which the package exports
+   for exactly this. Overriding `hash` is deliberately **not** done: new and
+   changed passwords then keep Better Auth's own format with no reimplementation
+   of its hashing.
+
+   Note also that `verify` receives no user id and no database handle, so
+   transparent rehash-on-login cannot happen inside it. Leaving legacy hashes
    in place is safe — they are scrypt — at the cost of keeping the four
-   parameters in environment permanently. Either outcome is acceptable; the
-   choice is recorded rather than left implicit.
+   parameters in environment. That is the accepted outcome; a separate sign-in
+   hook can drain them later if desired.
+
 4. Social users get `auth_account` rows with `providerId` `google` /
    `microsoft` and `accountId` taken from the export's `providerUserInfo`
-   `rawId`, which is what Better Auth matches on — so the existing button
-   signs the same person into the same account.
+   `rawId`. Better Auth matches on `(providerId, accountId)`, so the existing
+   button signs the same person into the same account.
+
+### This was verified, not reasoned about
+
+The migration is the one step that cannot be fixed forward by redeploying, so
+its mechanics were run rather than assumed — against better-auth 1.7.4:
+
+| Check | Result |
+|---|---|
+| Our Firebase-SCRYPT implementation vs a published reference vector | **exact match** |
+| Migrated user signs in with their **original** Firebase password | works, and `res.user.id` is the preserved Firebase uid |
+| Wrong password | rejected |
+| A brand-new user through the same custom `verify` | works, and its stored hash is in the **modern** format |
+| Pre-seeded social link, then a real OAuth round trip | signs into the **existing** user — session bound to the Firebase uid, and **exactly one** `auth_user` row, no duplicate |
+
+Three parameter details are worth stating because getting any of them wrong
+fails silently for *every* user, and two are counter-intuitive:
+
+- `N = 2^mem_cost`, `r = rounds`, `p = 1`, and the derived key length is
+  **32 bytes**, not 64 — it is an AES-256 key, not a scrypt digest.
+- The derived key encrypts the decoded `signer_key` with **AES-256-CTR and a
+  16-byte zero IV**; the base64 of that ciphertext is the stored hash.
+- `firebase auth:export` emits **standard** base64 (`+/`) while the Admin SDK's
+  `listUsers` emits **URL-safe** base64 (`-_`). The decoder must accept both,
+  or passwords fail depending only on which tool produced the export.
 5. The script is **idempotent and rerunnable**, reports a per-user outcome, and
    refuses to run twice over the same user without `--force`. Firebase enforces
    one account per email, but the import still fails loudly on a duplicate
@@ -1358,6 +1457,10 @@ the previous image. Phases 5–9 are code-only again.
 | Existing tenants locked out at cutover | Identities imported with the Firebase uid preserved, so no FK moves; verified against real accounts across all three sign-in methods before Firebase credentials are removed (§12) |
 | Deleting the demo auto-login silently breaks the public demo board | Behaviour preserved in configuration; credentials leave the repository, the experience does not (§12) |
 | Legacy password hashes carried forever, keeping Firebase parameters in env | Acceptable and recorded as a choice: scrypt hashes stay valid, and a sign-in rehash drains them if implemented (§12) |
+| A custom password `verify` silently breaks *new* passwords by replacing Better Auth's own | Untagged hashes delegate to `verifyPassword` from `better-auth/crypto`; proven by signing in a brand-new user through the same verify (§12) |
+| Demo credentials shipped to the browser via `NEXT_PUBLIC_` | Server-only `/api/demo-session` mints a bearer token; the password never reaches the client, unlike today (§12) |
+| Overwriting Supabase's shared `postgres` role `search_path` | Migration appends only when the extension's schema is not already reachable — a no-op on Supabase (§5) |
+| `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |
 | Forged `x-forwarded-host` steers auth URLs | `TRUST_PROXY` defaults false; `allowedHosts` bounds it |
 | `tls-check` becomes a DoS or cert-exhaustion vector | Negative-cached lookups + Caddy issuance rate limits |
 | Concurrent container boots race migrations | `pg_advisory_lock` around the whole sequence |
@@ -1395,9 +1498,11 @@ the previous image. Phases 5–9 are code-only again.
    a Microsoft user each sign in through the same button; each lands on the
    same board with the **same admin role**, and their existing posts, comments
    and upvotes are still attributed to them; board URLs and an already-deployed
-   widget snippet are byte-for-byte unchanged; `/get-started` redirects; the
-   demo board still auto-signs in. Re-running the import changes nothing.
-   This runs on a restored copy **before** it runs on production.
+   widget snippet are byte-for-byte unchanged; `/get-started` redirects; a
+   uuid host still lands on the slug; and the demo board still auto-signs in,
+   with the credentials **absent from the client bundle**. Re-running the
+   import changes nothing. This runs on a restored copy **before** it runs on
+   production.
 5. **Security regressions**, each an explicit test: `POST /api/user/upsert-user`
    with a forged `userId` is rejected and cannot rename another user; `/setup`
    without the setup code is rejected, and the code stops working once an org
