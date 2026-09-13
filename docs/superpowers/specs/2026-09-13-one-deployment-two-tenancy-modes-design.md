@@ -140,7 +140,7 @@ out of `proxy.ts` into the `(board)` layout — when the host is a uuid label
 and the resolved org has a different slug, redirect to the slug host
 preserving path and query.
 
-### Security fix: `/api/user/upsert-user`
+### Security fix: deleting `/api/user/upsert-user`
 
 This endpoint is currently **unauthenticated and trusts a client-supplied
 `userId`**: `upsertUserSchema` takes `userId`, `email` and `orgSubdomain`
@@ -151,10 +151,26 @@ display name**, which is impersonation on a public board. There is no
 privilege escalation (the role is hard-coded `user`), but arbitrary user
 creation and renaming is live today.
 
-The redesign rewrites this exact path, so it is fixed as part of the work: the
-server derives `userId` and `email` from the **verified session** and the org
-from `Host`. `upsertUserSchema` keeps only `name` and `photoURL`. This is a
-deliverable with a test, not a side effect.
+An earlier revision fixed this by authenticating the endpoint and deriving the
+identity from the session. **Deleting it outright is better**, and costs less.
+
+The endpoint exists only so the client can obtain `{ user, userOrg, org }`
+after sign-in. `trpc/get-user-session.ts` already returns **exactly that
+shape**, already as a `userProcedure` — authenticated, with `orgId` and
+`userId` taken from context rather than from the caller. The REST route is a
+second, weaker door to the same room.
+
+So: the "ensure `public.user` and `user_org` rows exist" step moves server-side
+into an authenticated `ensureSession` mutation the client calls once after
+sign-in, using the verified uid and email and the `Host`-resolved org;
+`getUserSession` stays a pure read for refreshes. `POST /api/user/upsert-user`,
+`upsertUserSchema`'s client-supplied `userId`/`email`/`orgSubdomain`, and the
+whole class of "anyone can create a user or rename someone" **cease to exist**
+rather than being patched.
+
+A vulnerability that is deleted cannot regress; one that is fixed can. The
+verification for it changes accordingly — from "a forged `userId` is rejected"
+to "the route is gone and nothing references it".
 
 ### Cross-tenant object access
 
@@ -256,6 +272,17 @@ frame of flash if it never runs.
 
 Cost: pages that read `Host` render dynamically. Accepted.
 
+**The board must be served at the root of a hostname**, not under a path.
+`https://feedback.acme.com` works; `https://acme.com/feedback` does not, and
+this is a stated constraint rather than an oversight. Next's `basePath` would
+move the API routes with it, but the published widget computes its submission
+endpoint at the **origin root** — `resolvePlatformUrls` deliberately builds
+`${origin}/api/feedback/create` so a subdir-style `url` prop cannot produce a
+404 — so a `basePath` deployment would silently POST feedback to a path that
+does not exist. Supporting it means changing the npm package, which §9 rules
+out. Documented in the self-hosting guide next to the domain step, where
+someone would otherwise discover it the hard way.
+
 ### Framing policy — the board must be embeddable, the admin must not
 
 The app currently sets **no security headers at all**. Every route is
@@ -315,8 +342,8 @@ rows were untouched; a real sign-up wrote one `auth_user` row while
 `public.user` stayed at its original count.
 
 Identity lives in `auth_*`. The app's `public.user` / `user_org` stay the
-application's own model, populated on sign-in by the existing `upsertUser`
-mirror with `user.id` set to the Better Auth user id. `public.user.id` is
+application's own model, populated on sign-in by the `ensureSession`
+mutation (§1) with `user.id` set to the Better Auth user id. `public.user.id` is
 already `text`, so no column type changes.
 
 Letting Better Auth own `public.user` outright — mapping `image` → `photoURL`
@@ -493,9 +520,9 @@ token store as well as Better Auth's** — the popup plugin only clears the key
 it owns, and a token left behind would keep authenticating tRPC calls after an
 apparent sign-out. An explicit test case.
 
-`upsertUser` runs immediately after sign-in and is now authenticated, so the
+`ensureSession` runs immediately after sign-in and is authenticated, so the
 bearer token must be captured *before* it is called: capture token → store →
-`upsertUser` → session state.
+`ensureSession` → session state.
 
 **Server actions cannot see a bearer token.** A Next server action receives
 cookies, not the `Authorization` header the tRPC client attaches — and inside
@@ -596,25 +623,50 @@ request-body limit so one default is safe on every host. The cap applies to
 inflates by ~33%), and the client checks it before upload so an oversized
 screenshot fails with a clear message instead of a 413.
 
-### Image optimization is turned off
+### Downscale on upload, then serve unoptimized
 
 Post and comment bodies render images through `next/image`
 (`components/ui/tiptap-output.tsx`), as do the org logo
 (`platform-header/title.tsx`) and its settings preview (`settings/logo.tsx`).
 `next.config.ts` currently allows one remote host interpolated from
-`NEXT_PUBLIC_SUPABASE_PROJECT_ID`.
+`NEXT_PUBLIC_SUPABASE_PROJECT_ID`, which goes away with Supabase Storage.
 
-`images.remotePatterns` is **replaced by `images: { unoptimized: true }`**,
-set globally rather than per component. Three call sites each needing a prop is
-three chances to miss one. All three render user-uploaded content, where
-optimization buys little: uploads are already capped at 4 MB and served behind
-an immutable cache header.
+An earlier revision set `images: { unoptimized: true }` to bypass the
+`remotePatterns` allowlist for legacy Supabase URLs. **That reasoning expired
+with the clean slate** — `remotePatterns` governs *external* URLs only, and
+every image is now a same-origin relative `/api/images/:id`, which Next
+optimizes with no configuration at all. So the trade-off had to be made on its
+merits rather than inherited:
 
-Consequences, all positive here: no `remotePatterns` allowlist to maintain,
-**`sharp` can be dropped** from the runtime image, the optimizer never
-round-trips back into our own `/api/images/:id`, and on Vercel the platform's
-image-optimization billing leaves the picture entirely. The stored HTML already
-carries `width`/`height`, so layout is unaffected.
+| | Optimizer on | Optimizer off |
+|---|---|---|
+| Viewer bandwidth | resized + WebP | **full-size original to every visitor** |
+| Runtime dependency | needs `sharp` | none |
+| Stateless container | re-optimizes after every restart (cache is discarded) | nothing to cache |
+| Vercel | billed image optimization | free |
+
+Neither column is good: one ships a 4 MB screenshot to every visitor, the
+other adds a native dependency, per-host billing and a cache a stateless
+container throws away.
+
+**So the work moves to upload time, in the browser.** Before
+`processImagesInHTML` uploads, the client downscales to a maximum edge
+(~2000px) and re-encodes, falling back to the original encoding where the
+browser cannot. This is better on every axis that matters here:
+
+- smaller uploads, which makes the 4 MB cap generous rather than tight;
+- **smaller stored blobs**, directly answering the "images in Postgres" cost
+  concern in §7 rather than arguing about it;
+- serving is a plain byte range behind an immutable cache header, identical on
+  Vercel, Docker, Fly or anywhere else;
+- **no `sharp`, no optimizer, no optimization cache, no per-platform billing**
+  — the vendor-agnostic outcome.
+
+`images: { unoptimized: true }` therefore stays, but as a *consequence* of
+already-right-sized images rather than as a workaround. Set globally rather
+than per component: three call sites each needing a prop is three chances to
+miss one, and a missed one regresses silently. The stored HTML already carries
+`width`/`height`, so layout is unaffected.
 
 ## §5 — Schema and migrations
 
@@ -651,6 +703,12 @@ dropped, since nothing uses that bucket any more.
 the five user foreign keys without `ON DELETE CASCADE`**, so deleting a user
 currently fails. Better Auth adds real account-deletion flows, which would hit
 this immediately.
+
+`0001_init.sql` also **drops two dead enums**. `subscription_frequency` and
+`subscription_name` are defined in the current schema and used by no table —
+leftovers from a billing model that does not exist. A clean slate is the one
+moment they can go without a migration that touches live data, and carrying
+schema nobody can explain is how a schema becomes frightening to change.
 
 ### pgvector must also be reachable at *runtime*, not just in DDL
 
@@ -916,6 +974,68 @@ schema, and conditional DDL would fork the schema between installs for a
 shrinking minority. pgvector is available on RDS, Cloud SQL, Neon, Supabase and
 every mainstream managed Postgres.
 
+### The complete vendor surface, enumerated
+
+Vendor-agnosticism is the goal, so it is audited rather than asserted. Every
+external dependency that remains after this work, and what is done about each:
+
+| Dependency | When | Verdict |
+|---|---|---|
+| **Postgres + pgvector** | runtime, required | The one hard dependency. Any Postgres — bundled, RDS, Neon, Supabase, Cloud SQL |
+| **Google Fonts** | **build** | `app/layout.tsx` uses `next/font/google` for Inter and Roboto Mono. **Fixed** — see below |
+| **npm registry** | build | Unavoidable for any Node project |
+| **GHCR** | distribution | Convenience only. The Dockerfile is in the repo; `docker compose build` needs no registry |
+| **OpenRouter** | runtime, optional | Off by default, and `LLM_BASE_URL` points at Ollama or anything OpenAI-compatible (§6) |
+| **Caddy / Let's Encrypt** | optional recipe | Open source, swappable; any reverse proxy works (below) |
+| **Vercel, Supabase** | production only | A deployment choice the code does not encode. Verified: after this work **zero `NEXT_PUBLIC_*` variables remain** — every current use is in a file being deleted or rewritten |
+
+**Google Fonts is the one genuine leftover, and it is removable.** `next/font/google`
+downloads Inter and Roboto Mono **at build time**; Next then self-hosts them,
+so runtime is already Google-free. But it means a build needs network access to
+Google, which breaks air-gapped and offline builds and makes builds less
+reproducible — for a product whose pitch is "host it anywhere", that is the
+wrong default. Both faces are OFL-licensed, so the `.woff2` files are vendored
+into the repo and loaded with `next/font/local`. Cost: a few hundred KB in git.
+Benefit: the build has no runtime vendor dependency at all beyond npm.
+
+**Any reverse proxy works, not just Caddy.** Caddy is the documented recipe
+because it gets TLS right with one line, but nothing depends on it: the
+requirements are simply that the proxy forwards `x-forwarded-host`/`-proto`
+(with `TRUST_PROXY=true`), does not buffer the Ask-AI stream, and allows a long
+read timeout for insight generation. nginx and Traefik equivalents are
+documented alongside, because "you must run Caddy" would be a lock-in of our
+own making.
+
+**The published image is pinned, not floating.** The compose file references a
+version tag rather than bare `latest`, so `docker compose pull` cannot jump a
+major version underneath a running instance; upgrading is an explicit edit, and
+the docs say so. `latest` is documented for people who want it.
+
+**`better-auth` is pinned to an exact version.** The `oauthPopup` plugin and
+its `better-auth:oauth-popup` message contract are recent, and the drawer
+sign-in path depends on behaviour verified against **1.7.4** specifically. A
+caret range could change that contract in a patch release, and the failure
+would appear only inside a third-party iframe — the hardest place to notice.
+Upgrades are deliberate and re-run verification 3.
+
+**The container needs no writable filesystem** beyond `/tmp`: nothing is stored
+on disk, image optimization is off, and there is no ISR. It can therefore run
+with a read-only root filesystem, which is documented for anyone who wants it.
+Being stateless also means a self-hoster can run more than one app container
+against the same database without changing anything — migrations serialise on
+the advisory lock, rate limits and sessions live in Postgres, and no node holds
+state another node needs.
+
+**Leaving is as easy as arriving.** Vendor-agnosticism is not only about what a
+product depends on but about whether its data can walk out. Because identity,
+content *and images* all live in one Postgres, a single `pg_dump` is a complete,
+portable copy of the instance — restore it anywhere and the application comes
+back whole. Today's arrangement cannot make that claim: the database is in
+Supabase Postgres, the images are in Supabase Storage, and the users are in
+Firebase, so "take your data" means reconciling three exports. That property is
+worth more than the function-invocation cost §7 charges for it, and it is the
+honest counterweight to that trade.
+
 ### Recipe 1 — self-host, single tenant (the documented default)
 
 ```yaml
@@ -1018,9 +1138,15 @@ returns 200 for exactly three things:
 
 Everything else gets 404, answered from the same memoised tenant cache as §1
 **with negative results cached**, so handshake probing of random subdomains
-cannot become one database query per packet. It is reachable only on the
-internal network and blocked at the proxy for external requests: it is a
-yes/no oracle for "does this tenant exist".
+cannot become one database query per packet.
+
+**The endpoint does not exist unless this recipe is in use.** It is an
+org-existence oracle, and on Vercel — where there is no internal network to
+hide it on — it would simply be a public one serving no purpose, since Vercel
+issues certificates itself. So it returns 404 unless explicitly enabled, and
+when enabled it is additionally reachable only on the internal compose network.
+An endpoint that exists for one optional recipe should not be part of the
+production attack surface.
 
 ### A cost note on images
 
@@ -1065,7 +1191,17 @@ The cost is one line, and the quick start is arranged so it is not even that:
 it runs `docker compose up` in the foreground, and the code is printed in the
 startup banner in the terminal the operator is already watching.
 `docker compose logs app | grep "Setup code"` is documented for the detached
-case.
+case, and `SETUP_CODE` may be pre-set for anyone automating a deployment.
+
+Binding the published port to `127.0.0.1` instead was considered — it would
+make the code unnecessary on a laptop — and rejected because it breaks the
+perfectly reasonable "bring it up on a VPS and visit `http://ip:3000`" flow,
+trading a visible one-line step for an invisible connection failure.
+
+**`/setup` is rate-limited**, since a setup code that can be guessed at
+unlimited speed is not a control. So is `/api/demo-session` (§12): it mints a
+real session on every call, so without a limit it is both a session-row flood
+and free load on the database.
 
 Before any org exists, `resolveOrg` returns null and every org-scoped procedure
 would fail its `publicProcedure` guard. The redirect to `/setup` therefore
@@ -1214,8 +1350,7 @@ found by tracing an actual execution path.
 (session + host tenancy); `lib/utils.ts` (URL helpers deleted);
 `lib/utils-server.ts` (LLM base URL, moderation outcomes); `lib/schemas.ts`;
 `hooks/use-auth.tsx` (Better Auth, demo login via API);
-`providers/trpc-client.tsx`; `app/api/user/upsert-user/route.ts`
-(authenticated); `app/api/chat/route.ts` (**own inline auth + tenancy**);
+`providers/trpc-client.tsx`; `app/api/chat/route.ts` (**own inline auth + tenancy**);
 `app/api/feedback/create/route.ts`;
 `queries/{get-feedback-post,get-comment,upvote-feedback-post,upvote-comment}.ts`
 (**org scoping**);
@@ -1229,7 +1364,8 @@ found by tracing an actual execution path.
 **Deleted** — `firebaseConfig.ts`; `lib/firebase/`; `lib/supabase.ts`;
 `hooks/{use-subdomain,use-maindomain,use-vercel-url,use-is-self-hosted,use-sse}.ts`;
 `providers/iframe.tsx` + `iframeParentAtom`; `app/api/org/[orgId]/`;
-`app/get-started/`; `app/[orgSubdomain]/claim/`; `app/design-preview/`.
+**`app/api/user/upsert-user/`**; `app/get-started/`;
+`app/[orgSubdomain]/claim/`; `app/design-preview/`.
 
 ## Delivery plan
 
@@ -1241,7 +1377,7 @@ verifiable.
 | 1 | Schema + migration runner with advisory lock; `auth_*` namespace; `search_path`; `0005_fk_fixes`; entrypoint owns secret + setup code | Fresh DB converges; concurrent boots serialise; a killed migration does not wedge the next boot |
 | 2 | Dockerfile + compose + health endpoint, multi-arch | Image builds **including the widget workspace** and boots against Postgres on both architectures |
 | 3 | Host-based tenancy; delete `[orgSubdomain]`, subdir mode, `subdomain` header; **scope the four cross-tenant queries**; uuid→slug redirect | Single-tenant board at `/`; multi-tenant on `*.localhost`; a cross-org post/comment id is rejected on read *and* upvote |
-| 4 | Better Auth replaces Firebase; `upsert-user` authenticated; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; `upsert-user` rejects a forged `userId`; no token survives sign-out |
+| 4 | Better Auth replaces Firebase; **delete `/api/user/upsert-user`** for `ensureSession`; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; the REST route is gone and unreferenced; no token survives sign-out |
 | 5 | **Drawer auth acceptance test** (verification 3) | Merge blocker |
 | 6 | Postgres image storage; `images.unoptimized`; drop `remotePatterns` | Anonymous and signed-in uploads both work; cap enforced |
 | 7 | AI optional + BYO endpoint + backfill + "unavailable ≠ inappropriate" | Keyless instance fully usable, paging included; an invalid key does not reject posts |
@@ -1249,9 +1385,9 @@ verifiable.
 | 9 | **Vercel production path**: conditional `standalone`, migrations in the build with the `VERCEL_ENV` guard, pooled vs direct URLs, `oAuthProxy`, demo session | Preview project on a wildcard domain: two tenants, search through the pooler, social sign-in on a subdomain, preview builds do not migrate |
 | 10 | Optional self-hosted multi-tenant: Caddy + `tls-check`; docs rewrite | Per-tenant certs on demand; `tls-check` accepts uuid and `api.` labels |
 
-**Tenancy precedes auth deliberately.** Phase 4's `upsert-user` fix derives the
+**Tenancy precedes auth deliberately.** Phase 4's `ensureSession` derives the
 org from `Host`, which only exists after phase 3; auth-first would mean
-building the fix against the `subdomain` header phase 3 deletes.
+building it against the `subdomain` header phase 3 deletes.
 
 **Rollback:** every phase is code-only and reverts by redeploying. With no
 production data to preserve, the database can be rebuilt from migrations at any
@@ -1275,7 +1411,12 @@ point before launch — which is the single largest risk reduction in this plan.
 | `/admin` clickjacked through an iframe | Per-route `frame-ancestors`; board stays `*` (§2) |
 | `/setup` hijacked on an exposed instance | Setup code always required; no reliance on a spoofable header |
 | An exhausted or invalid LLM key rejects every post as "inappropriate" | Moderation gains a third outcome, *unavailable*, degrading to the keyless path (§6) |
-| Demo credentials shipped to the browser | Server-only `/api/demo-session` mints a bearer token (§12) |
+| Demo credentials shipped to the browser | Server-only `/api/demo-session` mints a bearer token, rate-limited (§12) |
+| A build that needs Google reachable, breaking offline/air-gapped builds | Inter and Roboto Mono vendored and loaded with `next/font/local` (§7) |
+| A `better-auth` patch release changes the popup message contract, breaking sign-in only inside an iframe | Exact version pin; upgrades re-run verification 3 (§7) |
+| `docker compose pull` jumps a major version under a running instance | Compose references a version tag, not bare `latest` (§7) |
+| `/api/tls-check` exposed publicly on Vercel as an org-existence oracle | 404 unless the optional multi-tenant recipe enables it (§7) |
+| Someone deploys under a path (`example.com/feedback`) and feedback submission 404s | Root-of-hostname stated as a constraint, documented beside the domain step (§2) |
 | `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |
 | Serving images from Postgres changes production cost shape | Immutable edge caching absorbs the steady state; S3 adapter is the escape valve (§7) |
 
@@ -1296,8 +1437,8 @@ point before launch — which is the single largest risk reduction in this plan.
 4. **Tenant isolation**: with two orgs seeded, a post id and a comment id from
    org B are rejected when requested or upvoted while resolved to org A — all
    four queries from §1, read and write.
-5. **Security regressions**, each an explicit test: `POST /api/user/upsert-user`
-   with a forged `userId` is rejected and cannot rename another user; `/setup`
+5. **Security regressions**, each an explicit test: `/api/user/upsert-user`
+   **no longer exists** and nothing references it; `/setup`
    without the setup code is rejected, and the code stops working once an org
    is claimed; a second sign-in method on an existing email does not auto-link;
    a bearer token captured before sign-out is rejected after it; `/admin`
