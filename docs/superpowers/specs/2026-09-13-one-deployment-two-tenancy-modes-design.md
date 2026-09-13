@@ -1157,7 +1157,6 @@ one that needs least is documented first:
 | | Who it's for | What they do | Terminal? |
 |---|---|---|---|
 | **One-click deploy** | anyone | Click a button, sign in, pick a password, wait ~3 min | **No** |
-| **Managed marketplace** | anyone, wants someone else to run it | Pick Feedbackland from a catalog | **No** |
 | **Docker Compose** | comfortable with a terminal | The recipes below | Yes |
 
 Everything that makes the first row possible is already in this design — zero
@@ -1199,19 +1198,6 @@ sleep when idle; Railway has no free tier and runs a few dollars a month. A
 non-technical operator discovering either of those a month in is a worse
 outcome than being told up front, so the docs give a small table of what each
 option really costs rather than leading with "free".
-
-### Recipe 0b — managed marketplaces
-
-The genuinely zero-knowledge option is not to deploy at all: PikaPods,
-Elestio and Cloudron let someone pick an app from a catalog and get a running
-instance with a domain and backups, from roughly $1–4/month. That is a better
-experience than anything we can build ourselves.
-
-It is not entirely in our control — it requires submitting a package to each
-catalog — so it is listed as a deliverable rather than a promise, and the docs
-link only to catalogs that actually carry Feedbackland. A Docker image that
-needs one environment variable and runs its own migrations is close to the
-ideal shape for these packagers, so the work is submission, not engineering.
 
 ### Recipe 1 — Docker Compose, single tenant
 

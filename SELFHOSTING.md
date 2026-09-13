@@ -7,7 +7,6 @@ Run your own feedback board. Your data, your domain, your costs.
 | | |
 |---|---|
 | **[Deploy it online in one click](#deploy-it-online-in-one-click)** | No terminal, no Docker, nothing to install. Click a button, answer two questions, wait a few minutes. **Start here if you're not sure.** |
-| **[Let someone else run it](#let-someone-else-run-it)** | Pick Feedbackland from a catalogue and it's just… running. From about $2/month. |
 | **[Run it with Docker](#run-it-with-docker)** | You're comfortable with a terminal and want it on your own machine or server. |
 
 ---
@@ -54,26 +53,6 @@ away.
 > [!TIP]
 > You can point your own domain (like `feedback.yourcompany.com`) at it later
 > from the platform's dashboard. Nothing in Feedbackland needs to change.
-
----
-
-## Let someone else run it
-
-If you'd rather not manage anything at all, Feedbackland can be run for you by
-a managed self-hosting service. You pick it from a catalogue, it starts, and
-somebody else handles the server, the backups and the updates.
-
-These are third-party services and typically cost $1–4 per month. Links are
-listed here only once Feedbackland is actually available on them:
-
-- **PikaPods** — *(listing pending)*
-- **Elestio** — *(listing pending)*
-- **Cloudron** — *(listing pending)*
-
-> [!NOTE]
-> Your board is still yours. These services run the same open-source
-> Feedbackland, and you can export everything and move it elsewhere at any
-> time — see [Backups](#backups).
 
 ---
 
@@ -196,8 +175,8 @@ how you move between any of the options on this page.
 > `docker compose down -v` deletes the volume, and with it all your data. Take
 > a backup first.
 
-On the hosted options above, backups are handled for you by the platform — but
-the command still works if you'd like your own copy.
+If you deployed online, the platform takes care of database backups for you —
+but it's worth keeping your own copy too.
 
 ---
 
