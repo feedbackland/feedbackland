@@ -34,20 +34,19 @@ multi-tenancy is pure overhead for someone who wants one board.
 4. **Minimal lock-in for self-hosters.** The only hard dependency is a
    Postgres database. Production's dependence on Vercel is a deployment
    choice, not something the code encodes — the same image runs anywhere.
+5. **Existing tenants notice nothing.** Same board URLs, same widget snippets,
+   same data, same admin roles, and the **same sign-in credentials** — one
+   re-login is the entire visible footprint of the change (§12).
 5. Sign-in works inside the drawer widget's cross-origin iframe — **proven**
    for both password and social paths (§3).
 
 ## Non-goals
 
-- Preserving existing `feedbackland.com` accounts. Confirmed unnecessary, so
-  Firebase is deleted outright rather than migrated from. **The consequence,
-  stated plainly:** existing `public.user` rows survive as authorship records —
-  posts and comments keep their author name and photo — but no `auth_user`
-  exists for them, so nobody can sign into those accounts. Someone who
-  re-registers with the same address gets a **new** id and does not inherit
-  their old content's authorship. This works only because `public.user` has a
-  unique constraint on `id` and *not* on `email`, so the old row and the new
-  one coexist; that is verified, not assumed.
+- ~~Preserving existing `feedbackland.com` accounts.~~ **Reversed.** An
+  earlier revision treated this as unnecessary and stated that nobody would be
+  able to sign into existing accounts. Existing tenants continuing to work
+  unchanged is now a hard requirement, so account preservation is a **goal**
+  with its own section (§12), not an omission.
 - Multi-tenant single sign-on across tenants (§3, "Multi-tenant origins").
 - Changing the published `feedbackland-react` npm package (§9).
 - Customer custom domains. The chosen TLS approach makes them nearly free
@@ -511,11 +510,16 @@ self-hoster registers the obvious URL.
 ### Removed with Firebase
 
 `firebaseConfig.ts`, both SDKs, the admin credentials, `FIREBASE_DATABASE_URL`
-and the dead `adminDatabase` export. Also removed: the hardcoded
-`demo.feedbackland.com` branch in `hooks/use-auth.tsx`, which auto-signs-in
-with **credentials committed in source** (`admin@demo.com` / `demo1234`). If a
-public demo is still wanted it becomes a seeded org selected by env, never
-credentials in the repository.
+and the dead `adminDatabase` export — but only **after** the account migration
+in §12 has run and been verified, since that migration needs a Firebase export
+and the site stays live on Firebase until the cutover deploy.
+
+The hardcoded `demo.feedbackland.com` branch in `hooks/use-auth.tsx`
+auto-signs visitors in with **credentials committed in source**
+(`admin@demo.com` / `demo1234`). The credentials leave the repository; the
+behaviour does not, because that demo board is a live tenant and losing its
+auto-sign-in is exactly the kind of change §12 forbids. It moves to
+configuration (`DEMO_HOST` + a credential pair in environment).
 
 ### Session lifetime, sign-out, and the mirror call
 
@@ -1168,6 +1172,12 @@ Nothing below is required for `docker compose up` to work.
 | `OPENROUTER_API_KEY` | unset | AI features via OpenRouter |
 | `LLM_BASE_URL` / `LLM_MODEL` / `LLM_EMBEDDING_MODEL` | OpenRouter defaults | Any OpenAI-compatible endpoint; also enables AI without a key |
 | `MAX_IMAGE_BYTES` | `4000000` | Upload cap, decoded bytes |
+| `DEMO_HOST` + demo credentials | unset | Auto-sign-in for a public demo board; production-only, replaces credentials previously committed in source (§12) |
+| `FIREBASE_SCRYPT_*` (signer key, salt separator, rounds, mem cost) | unset | Production-only, verifies migrated legacy password hashes (§12). Self-hosted installs never set these |
+
+The last two rows are the only production-only variables in the table, and
+both exist to keep existing tenants working rather than to run the product. A
+self-hosted instance leaves every row blank except the one compose fills in.
 
 **Deleted:** `SELF_HOSTED`, `NEXT_PUBLIC_SELF_HOSTED`,
 `NEXT_PUBLIC_SUPABASE_PROJECT_ID`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
@@ -1183,6 +1193,82 @@ demoted to optional sections: domain + HTTPS, AI (and the embedding backfill),
 social sign-in, SMTP and the reset tiers, backups, upgrades, running
 multi-tenant, deploying on Vercel instead, env reference, troubleshooting.
 
+## §12 — Cutting over the existing deployment
+
+Existing tenants must not notice the change. Everything except identity is
+already preserved by construction — same database, same `orgSubdomain`, so the
+same board URLs; the widget contract is untouched (§9); posts, comments,
+upvotes, insights, admin roles and in-flight admin invites are rows that are
+never rewritten. Identity is the part that needs work, and it is the part that
+would otherwise lock every user out.
+
+### What a tenant would otherwise notice, and what is done about it
+
+| Would change | Resolution |
+|---|---|
+| Accounts and passwords | Migrated with the uid preserved (below) |
+| Google / Microsoft sign-in | Provider links imported, so the same button works |
+| Being signed out | **Accepted.** One re-login, with the same credentials — unavoidable when the token issuer changes, and the only visible footprint |
+| `/get-started` bookmarks | Permanent redirect to `/signup` |
+| Ask-AI conversation history | Storage re-keyed from subdomain to org id, with a one-time read of the old key so history carries over |
+| `<uuid>.feedbackland.com` redirecting to the slug | No longer redirects, it resolves directly — invisible, since it is only ever loaded inside the widget's iframe |
+| Images | Legacy Supabase URLs keep resolving (§4); new uploads are relative |
+| The public demo board | See below — this one is easy to miss |
+
+**The demo tenant is a trap.** `hooks/use-auth.tsx` hard-codes
+`demo.feedbackland.com` and auto-signs visitors in as `admin@demo.com`, and
+the README links that board as the live demo. §3 deletes that block because
+credentials do not belong in source — which would silently turn the public
+demo into a signed-out board. So the behaviour is preserved, moved to
+configuration: `DEMO_HOST` plus a demo credential pair in environment, read at
+runtime. Same experience, no secret in the repository.
+
+### Migrating identity
+
+1. `firebase auth:export users.json --format=json` together with the project's
+   password hash parameters (`base64_signer_key`, `base64_salt_separator`,
+   `rounds`, `mem_cost`).
+2. `scripts/import-firebase-users.mjs` inserts `auth_user` rows **keeping the
+   Firebase `localId` as the id**. This is the load-bearing detail: every
+   `public.user.id`, `user_org.userId`, `feedback.authorId`, `comment.authorId`
+   and `user_upvote.userId` already holds that value, so nothing is rewritten
+   and no foreign key moves. `email`, `displayName`, `photoUrl` and
+   `emailVerified` come across unchanged.
+3. Passwords are stored as `auth_account.password` in a tagged legacy format
+   (`firebase-scrypt$<salt>$<hash>`). Better Auth's `emailAndPassword.password.verify`
+   detects the tag and verifies with Firebase's modified SCRYPT using the
+   exported parameters; anything untagged falls through to Better Auth's own
+   scrypt. New and changed passwords are always written in the modern format,
+   and a sign-in hook rewrites a legacy hash after it verifies, so the legacy
+   path drains over time. If that rehash proves awkward, leaving legacy hashes
+   in place is safe — they are scrypt — at the cost of keeping the four
+   parameters in environment permanently. Either outcome is acceptable; the
+   choice is recorded rather than left implicit.
+4. Social users get `auth_account` rows with `providerId` `google` /
+   `microsoft` and `accountId` taken from the export's `providerUserInfo`
+   `rawId`, which is what Better Auth matches on — so the existing button
+   signs the same person into the same account.
+5. The script is **idempotent and rerunnable**, reports a per-user outcome, and
+   refuses to run twice over the same user without `--force`. Firebase enforces
+   one account per email, but the import still fails loudly on a duplicate
+   rather than silently merging two people.
+
+### Sequencing and rollback
+
+The import runs against production **after** phase 1 has created `auth_*` and
+**before** phase 4 removes Firebase verification, with the site still live on
+Firebase throughout — it only writes new tables that nothing reads yet, so it
+is safe to run, verify, and re-run. The cutover is then the ordinary phase 4
+deploy.
+
+Rollback is the same `pg_dump` boundary as phase 4: the import only adds
+`auth_*` rows, so reverting the deployment restores Firebase auth against
+untouched application tables.
+
+Firebase credentials are removed from Vercel only once sign-in has been
+confirmed against migrated accounts — email/password, Google and Microsoft
+each verified with a real tenant account, not a freshly created one.
+
 ## Surfaces to change
 
 Not exhaustive to the line, but every file below is *known* to need work, and
@@ -1192,7 +1278,7 @@ each was found by tracing an actual execution path rather than by guessing.
 `app/api/auth/[...all]/route.ts`; `app/api/images/route.ts` +
 `app/api/images/[id]/route.ts`; `app/api/health/route.ts`;
 `app/api/tls-check/route.ts`; `app/setup/`; `app/signup/`;
-`scripts/{migrate,backfill-embeddings,reset-password,drawer-auth-check}.mjs`;
+`scripts/{migrate,backfill-embeddings,reset-password,drawer-auth-check,import-firebase-users}.mjs`;
 `db/migrations/000{1..6}_*.sql`; `Dockerfile`, `.dockerignore`,
 `compose.yml`, `compose.tls.yml`, `Caddyfile`,
 `.github/workflows/publish-image.yml`.
@@ -1229,7 +1315,8 @@ verifiable.
 | 1 | Schema + migration runner with advisory lock; `auth_*` namespace; `0005_fk_fixes`; entrypoint owns secret + setup code | Fresh DB and an old Supabase-shaped DB both converge; concurrent boots serialise; a killed migration does not wedge the next boot |
 | 2 | Dockerfile + compose + health endpoint | Image builds **including the widget workspace** and boots against Postgres |
 | 3 | Host-based tenancy; delete `[orgSubdomain]`, subdir mode, `subdomain` header; **scope the four cross-tenant queries** | Single-tenant board at `/`; multi-tenant on `*.localhost`; a cross-org post/comment id is rejected on read *and* upvote |
-| 4 | Better Auth replaces Firebase; `upsert-user` authenticated; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; `upsert-user` rejects a forged `userId`; no token survives sign-out |
+| 3a | **Import production identities** (§12) — runs against live production while it is still on Firebase, writing only `auth_*` | Every Firebase user has an `auth_user` with the **same id**; social links present; rerunning changes nothing |
+| 4 | Better Auth replaces Firebase; `upsert-user` authenticated; linking off; reset tiers; sign-out clears our store; demo auto-login moved to config | Sign-up/in/out on the standalone board; **a real migrated tenant account signs in with its existing password**; `upsert-user` rejects a forged `userId`; no token survives sign-out |
 | 5 | **Drawer auth acceptance test** (verification 3) | Merge blocker |
 | 6 | Postgres image storage; all board images `unoptimized`; drop `remotePatterns` | New uploads work; legacy Supabase images still render |
 | 7 | AI optional + BYO endpoint + backfill script | Keyless instance fully usable, paging included |
@@ -1268,6 +1355,9 @@ the previous image. Phases 5–9 are code-only again.
 | Auto-linking enables account takeover on unverified emails | Automatic linking **disabled**; linking only from an authenticated session |
 | `/setup` hijacked on an exposed instance | Setup code always required; no reliance on a spoofable header to decide |
 | Tenant isolation resting on unguessable ids rather than a predicate | Four unscoped queries fixed and tested with cross-org ids (§1); premise corrected rather than asserted |
+| Existing tenants locked out at cutover | Identities imported with the Firebase uid preserved, so no FK moves; verified against real accounts across all three sign-in methods before Firebase credentials are removed (§12) |
+| Deleting the demo auto-login silently breaks the public demo board | Behaviour preserved in configuration; credentials leave the repository, the experience does not (§12) |
+| Legacy password hashes carried forever, keeping Firebase parameters in env | Acceptable and recorded as a choice: scrypt hashes stay valid, and a sign-in rehash drains them if implemented (§12) |
 | Forged `x-forwarded-host` steers auth URLs | `TRUST_PROXY` defaults false; `allowedHosts` bounds it |
 | `tls-check` becomes a DoS or cert-exhaustion vector | Negative-cached lookups + Caddy issuance rate limits |
 | Concurrent container boots race migrations | `pg_advisory_lock` around the whole sequence |
@@ -1299,6 +1389,15 @@ the previous image. Phases 5–9 are code-only again.
 4. **Tenant isolation**: with two orgs seeded, a post id and a comment id from
    org B are rejected when requested or upvoted while resolved to org A — all
    four queries from §1, read and write.
+4a. **Existing tenants unchanged — the hard requirement (§12).** Against a
+   restored copy of the production database plus a real Firebase export:
+   a migrated user signs in with their **existing password**; a Google user and
+   a Microsoft user each sign in through the same button; each lands on the
+   same board with the **same admin role**, and their existing posts, comments
+   and upvotes are still attributed to them; board URLs and an already-deployed
+   widget snippet are byte-for-byte unchanged; `/get-started` redirects; the
+   demo board still auto-signs in. Re-running the import changes nothing.
+   This runs on a restored copy **before** it runs on production.
 5. **Security regressions**, each an explicit test: `POST /api/user/upsert-user`
    with a forged `userId` is rejected and cannot rename another user; `/setup`
    without the setup code is rejected, and the code stops working once an org
