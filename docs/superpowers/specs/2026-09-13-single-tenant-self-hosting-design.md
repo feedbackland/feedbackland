@@ -225,13 +225,80 @@ signInWithGoogle / signInWithMicrosoft      // optional per profile
 `hooks/use-auth.tsx` keeps its shape and its `upsertUser` mirror flow; only
 the calls underneath change.
 
-### Bearer tokens are load-bearing
+### Bearer tokens are load-bearing — measured, not assumed
 
-The board is embedded in an iframe on customer domains. Cookie sessions would
-be third-party cookies and blocked by Safari and Chrome. Firebase's
-"ID token in the `Authorization` header" model is *why* the embedded drawer
-works today, and the replacement must keep it. This rules out a cookie-session
-library used in its default mode.
+The drawer widget renders the board in an iframe on a customer's domain, and
+sign-in **is reachable there**: `sign-up-in/dialog.tsx` is opened from
+`upvote-button`, `comment-form` and `feedback-form`, all of which render in
+the embedded board. Any auth approach that does not survive a third-party
+iframe breaks the widget's core flow.
+
+This was measured rather than reasoned about. A two-site harness (top-level
+`http://localhost:5101` framing a "board" at `http://127.0.0.1:5102`) probed
+storage primitives from inside the cross-site frame, in Chrome with default
+settings:
+
+| Probe | Result |
+|---|---|
+| `document.cookie`, default `SameSite=Lax` | **BLOCKED** — could not be set at all |
+| `document.cookie`, `SameSite=None` | **BLOCKED** |
+| `navigator.cookieEnabled` | `true` — reports the opposite of the truth |
+| `localStorage` read/write | **works**, no exception |
+| `sessionStorage` | works |
+| `indexedDB.open` | works |
+
+Two further measurements characterise the storage:
+
+- **Partitioned per embedding site.** The same board origin framed by a
+  different top-level site (`http://[::1]:5101`) read `null` and minted its
+  own separate token. Storage is keyed by (top-level site, frame origin).
+- **Persistent within a partition.** Returning to the first host site read
+  back the *original* token, so a session survives the drawer being closed,
+  reopened, and the page reloaded.
+
+The conclusion is not that cookies are degraded in the drawer — they are
+**impossible**. `navigator.cookieEnabled` returning `true` while every write
+is dropped is exactly the trap that makes this worth testing rather than
+assuming.
+
+Bearer-token-in-`Authorization` is therefore mandatory, which is also why the
+current Firebase integration works: it persists to IndexedDB and sends an ID
+token in a header. **Better Auth must be configured so no auth path depends on
+its cookie**, i.e. the `bearer` plugin governs sign-in, `getSession` and
+refresh alike — not just the initial sign-in response.
+
+CSRF is not the issue people expect it to be here: the iframe document is
+served *from* the board's own origin, so its `fetch` calls to `/api/auth/*`
+are same-origin and carry the board's own `Origin`. `trustedOrigins` needs
+the board origin only, not every customer domain.
+
+### Token store
+
+The store is behind a two-line interface because Better Auth's bearer client
+takes a callback (`fetchOptions.auth.token`) rather than owning storage, so
+the adapter controls persistence completely:
+
+```ts
+try { localStorage.setItem(probe, "1"); localStorage.removeItem(probe); store = localStorage; }
+catch { store = inMemoryStore; }   // Safari ITP can throw SecurityError here
+```
+
+Chrome, Firefox and current Safari all *partition* rather than throw, but
+Safari's ITP has historically thrown `SecurityError` on third-party storage
+access in some configurations, and that case must degrade to an in-memory
+token rather than crash the sign-in dialog. In-memory means the session lasts
+the lifetime of the iframe document — sign-in still works; a reload signs the
+user out.
+
+**Two accepted consequences, both pre-existing:**
+
+1. A drawer session on `customer-a.com` is separate from one on
+   `customer-b.com` and from the standalone board. Firebase's IndexedDB
+   persistence is partitioned identically today, so this is parity, not a
+   regression.
+2. Only Chrome was measured directly (Windows host). Firefox's Total Cookie
+   Protection and Safari's ITP partition by the same model; the in-memory
+   fallback above covers the stricter Safari case.
 
 ### `impl.firebase.*` (cloud)
 
@@ -259,9 +326,10 @@ SDK client-side. No behavioural change.
   there is no email infrastructure in this application at all today, and
   requiring it would defeat the point.
 
-Token storage is `localStorage`, the same exposure profile as Firebase's
-IndexedDB persistence. User-authored HTML is already run through
-`sanitize-html` on write (`lib/utils-server.ts:clean`).
+Persistence is the store described under "Token store" above. Its XSS
+exposure profile matches Firebase's IndexedDB persistence today — neither is
+protected from script running on the page — and user-authored HTML is already
+sanitised on write (`lib/utils-server.ts:clean`).
 
 ### Optional extras, all dark by default
 
@@ -544,7 +612,8 @@ Dockerfile, .dockerignore, compose.yml, compose.tls.yml
 | Turbopack `resolveAlias` does not resolve `@/...` specifiers to relative files | Spike it before anything depends on it; codegen fallback described above |
 | Moving cloud code behind ports regresses the hosted product | Cloud adapters are verbatim moves; both profiles must pass `tsc --noEmit` + `next build`; manual smoke of the hosted board before merge |
 | `output: "standalone"` mis-traces `firebase-admin`, `pg` or `pgvector` | Build and boot the image early, in its own step, not at the end |
-| Better Auth's bearer flow fails cross-origin inside the iframe | Explicitly test sign-in **from the embedded drawer on a different origin**, not only on the standalone board |
+| Better Auth's bearer flow fails inside the third-party iframe | Storage primitives measured in Chrome (see §3) — `localStorage` works and persists, cookies are blocked outright. Acceptance test 3a below is a **merge blocker**, and the auth adapter is built drawer-first: the embedded case is the one implemented and tested first, with the standalone board treated as the easy case |
+| Better Auth falls back to its cookie somewhere (`getSession`, refresh) and only the embedded case breaks | Assert in the acceptance test that sign-in works with cookies **fully disabled** for the board origin, so any hidden cookie dependence fails loudly instead of silently working in dev |
 | Auto-generated `BETTER_AUTH_SECRET` in the database | Documented, env-overridable; sessions are DB rows and are invalidated with the secret |
 | Images in Postgres bloat the database | Size cap per upload, documented; an S3 adapter is a future port implementation, not a rewrite |
 | Keyless instances silently lose semantic search quality | `ILIKE` fallback is documented as a limitation in the AI section of the docs |
@@ -558,6 +627,24 @@ Dockerfile, .dockerignore, compose.yml, compose.tls.yml
 3. Self-hosted smoke, from an empty volume: `docker compose up` -> `/setup` ->
    admin created -> post -> comment -> upvote -> search -> widget snippet
    embeds and submits from a different origin.
+
+3a. **Drawer auth acceptance test — a merge blocker.** Serve a page on a
+   *different site* from the instance and embed the drawer widget in it
+   (the harness in §3 is the template). Then, entirely inside the drawer:
+
+   - sign up, sign out, sign in again;
+   - upvote and comment while signed in (these are the flows that open the
+     sign-in dialog);
+   - reload the host page, reopen the drawer — **still signed in**;
+   - repeat with cookies blocked for the board origin in browser settings —
+     everything above must still pass, proving no hidden cookie dependence;
+   - repeat with `localStorage` forced to throw (override the accessor before
+     the widget loads) — sign-in must still work for the life of the
+     document and must not throw into the UI.
+
+   Run against Chrome and Firefox at minimum. Safari if a machine is
+   available; if not, the in-memory fallback is what covers it, and that is
+   what the forced-throw case above exercises.
 4. Keyless self-hosted: same flow with `OPENROUTER_API_KEY` unset; AI surfaces
    absent, everything else working.
 5. Local-model self-hosted: `LLM_BASE_URL` pointed at Ollama; post creation
