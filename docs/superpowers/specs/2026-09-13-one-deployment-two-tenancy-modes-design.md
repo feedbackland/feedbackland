@@ -111,6 +111,11 @@ ROOT_DOMAIN set:
       otherwise              → org by orgSubdomain
 ```
 
+The host is normalised before any of this: lower-cased, port stripped, and
+trailing dot removed. `ACME.Example.com`, `acme.example.com:3000` and
+`acme.example.com.` are the same tenant, and `acme.localhost:3000` must match
+in development — a raw `Host` comparison fails all three.
+
 Resolution is memoised per host with a short TTL, **including negative
 results**, and invalidated on org update. `x-forwarded-host` is honoured only
 when `TRUST_PROXY=true` (§3, "Proxy trust").
@@ -176,6 +181,40 @@ by `userId` and are correct as they stand; `get-org`, `has-claimed-org` and
 that depends on it. They are deleted rather than deprecated, so every stale
 caller becomes a compile error.
 
+`app/api/chat/route.ts` is an easy one to miss: it does its own auth and
+tenancy inline (`req.headers.get("subdomain")` plus a Firebase token check in
+`resolveAdminOrgId`) rather than going through tRPC context, so it must be
+migrated to `Host` + `auth.api.getSession` by hand.
+
+`components/app/ask-ai/storage.ts` is the subtle one. It builds its
+sessionStorage key from `getSubdomain()` and **returns `null` when there is no
+subdomain**, so every read yields `[]` and every write no-ops. Delete
+`getSubdomain` without touching it and Ask-AI conversation history silently
+stops persisting in single-tenant mode — no error, no crash, a smoke test
+still passes. It is re-keyed on the resolved org id.
+
+### Dead code that looks load-bearing
+
+Three paths in this codebase read as live infrastructure and are not. Each is
+deleted, and each is listed here because an implementer who assumes they
+matter will either preserve them for nothing or draw a wrong conclusion from
+them:
+
+- **`lib/firebase/admin.ts: adminDatabase`** — a Firebase Realtime Database
+  handle, imported by nothing. It is the sole reason `FIREBASE_DATABASE_URL`
+  is a documented required variable that the guide tells operators to invent a
+  plausible value for.
+- **`hooks/use-sse.ts`** — nothing constructs an `EventSource`. Worth
+  recording *why* it must not come back casually: `EventSource` cannot send an
+  `Authorization` header, so any future SSE endpoint would need a cookie this
+  architecture deliberately does not have, or a token in the query string.
+  Streaming here goes over `fetch`, as Ask-AI already does.
+- **`providers/iframe.tsx` + `iframeParentAtom`** — a penpal RPC channel to
+  the embedding parent with `allowedOrigins: ["*"]`, never mounted. It is easy
+  to mistake for the widget's communication layer during an auth or embedding
+  change; the real board↔widget protocol is the `postMessage` readiness
+  handshake in the root layout and `platform-ready-signal`.
+
 ## §2 — Routing
 
 `app/[orgSubdomain]/(board)/…` becomes `app/(board)/…`. Because the tenant
@@ -184,7 +223,10 @@ lives in the hostname, **URLs are identical in both modes**: `/`, `/<postId>`,
 
 Wherever a tenant resolves, `/` is the board. The single exception is the root
 domain in multi-tenant mode, where no tenant resolves and `/` redirects to
-`/signup`. `/signup` and `/setup` live outside the `(board)` route group so
+`/signup`. That redirect belongs in the `(board)` **layout**, not the page: a
+layout wraps its pages, so redirecting from the page would still render the
+board chrome — header, org title, account controls — for a request that has no
+org at all, against a `useOrg` query that cannot succeed. `/signup` and `/setup` live outside the `(board)` route group so
 the board chrome does not wrap them. Keeping one `/` route that branches on
 the resolved tenant avoids two route trees both claiming `/` — a hard Next.js
 build error, not a preference.
@@ -206,6 +248,35 @@ reverse proxies. `proxy.ts` is reduced to one job — setting the
 frame of flash if it never runs.
 
 Cost: pages that read `Host` render dynamically. Accepted.
+
+### Framing policy — the board must be embeddable, the admin must not
+
+The app currently sets **no security headers at all**: no `X-Frame-Options`,
+no CSP, nothing. Every route is embeddable by any site, which is *required*
+for the board — the drawer widget's whole purpose — and *wrong* for everything
+else. `/admin` being framable by an arbitrary origin is a clickjacking target:
+an admin who is signed in can be induced to click destructive controls inside
+an invisible frame.
+
+The board cannot be protected here — `frame-ancestors *` is the feature — so
+the policy is per route, set in `next.config.ts` `headers()`:
+
+| Routes | `Content-Security-Policy` |
+|---|---|
+| board (`/`, `/<postId>`) | `frame-ancestors *` — embedding is the product |
+| `/admin/*`, `/setup`, `/signup`, `/api/auth/*` | `frame-ancestors 'none'` |
+
+`/api/auth/*` is in the deny list because the OAuth popup is a top-level
+window by construction; nothing legitimate frames it.
+
+A stricter full CSP is deliberately **not** attempted here. The root layout
+ships an inline boot script (theme sync and the readiness ping, which must run
+before first paint) and Better Auth's popup completion page ships its own
+inline script — the package exports `OAUTH_POPUP_SCRIPT_CSP_HASH` precisely
+for that. Both would need hashing or a nonce, and getting it wrong breaks
+first paint or sign-in. Framing is the risk that actually applies to this app;
+it is fixed, and the rest is left as a separate, testable piece of work rather
+than half-done here.
 
 ## §3 — Auth
 
@@ -358,6 +429,31 @@ so with no SMTP configured that callback **returns the URL to the caller
 instead of mailing it**. One code path, one token lifetime, one expiry rule
 across all three tiers.
 
+### Brute-force protection, and the proxy trap behind it
+
+Better Auth's rate limiting defaults to **`enabled` only in production** and
+**`storage: "memory"`**, and keys on the client IP. Two consequences, both
+production-relevant:
+
+- Memory storage is lost on every container restart and is not shared between
+  replicas, so limits are far weaker than they appear. `storage: "database"`
+  puts them in the Postgres we already require.
+- **The proxy trap:** behind Caddy every request arrives from the proxy's
+  address unless `advanced.ipAddress.headers` is configured. Auth rate
+  limiting would then key *every user in the world to one bucket* — so one
+  attacker brute-forcing a single account locks out sign-in for everyone. A
+  security control that becomes a self-inflicted denial of service.
+
+So `rateLimit: { enabled: true, storage: "database" }` always, and
+`advanced.ipAddress.headers` is set to `["x-forwarded-for"]` **only when
+`TRUST_PROXY=true`** — trusting that header without a proxy in front lets a
+client spoof its way around the limit entirely. The same flag already governs
+`getClientIp` for the app's own LLM rate limits, so there is one switch, not
+two.
+
+Password policy is Better Auth's default minimum of 8 characters, stated here
+so it is a decision rather than an accident.
+
 ### Proxy trust
 
 `advanced.trustedProxyHeaders` and `baseURL.allowedHosts` are gated on
@@ -432,6 +528,17 @@ test case, not an implementation detail.
 bearer token must be captured *before* it is called. The order is fixed:
 capture token → store → `upsertUser` → session state.
 
+**Server actions cannot see a bearer token.** A Next server action receives
+cookies, not the `Authorization` header the tRPC client attaches — and inside
+the drawer there is no usable cookie either. The codebase has exactly one
+server-action file (`components/app/create-org-wizard/actions.ts`), and
+`claimOrgAction` already works around this by taking an `idToken` in its input
+and verifying it server-side. That constraint carries over unchanged: the new
+`/setup` and `/signup` actions authorise with the **setup code** or an
+explicitly passed token, never an ambient session, and **no board-surface
+action may depend on one**. Anything needing the signed-in user goes through
+tRPC or a route handler, both of which see headers.
+
 ### The generated secret must come from the entrypoint
 
 `BETTER_AUTH_SECRET` is generated and persisted on first boot when unset, so
@@ -451,11 +558,29 @@ invalidate every session on restart.
 
 ## §4 — Image storage
 
-Uploads move server-side: `POST /api/images` (authenticated, size-capped,
-extension allowlist, magic-byte validation via the `image-size` call already
-in `processImagesInHTML`), bytes in Postgres, served by `GET /api/images/<id>`
+Uploads move server-side: `POST /api/images` (size-capped, extension
+allowlist, magic-byte validation via the `image-size` call already in
+`processImagesInHTML`), bytes in Postgres, served by `GET /api/images/<id>`
 with `Cache-Control: immutable` and an ETag. New URLs are **relative**, so
 changing domain does not orphan stored images.
+
+**Upload cannot require a session.** `feedback-form` calls
+`processImagesInHTML(value)` *before* it checks `if (!session)`, so anonymous
+visitors attach screenshots today — the board's "Submit Anonymously" path is a
+real, shipped feature. Gating `/api/images` on auth would break it in a way
+that only shows up for anonymous users with images.
+
+So the endpoint is **unauthenticated but bounded**: the existing per-IP and
+per-org rate limiter (already in front of the LLM endpoints) plus
+`MAX_IMAGE_BYTES` and content validation. That is strictly tighter than
+today's arrangement, which hands every visitor a public anon key with insert
+rights on the whole bucket.
+
+`GET` stays public — boards are public and the images render inside iframes on
+third-party domains. Rows carry `orgId` so storage is attributable and an org
+delete can cascade. Images referenced by no post or comment are swept by the
+same opportunistic cleanup as the other unbounded tables (§5), since an upload
+whose post is never submitted would otherwise live forever.
 
 This keeps the container **stateless** — one `DATABASE_URL` is the whole
 deployment — and retires the browser-held anon key and the public
@@ -480,12 +605,19 @@ pre-existing image 400s**.
 
 An earlier revision of this document proposed a `LEGACY_IMAGE_HOSTNAME`
 config value to keep that remote pattern alive. That was redundant: all three
-call sites render *user-uploaded content*, and marking them **`unoptimized`**
-makes Next emit a plain `<img>` with the original `src`, bypassing
-`/_next/image` and therefore the `remotePatterns` check entirely.
+call sites render *user-uploaded content*, and `unoptimized` makes Next emit a
+plain `<img>` with the original `src`, bypassing `/_next/image` and therefore
+the `remotePatterns` check entirely.
 
-So `images.remotePatterns` is **deleted from `next.config.ts`** and no
-replacement config is introduced. Legacy Supabase URLs keep resolving because
+So `images.remotePatterns` is **replaced by `images: { unoptimized: true }`**
+in `next.config.ts` — set globally rather than per component. Three call sites
+each needing a prop is three chances to miss one, and a missed one fails only
+for users whose posts contain a legacy image. One config line cannot be
+partially applied.
+
+It also means Next never invokes the image optimizer, so **`sharp` can be
+dropped from the runtime image** — the Dockerfile includes it only if a build
+warning shows it is still required. Legacy Supabase URLs keep resolving because
 nothing validates them any more; new relative `/api/images/:id` URLs work for
 the same reason; and the optimizer no longer round-trips into our own route or
 fill a cache that a stateless container discards on restart. The stored HTML
@@ -522,7 +654,44 @@ CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
 ```
 
 so the **same DDL runs on stock Postgres and on Supabase**, leaving the
-existing `extensions.halfvec` column types alone. Enums are wrapped in
+existing `extensions.halfvec` column types alone.
+
+### pgvector must also be reachable at *runtime*, not just in DDL
+
+Putting the extension in `extensions` is what makes one DDL work everywhere —
+and on its own it **silently breaks semantic search on every fresh
+self-hosted install**. The DDL survives because it schema-qualifies everything
+(`"extensions"."halfvec"`, `"extensions"."halfvec_cosine_ops"`). Runtime
+queries do not: `pgvector/kysely`'s `cosineDistance()` emits a bare operator,
+
+```sql
+"feedback"."embedding" <=> $1
+```
+
+and `<=>` is resolved through `search_path`. Supabase works today because it
+puts `extensions` on the search path for its roles. Stock Postgres defaults to
+`"$user", public`, so the operator is invisible and the query fails with
+`operator does not exist`.
+
+The failure mode is nastier than a clean break: **inserts keep working**,
+because an unknown literal coerces to the target column's type without any
+search-path lookup. Embeddings would be written correctly and only *searching*
+would fail — on a fresh install, with a cryptic error, long after setup
+appeared to succeed.
+
+`db/db.ts` currently constructs `new Pool({ connectionString })` with no
+search-path configuration at all. The fix is on the pool, so it holds for
+every connection regardless of who owns the database (a managed Postgres may
+not let the app `ALTER DATABASE`):
+
+```ts
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.on("connect", (c) => { void c.query("SET search_path TO public, extensions"); });
+```
+
+Verification 6 exercises a real search against a stock `pgvector/pgvector`
+container, not just an insert, because an insert-only test would pass while
+the feature was broken. Enums are wrapped in
 `DO … EXCEPTION WHEN duplicate_object`; the Supabase storage statements move
 to a cloud-only file.
 
@@ -557,11 +726,24 @@ restarts.
 
 The hosted deployment runs the same sequence.
 
-**Housekeeping.** The `rate_limit` table accumulates one row per key forever
-and nothing prunes it; a container has no cron. `checkRateLimit` already
-writes on every call, so it opportunistically deletes rows whose window closed
-long ago — bounded work on a path that is already writing, rather than a new
-scheduled job.
+**`db/schema.ts` is generated, and regenerating it is a required step.** It
+comes from `npm run kysely-codegen` against a live database, so adding
+`images`, `auth_*` and the instance table means regenerating and committing it
+— there is a chicken-and-egg here (the types the app compiles against come
+from a database the migrations must create first), so the order is: migrate a
+local Postgres, regenerate, commit. The current file also carries
+Supabase-internal schemas (`realtime.*`, `storage.*`, `auth.*`) that will
+vanish when it is regenerated against stock Postgres. That is intended and
+safe — `db/schema.ts` is the only file that references them, which was
+checked, not assumed.
+
+**Housekeeping.** Three tables grow without bound and a container has no cron:
+the app's `rate_limit`, Better Auth's `auth_verification` (reset and
+verification tokens), and `auth_session` (expired sessions). `checkRateLimit`
+already writes on every call, so it opportunistically deletes rows whose
+window closed long ago — bounded work on a path that is already writing. The
+two `auth_*` tables are pruned by the same opportunistic sweep, keyed off
+`expiresAt`, rather than by adding a scheduler to a stateless container.
 
 ## §6 — AI is optional
 
@@ -606,8 +788,9 @@ row with a null vector, and the AI section of the docs points at it.
 
 ### The image
 
-Multi-stage, `output: "standalone"`, `sharp` in the runner, non-root,
-published to GHCR by CI on tag.
+Multi-stage, `output: "standalone"`, non-root, published to GHCR by CI on tag.
+No `sharp` unless the build asks for it (§4 turns image optimization off
+entirely).
 
 **The build stage must install dev dependencies and build the workspace.**
 `components/app/widget-docs/index.tsx` imports `FeedbackButton` from
@@ -657,11 +840,20 @@ Adds Caddy and sets `DOMAIN` and `TRUST_PROXY=true`; TLS is automatic. Not
 optional in practice: host pages are HTTPS, so an HTTP board in an iframe is
 blocked as mixed content. Documented prominently, not as a footnote.
 
-The proxy config must also not cut off insight generation, which batches a
-whole board through the model and carries `maxDuration = 300` — a setting that
-means nothing outside Vercel. The Caddy block sets an explicit long
-`reverse_proxy` read timeout for that route, so a five-minute run does not
-surface as a truncated response with no error anywhere.
+Two long-lived responses need the proxy to stay out of the way, and both fail
+silently if it does not:
+
+- **Insight generation** batches a whole board through the model and carries
+  `maxDuration = 300` — a setting that means nothing outside Vercel. The Caddy
+  block sets an explicit long `reverse_proxy` read timeout for that route, or
+  a five-minute run surfaces as a truncated response with no error anywhere.
+- **Ask-AI streams.** `app/api/chat/route.ts` returns
+  `result.toUIMessageStreamResponse()`, a token-by-token stream. Caddy does
+  not buffer by default and flushes `text/event-stream` immediately, but the
+  config states `flush_interval -1` for that route explicitly rather than
+  relying on content-type sniffing — the failure mode is an answer that
+  arrives all at once after a long pause, which reads as "the AI is broken"
+  rather than as a proxy setting.
 
 ### Recipe 3 — multi-tenant platform
 
@@ -834,6 +1026,42 @@ demoted to optional sections: domain + HTTPS, AI (and the embedding backfill),
 social sign-in, SMTP and the reset tiers, backups, upgrades, running
 multi-tenant, deploying on Vercel instead, env reference, troubleshooting.
 
+## Surfaces to change
+
+Not exhaustive to the line, but every file below is *known* to need work, and
+each was found by tracing an actual execution path rather than by guessing.
+
+**New** — `lib/tenancy.ts`; `lib/auth/{server,client}.ts`;
+`app/api/auth/[...all]/route.ts`; `app/api/images/route.ts` +
+`app/api/images/[id]/route.ts`; `app/api/health/route.ts`;
+`app/api/tls-check/route.ts`; `app/setup/`; `app/signup/`;
+`scripts/{migrate,backfill-embeddings,reset-password,drawer-auth-check}.mjs`;
+`db/migrations/000{1..6}_*.sql`; `Dockerfile`, `.dockerignore`,
+`compose.yml`, `compose.tls.yml`, `Caddyfile`,
+`.github/workflows/publish-image.yml`.
+
+**Changed** — `next.config.ts` (standalone, `images.unoptimized`, `headers()`);
+`db/db.ts` (`search_path`); `proxy.ts` (embed header only); `lib/trpc.ts`
+(session + host tenancy); `lib/utils.ts` (URL helpers deleted);
+`lib/utils-server.ts` (LLM base URL); `lib/schemas.ts` (`upsertUserSchema`);
+`hooks/use-auth.tsx` (Better Auth, demo-login removal); `providers/trpc-client.tsx`
+(token header, no `subdomain`); `app/api/user/upsert-user/route.ts` (authenticated);
+`app/api/chat/route.ts` (**own inline auth + tenancy**);
+`app/api/feedback/create/route.ts` (host + body fallback);
+`queries/{get-feedback-post,get-comment,upvote-feedback-post,upvote-comment}.ts`
+(**org scoping**); `queries/{create-feedback-post,create-comment,get-feedback-posts}.ts`
+(LLM optional + `ILIKE`); `queries/check-rate-limit.ts` (pruning);
+`trpc/{get-org,get-feedback-post,update-org,rewrite-feedback}.ts`;
+`components/app/{widget-docs,settings/platform-url,create-org-wizard,forgot-password,sso,admins}/*`;
+`components/app/ask-ai/storage.ts` (**re-key off org id, not subdomain**);
+`db/schema.ts` (**regenerate**); `SELFHOSTING.md`; `README.md`; `.env.example`.
+
+**Deleted** — `firebaseConfig.ts`; `lib/firebase/`; `lib/supabase.ts`;
+`hooks/{use-subdomain,use-maindomain,use-vercel-url,use-is-self-hosted,use-sse}.ts`;
+`providers/iframe.tsx` + `iframeParentAtom`; `app/api/org/[orgId]/`;
+`app/get-started/`; `app/[orgSubdomain]/claim/`; `app/design-preview/`
+(already empty).
+
 ## Delivery plan
 
 Ordered so the riskiest unknowns fail first and each phase is independently
@@ -878,7 +1106,10 @@ the previous image. Phases 5–9 are code-only again.
 | Forged `x-forwarded-host` steers auth URLs | `TRUST_PROXY` defaults false; `allowedHosts` bounds it |
 | `tls-check` becomes a DoS or cert-exhaustion vector | Negative-cached lookups + Caddy issuance rate limits |
 | Concurrent container boots race migrations | `pg_advisory_lock` around the whole sequence |
-| `output: "standalone"` mis-traces `pg` / `sharp` | Phase 2 builds and boots the image before anything depends on it |
+| `output: "standalone"` mis-traces `pg` or a native dep | Phase 2 builds and boots the image before anything depends on it |
+| pgvector reachable in DDL but not at runtime | `search_path` set on every pooled connection; verification searches for real rather than only inserting (§5) |
+| Auth rate limiting keyed to the proxy IP, locking out all users | `advanced.ipAddress.headers` set only under `TRUST_PROXY`; limits stored in the database (§3) |
+| `/admin` clickjacked through an iframe | Per-route `frame-ancestors`; board stays `*`, admin and auth `'none'` (§2) |
 | Images bloat Postgres | 4 MB cap; S3 remains additive |
 
 ## Verification
@@ -902,20 +1133,29 @@ the previous image. Phases 5–9 are code-only again.
    with a forged `userId` is rejected and cannot rename another user; `/setup`
    without the setup code is rejected, and the code stops working once an org
    is claimed; a second sign-in method on an existing email does not
-   auto-link; a bearer token captured before sign-out is rejected after it.
-6. **Multi-tenant**: two tenants behind the real Caddy config — each resolves
+   auto-link; a bearer token captured before sign-out is rejected after it;
+   `/admin` responds with `frame-ancestors 'none'` while the board responds
+   with `*`; and repeated failed sign-ins from one address rate-limit **that
+   address only**, with a second address still able to sign in — the
+   assertion that catches the proxy-IP trap.
+6. **Semantic search on stock Postgres.** Against the real
+   `pgvector/pgvector` container — not Supabase — a post is created *and then
+   found by a semantically-related query*. An insert-only check passes while
+   search is broken, which is exactly the failure the `search_path`
+   configuration prevents (§5).
+7. **Multi-tenant**: two tenants behind the real Caddy config — each resolves
    its own board; certs issue on demand; `tls-check` rejects unknown hosts,
    accepts a uuid label, and accepts `api.ROOT_DOMAIN`; signing in on one
    tenant does not sign you in on the other; and **social sign-in completes on
    a tenant subdomain through `oAuthProxy` against a single registered
    redirect URI**.
-7. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
+8. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
    posting and search still working, "load more" paging correctly under
    `ILIKE`.
-8. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
+9. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
    title; then `backfill-embeddings` makes older keyless posts searchable.
-9. **Upgrade**: boot against a database created by the old Supabase schema;
+10. **Upgrade**: boot against a database created by the old Supabase schema;
    migrations converge with no manual steps and legacy Supabase image URLs
    still render.
-10. **Vercel**: deploy once with a pooled connection string; confirm the
+11. **Vercel**: deploy once with a pooled connection string; confirm the
    documented upload cap behaviour.
