@@ -487,6 +487,44 @@ callback back to the tenant origin that started the flow, with an encrypted
 payload and a short `maxAge` against replay. Single-tenant instances have one
 origin and one redirect URI, so the plugin is not enabled there.
 
+Both Google and Microsoft are **built-in** Better Auth providers, so neither
+needs `genericOAuth`; Microsoft takes the Entra tenant id noted above.
+
+### Does `oauthPopup` compose with `oAuthProxy`?
+
+Production's hardest path needs both at once: a tenant subdomain, inside the
+drawer's iframe, signing in with Google. The two plugins have **no mutual
+awareness** — neither source file mentions the other — and both intercept the
+OAuth callback, so this had to be established rather than hoped for.
+
+Reading the implementations: `oauthPopup` registers an `after` hook matching
+any path starting with `/callback/`, and `oAuthProxy`'s relay endpoint is
+`/callback/:id/oauth-proxy`, so the matcher does fire on it. What keeps the two
+from colliding is the guard at the top of that hook:
+
+```ts
+const marker = await c.getSignedCookie(cookie.name, c.context.secret);
+if (!marker) return;   // not a popup flow — leave the response alone
+```
+
+The signed popup marker is set on the **tenant** origin at
+`/oauth-popup/start`. So on the production relay hop the cookie is not sent,
+the hook returns untouched, and `oAuthProxy`'s redirect back to the tenant
+survives. Back on the tenant origin the marker *is* present, the hook reads the
+session token out of the `Set-Cookie` the relay just set, and renders the
+completion page that posts it to the opener.
+
+They compose, and they compose by origin-scoping rather than by luck. Two
+things this depends on, recorded so a future change cannot quietly break them:
+the popup must remain a **top-level** window (its cookies are first-party
+there, which is the whole reason this works while the iframe's do not), and the
+marker cookie must survive the tenant → provider → production → tenant redirect
+chain, which a `SameSite=Lax` cookie does because every hop is a top-level GET
+navigation.
+
+This is source analysis, which is weaker than execution: verification 7 runs it
+live against a real provider on a tenant subdomain.
+
 ### Password reset
 
 There is no email infrastructure in this application, and requiring one would
@@ -1340,6 +1378,16 @@ quick start is the first screen and needs only Docker.
 Production starts empty: no orgs, no users, no posts. There is nothing to
 migrate, so this section is a deployment checklist rather than a cutover plan.
 
+**"Empty" has to be made true, not assumed.** The migrations are idempotent by
+design, which means pointing them at the *existing* Supabase database would
+leave every current table and row exactly where it is — old `org` rows would
+still resolve as tenants, and orphaned `user` rows would sit alongside the new
+`auth_*` tables with nothing able to sign into them. That is the one outcome
+this section's premise forbids, and it is also the outcome of doing nothing.
+So the clean slate is explicit: either a **new Supabase project**, or
+`DROP SCHEMA public CASCADE; CREATE SCHEMA public;` against the existing one,
+before the first migration runs. The checklist below assumes it has been done.
+
 1. Supabase project: run the migrations against `DIRECT_DATABASE_URL`; set
    `DATABASE_URL` to the transaction pooler (§5).
 2. Vercel project: wildcard domain `*.feedbackland.com` (nameservers at
@@ -1465,6 +1513,10 @@ point before launch — which is the single largest risk reduction in this plan.
 | A self-hoster sets the tenancy variable meaning "my domain" and silently enables multi-tenancy | Renamed `MULTI_TENANT_ROOT_DOMAIN`; `APP_URL` is the one they actually want (§1) |
 | Container starts, logs look healthy, nothing can reach it | `ENV HOSTNAME="0.0.0.0"` mandatory in the Dockerfile; platform-injected `PORT` honoured (§7) |
 | Managed Postgres rejects the unencrypted handshake | `?sslmode=require` documented in the env reference, not buried in troubleshooting (§7) |
+| `oauthPopup` and `oAuthProxy` collide on the OAuth callback, breaking drawer social sign-in for every tenant | Composition established from source — the popup marker cookie is origin-scoped, so the relay hop passes through untouched (§3) — and confirmed live by verification 7 |
+| Migrations pointed at the existing database leave old orgs and orphaned users behind | Clean slate made explicit: new project, or drop and recreate `public`, before the first migration (§12) |
+| Compose healthcheck passes during the database's own first-time setup | `pg_isready -h 127.0.0.1` forces a TCP check, which is refused while the server is socket-only |
+| A backup that looks fine and will not restore | `docker compose exec -T` documented with the reason; a restore command is given beside the dump |
 | `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |
 | Serving images from Postgres changes production cost shape | Immutable edge caching absorbs the steady state; S3 adapter is the escape valve (§7) |
 
@@ -1508,8 +1560,11 @@ point before launch — which is the single largest risk reduction in this plan.
    broken.
 7. **Multi-tenant**: two tenants — each resolves its own board; signing in on
    one does not sign you in on the other; a uuid host redirects to the slug;
-   social sign-in completes on a tenant subdomain through `oAuthProxy` against
-   a single registered redirect URI.
+   and the hardest path in the product works end to end: **social sign-in from
+   inside the drawer's iframe, on a tenant subdomain, through `oAuthProxy` and
+   `oauthPopup` together**, against a single registered redirect URI. §3
+   establishes by source analysis that those two plugins compose; this is where
+   that is confirmed by running it.
 8. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
    posting and search still working, "load more" paging correctly under
    `ILIKE`.

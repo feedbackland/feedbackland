@@ -2,7 +2,8 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-You need **Docker**. Nothing else — no accounts to create, no API keys, no
+You need **Docker** (any recent version — Docker Desktop, or Docker Engine with
+the Compose plugin). Nothing else: no accounts to create, no API keys, no
 config file to fill in. The database comes with it.
 
 ---
@@ -15,19 +16,24 @@ config file to fill in. The database comes with it.
 services:
   db:
     image: pgvector/pgvector:pg18
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: feedbackland
       POSTGRES_DB: feedbackland
     volumes:
       - db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d feedbackland"]
+      # -h forces a TCP check. Without it this passes during the database's
+      # own first-time setup, while it is still socket-only, and the app
+      # starts against a server that is about to restart.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d feedbackland"]
       interval: 5s
       timeout: 5s
       retries: 20
 
   app:
     image: ghcr.io/feedbackland/feedbackland:1
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgres://postgres:feedbackland@db:5432/feedbackland
     ports:
@@ -35,6 +41,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   db:
@@ -86,14 +98,27 @@ docker compose down       # stop (your data is kept)
 docker compose pull       # fetch the latest version
 ```
 
-Your data lives in the `db` Docker volume. Back it up with:
+Your data lives in the `db` Docker volume.
+
+**Back up:**
 
 ```bash
-docker compose exec db pg_dump -U postgres feedbackland > backup.sql
+docker compose exec -T db pg_dump -U postgres feedbackland > backup.sql
+```
+
+**Restore** (into an empty database):
+
+```bash
+docker compose exec -T db psql -U postgres -d feedbackland < backup.sql
 ```
 
 That single file contains everything — posts, comments, accounts and uploaded
 images. Restoring it anywhere gives you your board back, whole.
+
+> [!IMPORTANT]
+> The `-T` matters. Without it Docker attaches a terminal to the command, which
+> rewrites line endings on the way out and leaves you with a backup that looks
+> fine and will not restore.
 
 > [!WARNING]
 > `docker compose down -v` deletes the volume, and with it all your data. Take
