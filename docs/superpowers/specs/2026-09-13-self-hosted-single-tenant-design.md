@@ -57,11 +57,21 @@ template.
 
 ## §1 — Removing the org concept
 
-The codebase is built around organisations: `orgId` appears **262 times across
-81 files**, five tables carry it, and a `user_org` join table maps members to
-roles. In a product with exactly one board, all of it is ceremony — and worse,
-it is *misleading* ceremony, because anyone reading the code concludes the
-product is multi-tenant.
+The codebase is built around organisations. Counted across `lib/`, `app/`,
+`components/`, `hooks/`, `queries/`, `trpc/` and `db/`:
+
+| Identifier | Occurrences |
+|---|---|
+| `orgId` | **323** |
+| `platformUrl` / `usePlatformUrl` / `getPlatformUrl` | **111** |
+| `orgSubdomain` | 81 |
+| `user_org` | 45 |
+| `orgName` / `orgUrl` / `isClaimed` | 74 |
+| `useOrg` / `getOrg` / `updateOrg` / `createOrg` / `claimOrg` | 54 |
+
+In a product with exactly one board this is all ceremony — and worse, it is
+*misleading* ceremony, because anyone reading the code concludes the product is
+multi-tenant.
 
 There is no data to migrate, so this is a compile-time change rather than a
 runtime risk. It is removed properly:
@@ -90,6 +100,39 @@ forget.
 
 `lib/trpc.ts` simplifies with it: `publicProcedure` no longer guards on an org,
 `userProcedure` needs a verified user, and `adminProcedure` reads `user.role`.
+
+### `platformUrl` goes too
+
+The second-largest cluster, and one an earlier draft of this section missed
+entirely. `getPlatformUrl()` exists because a board could live at
+`https://acme.feedbackland.com` **or** at `host/acme` in subdir mode, so every
+internal link was built absolutely: `` `${platformUrl}/admin` ``. With one board
+at the root of a hostname, that is 111 occurrences computing a prefix that is
+always the current origin.
+
+They become **relative links** — `/admin`, `/`, `/${postId}` — and
+`getPlatformUrl`, `usePlatformUrl` and `hooks/use-platform-url.ts` are deleted
+with the rest.
+
+Three places genuinely need an absolute URL and keep one, derived from
+`APP_URL` or the request origin rather than from a tenancy helper: the **admin
+invite link** (`createAdminInvite` returns a copyable URL), the **widget
+snippet** on the admin Widget page, and the **API examples** in
+`lib/api-snippets.ts`. Naming them here matters because "delete
+`getPlatformUrl`" applied blindly would quietly turn a copyable invite link
+into a relative path that is useless in an email.
+
+### One limit must survive the removal
+
+`lib/rate-limit.ts` keys its caps per IP *and* per org —
+`feedback-create:org:${orgId}` — and the comment in the file is explicit that
+the org-level cap, not the IP one, is "the real cost cap": it is what stops a
+leaked endpoint running up an unbounded model bill.
+
+Deleting `orgId` naively turns that key into a constant and it would be easy to
+drop it as meaningless. It is not. It becomes an **instance-wide** cap with the
+same purpose, and it is the only thing standing between a public endpoint and
+someone else's API credit.
 
 ## §2 — Routing
 
@@ -575,7 +618,25 @@ Target: an ordered, tracked, idempotent set run by a Kysely `Migrator`.
 ```
 
 The earlier `0002_insights` / `0003_security` files are folded into `0001`,
-since there is no existing database to migrate forward from. `0001` also drops
+since there is no existing database to migrate forward from.
+
+**The target schema, stated so phase 1 is executable without re-deriving it:**
+
+| Table | Change from today |
+|---|---|
+| `settings` | was `org`; **one row**; drops `orgSubdomain`, keeps `platformTitle`, `platformDescription`, `logo`, `orgName`, `orgUrl`, plus the setup-complete flag, generated secret and setup code |
+| `user` | **gains `role`** (`admin` \| `user`); `id` stays `text` |
+| `user_org` | **dropped** |
+| `feedback` | **drops `orgId`** and its index; `embedding` becomes unqualified `halfvec(3072)` |
+| `comment` | unqualified `halfvec`; **gains `ON DELETE CASCADE`** on `authorId`, the only one of the user FKs without it |
+| `insights`, `insight_reports` | **drop `orgId`** and its indexes |
+| `admin_invites` | **drops `orgId`** |
+| `images` | new (§4): id, bytes, content type, size, created |
+| `user_upvote`, `activity_seen`, `rate_limit` | unchanged |
+| `auth_user`, `auth_session`, `auth_account`, `auth_verification` | created by Better Auth's own migrator, not by `0001` |
+
+Two enums are dropped: `subscription_frequency` and `subscription_name` exist
+today and no table uses them. `0001` also drops
 two dead enums (`subscription_frequency`, `subscription_name`) that no table
 uses, and gives `comment.authorId` the `ON DELETE CASCADE` that the other user
 foreign keys already have — without it, deleting a user fails, which Better
@@ -958,7 +1019,8 @@ font files.
 
 **Changed** — `next.config.ts` (standalone, `images.unoptimized`, `headers()`);
 `db/db.ts`; `proxy.ts` (embed header only); `lib/trpc.ts` (session, no org);
-`lib/utils.ts` (URL helpers deleted); `lib/utils-server.ts` (LLM base URL,
+`lib/utils.ts` (URL helpers deleted); `lib/api-snippets.ts` (no org id);
+`lib/rate-limit.ts` (**instance cap, §1**); `lib/utils-server.ts` (LLM base URL,
 moderation outcomes, inline images); `lib/schemas.ts`; `hooks/use-auth.tsx`;
 `providers/trpc-client.tsx`; `app/api/chat/route.ts` (**own inline auth; the
 OpenRouter SDK**); `app/api/feedback/create/route.ts`; **every file carrying
@@ -968,7 +1030,7 @@ OpenRouter SDK**); `app/api/feedback/create/route.ts`; **every file carrying
 `.env.example`.
 
 **Deleted** — `firebaseConfig.ts`; `lib/firebase/`; `lib/supabase.ts`;
-`hooks/{use-subdomain,use-maindomain,use-vercel-url,use-is-self-hosted,use-sse}.ts`;
+`hooks/{use-subdomain,use-maindomain,use-vercel-url,use-is-self-hosted,use-sse,use-platform-url}.ts`;
 `providers/iframe.tsx` + `iframeParentAtom`; `app/api/org/[orgId]/`;
 `app/api/user/upsert-user/`; `app/get-started/`; `app/[orgSubdomain]/claim/`;
 `app/design-preview/`; the `supabase/` directory; the `schema-dump` script; and
@@ -978,17 +1040,23 @@ the four vendor dependencies above.
 
 | # | Phase | Gate |
 |---|---|---|
-| 1 | Schema: single-tenant `0001`, unqualified pgvector, `search_path`, advisory lock, entrypoint owns secret + setup code | Fresh DB converges on stock Postgres **and** on a managed one with pgvector pre-installed in `public`; concurrent boots serialise |
-| 2 | **Remove the org concept** — `orgId`, `user_org`, settings row, `lib/trpc.ts` | `grep -r orgId` returns nothing; typecheck and build clean |
-| 3 | Dockerfile + compose + health, multi-arch, `HOSTNAME`/`PORT` | Image builds **including the widget workspace** and boots on both architectures |
-| 4 | Routing: `app/(board)` at root; framing headers | Board at `/`, admin at `/admin`, `/admin` refuses to be framed |
-| 5 | Better Auth replaces Firebase; `ensureSession`; linking off; reset tiers | Sign-up/in/out; the old REST route is gone and unreferenced; no token survives sign-out |
-| 6 | **Drawer auth acceptance test** | Merge blocker |
-| 7 | Postgres image storage; client-side downscale; `unoptimized` | Anonymous and signed-in uploads both work; cap enforced |
-| 8 | AI optional: unavailable ≠ inappropriate, `ILIKE`, inline images, generic provider, backfill | Keyless instance fully usable; an invalid key does not reject posts |
-| 9 | First run `/setup` + setup code | Fresh volume → admin in one form; `/setup` refuses without the code |
-| 10 | One-click `render.yaml` + button; vendored fonts; dependency removals | Someone with no terminal open reaches a working board |
-| 11 | Widget major version (§9); docs and README rewrite | `<FeedbackButton url="..."/>` works against a self-hosted board |
+| 1 | **Schema *and* the org removal, together** — single-tenant `0001`, unqualified pgvector, `search_path`, advisory lock, entrypoint owns secret + setup code; and `orgId`, `user_org`, `platformUrl`, `lib/trpc.ts` | Fresh DB converges on stock Postgres **and** on a managed one with pgvector pre-installed in `public`; concurrent boots serialise; `grep` finds no org identifier; typecheck and build clean; **the app boots and serves a board** |
+| 2 | Dockerfile + compose + health, multi-arch, `HOSTNAME`/`PORT` | Image builds **including the widget workspace** and boots on both architectures |
+| 3 | Routing: `app/(board)` at root; framing headers | Board at `/`, admin at `/admin`, `/admin` refuses to be framed |
+| 4 | Better Auth replaces Firebase; `ensureSession`; linking off; reset tiers | Sign-up/in/out; the old REST route is gone and unreferenced; no token survives sign-out |
+| 5 | **Drawer auth acceptance test** | Merge blocker |
+| 6 | Postgres image storage; client-side downscale; `unoptimized` | Anonymous and signed-in uploads both work; cap enforced |
+| 7 | AI optional: unavailable ≠ inappropriate, `ILIKE`, inline images, generic provider, backfill | Keyless instance fully usable; an invalid key does not reject posts |
+| 8 | First run `/setup` + setup code | Fresh volume → admin in one form; `/setup` refuses without the code |
+| 9 | One-click `render.yaml` + button; vendored fonts; dependency removals | Someone with no terminal open reaches a working board |
+| 10 | Widget major version (§9); docs and README rewrite | `<FeedbackButton url="..."/>` works against a self-hosted board |
+
+**Phases 1's two halves cannot be split.** An earlier ordering shipped the
+schema first and removed `orgId` from the code second, which leaves the app
+unable to boot in between — the code would select a column the migration just
+dropped. A phase whose end state is a non-running application is not a phase
+boundary, it is a half-finished change with a gate attached. They land
+together, and the gate says the app serves a board.
 
 **Rollback:** every phase is code-only and reverts by redeploying. With no
 production data anywhere, the database can be rebuilt from migrations at any
@@ -1003,7 +1071,9 @@ point — the single largest risk reduction in this plan.
 | Better Auth takes over `public.user` | **Retired.** `auth_*` renaming verified: `toBeAdded: (none)`, rows untouched |
 | The widget's `sandbox` loses `allow-same-origin` later | Recorded as load-bearing in `OverlayWidget.tsx`; asserted by the acceptance test |
 | Auto-linking enables account takeover on unverified emails | Linking disabled; only from an authenticated session |
-| Removing `orgId` across 81 files breaks something quietly | Mechanical, compile-time, and no data to corrupt; its own phase with typecheck and build as the gate |
+| Removing `orgId` across 81 files breaks something quietly | Mechanical, compile-time, and no data to corrupt; phase 1's gate is typecheck, build **and the app serving a board** |
+| `getPlatformUrl` deleted blindly turns the admin invite link into a useless relative path | The three call sites needing absolute URLs are named in §1 and asserted by verification 4 |
+| The per-org rate limit is dropped as meaningless once there is one org | It becomes an instance-wide cap; it is the only bound on a public endpoint spending model credit (§1) |
 | A managed platform pre-installs pgvector in `public` and the first migration aborts | Extension schema discovered, never assumed; DDL unqualified (§6) |
 | `search_path` set per connection is dropped or leaked by a pooler | Server-side `ALTER ROLE … SET`, appending not replacing (§6) |
 | Advisory lock acquired and released on different backends | Migrations use `DIRECT_DATABASE_URL` in session mode (§6) |
@@ -1030,8 +1100,11 @@ point — the single largest risk reduction in this plan.
    `localStorage` forced to throw. Chrome and Firefox at minimum. **Committed
    as `scripts/drawer-auth-check.mjs`** — the repo has no test runner, so an
    uncommitted manual procedure would rot.
-4. **No org remains**: `grep -r "orgId\|user_org\|orgSubdomain"` over `app/`,
-   `lib/`, `components/`, `queries/`, `trpc/`, `db/` returns nothing.
+4. **No org remains**: a grep for `orgId`, `user_org`, `orgSubdomain`,
+   `platformUrl`, `useOrg`, `createOrg` and `claimOrg` over `app/`, `lib/`,
+   `components/`, `hooks/`, `queries/`, `trpc/` and `db/` returns nothing —
+   and separately, the **admin invite link and widget snippet are still
+   absolute URLs**, which is what a careless `getPlatformUrl` removal breaks.
 5. **Security**: `/api/user/upsert-user` no longer exists and nothing
    references it; `/setup` without the code is rejected and the code stops
    working once setup completes; a second sign-in method on an existing email
