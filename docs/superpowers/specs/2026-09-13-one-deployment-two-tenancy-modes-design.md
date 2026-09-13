@@ -1179,6 +1179,37 @@ instance, and every capability it relies on is confirmed to exist in the spec:
 | **Let the operator choose the setup code during deploy** | `sync: false`, which prompts for a value |
 | Tell the app it is behind the platform's proxy | `TRUST_PROXY=true` set by the template, since these platforms terminate TLS and forward (§3) |
 | Know when the instance is ready | `healthCheckPath: /api/health` |
+| Stop our pushes redeploying someone else's instance | `autoDeployTrigger: off`, which Render recommends for button deploys |
+
+Confirmed against Render's documentation: the button needs **no fork** — a
+public repository deploys directly — and `sync: false` prompts during initial
+blueprint creation, which is the interaction the setup code depends on.
+
+**Only Render ships a button initially, and that is a correctness decision.**
+Railway's deploy URL is `railway.com/new/template/{code}`, where the code is
+issued when a template is *created and published through Railway's dashboard*
+— it cannot be pointed at a repository URL, which an earlier draft of the guide
+did, producing a link that would 404. Publishing a Railway template is real
+work in their UI rather than a file in this repo, so it is a follow-up
+deliverable, and the second button appears when the code exists. One button
+that works beats two where one is broken, particularly for an audience with no
+way to diagnose it.
+
+**Costs are led with, not buried.** Render's free database is deleted after 30
+days and its free web service sleeps, taking about a minute to wake — which for
+an embedded widget means the drawer hangs on first open. A non-technical
+operator who picks "free" and loses their board a month later is the worst
+outcome this path can produce, so the guide states the real figure (~$7/month)
+in the prerequisites and gives a free-versus-paid table before the first click.
+
+**An all-in-one image was considered and rejected.** Bundling Postgres into the
+app image would reduce the Docker path to a single `docker run` with no file to
+save, which is genuinely less effort. It was turned down because the cost lands
+on the least recoverable thing: Postgres major-version upgrades inside an
+application image are painful, and the failure mode is a self-hoster who cannot
+upgrade without risking their only copy of the data. Saving a file that is
+already on screen is a small price, and the audience for the Docker path has a
+terminal open anyway.
 
 That last row is the one that makes this work for a non-technical user. The
 setup code exists so a public instance cannot be claimed by a stranger (§8),
@@ -1510,7 +1541,7 @@ today — the password never leaves the server.
 Not exhaustive to the line, but every file below is *known* to need work, each
 found by tracing an actual execution path.
 
-**New** — `render.yaml` + Railway template + deploy buttons in the README;
+**New** — `render.yaml` + deploy button in the README;
 `lib/tenancy.ts`; `lib/auth/{server,client}.ts`;
 `app/api/auth/[...all]/route.ts`; `app/api/images/route.ts` +
 `app/api/images/[id]/route.ts`; `app/api/health/route.ts`;
@@ -1551,7 +1582,8 @@ verifiable.
 |---|---|---|
 | 1 | Schema + migration runner with advisory lock; `auth_*` namespace; `search_path`; `0005_fk_fixes`; entrypoint owns secret + setup code | Fresh DB converges; concurrent boots serialise; a killed migration does not wedge the next boot |
 | 2 | Dockerfile + compose + health endpoint, multi-arch | Image builds **including the widget workspace** and boots against Postgres on both architectures |
-| 2a | **One-click templates**: `render.yaml` blueprint, Railway template, deploy buttons | A person with no terminal open reaches a working board: click → sign in → choose setup code → HTTPS URL |
+| 2a | **One-click deploy**: `render.yaml` blueprint + button | A person with no terminal open reaches a working board: click → sign in → choose setup code → HTTPS URL |
+| 2b | Railway template created and published in their dashboard; second button added | The published template code resolves and deploys |
 | 3 | Host-based tenancy; delete `[orgSubdomain]`, subdir mode, `subdomain` header; **scope the four cross-tenant queries**; uuid→slug redirect | Single-tenant board at `/`; multi-tenant on `*.localhost`; a cross-org post/comment id is rejected on read *and* upvote |
 | 4 | Better Auth replaces Firebase; **delete `/api/user/upsert-user`** for `ensureSession`; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; the REST route is gone and unreferenced; no token survives sign-out |
 | 5 | **Drawer auth acceptance test** (verification 3) | Merge blocker |
@@ -1601,6 +1633,8 @@ point before launch — which is the single largest risk reduction in this plan.
 | Compose healthcheck passes during the database's own first-time setup | `pg_isready -h 127.0.0.1` forces a TCP check, which is refused while the server is socket-only |
 | A managed platform pre-installs pgvector in `public`, and the first migration aborts on `extensions.halfvec` | Extension schema discovered, never assumed; DDL unqualified (§5) — the failure would have hit every one-click platform |
 | The setup code is unreachable for someone who never opens a terminal | Deploy templates prompt for it with `sync: false`; the security property is unchanged (§7) |
+| A deploy button links to a URL that 404s, with no way for that audience to diagnose it | Railway's template code must be issued by their dashboard, so only the verified Render button ships first (§7) |
+| `curl -O` fails on Windows, where PowerShell aliases `curl` to `Invoke-WebRequest` | Guide uses `-fsSL -o`, notes `curl.exe`, and keeps copying the inline file as the path that always works |
 | A non-technical operator is surprised by cost or by a database expiring | Costs and limits stated per option in the docs rather than leading with "free" (§7) |
 | A backup that looks fine and will not restore | `docker compose exec -T` documented with the reason; a restore command is given beside the dump |
 | `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |

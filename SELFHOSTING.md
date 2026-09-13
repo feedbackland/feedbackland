@@ -14,25 +14,25 @@ Run your own feedback board. Your data, your domain, your costs.
 ## Deploy it online in one click
 
 This gives you a real, public feedback board on an `https://` address, with a
-database, backups and automatic updates. You don't install anything.
+database and backups. You don't install anything.
 
 ### What you'll need
 
 - A **GitHub account** (free — the deploy platform signs you in with it)
 - About **five minutes**
+- Roughly **$7/month**. See [what it costs](#what-it-costs) before you start —
+  there is a free option, but it deletes your database after 30 days.
 
 That's the whole list. No API keys, no configuration files, no Docker.
 
 ### Steps
 
-**1. Click a deploy button.**
+**1. Click the button:**
 
-| Where | Button | What it costs |
-|---|---|---|
-| Render | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/feedbackland/feedbackland) | Free to try. The free database is deleted after 30 days and the free app sleeps when nobody's using it, so pick a paid database (~$7/mo) if you want to keep it. |
-| Railway | [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/feedbackland/feedbackland) | No free tier. Around $5/month for the app and database together. |
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/feedbackland/feedbackland)
 
-**2. Sign in** with GitHub and let it create the project.
+**2. Sign in** with GitHub and let it create the project. You don't need to
+fork or copy anything — it reads this repository directly.
 
 **3. When it asks for a Setup code, type anything you'll remember.**
 
@@ -46,6 +46,12 @@ about three minutes, and never again.
 **5. Fill in the form**: your setup code, your product's name, your name, your
 email, and a password.
 
+> [!TIP]
+> If the deploy fails or the page won't load, the platform's own logs say why —
+> and [Troubleshooting](#troubleshooting) covers the usual causes. You can
+> delete the project and click the button again as many times as you like;
+> nothing is left behind.
+
 Your board is live. You're signed in as its admin, and because the address is
 already `https://`, you can put the feedback widget on your own site straight
 away.
@@ -53,6 +59,24 @@ away.
 > [!TIP]
 > You can point your own domain (like `feedback.yourcompany.com`) at it later
 > from the platform's dashboard. Nothing in Feedbackland needs to change.
+
+### What it costs
+
+Render will offer you free options during setup. They're genuinely useful for
+having a look, and genuinely unsuitable for keeping:
+
+| | Free | Paid |
+|---|---|---|
+| **Database** | **Deleted after 30 days.** Your board disappears with it. | ~$7/month, kept indefinitely |
+| **App** | Sleeps when idle; the first visit after that takes around a minute to load | ~$7/month, always awake |
+
+If this is a real feedback board, choose the paid database. The sleeping app is
+more tolerable — but it's worth knowing that a sleeping board also means the
+feedback widget on your site takes that minute to open the first time.
+
+> [!NOTE]
+> Feedbackland doesn't charge anything and never sees your data. This is what
+> the hosting provider charges to run it for you.
 
 ---
 
@@ -103,11 +127,16 @@ volumes:
   db:
 ```
 
-Or grab it directly:
+Or download it, on macOS and Linux:
 
 ```bash
-curl -O https://raw.githubusercontent.com/feedbackland/feedbackland/main/compose.yml
+curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/main/compose.yml
 ```
+
+> [!NOTE]
+> On Windows, use `curl.exe` rather than `curl` — in PowerShell, plain `curl`
+> is a different command and will reject these options. Copying the file above
+> works everywhere.
 
 **2. Start it:**
 
@@ -180,17 +209,55 @@ but it's worth keeping your own copy too.
 
 ---
 
+## Troubleshooting
+
+**The deploy failed, or the page won't load.**
+Open the service's logs in your hosting dashboard — the reason is almost always
+in the last few lines. You can delete the whole project and click the deploy
+button again; nothing is left behind, and a second attempt costs you nothing.
+
+**I've lost my setup code.**
+If you haven't finished setup yet, change the `SETUP_CODE` setting in your
+hosting dashboard to something new and restart. If you *have* finished setup,
+you don't need it again — sign in with the email and password you chose.
+
+**My board disappeared after about a month.**
+That's the free database being deleted — see [what it costs](#what-it-costs).
+Move to a paid database before this happens; there's no recovery afterwards.
+
+**Port 3000 is already in use** *(Docker)*.
+Something else on your machine is using it. Change the first number in
+`compose.yml`, for example `"3001:3000"`, then open
+[http://localhost:3001](http://localhost:3001) instead.
+
+**The widget won't open on my website.**
+Browsers refuse to embed an insecure page inside a secure one, so a board on
+`http://localhost` can't be embedded on an `https://` site. Deploy it online —
+that address is `https://` from the start.
+
+**I want to use my own database.**
+Remove the `db` service from `compose.yml` and point `DATABASE_URL` at your
+own Postgres. Two things it needs:
+
+- **The `pgvector` extension.** Available on RDS, Cloud SQL, Neon, Supabase and
+  most managed Postgres. Without it the first startup stops and tells you so.
+- **`?sslmode=require` on the end of the URL** if your provider requires an
+  encrypted connection — most managed ones do.
+
+---
+
 ## Next steps
 
-Everything below is optional. Your board already works without any of it.
+Everything here is optional — your board already works without any of it —
+and each is covered in the sections that follow this guide as they land.
 
-| | |
-|---|---|
-| **[Turn on AI](#turn-on-ai)** | Ranked insights, ask-questions-about-your-feedback, semantic search and automatic titles. One setting, and it works with a local model too. |
-| **[Add the widget](#add-the-widget)** | Drop a feedback button into your own app. |
-| **[Use your own domain](#use-your-own-domain)** | `feedback.yourcompany.com`, with HTTPS. |
-| **[Sign in with Google](#sign-in-with-google)** | Optional, alongside email and password. |
-| **[Password resets by email](#password-resets-by-email)** | Optional. Without it, you can still generate reset links from the admin area. |
-| **[Upgrading](#upgrading)** | The database updates itself; you just take the new version. |
-| **[Settings reference](#settings-reference)** | Everything you can configure. All of it optional except the database. |
-| **[Troubleshooting](#troubleshooting)** | Port already in use, using your own database, and other snags. |
+- **Turn on AI** — ranked insights, ask-questions-about-your-feedback, semantic
+  search and automatic titles. One setting, and it works with a local model too.
+- **Add the widget** — drop a feedback button into your own app.
+- **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.
+- **Sign in with Google**, alongside email and password.
+- **Password resets by email** — optional; without it you can still generate
+  reset links from the admin area.
+- **Upgrading** — the database updates itself; you just take the new version.
+- **Settings reference** — everything configurable. All optional except the
+  database.
