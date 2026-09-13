@@ -1,74 +1,78 @@
 # One deployment, two tenancy modes
 
-**Status:** approved design
+**Status:** approved design · revised after a full critical audit
 **Date:** 2026-09-13
 **Supersedes:** the two-build-profile design in this file's earlier revisions
-(see git history). That design kept `feedbackland.com` on Firebase/Supabase/
-Vercel and gave self-hosting a parallel implementation behind ports and
-adapters. The mandate changed: there is to be **one version**, hostable either
-as a multi-tenant platform or — the focus — as a dead-simple single-tenant
-self-hosted instance, with vendor lock-in minimised everywhere.
+(see git history). The mandate changed: **one version**, hostable either as a
+multi-tenant platform or — the focus — as a dead-simple single-tenant
+self-hosted instance, with vendor lock-in minimised in both.
 
 ## Problem
 
-Feedbackland is currently one product with one deployment shape, and that
-shape is welded to three vendors:
+Feedbackland has one deployment shape and it is welded to three vendors:
 
-- **Firebase** is authentication. Its config is *committed to source*
+- **Firebase** is authentication, with its config *committed to source*
   (`firebaseConfig.ts`), so self-hosting requires editing and committing code.
-- **Supabase** is the database *and* the image store. Images upload straight
+- **Supabase** is the database *and* the image store; images upload straight
   from the browser with a public anon key.
-- **Vercel** is assumed rather than chosen: no Dockerfile, `getIsSubdirOrg()`
-  hard-codes `vercel.app`, `getVercelUrl()` reads `VERCEL_URL` to build the
-  operator's own board URL.
+- **Vercel** is assumed rather than chosen: no Dockerfile,
+  `getIsSubdirOrg()` hard-codes `vercel.app`, `getVercelUrl()` builds the
+  operator's own board URL from `VERCEL_URL`.
 
-`SELFHOSTING.md` is 22 KB and ~550 lines, requires four accounts and ten
-environment values, and asks the operator to paste a SQL dump into a web
-console. Meanwhile multi-tenancy — subdomains, an org wizard, a claim step —
-is pure overhead for a self-hoster who wants one board.
+`SELFHOSTING.md` is 22 KB, needs four accounts and ten environment values, and
+asks the operator to paste a SQL dump into a web console. Meanwhile
+multi-tenancy is pure overhead for someone who wants one board.
 
 ## Goals
 
-1. **One codebase, one artefact, one set of technologies.** No build profiles,
-   no parallel implementations, no per-deployment forks.
+1. **One codebase, one artefact, one set of technologies.**
 2. **Multi-tenant hosting is easy**: `<tenant>.example.com`, wildcard DNS, TLS
    that provisions itself.
-3. **Single-tenant self-hosting is trivial**, and is the flow everything else
-   is optimised around: `docker compose up`, zero accounts, zero env values.
+3. **Single-tenant self-hosting is trivial** and is what everything else is
+   optimised around: `docker compose up`, zero accounts, zero env values.
 4. **Minimal lock-in.** The only hard dependency is a Postgres database.
-5. Sign-in works inside the drawer widget's cross-origin iframe — **proven,
-   not assumed** (§3).
+5. Sign-in works inside the drawer widget's cross-origin iframe — **proven**
+   for both password and social paths (§3).
 
 ## Non-goals
 
-- Preserving existing `feedbackland.com` accounts. Confirmed as not needed:
-  the instance has no user base worth migrating, so Firebase is deleted
-  outright rather than migrated from. This removes an entire workstream.
-- Migrating images already in Supabase Storage. Existing posts keep the
-  Supabase URLs already baked into their HTML and keep working; only *new*
-  uploads go to Postgres. The bucket stays alive until those posts age out.
+- Preserving existing `feedbackland.com` accounts. Confirmed unnecessary, so
+  Firebase is deleted outright rather than migrated from. **The consequence,
+  stated plainly:** existing `public.user` rows survive as authorship records —
+  posts and comments keep their author name and photo — but no `auth_user`
+  exists for them, so nobody can sign into those accounts. Someone who
+  re-registers with the same address gets a **new** id and does not inherit
+  their old content's authorship. This works only because `public.user` has a
+  unique constraint on `id` and *not* on `email`, so the old row and the new
+  one coexist; that is verified, not assumed.
+- Multi-tenant single sign-on across tenants (§3, "Multi-tenant origins").
 - Changing the published `feedbackland-react` npm package (§9).
-- Cross-tenant single sign-on on the hosted platform (§3, "Multi-tenant
-  origins").
-- Customer custom domains (`feedback.acme.com` → Acme's board). The chosen TLS
-  approach makes this nearly free later; it is not built now.
+- Customer custom domains. The chosen TLS approach makes them nearly free
+  later; not built now.
+- An S3 storage backend. Postgres is the only image store; S3 is an additive
+  option later (§4).
 
 ## The shape of the answer
 
 Two observations collapse most of the complexity.
 
-**First: the app is already org-scoped.** Every query takes an `orgId`; every
-tRPC procedure reads it from context. Multi-tenancy only decides *how `orgId`
-is derived from a request*. So single-tenant is not a different product — it
-is the same product with a constant resolution strategy. Multi-tenant support
-therefore stays in the code permanently and costs almost nothing, which is
-what lets a self-hoster run either mode.
+**The app is *almost* entirely org-scoped.** Nearly every query takes an
+`orgId`, so multi-tenancy mostly decides *how `orgId` is derived from a
+request*, and single-tenant is the same product with a constant resolution
+strategy. Multi-tenant support therefore stays in the code permanently and
+costs almost nothing.
 
-**Second: with no requirement to keep prod on Firebase and Supabase, there is
+An earlier revision of this document stated that flatly — "every query takes
+an `orgId`" — and an audit found it false. Four queries fetch or mutate by
+primary key with no tenant predicate at all (§1, "Cross-tenant object
+access"). The premise survives, but only because those four are fixed as part
+of this work rather than assumed away.
+
+**With no requirement to keep production on Firebase and Supabase, there is
 nothing left to abstract.** The previous design needed ports and adapters only
-to let two profiles diverge. One version needs one auth, one storage, one
-everything — so the entire adapter layer disappears, and with it the riskiest
-mechanism in the old plan (build-time bundler aliasing).
+so two profiles could diverge. One version needs one auth, one storage, one
+everything — so the adapter layer disappears, along with the build-time
+bundler aliasing that was the riskiest mechanism in that plan.
 
 ```
                    ┌──────────────────────────────────────┐
@@ -79,8 +83,7 @@ mechanism in the old plan (build-time bundler aliasing).
                                       ▼
                         ┌────────────────────────────┐
                         │  Postgres + pgvector       │
-                        │  data · users · sessions   │
-                        │  images                    │
+                        │  data · identity · images  │
                         └────────────────────────────┘
 
    ROOT_DOMAIN unset          →  single tenant   (self-hoster default)
@@ -101,84 +104,157 @@ for localhost and `*.vercel.app`. All three collapse into one rule:
 ```
 ROOT_DOMAIN unset            → the single org (cached); Host ignored
 ROOT_DOMAIN set:
-  host == ROOT_DOMAIN/www    → no tenant  (signup)
+  host == ROOT_DOMAIN / www  → no tenant (signup)
   <label>.ROOT_DOMAIN:
       label reserved         → no tenant
       label is a uuid v4     → org by id
       otherwise              → org by orgSubdomain
 ```
 
-Resolution is memoised per host with a short TTL and invalidated on org
-update. `x-forwarded-host` is honoured only when the deployment declares it is
-behind a trusted proxy.
+Resolution is memoised per host with a short TTL, **including negative
+results**, and invalidated on org update. `x-forwarded-host` is honoured only
+when `TRUST_PROXY=true` (§3, "Proxy trust").
 
-This is also a security improvement: the `subdomain` header is currently
-client-controlled input feeding the decision about *whose data* a request may
-read. It ceases to exist.
+`reservedSubdomains` is corrected to `["www", "api", "auth", "admin", "app",
+"static", "public", "assets", "setup", "signup", "feedback", "new"]` —
+today's list still contains `get-started` (a route being removed) and omits
+`www`, `setup` and `signup`, each of which is now a real route or host.
 
-Local multi-tenant development uses `acme.localhost:3000` — browsers resolve
-`*.localhost` to loopback — which replaces subdir mode outright.
+Local multi-tenant development uses `acme.localhost:3000`; browsers resolve
+`*.localhost` to loopback, which replaces subdir mode outright.
+
+### Security fix: `/api/user/upsert-user`
+
+This endpoint is currently **unauthenticated and trusts a client-supplied
+`userId`**: `upsertUserSchema` takes `userId`, `email` and `orgSubdomain`
+straight from the request body, and `upsertUserQuery` will insert a `user`
+row, insert a `user_org` membership, and — via
+`onConflict(...).doUpdateSet({ name })` — **overwrite any existing user's
+display name**, which is impersonation on a public board. There is no
+privilege escalation (the role is hard-coded `user`), but arbitrary user
+creation and renaming is live today.
+
+The redesign rewrites this exact path, so it is fixed as part of the work: the
+server derives `userId` and `email` from the **verified session** and the org
+from `Host`. `upsertUserSchema` keeps only `name` and `photoURL`. This is
+listed as a deliverable, not a side effect, so it gets a test.
+
+### Cross-tenant object access
+
+Host-based resolution decides *which* org a request belongs to. It does
+nothing if a query then ignores that org — and four do. Each fetches or
+mutates by primary key with **no tenant predicate**:
+
+| Query | Current `where` | Consequence |
+|---|---|---|
+| `getFeedbackPostQuery` | `feedback.id` only | Reads any org's post by id. It even *selects* `orgId` without filtering on it, and `trpc/get-feedback-post` never compares it to `ctx.orgId` |
+| `getCommentQuery` | `comment.id` only | Reads any org's comment by id |
+| `upvoteFeedbackPostQuery` | `postId` only | **Mutates** another org's post: upvote or, with `allowUndo`, downvote |
+| `upvoteCommentQuery` | `commentId` only | Same, for comments |
+
+**Honest severity:** boards are public and ids are v4 UUIDs, so the reads leak
+data that is already readable to anyone who has the id, and nothing is
+enumerable. The upvote paths are worse — an unauthorised cross-tenant
+*mutation* — though still gated on knowing an id. For a single-tenant
+self-hoster it is a non-issue by construction: there is one org.
+
+It is fixed here regardless, because this design's entire claim is that the
+same artefact is safe to run as a multi-tenant platform, and "tenant isolation
+depends on ids being hard to guess" is not a claim worth making. The two reads
+take `orgId` and filter on it; the two upvotes verify the target belongs to
+`ctx.orgId` (comments join `feedback` for theirs, since `comment` carries no
+`orgId` column). Each gets a test that asserts a cross-org id is rejected.
+
+`set-activities-seen` and `update-user` also lack an `orgId`, but are scoped
+by `userId` and are correct as they stand; `get-org`, `has-claimed-org` and
+`check-rate-limit` are deliberately instance-level.
 
 **Deleted by this section:** `getSubdomain`, `getMaindomain`,
 `getIsSubdirOrg`, `navigateToSubdomain`, `getVercelUrl`, `useSubdomain`,
 `useMaindomain`, `useVercelUrl`, the `subdomain` request header, and
-`app/api/org/[orgId]/route.ts` with the UUID-subdomain redirect dance in
-`proxy.ts` that depends on it.
+`app/api/org/[orgId]/route.ts` with the UUID-subdomain redirect in `proxy.ts`
+that depends on it. They are deleted rather than deprecated, so every stale
+caller becomes a compile error.
 
 ## §2 — Routing
 
 `app/[orgSubdomain]/(board)/…` becomes `app/(board)/…`. Because the tenant
-lives in the hostname, **the URLs are identical in both modes**:
+lives in the hostname, **URLs are identical in both modes**: `/`, `/<postId>`,
+`/admin`.
 
-| | multi-tenant | single-tenant |
-|---|---|---|
-| board | `acme.example.com/` | `feedback.acme.com/` |
-| post | `acme.example.com/<postId>` | `feedback.acme.com/<postId>` |
-| admin | `acme.example.com/admin` | `feedback.acme.com/admin` |
+Wherever a tenant resolves, `/` is the board. The single exception is the root
+domain in multi-tenant mode, where no tenant resolves and `/` redirects to
+`/signup`. `/signup` and `/setup` live outside the `(board)` route group so
+the board chrome does not wrap them. Keeping one `/` route that branches on
+the resolved tenant avoids two route trees both claiming `/` — a hard Next.js
+build error, not a preference.
 
-Wherever a tenant resolves, `/` is the board. The one case where it is not is
-the root domain in multi-tenant mode, where no tenant resolves and `/`
-redirects to `/signup`. `/signup` and `/setup` live outside the `(board)`
-route group so the board chrome does not wrap them. Keeping a single `/` route
-that branches on the resolved tenant avoids the "two route trees both claiming
-`/`" conflict that a separate marketing group would create — that is a hard
-Next.js build error, not a preference.
-
-`[postId]` is now a root-level dynamic segment, so it is guarded to UUIDs —
+`[postId]` is now a root-level dynamic segment, so it is guarded to UUIDs;
 anything else 404s rather than attempting a post lookup. Static segments
-(`admin`, `signup`, `setup`, `api`) take precedence in Next's matcher, and the
-same names stay in `reservedSubdomains` so no tenant can claim them.
+(`admin`, `signup`, `setup`, `api`) take precedence in Next's matcher.
 
-**No middleware is required for tenancy.** This matters:
+**Routes removed:** `app/get-started/` (becomes `/signup`),
+`app/[orgSubdomain]/claim/`, and the claim step of
+`components/app/create-org-wizard/` — first-admin creation is now part of one
+form (§8). The empty leftover `app/design-preview/` directory goes too.
+
+**No middleware is required for tenancy**, which matters because
 [vercel/next.js#86122](https://github.com/vercel/next.js/issues/86122) reports
 `proxy.ts` silently not executing under `output: "standalone"` behind some
-reverse proxies. Correctness must not depend on it. `proxy.ts` is reduced to
-one job — setting the `?embed=drawer` header so the embedded board's first
-paint is correct — which degrades to a single frame of flash if it never runs.
+reverse proxies. `proxy.ts` is reduced to one job — setting the
+`?embed=drawer` header for correct first paint — which degrades to a single
+frame of flash if it never runs.
 
-Cost: pages that read `Host` are dynamically rendered. Two currently-static
-routes lose static rendering. Accepted.
+Cost: pages that read `Host` render dynamically. Accepted.
 
 ## §3 — Auth
 
 **Better Auth everywhere.** Firebase is deleted, not abstracted.
 
-```
-server:  auth.api.getSession({ headers })  →  { user: { id, email } }
-client:  signUp/signIn/signOut/getSession + signIn.popup (social)
+### Table ownership — verified, not assumed
+
+Better Auth creates a table literally named **`user`**, which collides with
+the application's existing `public.user` (five foreign keys point at it:
+`activity_seen`, `comment.authorId`, `feedback.authorId`, `user_org.userId`,
+`user_upvote.userId`). Its models are therefore renamed:
+
+```ts
+user:         { modelName: "auth_user" },
+session:      { modelName: "auth_session" },
+account:      { modelName: "auth_account" },
+verification: { modelName: "auth_verification" },
 ```
 
-`public.user.id` is `text` and currently holds a Firebase uid, so Better
-Auth's user id drops in with **no schema change**. The existing `upsertUser`
-mirror flow — which already runs on every sign-in — keeps `public.user`,
-`user_org` and roles as the app's own source of truth.
+This was **verified against a database pre-loaded with the app's real `user`
+table and a `user_org` row**: `getMigrations` reported `toBeCreated:
+auth_user, auth_session, auth_account, auth_verification` and `toBeAdded:
+(none)`; the app's user columns and rows were untouched; and a real sign-up
+wrote one `auth_user` row while `public.user` stayed at its original count.
+
+Identity lives in `auth_*`. The app's `public.user` / `user_org` remain the
+application's own model, populated on sign-in by the **existing `upsertUser`
+mirror** with `user.id` set to the Better Auth user id — precisely the
+relationship Firebase has today, so the app's data model does not change.
+`public.user.id` is already `text`, so no column type changes.
+
+There is deliberately no FK from `auth_user` to `user`: deleting an identity
+leaves the app user row and therefore leaves authorship on existing posts
+intact, which is today's behaviour.
+
+**Known cost, accepted:** Firebase verified an ID token's signature locally,
+so authentication touched no database. `auth.api.getSession` reads the session
+row, so every authenticated request now costs one indexed lookup — once per
+tRPC *batch*, not per procedure, since the client uses `httpBatchLink`. That
+is the right trade for deleting a vendor. If it ever matters, Better Auth's
+`jwt` plugin restores stateless verification without changing any call site;
+noted here so the option is not rediscovered under load.
 
 ### Cookies are impossible in the drawer — measured
 
 The drawer renders the board in an iframe on a customer's domain, and sign-in
-is reachable there: `sign-up-in/dialog.tsx` opens from `upvote-button`,
-`comment-form` and `feedback-form`. A two-site harness probed a cross-site
-frame in Chrome at default settings:
+is reachable there (`sign-up-in/dialog.tsx` opens from `upvote-button`,
+`comment-form`, `feedback-form`). A two-site harness probed a cross-site frame
+in Chrome at default settings:
 
 | Probe | Result |
 |---|---|
@@ -187,26 +263,17 @@ frame in Chrome at default settings:
 | `navigator.cookieEnabled` | `true` — reports the opposite of the truth |
 | `localStorage` / `sessionStorage` / `indexedDB` | work |
 
-Storage is **partitioned per embedding site** (the same board framed by a
-different top-level site saw none of the first site's data) but **persists
-within a partition** (returning to the first site read the original value
-back). So cookie sessions in the drawer are not degraded — they are
+Storage is **partitioned per embedding site** but **persists within a
+partition**. Cookie sessions in the drawer are not degraded — they are
 impossible, and `navigator.cookieEnabled` actively lies about it.
-
-Bearer-token-in-`Authorization` is therefore mandatory. CSRF is not the
-problem people expect: the iframe document is served *from* the board's
-origin, so its own `fetch` calls are same-origin.
 
 ### Proven end-to-end, both sign-in paths
 
-Storage primitives working is a weaker claim than *Better Auth* working, so
-the real stack was run under the real embedding conditions — better-auth
-**1.7.4**, a real browser, and the board framed by a different site using
-**the exact `sandbox` attribute the shipped widget sets**
-(`allow-scripts allow-same-origin allow-forms allow-popups
-allow-popups-to-escape-sandbox`). `allow-same-origin` is what preserves the
-frame's origin and therefore its storage; it is load-bearing for auth, not
-incidental.
+better-auth **1.7.4**, a real browser, board framed by a different site using
+**the widget's exact `sandbox` attribute** (`allow-scripts allow-same-origin
+allow-forms allow-popups allow-popups-to-escape-sandbox`). `allow-same-origin`
+preserves the frame's origin and therefore its storage: it is load-bearing for
+auth, not incidental, and is recorded as such in `OverlayWidget.tsx`.
 
 **Email + password**
 
@@ -214,128 +281,227 @@ incidental.
 |---|---|---|
 | 1 | `signUp.email` | succeeds, `set-auth-token` returned |
 | 2 | Protected endpoint via `auth.api.getSession({ headers })` | **200** |
-| 3 | Reload host page | session restored from the token store |
-| 4 | `authClient.getSession()` after reload | returns the user, **bearer only** |
+| 3 | Reload host page | session restored |
+| 4 | `authClient.getSession()` after reload | user returned, **bearer only** |
 | 5 | **Clear the token**, retry 2 and 4 | `null` and **401** |
 | 6 | `signIn` → 200 → `signOut` → 401 | passes |
-| 7 | `localStorage` forced to throw `SecurityError` | memory fallback; sign-in still works |
+| 7 | `localStorage` forced to throw | memory fallback; sign-in works |
 
-**Check 5 is the one that removes all doubt.** Better Auth's session cookie is
-`HttpOnly`, so an empty `document.cookie` proves nothing — JavaScript cannot
-see an HttpOnly cookie, and the whole suite could have been passing on one.
-Destroying the token and watching the session die with it is what proves the
-bearer token carries the session and nothing else does.
+**Check 5 is what removes all doubt.** Better Auth's session cookie is
+`HttpOnly`, so an empty `document.cookie` proves nothing — the suite could
+have been passing on a cookie JavaScript cannot see. Destroying the token and
+watching the session die with it proves the bearer token carries it.
 
-**Social sign-in (Google/Microsoft in prod)**
+**Social sign-in**
 
-OAuth cannot redirect inside the frame — providers send `X-Frame-Options:
-DENY` — so it must use a popup. Better Auth 1.7.4 ships a purpose-built
-`oauthPopup` / `oauthPopupClient` plugin pair for precisely this, documented
-as attaching "the popup token as a bearer header **when embedded (where the
-cookie is partitioned)**". It runs OAuth in the popup's own first-party
-context, then posts the session token back to the opener.
-
-This was tested against a genuinely cross-site identity provider (a minimal
-authorization-code server on a third site, standing in for Google) with a real
-user gesture:
+OAuth cannot redirect inside the frame (providers send `X-Frame-Options:
+DENY`), so it uses a popup. Better Auth 1.7.4 ships `oauthPopup` /
+`oauthPopupClient` for exactly this, documented as attaching "the popup token
+as a bearer header **when embedded (where the cookie is partitioned)**".
+Tested against a genuinely cross-site identity provider with a real click:
 
 | # | Check | Result |
 |---|---|---|
 | 8 | `signIn.popup` from inside the frame | `success: true` |
-| 9 | Protected endpoint with the popup token | **200**, correct user |
+| 9 | Protected endpoint with the popup token | **200** |
 | 10 | Reload | session persists |
 | 11 | **Clear the token** | **401** — again, no hidden cookie |
 | 12 | `localStorage` throws | plugin returns `POPUP_SIGN_IN_FAILED` |
 
-**Check 12 is a real, measured limitation and it has a proven fix.** The
-plugin persists its token to `localStorage` and gives up if that throws. But
-the completion page's handoff is a `postMessage` with a documented, exported
-contract (`better-auth:oauth-popup`, gated on origin and nonce), and every
-listener receives that event. Adding our own listener that captures the token
-into a memory-backed store was tested under the same forced-throw conditions:
-the plugin still reported `POPUP_SIGN_IN_FAILED`, **our fallback carried the
-session and the protected call returned 200**. Roughly fifteen lines, on a
-supported extension point.
+**Check 12 is a measured limitation with a proven fix.** The plugin persists
+its token to `localStorage` and gives up if that throws. But the completion
+handoff is a `postMessage` on an exported contract
+(`better-auth:oauth-popup`, gated on origin and nonce) and every listener
+receives it. Adding our own listener that captures the token into a
+memory-backed store was tested under the same forced-throw conditions: the
+plugin still reported `POPUP_SIGN_IN_FAILED`, **our fallback carried the
+session and the protected call returned 200**. The app's token store — not the
+plugin's — is the source of truth, and it degrades `localStorage → memory`.
 
-So the app's token store — not the plugin's — is the source of truth, and it
-degrades `localStorage → memory`. In the memory case a session lasts the
-lifetime of the iframe document, which is the correct worst case.
+### Account linking — deliberately off
 
-### Accepted consequences
+`requireEmailVerification` is `false` (there is no mandatory email
+infrastructure), which makes automatic linking-by-email an **account-takeover
+vector**: someone could register a password account on an address they do not
+own, and auto-linking would hand them the real owner's account when that owner
+later signs in with Google.
 
-- A drawer session on `customer-a.com` is separate from one on
-  `customer-b.com` and from the standalone board. That is storage
-  partitioning, and Firebase's IndexedDB behaves identically today.
-- Bearer tokens in `localStorage` have the same XSS exposure as Firebase's
-  IndexedDB persistence. User HTML is already sanitised on write
-  (`lib/utils-server.ts:clean`).
+So automatic linking is **disabled**. A second method on an existing email is
+refused with "this email is already registered — sign in with your existing
+method, then connect Google from account settings", and linking is only
+possible from an authenticated session. This matches Firebase's current
+behaviour (`auth/account-exists-with-different-credential`), so it is parity,
+not a regression.
 
-### Limits of the evidence
+Microsoft requires an Entra tenant id (`MICROSOFT_TENANT_ID`, default
+`common`) alongside client id and secret.
 
-The spike ran on SQLite, not Postgres — the database sits behind Better Auth's
-adapter layer and is not involved in any cookie/bearer/iframe semantics, but
-the Postgres build is still smoke-tested during implementation. It ran on
-Chrome over HTTP; production is HTTPS, which changes nothing here *because* no
-cookie is involved. Firefox and Safari were not driven directly — checks 7 and
-12 are what stand in for Safari's stricter behaviour, and both pass.
+### Password reset — a deliberate product decision
+
+Reset works today with **zero configuration** because Firebase sends the mail.
+Deleting Firebase removes that, so this is called out as a decision rather
+than allowed to become a silent regression. Three tiers, so **no deployment is
+ever without a reset path and none requires SMTP**:
+
+1. **`SMTP_URL` configured** → ordinary self-service email reset. The hosted
+   platform sets this.
+2. **No SMTP** → an admin generates a one-time reset link from the Admins page
+   and delivers it however they like. This reuses the app's existing idiom:
+   `createAdminInvite` already returns a copyable `inviteLink` instead of
+   sending email.
+3. **First-admin lockout** → `docker compose exec app node scripts/reset-password.mjs <email>`
+   prints a one-time link.
+
+Tiers 2 and 3 need no separate token machinery: Better Auth's
+`requestPasswordReset` hands the reset URL to a `sendResetPassword` callback,
+so with no SMTP configured that callback **returns the URL to the caller
+instead of mailing it**. One code path, one token lifetime, one expiry rule
+across all three tiers.
+
+### Proxy trust
+
+`advanced.trustedProxyHeaders` and `baseURL.allowedHosts` are gated on
+`TRUST_PROXY=true`, default **false**. Enabled when not actually behind a
+trusted proxy, a forged `x-forwarded-host` could steer the resolved auth base
+URL. The Caddy compose files set it; the bare single-container quick start
+does not. `TRUST_PROXY` also governs whether `getClientIp` trusts
+`x-forwarded-for` for rate limiting.
 
 ### Multi-tenant origins
 
-Each tenant board is its own origin, and Better Auth has first-class support
-for that rather than a single fixed `baseURL`:
+Each tenant board is its own origin, which Better Auth supports natively:
 
 ```ts
 baseURL: {
-  allowedHosts: [ROOT_DOMAIN, `*.${ROOT_DOMAIN}`],   // wildcard matching
+  allowedHosts: [ROOT_DOMAIN, `*.${ROOT_DOMAIN}`],
   fallback: `https://${ROOT_DOMAIN}`,
   protocol: "https",
 },
 trustedOrigins: [`https://${ROOT_DOMAIN}`, `https://*.${ROOT_DOMAIN}`],
-advanced: { trustedProxyHeaders: true },   // behind Caddy
 ```
 
-`trustedProxyHeaders` is what makes `x-forwarded-host` authoritative behind
-the reverse proxy; without it every tenant resolves to the proxy's own host.
-Bearer tokens are stored per-origin, so a session is naturally scoped to one
-tenant — which is correct isolation, and the reason cross-tenant SSO is a
-non-goal.
+Wildcard patterns are supported by `matchesOriginPattern`. In single-tenant
+mode `APP_URL` pins the origin when set; unset, it is inferred from the
+request, which is what makes zero-config `docker compose up` work.
 
-In single-tenant mode `APP_URL` pins the origin when set; unset, it is
-inferred from the request, which is what makes a zero-config `docker compose
-up` work on `localhost`.
+**Bearer tokens are stored per-origin, so a session does not *follow* a user
+between tenant boards — but the token is not itself tenant-scoped.** The
+session row is global; a token lifted from tenant A and replayed against
+tenant B authenticates the same identity there. That is not a hole, because
+every procedure authorises through `user_org` for the resolved `orgId`, so the
+user still has no role on B. It is stated explicitly so nobody later mistakes
+per-origin *storage* for a per-tenant *trust boundary* and drops an
+authorisation check on that assumption.
 
-### Optional, dark by default
+### Social sign-in across many tenant origins
 
-`SMTP_URL`/`SMTP_FROM` unlock password reset; `GOOGLE_CLIENT_ID`/`_SECRET` and
-`MICROSOFT_*` unlock social sign-in. Unset means hidden, never broken — there
-is no email infrastructure in the app today and requiring one would defeat the
-point. `BETTER_AUTH_SECRET` is generated and persisted on first boot when
-unset, so nobody has to run `openssl rand`.
+Google and Microsoft require **exact, pre-registered redirect URIs**. With a
+board per subdomain the callback URL differs per tenant, and
+`*.feedbackland.com/api/auth/callback/google` cannot be registered. Left
+unsolved this would block social sign-in for every hosted tenant — the popup
+mechanics proven above do not help, because the failure is at the provider's
+registration check.
+
+Better Auth ships `oAuthProxy` for exactly this. In multi-tenant mode a single
+redirect URI is registered against `ROOT_DOMAIN`, and the plugin relays the
+callback back to the tenant origin that started the flow, with an encrypted
+payload and a short `maxAge` against replay. Single-tenant instances have one
+origin and one redirect URI, so the plugin is not enabled there and a
+self-hoster registers the obvious URL.
+
+### Removed with Firebase
+
+`firebaseConfig.ts`, both SDKs, the admin credentials, `FIREBASE_DATABASE_URL`
+and the dead `adminDatabase` export. Also removed: the hardcoded
+`demo.feedbackland.com` branch in `hooks/use-auth.tsx`, which auto-signs-in
+with **credentials committed in source** (`admin@demo.com` / `demo1234`). If a
+public demo is still wanted it becomes a seeded org selected by env, never
+credentials in the repository.
+
+### Session lifetime, sign-out, and the mirror call
+
+Sessions are 30 days with a rolling `updateAge`, so the drawer does not log
+people out mid-week; Firebase refreshed ID tokens transparently and the
+replacement must not feel worse. Because tokens are bearer, **sign-out clears
+the app's own token store as well as Better Auth's** — the popup plugin only
+clears the key it owns, and a token left behind in our store would keep
+authenticating tRPC calls after an apparent sign-out. This is an explicit
+test case, not an implementation detail.
+
+`upsertUser` runs immediately after sign-in and is now authenticated, so the
+bearer token must be captured *before* it is called. The order is fixed:
+capture token → store → `upsertUser` → session state.
+
+### The generated secret must come from the entrypoint
+
+`BETTER_AUTH_SECRET` is generated and persisted on first boot when unset, so
+nobody runs `openssl rand`. But it **cannot be read from the database inside
+the application**: `betterAuth({...})` is constructed synchronously at module
+scope, long before any async database call could resolve.
+
+So the container **entrypoint** owns it: it takes the advisory lock, runs
+migrations, reads-or-creates the instance secret row, exports
+`BETTER_AUTH_SECRET` into the environment, and only then `exec`s the server.
+Module-scope construction stays synchronous and no call site becomes async.
+
+Platforms with no entrypoint — Vercel — must set `BETTER_AUTH_SECRET`
+themselves; the docs say so in the Vercel section, and the app fails fast with
+a clear message rather than starting with an ephemeral secret that would
+invalidate every session on restart.
 
 ## §4 — Image storage
 
 Uploads move server-side: `POST /api/images` (authenticated, size-capped,
 extension allowlist, magic-byte validation via the `image-size` call already
-in `processImagesInHTML`), bytes in Postgres, served by
-`GET /api/images/<id>` with `Cache-Control: immutable` and an ETag. Returned
-URLs are relative, so changing domain does not orphan stored images.
+in `processImagesInHTML`), bytes in Postgres, served by `GET /api/images/<id>`
+with `Cache-Control: immutable` and an ETag. New URLs are **relative**, so
+changing domain does not orphan stored images.
 
 This keeps the container **stateless** — one `DATABASE_URL` is the whole
-deployment, so it runs unchanged on Fly, Railway, Render or Cloud Run, and one
-`pg_dump` is a complete backup. It also retires the browser-held anon key and
-the public `storage.objects` insert policy.
+deployment — and retires the browser-held anon key and the public
+`storage.objects` insert policy.
 
-An S3-compatible option is a later addition for anyone who outgrows Postgres;
-it is not needed for correctness and is not built now. Existing Supabase image
-URLs in old posts keep resolving untouched (non-goal above).
+`MAX_IMAGE_BYTES` defaults to **4 MB**, deliberately under Vercel's 4.5 MB
+request-body limit so the same default works on every host.
+
+The cap applies to **decoded** bytes, not the base64 data URL the editor holds
+in memory (base64 inflates by ~33%), and the client checks it before upload so
+an oversized screenshot fails with a clear message instead of a 413.
+
+### Legacy Supabase images: render every board image unoptimized
+
+Post and comment bodies render images through **`next/image`**
+(`components/ui/tiptap-output.tsx`), as do the org logo
+(`platform-header/title.tsx`) and its settings preview
+(`settings/logo.tsx`). `next.config.ts` allows exactly one remote host,
+interpolated from `NEXT_PUBLIC_SUPABASE_PROJECT_ID` — so dropping that
+variable turns the pattern into `undefined.supabase.co` and **every
+pre-existing image 400s**.
+
+An earlier revision of this document proposed a `LEGACY_IMAGE_HOSTNAME`
+config value to keep that remote pattern alive. That was redundant: all three
+call sites render *user-uploaded content*, and marking them **`unoptimized`**
+makes Next emit a plain `<img>` with the original `src`, bypassing
+`/_next/image` and therefore the `remotePatterns` check entirely.
+
+So `images.remotePatterns` is **deleted from `next.config.ts`** and no
+replacement config is introduced. Legacy Supabase URLs keep resolving because
+nothing validates them any more; new relative `/api/images/:id` URLs work for
+the same reason; and the optimizer no longer round-trips into our own route or
+fill a cache that a stateless container discards on restart. The stored HTML
+already carries `width`/`height`, so layout is unaffected.
+
+The tradeoff is deliberate: user images are no longer resized or converted to
+WebP. For screenshot-sized attachments behind an immutable cache header that
+is the right trade against a config knob, an SSRF-adjacent allowlist, and a
+whole class of "image silently 400s" bugs.
 
 ## §5 — Schema and migrations
 
-`db/schema.sql` is a Supabase dump: it references `"extensions"."halfvec"`
-(Supabase installs pgvector into an `extensions` schema) and its last two
-statements write to `storage.buckets` / `storage.objects`, which do not exist
-on stock Postgres. The two files in `db/migrations/` are hand-pasted SQL, and
-`CREATE TYPE … AS ENUM` is not idempotent.
+`db/schema.sql` is a Supabase dump: it references `"extensions"."halfvec"` and
+its last two statements write to `storage.buckets` / `storage.objects`, which
+do not exist on stock Postgres. The two files in `db/migrations/` are
+hand-pasted SQL, and `CREATE TYPE … AS ENUM` is not idempotent.
 
 Target: an ordered, tracked, idempotent set run by a Kysely `Migrator`.
 
@@ -343,8 +509,9 @@ Target: an ordered, tracked, idempotent set run by a Kysely `Migrator`.
 0001_init.sql        base schema, vanilla-Postgres clean
 0002_insights.sql    existing file, renamed
 0003_security.sql    existing file, renamed
-0004_images.sql      §4
-0005_auth.sql        Better Auth tables + instance secret
+0004_images.sql      §4 image storage
+0005_fk_fixes.sql    comment.authorId ON DELETE CASCADE
+0006_instance.sql    instance config (generated auth secret, setup token)
 ```
 
 `0001_init.sql` opens with
@@ -354,26 +521,59 @@ CREATE SCHEMA IF NOT EXISTS extensions;
 CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;
 ```
 
-so the **same DDL runs on stock Postgres and on Supabase** — the existing
-`extensions.halfvec` column types need no rewriting. Enum creation is wrapped
-in a `DO … EXCEPTION WHEN duplicate_object` block; the Supabase storage
-statements move to a cloud-only file.
+so the **same DDL runs on stock Postgres and on Supabase**, leaving the
+existing `extensions.halfvec` column types alone. Enums are wrapped in
+`DO … EXCEPTION WHEN duplicate_object`; the Supabase storage statements move
+to a cloud-only file.
 
-`scripts/migrate.ts` runs before the server starts. Better Auth's own tables
-are created by `getMigrations(auth.options).runMigrations()`, which the spike
-**verified works programmatically at boot and is idempotent across restarts**.
+`0005_fk_fixes.sql` exists because `comment_authorId_fkey` is the **only one
+of the five user foreign keys without `ON DELETE CASCADE`**, so deleting a
+user currently fails. Better Auth adds real account-deletion flows, which
+would hit this immediately.
+
+**Boot sequence**, run by the container entrypoint inside one
+`pg_advisory_lock` so concurrent container starts serialise instead of racing:
+
+```
+client = await pool.connect()          // a dedicated session, not the pool
+  pg_advisory_lock(<constant>)         // session-scoped: released if we crash
+    → db/migrations/*.sql via Kysely Migrator (tracked in schema_migrations)
+    → getMigrations(auth.options).runMigrations()      [auth_* only]
+    → ensure instance secret + setup code rows
+  pg_advisory_unlock
+client.release()
+```
+
+The lock must be taken on a **dedicated client checked out of the pool**, not
+through the pool itself: `pg_advisory_lock` is session-scoped, and a pooled
+query could take the lock on one connection and release it on another. Holding
+one session also means a crashed migration releases the lock automatically on
+disconnect rather than wedging every future boot.
+
+Ordering matters: the SQL migrations own the application schema, Better Auth
+owns `auth_*`, and neither creates the other's tables. The spike verified
+`runMigrations()` works programmatically at boot and is idempotent across
+restarts.
+
+The hosted deployment runs the same sequence.
+
+**Housekeeping.** The `rate_limit` table accumulates one row per key forever
+and nothing prunes it; a container has no cron. `checkRateLimit` already
+writes on every call, so it opportunistically deletes rows whose window closed
+long ago — bounded work on a path that is already writing, rather than a new
+scheduled job.
 
 ## §6 — AI is optional
 
 Creating a post makes three LLM calls inline and throws if any fail: with no
-key, `isInappropriateCheck` finds no content in the response, returns `true`,
-and the post is rejected as inappropriate. Search is purely vector-based, so
-with no embeddings it returns nothing. A keyless instance today is not
-degraded — it is broken.
+key, `isInappropriateCheck` finds no content, returns `true`, and the post is
+rejected as inappropriate. Search is purely vector-based, so with no
+embeddings it returns nothing. A keyless instance today is not degraded — it
+is broken.
 
 The capability flag is **runtime**, surfaced on the existing `getOrg` payload
-(already fetched globally by `useOrg`, so no extra round trip). It is not
-simply `!!OPENROUTER_API_KEY` — a local model needs no key:
+(already fetched globally by `useOrg`). It is not simply `!!OPENROUTER_API_KEY`
+— a local model needs no key:
 
 ```ts
 hasLLM = !!process.env.OPENROUTER_API_KEY || !!process.env.LLM_BASE_URL
@@ -383,20 +583,53 @@ hasLLM = !!process.env.OPENROUTER_API_KEY || !!process.env.LLM_BASE_URL
 |---|---|---|
 | Create post | moderation + AI title/category + embedding | title from first sentence, category `general feedback`, no moderation, `embedding` null |
 | Create comment | moderation + embedding | stored as written |
-| Search | vector similarity | Postgres `ILIKE` over title + description |
+| Search | vector similarity, distance cursor | `ILIKE` over title + description |
 | Insights, AI roadmap, Ask-AI, "improve draft" | shown | hidden |
 
+**The search fallback reuses the non-search ordering and cursor.** The vector
+branch orders by distance and pages on it; with no embeddings there is no
+distance, so the `ILIKE` branch applies `searchValue` as a filter and then
+takes the ordinary `orderBy` (`newest` / `upvotes` / `comments`) path
+unchanged. Mixing the two would produce a cursor referencing a column that is
+never selected — a silently broken "load more".
+
 `LLM_BASE_URL`, `LLM_MODEL` and `LLM_EMBEDDING_MODEL` make the four hard-coded
-OpenRouter URLs configurable, so Ollama, LM Studio or vLLM work and an
-instance can have no external dependency at all. The OpenRouter-specific
+OpenRouter URLs configurable (Ollama, LM Studio, vLLM). The OpenRouter-specific
 `reasoning` parameter is omitted when the base URL is overridden.
+
+**Adding a key later needs a backfill.** Posts created while keyless have
+`embedding = null` and would stay invisible to semantic search forever.
+`docker compose exec app node scripts/backfill-embeddings.mjs` embeds every
+row with a null vector, and the AI section of the docs points at it.
 
 ## §7 — Packaging
 
-One image, `output: "standalone"`, multi-stage build, `sharp` in the runner,
-non-root, published to GHCR by CI on tag. Three recipes, same image:
+### The image
 
-**1 — Self-host, single tenant.** The documented default.
+Multi-stage, `output: "standalone"`, `sharp` in the runner, non-root,
+published to GHCR by CI on tag.
+
+**The build stage must install dev dependencies and build the workspace.**
+`components/app/widget-docs/index.tsx` imports `FeedbackButton` from
+`feedbackland-react`, and the root build is
+`npm run build -w feedbackland-react && next build`. A conventional
+`npm ci --omit=dev` runner shortcut breaks the build outright. The widget's
+own build runs `tsc -b` + vite under `typescript@7`, which relies on the
+`@typescript/typescript6` fallback (see `scripts/eslint-ts6-resolver.cjs` and
+project notes) — so that dev dependency must be present in the build stage.
+The runner stage then copies only `.next/standalone`, `.next/static` and
+`public`.
+
+`next/font/google` downloads at build time, so the build stage needs network;
+the runtime does not.
+
+### Health
+
+`GET /api/health` returns 200 when the database answers, 503 otherwise. The
+compose `app` service declares a healthcheck against it so orchestrators and
+`depends_on` work.
+
+### Recipe 1 — self-host, single tenant (the documented default)
 
 ```yaml
 services:
@@ -414,45 +647,121 @@ services:
 volumes: { db: }
 ```
 
-No secrets to generate, nothing to fill in, no repository to clone.
+The database port is deliberately **not published** — the password is only
+reachable on the compose network. The docs state plainly that anyone
+publishing 5432 must change it first.
 
-**2 — Self-host with a domain.** Adds Caddy; set `DOMAIN`. TLS is automatic.
-This is not optional in practice: host pages are HTTPS, so an HTTP board in an
-iframe is blocked as mixed content. It is documented prominently, not as a
-footnote.
+### Recipe 2 — add a domain
 
-**3 — Multi-tenant platform.** Set `ROOT_DOMAIN`, point wildcard DNS at the
-host, and let Caddy issue **per-tenant certificates on demand**:
+Adds Caddy and sets `DOMAIN` and `TRUST_PROXY=true`; TLS is automatic. Not
+optional in practice: host pages are HTTPS, so an HTTP board in an iframe is
+blocked as mixed content. Documented prominently, not as a footnote.
+
+The proxy config must also not cut off insight generation, which batches a
+whole board through the model and carries `maxDuration = 300` — a setting that
+means nothing outside Vercel. The Caddy block sets an explicit long
+`reverse_proxy` read timeout for that route, so a five-minute run does not
+surface as a truncated response with no error anywhere.
+
+### Recipe 3 — multi-tenant platform
+
+Set `ROOT_DOMAIN`, point wildcard DNS at the host, and let Caddy issue
+**per-tenant certificates on demand** — no wildcard certificate and no
+DNS-provider API token:
 
 ```
 :443 {
-  tls { on_demand }
+  tls {
+    on_demand
+  }
 }
 ```
 
-with `ask` pointed at an app endpoint that confirms the tenant exists, plus
-Caddy's issuance rate limits as the backstop. This is the standard multi-tenant
-SaaS pattern and it deliberately avoids the usual lock-in: **no wildcard
-certificate and no DNS-provider API token.** The same `ask` endpoint is what
-would later make customer custom domains nearly free.
+with `on_demand_tls { ask http://app:3000/api/tls-check }` plus Caddy's
+`interval`/`burst` issuance limits.
 
-**Vercel** still works — it is a plain Next.js app — and stays documented as an
-alternative, but nothing depends on it.
+**`GET /api/tls-check?domain=` is a specified endpoint, not a detail.** It
+returns 200 for exactly three things, and getting the list wrong breaks
+production in ways that are hard to trace back:
+
+1. `ROOT_DOMAIN` and `www.ROOT_DOMAIN`.
+2. A `<label>.ROOT_DOMAIN` whose label resolves to an existing org —
+   **including uuid labels**, or the widget's default
+   `<orgId>.feedbackland.com` board entry point never gets a certificate.
+3. **Service hosts the deployment actually serves, `api.ROOT_DOMAIN` first
+   among them.** `api` is a *reserved* label, so it resolves to no org and a
+   naive "must map to a tenant" rule would 404 it — denying a certificate to
+   `api.feedbackland.com`, which is the hard-coded `DEFAULT_API_ENDPOINT` in
+   the published widget. Every hosted customer's popover submissions would
+   fail, from a TLS error with no obvious connection to a feedback form.
+
+Everything else gets 404. It answers from the
+same memoised tenant cache as §1, **with negative results cached**, so
+handshake probing of random subdomains cannot turn into one database query per
+packet; Caddy's rate limits are the backstop behind that.
+
+It is reachable **only on the internal compose network** (Caddy calls
+`http://app:3000/api/tls-check`) and is blocked at the proxy for external
+requests. It is a yes/no oracle for "does this tenant exist", and while tenant
+slugs are semi-public by nature — they are URLs — there is no reason to publish
+an enumeration endpoint for them.
+
+### Vercel — supported, with stated limits
+
+Still a plain Next.js app, and still documented. Two limits are now explicit
+rather than implied: image uploads are bounded by the **4.5 MB function body
+limit** (hence the 4 MB default cap), and a direct `DATABASE_URL` will exhaust
+connections without a pooler, so a pooled connection string is required.
+Nothing depends on Vercel.
 
 ## §8 — First run
 
 **Single tenant.** No claimed org → `/setup` → one form (product name, your
-name, email, password) → creates the org, the auth user, the `user` row, the
+name, email, password) → creates the org, the identity, the `user` row, the
 admin `user_org` row, and claims it → redirect to `/`, signed in. Afterwards
 `/setup` redirects to `/`.
 
-**Multi tenant.** Root domain `/` → `/signup` → same underlying "create org +
-first admin" path → redirect to `<slug>.<ROOT_DOMAIN>`.
+**Multi tenant.** Root domain `/` → `/signup` → the same underlying "create
+org + first admin" path → redirect to `<slug>.<ROOT_DOMAIN>`.
 
-Both reuse one code path; the existing `isClaimed` / `hasClaimedOrgQuery`
-machinery already models this. The subdomain field in settings and the
-`orgSubdomain` branch of `trpc/update-org.ts` are hidden and server-side
-rejected in single-tenant mode.
+### Setup cannot be hijacked
+
+An instance reachable on the internet before it is claimed would otherwise
+grant admin to whoever loads `/setup` first.
+
+`/setup` therefore **always** requires a one-time **setup code**, generated on
+first boot, stored in the instance-config table, and cleared once an org is
+claimed.
+
+An earlier revision made the code conditional on the request coming from a
+loopback or private address. **That is not implementable**: `NextRequest` in
+Next 16 exposes no socket remote address (`request.ip` was Vercel-only and is
+gone), so the only available signal is `x-forwarded-for` — a client-supplied
+header, and precisely the thing that must not be trusted for an authorisation
+decision. A rule that degrades to "trust a spoofable header" is worse than no
+rule.
+
+The cost is one line, and the quick start is arranged so it is not even that:
+it runs `docker compose up` in the foreground, and the code is printed in the
+startup banner in the terminal the operator is already watching.
+`docker compose logs app | grep "Setup code"` is documented for the detached
+case.
+
+Before any org exists, `resolveOrg` returns null and every org-scoped
+procedure would fail its `publicProcedure` guard. The redirect to `/setup`
+therefore happens in the server component **before** the board renders, and
+`/setup` lives outside the `(board)` route group so none of the board's
+org-scoped queries ever mount. A pre-setup visit never issues a query that
+cannot succeed.
+
+### Promoting single-tenant to multi-tenant
+
+Setting `ROOT_DOMAIN` on an instance that already has one org promotes it
+rather than breaking it: the org keeps its slug and its board moves to
+`<slug>.<ROOT_DOMAIN>`. The subdomain field in settings — hidden in
+single-tenant mode — becomes visible so a default slug can be renamed. The
+docs state that the old URL must be redirected and the widget snippet updated,
+since `platformId` still resolves but the board URL changes.
 
 ## §9 — The widget needs no changes
 
@@ -466,69 +775,147 @@ rejected in single-tenant mode.
 ```
 
 against the package as published. `/api/feedback/create` resolves the org from
-`Host` and **falls back to the body's `orgId`**, which is what keeps the
-`api.feedbackland.com` entry point (where the host carries no tenant) working.
-No npm release is part of this work.
+`Host` and **falls back to the body's `orgId`**, which keeps the
+`api.feedbackland.com` entry point (whose host carries no tenant) working. No
+npm release is part of this work.
 
-## §10 — Documentation
+## §10 — Runtime configuration reaching the client
+
+Three UI decisions depend on how the instance is configured, and none of them
+can be a build-time constant in a prebuilt image:
+
+- whether AI surfaces are shown (`hasLLM`, §6);
+- whether the org **subdomain** field and signup funnel appear at all
+  (single vs multi tenant);
+- whether the admin Widget snippet includes a `url` prop — single-tenant must,
+  because there is no `<uuid>.<root>` to resolve; hosted multi-tenant omits it.
+
+Today this is decided by `getIsSelfHosted()` / `useIsSelfHosted()` reading
+`SELF_HOSTED` and `NEXT_PUBLIC_SELF_HOSTED`. Both are **deleted**, along with
+the env vars: "self-hosted" is no longer a property of the build, and the
+question the UI actually wants to ask is "is this instance multi-tenant",
+which is a *runtime* fact derived from `ROOT_DOMAIN`.
+
+So the existing `getOrg` payload carries a small `instance` object —
+`{ hasLLM, isMultiTenant, rootDomain? }` — and `useIsSelfHosted` is replaced
+by `useInstance()`. `getOrg` is already fetched globally by `useOrg`, so this
+adds no round trip. `NEXT_PUBLIC_*` stays empty for a prebuilt image, which is
+the constraint that makes one published artefact possible at all.
+
+## Environment reference
+
+Nothing below is required for `docker compose up` to work.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `DATABASE_URL` | set by compose | **The only hard dependency.** |
+| `ROOT_DOMAIN` | unset | Set ⇒ multi-tenant at `*.ROOT_DOMAIN`; unset ⇒ single tenant |
+| `APP_URL` | inferred | Pins the public origin behind a proxy |
+| `TRUST_PROXY` | `false` | Honour `x-forwarded-host`/`-proto`/`-for`; set by the Caddy recipes |
+| `BETTER_AUTH_SECRET` | generated | Entrypoint generates and persists it; required manually where there is no entrypoint |
+| `SMTP_URL` / `SMTP_FROM` | unset | Self-service password reset (tier 1) |
+| `GOOGLE_CLIENT_ID` / `_SECRET` | unset | Google sign-in |
+| `MICROSOFT_CLIENT_ID` / `_SECRET` / `MICROSOFT_TENANT_ID` | unset / `common` | Microsoft sign-in |
+| `OPENROUTER_API_KEY` | unset | AI features via OpenRouter |
+| `LLM_BASE_URL` / `LLM_MODEL` / `LLM_EMBEDDING_MODEL` | OpenRouter defaults | Any OpenAI-compatible endpoint; also enables AI without a key |
+| `MAX_IMAGE_BYTES` | `4000000` | Upload cap, decoded bytes |
+
+**Deleted:** `SELF_HOSTED`, `NEXT_PUBLIC_SELF_HOSTED`,
+`NEXT_PUBLIC_SUPABASE_PROJECT_ID`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`,
+`FIREBASE_DATABASE_URL`, `VERCEL_URL` / `NEXT_PUBLIC_VERCEL_URL` usage.
+Ten required values become one that compose supplies for you.
+
+## §11 — Documentation
 
 `SELFHOSTING.md` is rewritten around the happy path — `curl` a compose file,
 `docker compose up`, create an admin — with everything currently mandatory
-demoted to optional sections: domain + HTTPS, AI, social sign-in, backups,
-upgrades, running multi-tenant, deploying on Vercel instead, env reference,
-troubleshooting. The quick start is the first screen and needs only Docker.
+demoted to optional sections: domain + HTTPS, AI (and the embedding backfill),
+social sign-in, SMTP and the reset tiers, backups, upgrades, running
+multi-tenant, deploying on Vercel instead, env reference, troubleshooting.
 
-## What this deletes
+## Delivery plan
 
-The point of the redesign is subtraction:
+Ordered so the riskiest unknowns fail first and each phase is independently
+verifiable.
 
-- Firebase entirely — SDKs, `firebaseConfig.ts`, admin credentials,
-  `FIREBASE_DATABASE_URL`, and the dead `adminDatabase` export
-- `@supabase/supabase-js` and the browser-held anon key
-- Build profiles, and the bundler-aliasing mechanism that was the riskiest
-  part of the previous design
-- The auth/storage/tenancy adapter pairs — one implementation each now
-- Subdir mode, the `subdomain` header, `app/[orgSubdomain]/`,
-  `app/api/org/[orgId]`, and tenant routing in `proxy.ts`
-- `getVercelUrl`, `useVercelUrl`, `getIsSubdirOrg`, `getMaindomain`,
-  `getSubdomain`, `useSubdomain`, `useMaindomain`
-- The Firebase→Better Auth user migration (confirmed unnecessary)
+| # | Phase | Gate |
+|---|---|---|
+| 1 | Schema + migration runner with advisory lock; `auth_*` namespace; `0005_fk_fixes`; entrypoint owns secret + setup code | Fresh DB and an old Supabase-shaped DB both converge; concurrent boots serialise; a killed migration does not wedge the next boot |
+| 2 | Dockerfile + compose + health endpoint | Image builds **including the widget workspace** and boots against Postgres |
+| 3 | Host-based tenancy; delete `[orgSubdomain]`, subdir mode, `subdomain` header; **scope the four cross-tenant queries** | Single-tenant board at `/`; multi-tenant on `*.localhost`; a cross-org post/comment id is rejected on read *and* upvote |
+| 4 | Better Auth replaces Firebase; `upsert-user` authenticated; linking off; reset tiers; sign-out clears our store | Sign-up/in/out on the standalone board; `upsert-user` rejects a forged `userId`; no token survives sign-out |
+| 5 | **Drawer auth acceptance test** (verification 3) | Merge blocker |
+| 6 | Postgres image storage; all board images `unoptimized`; drop `remotePatterns` | New uploads work; legacy Supabase images still render |
+| 7 | AI optional + BYO endpoint + backfill script | Keyless instance fully usable, paging included |
+| 8 | First-run `/setup` + setup code; `/signup`; remove claim wizard | Fresh volume → admin in one form; `/setup` refuses without the code |
+| 9 | Caddy recipes + `tls-check` + `oAuthProxy`; docs rewrite | Multi-tenant behind real Caddy; per-tenant certs; social sign-in on a subdomain |
+
+**Tenancy precedes auth deliberately.** An earlier ordering put auth first,
+but phase 4's `upsert-user` fix derives the org from `Host`, which only exists
+after phase 3 — auth-first would have meant building the fix against the
+`subdomain` header that phase 3 deletes, then rewriting it.
+
+**Rollback:** phases 1–3 are additive or code-only and revert by redeploying.
+From **phase 4** the identity store changes, so the rollback unit becomes the
+database: take a `pg_dump` immediately before phase 4 and restore it alongside
+the previous image. Phases 5–9 are code-only again.
 
 ## Risks
 
 | Risk | Mitigation |
 |---|---|
-| Auth fails in the drawer's cross-origin iframe | **Retired.** Both paths proven end-to-end against better-auth 1.7.4 under the widget's exact sandbox, including the no-hidden-cookie check (§3) |
-| Popup OAuth breaks where `localStorage` throws | **Measured and fixed.** Own completion-message listener + memory store, verified under forced-throw (§3, check 12) |
-| The widget's `sandbox` loses `allow-same-origin` in a later change, silently killing auth | Recorded as load-bearing in `OverlayWidget.tsx` and asserted by acceptance test 3 |
-| Moving to host-based tenancy breaks an unnoticed caller of the old helpers | The helpers are **deleted**, not deprecated, so every caller is a compile error rather than a silent fallback |
-| `trustedProxyHeaders` misconfigured behind Caddy → every tenant resolves to the proxy host | Multi-tenant acceptance test runs behind the real Caddy config, not just directly |
-| Host-header injection influencing auth URLs | Bounded by `baseURL.allowedHosts`; `APP_URL` recommended for single-tenant behind a proxy |
-| `output: "standalone"` mis-traces `pg` / `sharp` / `pgvector` | Build and boot the image in its own early step, not at the end |
-| Images in Postgres bloat the database | Per-upload size cap, documented; S3 remains an additive option |
-| Everything becomes dynamically rendered | Accepted; two static routes affected, both already client-fetching |
+| Auth fails in the drawer's cross-origin iframe | **Retired.** Both paths proven end-to-end, including the no-hidden-cookie check (§3) |
+| Popup OAuth breaks where `localStorage` throws | **Measured and fixed**; own completion-message listener verified under forced-throw |
+| Better Auth takes over `public.user` | **Retired.** `auth_*` renaming verified against a DB holding the real user table: `toBeAdded: (none)`, rows untouched |
+| Legacy Supabase images 400 through `next/image` | All board images render `unoptimized`, so nothing validates their host; `remotePatterns` is deleted rather than reconfigured |
+| Generated auth secret unreadable at module scope, or ephemeral on restart | Entrypoint resolves it before `exec`; platforms without an entrypoint must set it and the app fails fast if unset |
+| A stale bearer token outlives sign-out | Sign-out clears the app's store as well as the plugin's; explicit test case |
+| Widget `sandbox` loses `allow-same-origin` later | Recorded as load-bearing in `OverlayWidget.tsx`; asserted by the acceptance test |
+| Auto-linking enables account takeover on unverified emails | Automatic linking **disabled**; linking only from an authenticated session |
+| `/setup` hijacked on an exposed instance | Setup code always required; no reliance on a spoofable header to decide |
+| Tenant isolation resting on unguessable ids rather than a predicate | Four unscoped queries fixed and tested with cross-org ids (§1); premise corrected rather than asserted |
+| Forged `x-forwarded-host` steers auth URLs | `TRUST_PROXY` defaults false; `allowedHosts` bounds it |
+| `tls-check` becomes a DoS or cert-exhaustion vector | Negative-cached lookups + Caddy issuance rate limits |
+| Concurrent container boots race migrations | `pg_advisory_lock` around the whole sequence |
+| `output: "standalone"` mis-traces `pg` / `sharp` | Phase 2 builds and boots the image before anything depends on it |
+| Images bloat Postgres | 4 MB cap; S3 remains additive |
 
 ## Verification
 
 1. `npm run typecheck` and `npx next build` clean. (`npm run lint` is known
    broken on Next 16 and is not a gate.)
-2. **Single-tenant smoke, from an empty volume** — the primary flow:
-   `docker compose up` → `/setup` → post → comment → upvote → search → admin
-   → widget snippet embeds and submits from another origin.
-3. **Drawer auth acceptance test — merge blocker.** Serve a page on a
-   different site embedding the real widget, and entirely inside the drawer:
-   sign up, sign out, sign in; upvote and comment; reload and remain signed
-   in; sign in with a social provider via popup; then repeat with cookies
-   blocked for the board origin, and again with `localStorage` forced to
-   throw. Chrome and Firefox at minimum. The spike harness is the template.
-4. **Multi-tenant smoke**: `ROOT_DOMAIN` set, two tenants, behind the real
-   Caddy config — each resolves its own board, per-tenant certificates issue
-   on demand, the `ask` endpoint rejects unknown hosts, and a session on one
-   tenant is not a session on the other.
-5. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
-   posting and search still working.
-6. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
-   title.
-7. **Upgrade**: boot against a database created by the old Supabase schema;
-   migrations converge with no manual steps, and old Supabase image URLs in
-   existing posts still resolve.
+2. **Single-tenant smoke from an empty volume** — the primary flow:
+   `docker compose up` → `/setup` → post → comment → upvote → search → admin →
+   widget snippet embeds and submits from another origin.
+3. **Drawer auth acceptance test — merge blocker.** A page on a different site
+   embedding the real widget; entirely inside the drawer: sign up, sign out,
+   sign in; upvote and comment; reload and stay signed in; social sign-in via
+   popup; then repeat with cookies blocked for the board origin, and again
+   with `localStorage` forced to throw. Chrome and Firefox at minimum.
+   **The spike harness is committed as `scripts/drawer-auth-check.mjs`** — the
+   repo has no test runner, so an uncommitted manual procedure would rot.
+4. **Tenant isolation**: with two orgs seeded, a post id and a comment id from
+   org B are rejected when requested or upvoted while resolved to org A — all
+   four queries from §1, read and write.
+5. **Security regressions**, each an explicit test: `POST /api/user/upsert-user`
+   with a forged `userId` is rejected and cannot rename another user; `/setup`
+   without the setup code is rejected, and the code stops working once an org
+   is claimed; a second sign-in method on an existing email does not
+   auto-link; a bearer token captured before sign-out is rejected after it.
+6. **Multi-tenant**: two tenants behind the real Caddy config — each resolves
+   its own board; certs issue on demand; `tls-check` rejects unknown hosts,
+   accepts a uuid label, and accepts `api.ROOT_DOMAIN`; signing in on one
+   tenant does not sign you in on the other; and **social sign-in completes on
+   a tenant subdomain through `oAuthProxy` against a single registered
+   redirect URI**.
+7. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
+   posting and search still working, "load more" paging correctly under
+   `ILIKE`.
+8. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
+   title; then `backfill-embeddings` makes older keyless posts searchable.
+9. **Upgrade**: boot against a database created by the old Supabase schema;
+   migrations converge with no manual steps and legacy Supabase image URLs
+   still render.
+10. **Vercel**: deploy once with a pooled connection string; confirm the
+   documented upload cap behaviour.
