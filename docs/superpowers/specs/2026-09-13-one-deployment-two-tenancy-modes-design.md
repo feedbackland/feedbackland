@@ -942,6 +942,25 @@ accepted without AI moderation, titling or embedding — and the failure is
 logged for the operator rather than shown to the author. A moderation service
 that cannot be reached must never silently become a content ban.
 
+### Images must be sent, not linked
+
+Moderation currently passes image **URLs** (`image_url: { url }`), which means
+the provider fetches them. That assumption breaks twice over under this design:
+§4 makes stored image URLs **relative**, which no external service can resolve,
+and a self-hosted board on a private network or `localhost` is unreachable by a
+provider even with an absolute URL. Image moderation would fail silently for
+exactly the instances least able to notice.
+
+It also quietly asks a third party to crawl the instance, which sits badly
+beside the privacy position above.
+
+So images are **inlined as base64 data URLs**, bounded by a size limit, and
+skipped past it. That works identically on localhost, a private network and a
+public instance, requires the board to be reachable by nobody but its own
+users, and keeps the "what leaves the server" table exactly true — the bytes go
+directly to the provider, in the request, or not at all. The client-side
+downscale in §4 keeps the payload reasonable.
+
 ### Capability flag
 
 Runtime, surfaced on the existing `getOrg` payload (already fetched globally by
@@ -975,12 +994,58 @@ parameter is omitted when the base URL is overridden.
 ### Optional, but actively encouraged
 
 Optional must not mean hidden. A keyless instance is fully usable and is also
-missing the feature the product leads with, so the admin area shows a single
-dismissible card stating what a key unlocks (insights, Ask-AI, semantic search,
-auto-titling), that it costs cents for a small board, and that a local model
-works too. Admins only, never on the public board, and never on the posting
-path — the one place an upsell would be actively hostile to the person giving
-feedback.
+missing the feature the product leads with. But "turn this on" asks a
+self-hoster to send their users' feedback to a third party and to paste a
+credential into a box, and both deserve to be earned rather than assumed.
+
+**The trust position is structural, and every part of it is verifiable in this
+repository rather than merely asserted:**
+
+| Claim | How it is true |
+|---|---|
+| The key never reaches a browser | Every model call is server-side — `lib/utils-server.ts`, `queries/*`, `trpc/*`, `app/api/chat`. **No client component references it**, checked |
+| The key is never logged | No logging on any model code path, checked |
+| Feedbackland never sees the key, the traffic, or the data | On a self-hosted instance there is no Feedbackland server in the loop at all. The request goes from *your* server to *the provider you chose* |
+| Nothing phones home | **The source tree contains no analytics, telemetry or error-reporting SDK**, checked |
+| It is your account, your limits, your bill | You create the key, you set the spend cap, you revoke it |
+| Turning it off changes nothing you own | Remove the variable and the AI surfaces disappear; posts, comments and history stay exactly as they are |
+
+**What is actually sent, stated plainly.** This is the disclosure that matters
+most, and no earlier revision made it. A self-hoster running a private board
+needs to know their users' words leave the machine:
+
+| Feature | What leaves the server | When |
+|---|---|---|
+| Moderation | the post or comment text, and its images | every post and comment |
+| Title and category | the post text | every post |
+| Semantic search index | the title and text | every post and comment |
+| Search | the search query | each search |
+| Insights | every post title and body on the board | when insights are generated |
+| Ask-AI | the board's posts, plus your question | each question |
+| Improve draft | the draft text | only when the author asks |
+
+Nothing is sent when no model is configured, because none of those calls
+happen.
+
+**The recommendation ladder leads with the option where nothing leaves at
+all**, which is both the most trustworthy and the cheapest:
+
+1. **A local model** — Ollama or LM Studio via `LLM_BASE_URL`. Free, open
+   source, no account, no key, and **the feedback never leaves your machine.**
+   The honest cost is hardware, and a smaller, slower model.
+2. **A paid API key** — cents per month for a small board, best quality. The
+   table above applies: feedback goes to that provider under their terms.
+3. **Free API models** — genuinely $0, and the one to be careful about.
+   Providers cap them hard (OpenRouter allows roughly 50 requests a day below
+   $10 of credit, and a single post costs three calls), and **some free
+   endpoints are paid for with the prompts themselves — your users' feedback
+   may be used to train a model.** A real trade, stated as one rather than
+   buried under "free".
+
+The admin area carries a single dismissible card: what a key unlocks, those
+three options with the trade-off spelled out, and a link to the docs. Admins
+only, never on the public board, and never on the posting path — the one place
+an upsell would be actively hostile to the person giving feedback.
 
 **Adding a key later needs a backfill.** Posts created while keyless have
 `embedding = null` and would stay invisible to semantic search forever.

@@ -209,6 +209,107 @@ but it's worth keeping your own copy too.
 
 ---
 
+## Turn on AI
+
+Feedbackland works completely without this. Posting, commenting, voting,
+searching, the widget — all of it runs with nothing configured, and it always
+will.
+
+But AI is where this stops being a list of feedback and starts telling you
+things. With a model configured you get:
+
+- **Insights** — your whole board condensed into a ranked list of what people
+  actually need, scored by how many asked and how badly.
+- **Ask AI** — "what are people saying about pricing?", answered from your
+  feedback.
+- **Better search** — finds "can't log in" when someone wrote "authentication
+  broken".
+- **Automatic titles and categories** on every post.
+
+It is genuinely optional and honestly recommended — it's the difference between
+a feedback board and knowing what to build next.
+
+### First, the part that matters
+
+You're about to be asked to paste a key and to send your users' feedback
+somewhere. Here's exactly where you stand:
+
+- **The key stays on your server.** It's only ever used in server-side code,
+  never sent to a browser, and never written to logs.
+- **We never see any of it.** There is no Feedbackland server involved in your
+  installation. Requests go from your machine directly to whichever provider
+  you pick. We couldn't see your key or your feedback if we wanted to.
+- **Nothing phones home.** Feedbackland contains no analytics, no telemetry, no
+  error reporting. You can search the source for it.
+- **It's your account.** Your key, your spending limit, your usage dashboard.
+  Revoke it whenever you like.
+- **Turning it off costs you nothing.** Remove the setting and the AI features
+  disappear. Every post, comment and vote stays exactly where it was.
+
+**What actually gets sent, if you turn it on:**
+
+| Feature | What leaves your server |
+|---|---|
+| Moderation | the post or comment, and its images |
+| Titles and categories | the post text |
+| Search | your posts (to index them) and your search terms |
+| Insights | every post on the board |
+| Ask AI | your posts, plus your question |
+| Improve draft | the draft, only when the author clicks the button |
+
+With nothing configured, none of these requests happen at all.
+
+### Pick how you want to run it
+
+**Option 1 — a model on your own machine. Free, and nothing leaves it.**
+
+Install [Ollama](https://ollama.com), pull a model, and point Feedbackland at
+it:
+
+```
+LLM_BASE_URL=http://host.docker.internal:11434/v1
+LLM_MODEL=llama3.1
+```
+
+No account, no key, no data leaving your network. It's open source, it's free,
+and it's the right answer if your feedback is sensitive. The trade-off is
+honest: you need a reasonably capable machine, and a small local model won't
+match a large hosted one.
+
+**Option 2 — a hosted key. Cents a month, best results.**
+
+Create a key at [OpenRouter](https://openrouter.ai) — or any OpenAI-compatible
+provider — and set:
+
+```
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+Set a spending limit on the provider's side while you're there. For a board
+getting a few posts a day this costs small change.
+
+**Option 3 — free hosted models. Read this bit first.**
+
+Some providers offer models at no cost, and they're a reasonable way to try
+this out. Two things to know before you rely on them:
+
+- They're **heavily rate-limited** — OpenRouter allows roughly 50 requests a
+  day until you've bought $10 of credit, and a single post uses three.
+- On some free endpoints, **your prompts are the payment**: the text you send
+  may be used to train models. For feedback your users wrote in confidence,
+  that may not be a trade you want to make.
+
+If privacy matters more than convenience, Option 1 is free too — and nothing
+leaves your server.
+
+> [!TIP]
+> Already have posts from before you turned AI on? They won't appear in
+> semantic search until they're indexed. Run
+> `docker compose exec app node scripts/backfill-embeddings.mjs` once, and
+> they will.
+
+---
+
 ## Troubleshooting
 
 **The deploy failed, or the page won't load.**
@@ -250,9 +351,8 @@ own Postgres. Two things it needs:
 
 Everything here is optional — your board already works without any of it —
 and each is covered in the sections that follow this guide as they land.
+[Turning on AI](#turn-on-ai) is written up above.
 
-- **Turn on AI** — ranked insights, ask-questions-about-your-feedback, semantic
-  search and automatic titles. One setting, and it works with a local model too.
 - **Add the widget** — drop a feedback button into your own app.
 - **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.
 - **Sign in with Google**, alongside email and password.
