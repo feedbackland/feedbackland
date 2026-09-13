@@ -25,12 +25,15 @@ multi-tenancy is pure overhead for someone who wants one board.
 
 ## Goals
 
-1. **One codebase, one artefact, one set of technologies.**
-2. **Multi-tenant hosting is easy**: `<tenant>.example.com`, wildcard DNS, TLS
-   that provisions itself.
+1. **One codebase, one set of technologies, one application behaviour.**
+   Packaging differs by target; no application code branches on it.
+2. **Production keeps working as it does now**: multi-tenant on Vercel at
+   `<tenant>.feedbackland.com`, via a wildcard domain.
 3. **Single-tenant self-hosting is trivial** and is what everything else is
    optimised around: `docker compose up`, zero accounts, zero env values.
-4. **Minimal lock-in.** The only hard dependency is a Postgres database.
+4. **Minimal lock-in for self-hosters.** The only hard dependency is a
+   Postgres database. Production's dependence on Vercel is a deployment
+   choice, not something the code encodes — the same image runs anywhere.
 5. Sign-in works inside the drawer widget's cross-origin iframe — **proven**
    for both password and social paths (§3).
 
@@ -680,18 +683,44 @@ would fail — on a fresh install, with a cryptic error, long after setup
 appeared to succeed.
 
 `db/db.ts` currently constructs `new Pool({ connectionString })` with no
-search-path configuration at all. The fix is on the pool, so it holds for
-every connection regardless of who owns the database (a managed Postgres may
-not let the app `ALTER DATABASE`):
+search-path configuration at all.
+
+**The obvious fix is wrong**, and wrong specifically in production. Setting it
+per connection —
 
 ```ts
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-pool.on("connect", (c) => { void c.query("SET search_path TO public, extensions"); });
+pool.on("connect", (c) => c.query("SET search_path TO public, extensions")); // NO
 ```
 
+— works on Docker, where the app talks to Postgres directly, and **fails
+intermittently on Vercel**, which talks to a transaction-mode pooler. In
+transaction pooling a `SET` outside a transaction lands on whichever server
+connection happens to be assigned, does not persist once that connection
+returns to the pool, and can leak into an unrelated client's session. Passing
+`options=-c search_path=…` in the connection string is not a way out either:
+PgBouncer rejects the `options` startup parameter outright.
+
+The fix has to be a **server-side default**, applied by Postgres when the
+backend session starts, so it holds no matter which pooled connection serves a
+query. Migration `0001` sets it:
+
+```sql
+ALTER ROLE CURRENT_USER IN DATABASE CURRENT_DATABASE()
+  SET search_path = public, extensions;
+```
+
+A role may alter its own settings without superuser, so this works on managed
+Postgres as well as the bundled container. If a provider forbids even that,
+the bulletproof fallback is to stop depending on `search_path` at all by
+schema-qualifying the operator — `OPERATOR(extensions.<=>)` in a local helper
+replacing `pgvector/kysely`'s `cosineDistance` — which is immune to pooling,
+roles and privileges alike. That is the documented escape hatch, not the
+default, because it means owning a query helper.
+
 Verification 6 exercises a real search against a stock `pgvector/pgvector`
-container, not just an insert, because an insert-only test would pass while
-the feature was broken. Enums are wrapped in
+container **and** against a pooled connection, not just an insert: an
+insert-only test passes while the feature is broken, and a direct-connection
+test passes while production is broken. Enums are wrapped in
 `DO … EXCEPTION WHEN duplicate_object`; the Supabase storage statements move
 to a cloud-only file.
 
@@ -719,12 +748,45 @@ query could take the lock on one connection and release it on another. Holding
 one session also means a crashed migration releases the lock automatically on
 disconnect rather than wedging every future boot.
 
+**Migrations must use a direct connection, never a transaction pooler.** The
+same session-scoping that makes the advisory lock work makes it unsafe through
+PgBouncer or Supavisor in transaction mode, where the lock can be acquired on
+one backend and released on another — silently, with no error. So there are
+two connection strings in any pooled deployment:
+
+| | Runtime | Migrations |
+|---|---|---|
+| Vercel + managed Postgres | `DATABASE_URL` — **pooled** (e.g. Supabase `:6543`), because serverless opens many short-lived connections | `DIRECT_DATABASE_URL` — session mode (`:5432`) |
+| Docker | `DATABASE_URL` — direct; there is no pooler | falls back to `DATABASE_URL` |
+
+`DIRECT_DATABASE_URL` is optional and defaults to `DATABASE_URL`, so the
+self-hosted path stays a single value while production gets the split it
+needs.
+
 Ordering matters: the SQL migrations own the application schema, Better Auth
 owns `auth_*`, and neither creates the other's tables. The spike verified
 `runMigrations()` works programmatically at boot and is idempotent across
 restarts.
 
-The hosted deployment runs the same sequence.
+**Vercel runs the same sequence from the build command, not an entrypoint** —
+there isn't one. `"build": "node scripts/migrate.mjs && npm run build -w feedbackland-react && next build"`,
+using `DIRECT_DATABASE_URL`.
+
+Two guards matter there and neither is optional:
+
+- **Preview deployments must not migrate the production database.** Every
+  branch and pull request triggers a build, and by default those builds share
+  the project's environment variables. The migration step runs only when
+  `VERCEL_ENV === "production"`, otherwise a preview of a half-finished branch
+  rewrites the live schema.
+- **Concurrent production builds** are serialised by the same advisory lock as
+  container boots, which is why the lock is specified on the migration path
+  rather than in the Docker entrypoint.
+
+The generated-secret step is the one part that cannot run here: `BETTER_AUTH_SECRET`
+must be a Vercel environment variable (§3), and the app fails fast if it is
+missing rather than minting an ephemeral one that would invalidate every
+session on the next deploy.
 
 **`db/schema.ts` is generated, and regenerating it is a required step.** It
 comes from `npm run kysely-codegen` against a live database, so adding
@@ -753,6 +815,32 @@ rejected as inappropriate. Search is purely vector-based, so with no
 embeddings it returns nothing. A keyless instance today is not degraded — it
 is broken.
 
+### "Unavailable" is not "inappropriate"
+
+There is a live bug here that the keyless work must fix, and it is worse than
+the missing-key case. `isInappropriateCheck` ends with:
+
+```ts
+const content = data?.choices?.[0]?.message?.content;
+if (!content) return true;          // ← any provider failure reads as "inappropriate"
+```
+
+Every non-answer from the provider — an expired key, an exhausted balance, a
+429, a model outage, a network blip — returns `true`, and
+`createFeedbackPostQuery` turns that into `throw new Error("inappropriate-content")`.
+**So an OpenRouter key that runs out of credit silently rejects every post and
+comment on the board, telling authors their feedback is inappropriate.** On a
+feedback product that is close to the worst possible failure: it looks like
+censorship, it is invisible to the operator, and nothing in the UI hints at
+billing.
+
+The fix is the same distinction the whole section is built on. Moderation has
+three outcomes, not two: *allowed*, *refused*, and **unavailable**. Unavailable
+degrades to the keyless path — the post is accepted without AI moderation,
+titling or embedding — exactly as if no key were configured, and the failure is
+logged for the operator rather than shown to the author. A moderation service
+that cannot be reached must never be able to silently become a content ban.
+
 The capability flag is **runtime**, surfaced on the existing `getOrg` payload
 (already fetched globally by `useOrg`). It is not simply `!!OPENROUTER_API_KEY`
 — a local model needs no key:
@@ -779,6 +867,16 @@ never selected — a silently broken "load more".
 OpenRouter URLs configurable (Ollama, LM Studio, vLLM). The OpenRouter-specific
 `reasoning` parameter is omitted when the base URL is overridden.
 
+### Optional, but actively encouraged
+
+Optional must not mean hidden. A keyless instance is fully usable, and it is
+also missing the feature the product leads with, so the admin area shows a
+single dismissible card stating what a key unlocks (insights, Ask-AI, semantic
+search, auto-titling), that it costs cents for a small board, and that a local
+model via `LLM_BASE_URL` works too. It appears only for admins, never on the
+public board, and never as a nag on the posting path — the one place where an
+upsell would be actively hostile to the person giving feedback.
+
 **Adding a key later needs a backfill.** Posts created while keyless have
 `embedding = null` and would stay invisible to semantic search forever.
 `docker compose exec app node scripts/backfill-embeddings.mjs` embeds every
@@ -786,11 +884,36 @@ row with a null vector, and the AI section of the docs points at it.
 
 ## §7 — Packaging
 
+There are two first-class targets, and neither is a footnote:
+
+- **Vercel** hosts the production multi-tenant platform at
+  `<tenant>.feedbackland.com`, as it does today.
+- **Docker** is what a self-hoster runs, single tenant, and is the flow
+  everything else is optimised around.
+
+One codebase and one application behaviour; only *packaging* differs. That
+distinction matters — it is not the two-build-profile design this supersedes,
+because no application code branches on the target.
+
+### `output: "standalone"` must be conditional
+
+Standalone output is for self-hosted and Docker deployments. Vercel builds
+through its own pipeline, and setting `output: "standalone"` there is at best
+ignored and at worst breaks the deployment — it is a documented cause of
+builds that succeed and then fail to serve. So:
+
+```ts
+output: process.env.BUILD_TARGET === "docker" ? "standalone" : undefined,
+```
+
+The Dockerfile sets `BUILD_TARGET=docker`; Vercel sets nothing. This is a
+packaging switch with no effect on application behaviour, which is why it does
+not reintroduce the profile split.
+
 ### The image
 
-Multi-stage, `output: "standalone"`, non-root, published to GHCR by CI on tag.
-No `sharp` unless the build asks for it (§4 turns image optimization off
-entirely).
+Multi-stage, non-root, published to GHCR by CI on tag. No `sharp` unless the
+build asks for it (§4 turns image optimization off entirely).
 
 **The build stage must install dev dependencies and build the workspace.**
 `components/app/widget-docs/index.tsx` imports `FeedbackButton` from
@@ -855,7 +978,35 @@ silently if it does not:
   arrives all at once after a long pause, which reads as "the AI is broken"
   rather than as a proxy setting.
 
-### Recipe 3 — multi-tenant platform
+### Recipe 3 — multi-tenant on Vercel (this is production)
+
+`feedbackland.com` stays on Vercel. Host-based tenancy (§1) is what makes this
+work unchanged: a wildcard domain `*.feedbackland.com` added to the project
+routes every tenant to the same deployment, and Vercel issues a certificate
+per subdomain automatically. Nothing in the application knows it is on Vercel.
+
+Four platform facts this depends on, each verified rather than assumed:
+
+| Fact | Consequence for this design |
+|---|---|
+| Wildcard domains require the domain's **nameservers to be Vercel's** (certs are issued via DNS-01) | A one-time DNS setup, already true for the live deployment. The only production-side lock-in, and it is DNS, not code |
+| Serverless request bodies are capped at **4.5 MB** | `MAX_IMAGE_BYTES` defaults to 4 MB so one value is safe on every host (§4) |
+| `maxDuration` is 300 s on Hobby and 800 s on Pro **with Fluid compute**, which is the default for new projects | The existing `maxDuration = 300` on the tRPC route is within range; insights do not need re-architecting |
+| Each function instance opens its own connections | Runtime uses the **pooled** `DATABASE_URL`; migrations use `DIRECT_DATABASE_URL` (§5) |
+
+Streaming (Ask-AI) and `headers()` work natively, and `images.unoptimized`
+(§4) additionally takes the platform's image-optimization billing out of the
+picture.
+
+The one thing Vercel cannot do is run an entrypoint, which is why migrations
+and the generated secret are handled as described in §5 and §3.
+
+### Recipe 4 — multi-tenant self-hosted (optional, advanced)
+
+Explicitly the lowest-priority path: self-hosters overwhelmingly want one
+board, and production multi-tenancy is Vercel's job above. It is documented
+because it falls out of host-based tenancy almost for free, and it is kept out
+of the critical path so its complexity never lands on a single-tenant user.
 
 Set `ROOT_DOMAIN`, point wildcard DNS at the host, and let Caddy issue
 **per-tenant certificates on demand** — no wildcard certificate and no
@@ -898,13 +1049,17 @@ requests. It is a yes/no oracle for "does this tenant exist", and while tenant
 slugs are semi-public by nature — they are URLs — there is no reason to publish
 an enumeration endpoint for them.
 
-### Vercel — supported, with stated limits
+### A cost note on images, stated rather than buried
 
-Still a plain Next.js app, and still documented. Two limits are now explicit
-rather than implied: image uploads are bounded by the **4.5 MB function body
-limit** (hence the 4 MB default cap), and a direct `DATABASE_URL` will exhaust
-connections without a pooler, so a pooled connection string is required.
-Nothing depends on Vercel.
+Today images are served from Supabase Storage's CDN, free of the application.
+After §4 they come from Postgres through `/api/images/:id`, which on Vercel is
+a function invocation plus database egress on every cache miss. The immutable
+cache header means the edge absorbs the steady state, so this is acceptable —
+but it is a real change in the production cost shape, and it is the strongest
+argument for the S3-compatible adapter that §4 lists as additive. Keeping
+Supabase Storage for production only was rejected deliberately: it would mean
+the hosted product and the self-hosted product no longer run the same code,
+which is the thing this whole design exists to avoid.
 
 ## §8 — First run
 
@@ -1000,7 +1155,9 @@ Nothing below is required for `docker compose up` to work.
 
 | Variable | Default | Effect |
 |---|---|---|
-| `DATABASE_URL` | set by compose | **The only hard dependency.** |
+| `DATABASE_URL` | set by compose | **The only hard dependency.** Pooled, where a pooler exists |
+| `DIRECT_DATABASE_URL` | `DATABASE_URL` | Session-mode URL for migrations; required wherever `DATABASE_URL` is a transaction pooler (§5) |
+| `BUILD_TARGET` | unset | `docker` selects `output: "standalone"`; build-time only |
 | `ROOT_DOMAIN` | unset | Set ⇒ multi-tenant at `*.ROOT_DOMAIN`; unset ⇒ single tenant |
 | `APP_URL` | inferred | Pins the public origin behind a proxy |
 | `TRUST_PROXY` | `false` | Honour `x-forwarded-host`/`-proto`/`-for`; set by the Caddy recipes |
@@ -1077,7 +1234,15 @@ verifiable.
 | 6 | Postgres image storage; all board images `unoptimized`; drop `remotePatterns` | New uploads work; legacy Supabase images still render |
 | 7 | AI optional + BYO endpoint + backfill script | Keyless instance fully usable, paging included |
 | 8 | First-run `/setup` + setup code; `/signup`; remove claim wizard | Fresh volume → admin in one form; `/setup` refuses without the code |
-| 9 | Caddy recipes + `tls-check` + `oAuthProxy`; docs rewrite | Multi-tenant behind real Caddy; per-tenant certs; social sign-in on a subdomain |
+| 9 | **Vercel production path**: conditional `standalone`, migrations in the build command with the `VERCEL_ENV` guard, pooled vs direct URLs, `oAuthProxy` | Preview project on a wildcard domain: two tenants, search through the pooler, social sign-in on a subdomain, preview builds do not migrate |
+| 10 | Optional self-hosted multi-tenant: Caddy recipe + `tls-check`; docs rewrite | Per-tenant certs on demand; `tls-check` accepts uuid and `api.` labels |
+
+**Migrations must stay backward compatible for one release.** On Vercel they
+run in the build, *before* the new deployment serves traffic, so the previous
+version briefly runs against the new schema; during a rollout both versions
+are live at once. Every migration here is additive (new tables, a widened FK
+rule, a role setting) and none drops or renames a column the previous release
+reads — expand now, contract in a later release, never both in one deploy.
 
 **Tenancy precedes auth deliberately.** An earlier ordering put auth first,
 but phase 4's `upsert-user` fix derives the org from `Host`, which only exists
@@ -1107,10 +1272,15 @@ the previous image. Phases 5–9 are code-only again.
 | `tls-check` becomes a DoS or cert-exhaustion vector | Negative-cached lookups + Caddy issuance rate limits |
 | Concurrent container boots race migrations | `pg_advisory_lock` around the whole sequence |
 | `output: "standalone"` mis-traces `pg` or a native dep | Phase 2 builds and boots the image before anything depends on it |
-| pgvector reachable in DDL but not at runtime | `search_path` set on every pooled connection; verification searches for real rather than only inserting (§5) |
+| pgvector reachable in DDL but not at runtime | Server-side `ALTER ROLE … SET search_path`, **not** a per-connection `SET`, which a transaction pooler drops or leaks; verification searches for real, through a pooler (§5) |
+| Advisory lock taken and released on different backends through a pooler | Migrations run on `DIRECT_DATABASE_URL` in session mode (§5) |
+| A preview deployment migrates the production database | Migration step guarded on `VERCEL_ENV === "production"` (§5) |
+| `output: "standalone"` breaks the Vercel deployment | Emitted only when `BUILD_TARGET=docker` (§7) |
 | Auth rate limiting keyed to the proxy IP, locking out all users | `advanced.ipAddress.headers` set only under `TRUST_PROXY`; limits stored in the database (§3) |
 | `/admin` clickjacked through an iframe | Per-route `frame-ancestors`; board stays `*`, admin and auth `'none'` (§2) |
 | Images bloat Postgres | 4 MB cap; S3 remains additive |
+| An exhausted or invalid LLM key rejects every post as "inappropriate" | Moderation gains a third outcome, *unavailable*, which degrades to the keyless path and is logged, never surfaced as a content ban (§6) |
+| Serving images from Postgres changes production cost shape | Immutable edge caching absorbs the steady state; S3 adapter is the escape valve, and keeping Supabase for production only was rejected to preserve one codebase (§7) |
 
 ## Verification
 
@@ -1152,10 +1322,21 @@ the previous image. Phases 5–9 are code-only again.
 8. **Keyless**: everything in 2 with no LLM configured; AI surfaces absent,
    posting and search still working, "load more" paging correctly under
    `ILIKE`.
+8a. **Broken key, not absent key** — the case that is live today: configure an
+   invalid or exhausted `OPENROUTER_API_KEY` and confirm a post is **accepted**
+   without AI enrichment and the failure is logged, rather than rejected as
+   `inappropriate-content`. Repeat for comments, and for a provider returning
+   429 and 402.
 9. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
    title; then `backfill-embeddings` makes older keyless posts searchable.
 10. **Upgrade**: boot against a database created by the old Supabase schema;
    migrations converge with no manual steps and legacy Supabase image URLs
    still render.
-11. **Vercel**: deploy once with a pooled connection string; confirm the
-   documented upload cap behaviour.
+11. **Production on Vercel — a first-class gate, not a spot check.** Deploy the
+   branch to a Vercel preview project with its own database: the build runs
+   migrations against `DIRECT_DATABASE_URL` while the app runs on the pooled
+   one; **semantic search works through the pooler** (the case a direct
+   connection would hide); a wildcard domain resolves two tenants; social
+   sign-in completes on a tenant subdomain; Ask-AI streams incrementally;
+   insight generation completes inside `maxDuration`; an upload just under
+   4 MB succeeds. Confirm a preview build does **not** run migrations.
