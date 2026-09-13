@@ -986,10 +986,35 @@ referencing a column that is never selected — a silently broken "load more".
 
 ### Bring your own endpoint
 
-`LLM_BASE_URL`, `LLM_MODEL` and `LLM_EMBEDDING_MODEL` make the four hard-coded
-OpenRouter URLs configurable, so Ollama, LM Studio or vLLM work and an instance
-can have no external dependency at all. The OpenRouter-specific `reasoning`
-parameter is omitted when the base URL is overridden.
+`LLM_BASE_URL`, `LLM_MODEL` and `LLM_EMBEDDING_MODEL` point every model call at
+any OpenAI-compatible endpoint, so Ollama, LM Studio or vLLM work and an
+instance can have no external dependency at all.
+
+**An earlier revision described this as "the four hard-coded OpenRouter URLs"
+and was wrong twice over.** There are **five** `fetch` call sites —
+`lib/utils-server.ts` (embeddings *and* moderation),
+`queries/create-feedback-post.ts`, `trpc/generate-insights.ts` and
+`trpc/rewrite-feedback.ts` — and, more seriously, a sixth coupling of a
+different kind that no revision mentioned:
+
+**Ask-AI does not use `fetch` at all.** `app/api/chat/route.ts` imports
+`createOpenRouter` from `@openrouter/ai-sdk-provider` and passes
+OpenRouter-specific provider options (`cacheControl`, `reasoning`). Setting
+`LLM_BASE_URL` to a local Ollama would redirect the other five calls and leave
+**Ask-AI still talking to OpenRouter, or failing** — the single feature most
+likely to be used, silently exempt from the promise the section makes.
+
+So the SDK goes. `@ai-sdk/openai` is **already a dependency** and its
+`createOpenAI({ baseURL, apiKey })` speaks plain OpenAI-compatible HTTP, which
+OpenRouter also serves — so one provider covers both the hosted and the local
+case, and `@openrouter/ai-sdk-provider` is removed from `package.json`
+entirely. Provider-specific options (`reasoning`, `cacheControl`) are sent
+**only when the configured endpoint is OpenRouter**, since a local model will
+reject or ignore them.
+
+The test for this is not "does it compile" but verification 10: point
+`LLM_BASE_URL` at Ollama and confirm **Ask-AI answers**, not merely that a post
+gets a title.
 
 ### Optional, but actively encouraged
 
@@ -1157,9 +1182,10 @@ external dependency that remains after this work, and what is done about each:
 | **Google Fonts** | **build** | `app/layout.tsx` uses `next/font/google` for Inter and Roboto Mono. **Fixed** — see below |
 | **npm registry** | build | Unavoidable for any Node project |
 | **GHCR** | distribution | Convenience only. The Dockerfile is in the repo; `docker compose build` needs no registry |
-| **OpenRouter** | runtime, optional | Off by default, and `LLM_BASE_URL` points at Ollama or anything OpenAI-compatible (§6) |
+| **OpenRouter** | runtime, optional | Off by default, and `LLM_BASE_URL` points at Ollama or anything OpenAI-compatible. **Its SDK is removed** — see §6, which found Ask-AI hard-wired to it |
 | **Caddy / Let's Encrypt** | optional recipe | Open source, swappable; any reverse proxy works (below) |
 | **Vercel, Supabase** | production only | A deployment choice the code does not encode. Verified: after this work **zero `NEXT_PUBLIC_*` variables remain** — every current use is in a file being deleted or rewritten |
+| **feedbackland.com**, from the widget | never, when configured | The published widget falls back to `<platformId>.feedbackland.com` and `api.feedbackland.com` only when given no `url`. The admin Widget page always emits `url` for a self-hosted board (§9), so **a self-hoster's widget, running on their customers' sites, never contacts us** |
 
 **Google Fonts is the one genuine leftover, and it is removable.** `next/font/google`
 downloads Inter and Roboto Mono **at build time**; Next then self-hosts them,
@@ -1189,6 +1215,23 @@ sign-in path depends on behaviour verified against **1.7.4** specifically. A
 caret range could change that contract in a patch release, and the failure
 would appear only inside a third-party iframe — the hardest place to notice.
 Upgrades are deliberate and re-run verification 3.
+
+**Four vendor packages leave `package.json` outright**:
+`@openrouter/ai-sdk-provider`, `@supabase/supabase-js`, `firebase` and
+`firebase-admin`. A dependency that is merely unused still signals a
+dependency, still ships in installs, and still invites someone to reach for it.
+
+**Two smaller pieces of vendor residue go with them.** The repository carries a
+`supabase/` directory of CLI temp files — including a `project-ref` that
+identifies a specific Supabase project — and a `schema-dump` npm script that
+shells out to the Supabase CLI. Both are obsolete once migrations are the
+source of truth (§5), and the directory should not have been committed.
+
+`VERCEL_ENV` is still consulted to keep preview builds from migrating (§5), but
+the check moves **inside `scripts/migrate.mjs`** rather than sitting in the
+shared `build` script, so `package.json` carries no platform-specific command.
+`maxDuration` stays: it is a Vercel-only hint that is inert everywhere else,
+and removing it would cost production its insight-generation headroom.
 
 **The container needs no writable filesystem** beyond `/tmp`: nothing is stored
 on disk, image optimization is off, and there is no ISR. It can therefore run
@@ -1636,7 +1679,9 @@ found by tracing an actual execution path.
 `hooks/{use-subdomain,use-maindomain,use-vercel-url,use-is-self-hosted,use-sse}.ts`;
 `providers/iframe.tsx` + `iframeParentAtom`; `app/api/org/[orgId]/`;
 **`app/api/user/upsert-user/`**; `app/get-started/`;
-`app/[orgSubdomain]/claim/`; `app/design-preview/`.
+`app/[orgSubdomain]/claim/`; `app/design-preview/`; the committed `supabase/`
+CLI directory; the `schema-dump` npm script; and the `@openrouter/ai-sdk-provider`,
+`@supabase/supabase-js`, `firebase` and `firebase-admin` dependencies.
 
 ## Delivery plan
 
@@ -1684,6 +1729,8 @@ point before launch — which is the single largest risk reduction in this plan.
 | `/admin` clickjacked through an iframe | Per-route `frame-ancestors`; board stays `*` (§2) |
 | `/setup` hijacked on an exposed instance | Setup code always required; no reliance on a spoofable header |
 | An exhausted or invalid LLM key rejects every post as "inappropriate" | Moderation gains a third outcome, *unavailable*, degrading to the keyless path (§6) |
+| "Bring your own endpoint" silently excludes Ask-AI, which uses OpenRouter's SDK rather than `fetch` | SDK replaced with the generic `@ai-sdk/openai` provider already in the tree; verification 10 asserts **no request reaches openrouter.ai** with a local model configured (§6) |
+| Unused vendor SDKs linger in `package.json` and invite reuse | `@openrouter/ai-sdk-provider`, `@supabase/supabase-js`, `firebase`, `firebase-admin` removed outright, along with the committed `supabase/` CLI directory and its `project-ref` (§7) |
 | Demo credentials shipped to the browser | Server-only `/api/demo-session` mints a bearer token, rate-limited (§12) |
 | A build that needs Google reachable, breaking offline/air-gapped builds | Inter and Roboto Mono vendored and loaded with `next/font/local` (§7) |
 | A `better-auth` patch release changes the popup message contract, breaking sign-in only inside an iframe | Exact version pin; upgrades re-run verification 3 (§7) |
@@ -1763,8 +1810,12 @@ point before launch — which is the single largest risk reduction in this plan.
 9. **Broken key, not absent key**: an invalid or exhausted `OPENROUTER_API_KEY`
    leaves a post **accepted** without AI enrichment and logged, rather than
    rejected as `inappropriate-content`. Repeat for comments, 429 and 402.
-10. **Local model**: `LLM_BASE_URL` at Ollama; post creation produces an AI
-    title; then `backfill-embeddings` makes older keyless posts searchable.
+10. **Local model — the real vendor-neutrality test**: `LLM_BASE_URL` at
+    Ollama, no OpenRouter key present, and **no outbound request to
+    openrouter.ai at all** (watch the network). Post creation produces an AI
+    title, search finds a semantically-related post, **and Ask-AI answers** —
+    the last being the one that was hard-wired to OpenRouter's SDK (§6). Then
+    `backfill-embeddings` makes older keyless posts searchable.
 11. **Production on Vercel — a first-class gate.** Deploy to a Vercel preview
     project with its own Supabase database: the build runs migrations against
     `DIRECT_DATABASE_URL` while the app runs on the pooled one; **semantic
