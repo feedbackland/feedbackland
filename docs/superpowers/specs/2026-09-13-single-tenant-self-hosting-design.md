@@ -261,16 +261,54 @@ The conclusion is not that cookies are degraded in the drawer — they are
 is dropped is exactly the trap that makes this worth testing rather than
 assuming.
 
-Bearer-token-in-`Authorization` is therefore mandatory, which is also why the
-current Firebase integration works: it persists to IndexedDB and sends an ID
-token in a header. **Better Auth must be configured so no auth path depends on
-its cookie**, i.e. the `bearer` plugin governs sign-in, `getSession` and
-refresh alike — not just the initial sign-in response.
-
 CSRF is not the issue people expect it to be here: the iframe document is
 served *from* the board's own origin, so its `fetch` calls to `/api/auth/*`
 are same-origin and carry the board's own `Origin`. `trustedOrigins` needs
 the board origin only, not every customer domain.
+
+### End-to-end proof with real Better Auth
+
+Storage primitives working is a weaker claim than *Better Auth working*, so
+the actual stack was run under the actual embedding conditions before
+committing to it: better-auth **1.7.4** with `bearer()`, a real browser, and
+the board framed by a different site using **the exact `sandbox` attribute the
+shipped widget sets** (`allow-scripts allow-same-origin allow-forms
+allow-popups allow-popups-to-escape-sandbox`, from `OverlayWidget.tsx`).
+`allow-same-origin` is what preserves the frame's origin and therefore its
+storage; without it none of this would hold.
+
+| # | Check, performed **inside** the cross-site sandboxed frame | Result |
+|---|---|---|
+| 1 | `signUp.email` | succeeds, `set-auth-token` returned |
+| 2 | Protected endpoint via `auth.api.getSession({ headers })` | **200**, correct user |
+| 3 | Reload host page, restore from token store | session restored |
+| 4 | `authClient.getSession()` after reload | returns the user — **bearer only, no cookie** |
+| 5 | **Clear the token**, then retry 2 and 4 | `getSession` null, endpoint **401** |
+| 6 | `signIn` → protected call → `signOut` → protected call | 200 then 401 |
+| 7 | `localStorage` forced to throw `SecurityError` | falls back to memory, **sign-in still works**, endpoint 200 |
+
+**Check 5 is the one that removes all doubt.** Better Auth's session cookie is
+`HttpOnly`, so `document.cookie` reading empty proves nothing on its own — JS
+cannot see an HttpOnly cookie, and the whole suite could have been passing on
+a hidden cookie rather than the token. Destroying the token and watching the
+session die with it (401) is what proves the bearer token is carrying the
+session and nothing else is.
+
+So the answer to "does `getSession` secretly fall back to a cookie" is
+measured, not hoped for: it does not.
+
+**Limits of this evidence, stated plainly.** The spike ran on SQLite rather
+than Postgres — the DB sits behind Better Auth's adapter layer and is not
+involved in any of the cookie/bearer/iframe semantics above, but the Postgres
+build still gets smoke-tested during implementation. It ran on Chrome on
+Windows over HTTP; production is HTTPS, which changes nothing here because no
+cookie is involved (HTTPS only matters for `SameSite=None`, which we do not
+use). Firefox and Safari were not driven directly — check 7 is what stands in
+for Safari's stricter behaviour, and it passes.
+
+As a side effect the spike also validated §5's claim that
+`getMigrations(auth.options).runMigrations()` works programmatically at boot
+and is idempotent across restarts.
 
 ### Token store
 
@@ -612,8 +650,9 @@ Dockerfile, .dockerignore, compose.yml, compose.tls.yml
 | Turbopack `resolveAlias` does not resolve `@/...` specifiers to relative files | Spike it before anything depends on it; codegen fallback described above |
 | Moving cloud code behind ports regresses the hosted product | Cloud adapters are verbatim moves; both profiles must pass `tsc --noEmit` + `next build`; manual smoke of the hosted board before merge |
 | `output: "standalone"` mis-traces `firebase-admin`, `pg` or `pgvector` | Build and boot the image early, in its own step, not at the end |
-| Better Auth's bearer flow fails inside the third-party iframe | Storage primitives measured in Chrome (see §3) — `localStorage` works and persists, cookies are blocked outright. Acceptance test 3a below is a **merge blocker**, and the auth adapter is built drawer-first: the embedded case is the one implemented and tested first, with the standalone board treated as the easy case |
-| Better Auth falls back to its cookie somewhere (`getSession`, refresh) and only the embedded case breaks | Assert in the acceptance test that sign-in works with cookies **fully disabled** for the board origin, so any hidden cookie dependence fails loudly instead of silently working in dev |
+| Better Auth's bearer flow fails inside the third-party iframe | **Retired.** Proven end-to-end against better-auth 1.7.4 in a sandboxed cross-site frame using the widget's exact sandbox attribute — see the evidence table in §3. Acceptance test 3a re-runs it against Postgres and the real board |
+| Better Auth falls back to its cookie somewhere (`getSession`, refresh) and only the embedded case breaks | **Retired.** Clearing the bearer token drops the session to 401, which rules out a hidden `HttpOnly` cookie carrying it (§3, check 5) |
+| The widget's iframe `sandbox` omits `allow-same-origin` in some future change, killing storage | `allow-same-origin` is load-bearing for auth, not incidental. Noted in `OverlayWidget.tsx`'s sandbox comment and asserted by acceptance test 3a |
 | Auto-generated `BETTER_AUTH_SECRET` in the database | Documented, env-overridable; sessions are DB rows and are invalidated with the secret |
 | Images in Postgres bloat the database | Size cap per upload, documented; an S3 adapter is a future port implementation, not a rewrite |
 | Keyless instances silently lose semantic search quality | `ILIKE` fallback is documented as a limitation in the AI section of the docs |
