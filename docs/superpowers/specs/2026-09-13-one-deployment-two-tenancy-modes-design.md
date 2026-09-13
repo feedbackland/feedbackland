@@ -88,8 +88,8 @@ the riskiest mechanism in that plan.
                         │  (Supabase in production)  │
                         └────────────────────────────┘
 
-   ROOT_DOMAIN unset          →  single tenant   (self-hoster default)
-   ROOT_DOMAIN=example.com    →  multi tenant    (<tenant>.example.com)
+   MULTI_TENANT_ROOT_DOMAIN unset          →  single tenant   (self-hoster default)
+   MULTI_TENANT_ROOT_DOMAIN=example.com    →  multi tenant    (<tenant>.example.com)
 ```
 
 **Tenancy is a runtime mode, not a build flag.**
@@ -104,14 +104,30 @@ for localhost and `*.vercel.app`. All three collapse into one rule:
 > tells the server which tenant it is.
 
 ```
-ROOT_DOMAIN unset            → the single org (cached); Host ignored
-ROOT_DOMAIN set:
-  host == ROOT_DOMAIN / www  → no tenant (signup)
-  <label>.ROOT_DOMAIN:
+MULTI_TENANT_ROOT_DOMAIN unset            → the single org (cached); Host ignored
+MULTI_TENANT_ROOT_DOMAIN set:
+  host == MULTI_TENANT_ROOT_DOMAIN / www  → no tenant (signup)
+  <label>.MULTI_TENANT_ROOT_DOMAIN:
       label reserved         → no tenant
       label is a uuid v4     → org by id
       otherwise              → org by orgSubdomain
 ```
+
+**The switch is named `MULTI_TENANT_ROOT_DOMAIN`, not `ROOT_DOMAIN`, and that
+is a deliberate correction.** An earlier revision called it `ROOT_DOMAIN`,
+which is a trap for exactly the person this design is optimised for: a
+self-hoster standing up `feedback.acme.com` would very reasonably set
+`ROOT_DOMAIN=feedback.acme.com`, meaning "this is my domain" — and silently
+switch the instance into multi-tenant mode. Their board would then resolve no
+tenant, `/` would redirect to `/signup`, and the failure would look like the
+product being broken rather than like a setting.
+
+The variable a self-hoster wants for their own domain is `APP_URL`. Multi-tenancy
+is opt-in under a name nobody sets by accident, and an instance that never sets
+it never has a tenant concept at all: `/signup` 404s, the subdomain field is
+absent from settings, the uuid→slug redirect below is inert, and
+`reservedSubdomains` is never consulted. **Single-tenant self-hosting has no
+subdomains in it anywhere.**
 
 The host is normalised first: lower-cased, port stripped, trailing dot
 removed. `ACME.Example.com`, `acme.example.com:3000` and `acme.example.com.`
@@ -130,7 +146,7 @@ today's list still contains `get-started` (a route being removed) and omits
 Local multi-tenant development uses `acme.localhost:3000`; browsers resolve
 `*.localhost` to loopback, which replaces subdir mode outright.
 
-**The uuid → slug redirect stays.** Host-based resolution can serve
+**The uuid → slug redirect stays — in multi-tenant mode only.** Host-based resolution can serve
 `<orgId>.feedbackland.com` directly, which makes the existing redirect look
 redundant. It is not: the published widget builds
 `https://<platformId>.feedbackland.com` and the popover renders "view all
@@ -138,7 +154,9 @@ feedback" links to that origin, so without the redirect a visitor who follows
 one lands on a raw-uuid hostname instead of the tenant's branded URL. It moves
 out of `proxy.ts` into the `(board)` layout — when the host is a uuid label
 and the resolved org has a different slug, redirect to the slug host
-preserving path and query.
+preserving path and query. In single-tenant mode there are no uuid hosts and
+no slugs to canonicalise, so the branch never runs; it is gated on the mode
+rather than left to coincidentally no-op.
 
 ### Security fix: deleting `/api/user/upsert-user`
 
@@ -464,7 +482,7 @@ mechanics above do not help, because the failure is at the provider's
 registration check.
 
 Better Auth ships `oAuthProxy` for exactly this. In multi-tenant mode a single
-redirect URI is registered against `ROOT_DOMAIN`, and the plugin relays the
+redirect URI is registered against `MULTI_TENANT_ROOT_DOMAIN`, and the plugin relays the
 callback back to the tenant origin that started the flow, with an encrypted
 payload and a short `maxAge` against replay. Single-tenant instances have one
 origin and one redirect URI, so the plugin is not enabled there.
@@ -547,11 +565,11 @@ Each tenant board is its own origin, which Better Auth supports natively:
 
 ```ts
 baseURL: {
-  allowedHosts: [ROOT_DOMAIN, `*.${ROOT_DOMAIN}`],
-  fallback: `https://${ROOT_DOMAIN}`,
+  allowedHosts: [MULTI_TENANT_ROOT_DOMAIN, `*.${MULTI_TENANT_ROOT_DOMAIN}`],
+  fallback: `https://${MULTI_TENANT_ROOT_DOMAIN}`,
   protocol: "https",
 },
-trustedOrigins: [`https://${ROOT_DOMAIN}`, `https://*.${ROOT_DOMAIN}`],
+trustedOrigins: [`https://${MULTI_TENANT_ROOT_DOMAIN}`, `https://*.${MULTI_TENANT_ROOT_DOMAIN}`],
 ```
 
 Wildcard patterns are supported by `matchesOriginPattern`. In single-tenant
@@ -945,8 +963,24 @@ build runs `tsc -b` + vite under `typescript@7`, which relies on the
 the build stage. The runner stage then copies only `.next/standalone`,
 `.next/static` and `public`.
 
-`next/font/google` downloads at build time, so the build stage needs network;
-the runtime does not.
+With fonts vendored (see "The complete vendor surface" below) the build needs
+no network beyond the npm registry, and the runtime needs none at all.
+
+### Binding: the mistake that makes a container unreachable
+
+`ENV HOSTNAME="0.0.0.0"` is **mandatory** in the Dockerfile, and its absence is
+the most common way a Next standalone container fails. Without it the
+standalone server resolves the machine's hostname — inside Docker that is the
+container id — and binds there. The process starts, the logs look perfectly
+healthy, and **nothing can reach it**. It presents as "the image is broken",
+which for a self-hosting audience is the worst possible first impression.
+
+`ENV PORT=3000` sets the default, and Next's standalone server honours
+`process.env.PORT`, so platforms that inject their own — Cloud Run, Railway,
+Render, Fly — work unmodified because the runtime value wins over the image
+default. Those two lines plus the health endpoint are the entire contract a
+platform needs, which is what makes "runs anywhere" true rather than
+aspirational.
 
 **The image must be multi-architecture.** A large share of self-hosters develop
 on Apple Silicon, and an `amd64`-only image either refuses to run or crawls
@@ -973,6 +1007,16 @@ LLM is configured — and rejected: the columns and HNSW indexes are in the base
 schema, and conditional DDL would fork the schema between installs for a
 shrinking minority. pgvector is available on RDS, Cloud SQL, Neon, Supabase and
 every mainstream managed Postgres.
+
+**TLS is the other bring-your-own-Postgres snag, and it is already a known
+one** — the current guide carries a troubleshooting entry for it. Managed
+providers commonly require encrypted connections, and `pg` will not negotiate
+one by default, so `?sslmode=require` on the connection string is documented in
+the env reference rather than left in a troubleshooting appendix where someone
+meets it only after a confusing failure. Providers presenting a self-signed or
+private CA need the CA supplied instead of disabling verification; both are
+documented, and the bundled compose needs neither because the app and database
+share a private network.
 
 ### The complete vendor surface, enumerated
 
@@ -1109,7 +1153,7 @@ board, and production multi-tenancy is Vercel's job. Documented because it
 falls out of host-based tenancy almost for free, and kept off the critical path
 so its complexity never lands on a single-tenant user.
 
-Set `ROOT_DOMAIN`, point wildcard DNS at the host, and let Caddy issue
+Set `MULTI_TENANT_ROOT_DOMAIN`, point wildcard DNS at the host, and let Caddy issue
 **per-tenant certificates on demand** — no wildcard certificate and no
 DNS-provider API token:
 
@@ -1125,11 +1169,11 @@ with `on_demand_tls { ask http://app:3000/api/tls-check }` plus Caddy's
 **`GET /api/tls-check?domain=` is a specified endpoint, not a detail.** It
 returns 200 for exactly three things:
 
-1. `ROOT_DOMAIN` and `www.ROOT_DOMAIN`.
-2. A `<label>.ROOT_DOMAIN` whose label resolves to an existing org —
+1. `MULTI_TENANT_ROOT_DOMAIN` and `www.MULTI_TENANT_ROOT_DOMAIN`.
+2. A `<label>.MULTI_TENANT_ROOT_DOMAIN` whose label resolves to an existing org —
    **including uuid labels**, or the widget's default
    `<orgId>.<root>` board entry point never gets a certificate.
-3. **Service hosts the deployment actually serves, `api.ROOT_DOMAIN` first
+3. **Service hosts the deployment actually serves, `api.MULTI_TENANT_ROOT_DOMAIN` first
    among them.** `api` is a *reserved* label, so it resolves to no org and a
    naive "must map to a tenant" rule would 404 it — denying a certificate to
    the hard-coded `DEFAULT_API_ENDPOINT` in the published widget, so every
@@ -1166,7 +1210,7 @@ admin `user_org` row, and claims it → redirect to `/`, signed in. Afterwards
 `/setup` redirects to `/`.
 
 **Multi tenant.** Root domain `/` → `/signup` → the same underlying "create org
-+ first admin" path → redirect to `<slug>.<ROOT_DOMAIN>`.
++ first admin" path → redirect to `<slug>.<MULTI_TENANT_ROOT_DOMAIN>`.
 
 Both reuse one code path; the existing `isClaimed` / `hasClaimedOrgQuery`
 machinery already models this. The subdomain field in settings and the
@@ -1210,9 +1254,9 @@ outside the `(board)` group so none of the board's org-scoped queries mount.
 
 ### Promoting single-tenant to multi-tenant
 
-Setting `ROOT_DOMAIN` on an instance that already has one org promotes it
+Setting `MULTI_TENANT_ROOT_DOMAIN` on an instance that already has one org promotes it
 rather than breaking it: the org keeps its slug and its board moves to
-`<slug>.<ROOT_DOMAIN>`. The subdomain field in settings — hidden in
+`<slug>.<MULTI_TENANT_ROOT_DOMAIN>`. The subdomain field in settings — hidden in
 single-tenant mode — becomes visible so a default slug can be renamed. The docs
 state that the old URL must be redirected and the widget snippet updated.
 
@@ -1246,7 +1290,7 @@ Today this is decided by `getIsSelfHosted()` / `useIsSelfHosted()` reading
 `SELF_HOSTED` and `NEXT_PUBLIC_SELF_HOSTED`. Both are **deleted** along with
 the env vars: "self-hosted" is no longer a property of the build, and the
 question the UI wants to ask is "is this instance multi-tenant", a *runtime*
-fact derived from `ROOT_DOMAIN`.
+fact derived from `MULTI_TENANT_ROOT_DOMAIN`.
 
 So the existing `getOrg` payload carries a small `instance` object —
 `{ hasLLM, isMultiTenant, rootDomain? }` — and `useIsSelfHosted` is replaced by
@@ -1261,9 +1305,10 @@ Nothing below is required for `docker compose up` to work.
 | Variable | Default | Effect |
 |---|---|---|
 | `DATABASE_URL` | set by compose | **The only hard dependency.** Pooled, where a pooler exists |
+| `PORT` / `HOSTNAME` | `3000` / `0.0.0.0` | Set in the image; a platform-injected `PORT` wins (§7) |
 | `DIRECT_DATABASE_URL` | `DATABASE_URL` | Session-mode URL for migrations; required wherever `DATABASE_URL` is a transaction pooler (§5) |
 | `BUILD_TARGET` | unset | `docker` selects `output: "standalone"`; build-time only |
-| `ROOT_DOMAIN` | unset | Set ⇒ multi-tenant at `*.ROOT_DOMAIN`; unset ⇒ single tenant |
+| `MULTI_TENANT_ROOT_DOMAIN` | unset | **Opt-in multi-tenancy.** Set ⇒ tenants at `*.<domain>`; unset ⇒ one board, no subdomains anywhere. Not the variable for "my domain" — that is `APP_URL` |
 | `APP_URL` | inferred | Pins the public origin behind a proxy |
 | `TRUST_PROXY` | `false` | Honour `x-forwarded-host`/`-proto`/`-for`; set by Vercel and the Caddy recipes |
 | `BETTER_AUTH_SECRET` | generated | Entrypoint generates and persists it; required manually where there is no entrypoint |
@@ -1299,9 +1344,9 @@ migrate, so this section is a deployment checklist rather than a cutover plan.
    `DATABASE_URL` to the transaction pooler (§5).
 2. Vercel project: wildcard domain `*.feedbackland.com` (nameservers at
    Vercel), `api.feedbackland.com` as an additional domain so the published
-   widget's default endpoint resolves, `ROOT_DOMAIN`, `TRUST_PROXY=true`,
+   widget's default endpoint resolves, `MULTI_TENANT_ROOT_DOMAIN`, `TRUST_PROXY=true`,
    `BETTER_AUTH_SECRET`, and the OAuth credentials.
-3. Register **one** redirect URI per provider against `ROOT_DOMAIN`;
+3. Register **one** redirect URI per provider against `MULTI_TENANT_ROOT_DOMAIN`;
    `oAuthProxy` (§3) relays to tenant subdomains.
 4. Create the first orgs through `/signup` like any customer would — the same
    path a self-hoster takes at `/setup`, which is the point.
@@ -1417,6 +1462,9 @@ point before launch — which is the single largest risk reduction in this plan.
 | `docker compose pull` jumps a major version under a running instance | Compose references a version tag, not bare `latest` (§7) |
 | `/api/tls-check` exposed publicly on Vercel as an org-existence oracle | 404 unless the optional multi-tenant recipe enables it (§7) |
 | Someone deploys under a path (`example.com/feedback`) and feedback submission 404s | Root-of-hostname stated as a constraint, documented beside the domain step (§2) |
+| A self-hoster sets the tenancy variable meaning "my domain" and silently enables multi-tenancy | Renamed `MULTI_TENANT_ROOT_DOMAIN`; `APP_URL` is the one they actually want (§1) |
+| Container starts, logs look healthy, nothing can reach it | `ENV HOSTNAME="0.0.0.0"` mandatory in the Dockerfile; platform-injected `PORT` honoured (§7) |
+| Managed Postgres rejects the unencrypted handshake | `?sslmode=require` documented in the env reference, not buried in troubleshooting (§7) |
 | `amd64`-only image is slow or unusable on Apple Silicon | CI publishes `linux/amd64` and `linux/arm64` (§7) |
 | Serving images from Postgres changes production cost shape | Immutable edge caching absorbs the steady state; S3 adapter is the escape valve (§7) |
 
@@ -1426,7 +1474,15 @@ point before launch — which is the single largest risk reduction in this plan.
    broken on Next 16 and is not a gate.)
 2. **Single-tenant smoke from an empty volume** — the primary flow:
    `docker compose up` → `/setup` → post → comment → upvote → search → admin →
-   widget snippet embeds and submits from another origin.
+   widget snippet embeds and submits from another origin. Assert the absence of
+   tenancy too: `/signup` 404s, settings shows no subdomain field, and nothing
+   in the UI or the URLs mentions an org slug.
+2a. **Runs somewhere that is not Docker Compose.** Deploy the same image to one
+   container platform that injects its own `PORT` (Cloud Run, Railway, Render
+   or Fly) against a managed Postgres reached over TLS. This is the test that
+   catches the two failures that make "host anywhere" untrue in practice — a
+   container bound to the wrong interface, and a connection string without
+   `sslmode` — and neither is visible from a compose-only run.
 3. **Drawer auth acceptance test — merge blocker.** A page on a different site
    embedding the real widget; entirely inside the drawer: sign up, sign out,
    sign in; upvote and comment; reload and stay signed in; social sign-in via
