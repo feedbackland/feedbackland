@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**Open-source user feedback: an embeddable widget, a feedback board, and AI-powered insights that tell you what to build next.**
+**Open-source user feedback: an embeddable widget, a feedback board, and AI-powered insights.**
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
