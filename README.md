@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**Open-source user feedback: an embeddable widget, a feedback board, and AI insights that tell you what to build next.**
+**Open-source user feedback: an embeddable widget, a feedback board, and AI-powered insights that tell you what to build next.**
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
@@ -24,7 +24,7 @@
 
 ## The widget
 
-One component, one prop:
+One component, one prop, added to your app in 30 seconds:
 
 ```bash
 npm install feedbackland-react
@@ -54,7 +54,7 @@ One click turns your whole board into a short, ranked list of underlying needs �
 
 ## Free & open source
 
-- **MIT-licensed** — fork it, run it, sell it.
+- **MIT-licensed** — free for any and all purposes.
 - **Hosted free** at [feedbackland.com](https://feedbackland.com).
 - **Or self-host** on free tiers in ~15 minutes → [SELFHOSTING.md](SELFHOSTING.md)
 
