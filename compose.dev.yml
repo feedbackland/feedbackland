@@ -1,0 +1,19 @@
+# Development owns a separate volume; never combine with compose.yml.
+name: feedbackland-dev
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: feedbackland
+      POSTGRES_DB: feedbackland
+    ports: ["127.0.0.1:${FEEDBACKLAND_DEV_DB_PORT:-5432}:5432"]
+    volumes:
+      - dev-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d feedbackland"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  dev-db:

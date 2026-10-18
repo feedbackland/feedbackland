@@ -1,6 +1,5 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -63,18 +62,6 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const roboto_mono = Roboto_Mono({
-  subsets: ["latin"],
-  variable: "--font-roboto-mono",
-  display: "swap",
-});
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,7 +71,6 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${roboto_mono.variable}`}
     >
       <body className="bg-muted/50 dark:bg-background">
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />

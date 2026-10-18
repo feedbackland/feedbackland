@@ -2,6 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
+> **Implementation status:** P01 supplies a development container and database
+> readiness only. It does not yet supply the single-tenant board, setup flow,
+> replacement authentication, image storage or AI. One-click deployments,
+> backups and release instructions in this document describe later milestones.
+> No stable self-hosted image is published by P01. Do not use this branch with
+> hosted credentials or an existing database.
+
 **Pick the path that sounds like you:**
 
 | | |
@@ -85,84 +92,51 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**1. Save this as `compose.yml`:**
+**P01 contributor verification (development only)**
 
-```yaml
-services:
-  db:
-    image: pgvector/pgvector:pg18
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: feedbackland
-      POSTGRES_DB: feedbackland
-    volumes:
-      - db:/var/lib/postgresql/data
-    healthcheck:
-      # -h forces a TCP check. Without it this passes during the database's
-      # own first-time setup, while it is still socket-only, and the app
-      # starts against a server that is about to restart.
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d feedbackland"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+Use an isolated checkout without hosted dotenv files or credentials. The
+committed Compose file mounts the Postgres 18 parent data directory correctly
+and owns its database volume. Use only a new disposable database at this stage.
 
-  app:
-    image: ghcr.io/feedbackland/feedbackland:1
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgres://postgres:feedbackland@db:5432/feedbackland
-    ports:
-      - "3000:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-volumes:
-  db:
-```
-
-Or download it, on macOS and Linux:
+From that checkout, with Node 24 and a Linux Docker engine:
 
 ```bash
-curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/main/compose.yml
+npm ci
+npm run build -w feedbackland-react
+npm run typecheck
+npm run build
+docker build --tag feedbackland:ci .
+npm run verify -- --phase 0 --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
-> [!NOTE]
-> On Windows, use `curl.exe` rather than `curl` — in PowerShell, plain `curl`
-> is a different command and will reject these options. Copying the file above
-> works everywhere.
+The verification runner uses only its own temporary Compose project, database,
+ports and volumes, and removes them afterward. It does not read your `.env`.
+It tests readiness with an empty database, outages and recovery, immutable
+application files, runtime configuration and legacy import boundaries. The
+server is transitional: `/api/health` can be healthy while board/setup features
+remain unimplemented.
 
-**2. Start it:**
+For manual inspection, build the same local image and select it explicitly:
 
 ```bash
-docker compose up
+docker build --tag feedbackland:dev .
+FEEDBACKLAND_IMAGE=feedbackland:dev docker compose up
 ```
 
-When it's ready you'll see a setup code in the terminal:
+PowerShell uses `$env:FEEDBACKLAND_IMAGE = 'feedbackland:dev'` followed by
+`docker compose up`. Stop that disposable project with `docker compose down`.
+Do not reuse a production volume or run schema migration commands from P01.
 
+For a standalone copy of the committed Compose file (macOS/Linux):
+
+```bash
+curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/codex/self-hosting-foundations/compose.yml
 ```
-┌─────────────────────────────────────────────┐
-│  Feedbackland is running                    │
-│  http://localhost:3000                      │
-│                                             │
-│  Setup code:  7QK2-M4XD-9F1P                │
-└─────────────────────────────────────────────┘
-```
 
-**3. Open [http://localhost:3000](http://localhost:3000)**, paste the setup
-code, and fill in your product's name, your name, your email and a password.
-
-> [!NOTE]
-> A board on `http://localhost` works fine for you, but the feedback **widget**
-> can't be embedded on a real website from it — browsers block insecure frames.
-> For that you need a domain with HTTPS, which is what the
-> [one-click deploy](#deploy-it-online-in-one-click) gives you for free.
+On Windows use `curl.exe`. This download alone does not supply an application
+image: until a release is published, build from a checkout and set
+`FEEDBACKLAND_IMAGE` as above. The default `:1` reference is reserved for the
+future release and is not a P01 installation path.
 
 ### Everyday commands
 
