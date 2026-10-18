@@ -1,0 +1,12 @@
+{"test":"integer revision CAS and stale embedding","passed":true,"competingSaves":2,"accepted":1,"staleWrites":0}
+{"test":"serialized mutual admin demotion","passed":true,"trials":10,"survivingAdmins":1}
+{"test":"serialized image quota","passed":true,"contenders":20,"admitted":1,"bytes":10,"cap":10}
+{"test":"singleton insight start and structural backstop","passed":true,"contenders":20,"uniqueRunIds":1}
+{"test":"composite reply parent foreign key","passed":true,"crossPostRejected":true,"unrelatedCommentsSurvive":2}
+{"test":"full key identity and delayed enable fence","passed":true,"sameSuffix":true,"distinctDigest":true,"lateWrites":0}
+{"test":"lease takeover fences expired holder","passed":true,"newFence":"2","oldRenewals":0}
+{"test":"chunk plus merge reservation protects moderation share","passed":true,"startingCount":6,"nonModerationCap":8,"mergePlanRefused":true,"finalCount":10}
+{"test":"multilingual embedding token preparation","passed":true,"originalCharacters":5999,"originalTokens":8999,"preparedTokens":8000}
+{"test":"undefined-image avatar hook against Better Auth 1.7.6","passed":true,"retained":true,"trackingUpdateRejected":true}
+{"test":"actual plan backup shell validation","passed":true,"rejectedCases":10,"acceptedBoundaries":3}
+{"test":"setup code byte identity and canonical platform encodings","passed":true,"bytes":32,"hexCaseIndependent":true,"base64RoundTrips":true,"noncanonicalAliasRejected":true,"weakOrMalformedRejected":5}

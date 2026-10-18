@@ -1,27 +1,29 @@
 # Feedbackland: self-hosted, single-tenant, vendor-agnostic
 
-**Status:** approved design, revision 3.2 — rewritten after a full adversarial
-audit (eight independent reviews, 2026-09-26) that executed the load-bearing
-claims against the installed packages, a real Postgres 18 + pgvector, a real
-Next 16 standalone build and Better Auth 1.7.6
-**Date:** 2026-09-13 (revision 3: 2026-09-26)
-**Supersedes:** revisions 1–2 of this file (see git history)
+**Status:** revised design, revision 4 — all 29 findings and 12 additional
+recommendations from the 2026-10-18 adversarial review incorporated into the
+specification. Implementation and release verification remain outstanding.
+**Date:** 2026-09-13 (revision 4: 2026-10-18)
+**Supersedes:** revisions 1–3.2 of this file (see git history)
+**Review and disposition:** `../reviews/2026-10-18-self-hosted-single-tenant-review.md`
+and `../reviews/2026-10-18-self-hosted-single-tenant-resolution.md`.
 
 ## How to read this document
 
-- **Normative.** Every "must", table value and file name is an instruction.
-  Where a choice existed it has been made; there are no open decisions left in
-  this document. If an executor finds one, it is a defect in the spec, not a
-  licence to choose.
-- **Evidence.** Claims about today's code cite `file:line`. Claims about
-  libraries cite the installed version. Claims marked *(measured)* were run,
-  not read. Appendix B names, for each load-bearing measured claim, the committed Verification check
-  that re-proves it, because the audit's own harness was not committed.
-- **Corrections.** Earlier revisions contained plausible, wrong claims.
-  Appendix A lists the ones that must not be reintroduced; the body states only
-  what is true.
-- **Phases.** Every deliverable belongs to exactly one phase in the Delivery
-  plan, and every gate names the Verification checks that prove it.
+- **Normative design.** Requirements describe the intended implementation;
+  they do not assert that the named files already exist. The delivery phases
+  and verification checks are future obligations until committed and passing.
+- **Evidence.** Source references and package pins retain their stated audit
+  dates. Historical “measured” results describe revision 3's scratchpad work,
+  not tests of revision 4. Appendix B records that distinction. The October
+  review's committed synthetic proof harness demonstrates old defects; it
+  does not verify a future fix. A release needs results against its exact image.
+- **Decisions.** The body contains the corrected contracts. Appendix A guards
+  against earlier mistakes. An executor must report an inconsistent or
+  unimplementable requirement rather than silently weakening it.
+- **Traceability.** The resolution matrix maps every review item to its
+  normative section, owning phase and required negative test. Passing a
+  document consistency check closes no application security or release gate.
 
 ## Summary
 
@@ -35,7 +37,7 @@ At a glance:
 | Concern | Decision |
 |---|---|
 | Process | One Next.js 16 server (`output: "standalone"`), one Postgres. Boot work (migrations, seeding, secrets) runs inside that process from `instrumentation.ts`, so `next dev`, `node server.js` and every container platform boot identically |
-| Hard dependency | Postgres **13+** with **pgvector ≥ 0.5.0** (0.7.0 above 2,000 dimensions). Nothing else |
+| Hard dependency | Postgres **15+** on an upstream-supported major with **pgvector ≥ 0.5.0** (0.7.0 above 2,000 dimensions). Nothing else |
 | Tenancy | None. One `settings` row, enforced by `CHECK (id = 1)` |
 | Auth | Better Auth, **pinned exactly**. HttpOnly cookie sessions in first-party contexts; bearer tokens only inside the embedded drawer, where cookies are unreliable and never used; admin power only for first-party sessions |
 | Images | Postgres `bytea`, served same-origin with a sandbox CSP |
@@ -94,8 +96,7 @@ Each is a decision with a reason, not an omission.
 
 ## §0 — Retiring the hosted product
 
-The hosted product is **live today**, so "there is no hosted service" is
-something this plan *does*, not something it may assume. Verified 2026-09-26:
+The hosted product was last documented **live on 2026-09-26**; treat retirement as outstanding until the dated release record proves completion. "There is no hosted service" is a required transition, not an assumed current fact. The historical observations were:
 `feedbackland.com` answers 308, `api.feedbackland.com` 204,
 `demo.feedbackland.com` 200, a `<uuid>.feedbackland.com` host redirects 307 to
 a real tenant; the GitHub repository carries a connected **Vercel Git
@@ -104,8 +105,19 @@ on 2026-09-13); `feedbackland-react@2.12.1` is npm `latest` with ~741
 downloads/month and hard-codes `*.feedbackland.com` and
 `api.feedbackland.com`; the npm maintainer email is on the same domain.
 
-Everything in this section happens **outside the tree**, is owned by the
-maintainer, and is sequenced by phases −1 and 9.
+The external actions below are **release-owner work**, sequenced by phases
+−1 and 9; editing this document does not authorize or complete them. Phase −1
+creates `deploy/retirement/RECORD.md`: named primary/backup owners, integration
+disconnect evidence, notice date, precise UTC shutdown date at least thirty
+calendar days after notice, export deadline/delivery method, parking switch,
+credential revocation completion, and recurring domain/parking/billing renewal
+responsibility. Dates and owners must be filled before the phase passes;
+“maintainer” alone is insufficient. Public records contain evidence digests or
+private-record references, not exported customer data, addresses or credentials.
+Record fulfilled/declined export requests privately with retention/deletion
+dates. The domain owner keeps auto-renew, current payment and backup contacts,
+records an annual renewal/parking check and arranges succession before leaving.
+No one-time parking check proves this indefinite responsibility is fulfilled.
 
 **Before the first merge of this work to `main` (phase −1):**
 
@@ -134,8 +146,7 @@ maintainer, and is sequenced by phases −1 and 9.
    old drawers show the page instead of spinning. `api.feedbackland.com`
    answers **410** with the CORS headers the 2.x popover expects, so it shows
    an error instead of an opaque CORS failure.
-7. After the announced grace period (30 days unless the notice says
-   otherwise): revoke the Firebase service-account keys and delete the
+7. After the recorded export/shutdown grace period (at least thirty calendar days after notice): revoke the Firebase service-account keys and delete the
    Firebase project; delete the Supabase project and its public `images`
    bucket. The Firebase web API key committed in `firebaseConfig.ts` stays in
    git history, so the project's deletion is what retires it.
@@ -202,7 +213,7 @@ or mutate by primary key with no tenant predicate:
 `createCommentQuery` never checks that `postId` belongs to the org and
 `getCommentsQuery` filters only on `comment.postId` (:63), while
 `updateFeedbackPostQuery` (:38,66) and `updateFeedbackPostStatusQuery`
-(:29,38) *do* filter on `orgId`. With one board there is nothing to cross.
+(:29,38) *do* filter on `orgId`. The tenant boundary disappears; post/comment ownership and same-post reply boundaries remain and must be enforced (§3, §6).
 
 ### Tenant resolution goes, mechanism and all
 
@@ -226,8 +237,7 @@ and description, the settings page and its six editors, the wizard's widget
 step, the admin API and Widget pages) and `useUpdateOrg()` six. They are replaced by:
 
 - **Read:** server-resolved settings delivered through a React context
-  (`providers/settings.tsx`, §10) and read with `useSettings()`. No client
-  fetch.
+  (`providers/settings.tsx`, §10) and read with `useSettings()`, with bounded client refresh of the public payload (§10).
 - **Write:** `trpc/update-settings.ts` (admin) + `hooks/use-update-settings.ts`,
   whose `onSuccess` calls `router.refresh()` so the server-resolved context and
   `generateMetadata` re-render with the new values.
@@ -373,11 +383,34 @@ segments (`proxy.ts:20`; the `_vercel` exclusion is removed). It keeps:
    (`proxy.ts:71-82` — "always rewritten, never merged").
 
 If the proxy does not run, `EmbedProvider` resolves from
-`window.location.search` on the client (`providers/embed.tsx:46-52`): nothing
-breaks, but the first paint is the standalone layout and swaps to the drawer
-layout after hydration (padding, background, header and `useIsDesktop` all
-change), and the header strip does not happen. Both are cosmetic, and both
-are accepted as the cost of not depending on middleware.
+`window.location.search` on the client. Its initial state is **unresolved**,
+never first-party by default. Until resolved, no descendant auth client,
+tRPC query, upload, session refresh or other credential-bearing request may
+start. Render a neutral shell. This is a credential isolation requirement,
+not merely a first-paint optimization; a same-site iframe can carry cookies.
+
+**Provider ownership:** `app/layout.tsx` owns only document/theme/error
+infrastructure. Move auth and tRPC providers out of it. The board tree is
+`EmbedProvider → SurfaceProviders → SettingsProvider → board content`,
+including `ProcessAdminInviteParams`. `SurfaceProviders` mounts a fresh,
+surface-keyed auth client, query cache and tRPC link only after resolution;
+changing the surface unmounts them and cancels outstanding requests. The
+first-party route group containing `/setup`, `/recover`, `/reset-password`
+and `/auth/popup*` mounts its own explicit first-party providers. No provider
+above `EmbedProvider` reads its context, and no cache/session crosses modes.
+The server-resolved hint uses only the rewritten proxy header; absent hints
+stay unresolved through hydration. V5 and V19 observe the very first request.
+
+A same-site iframe's initial **document navigation**, and browser-managed
+public image GETs, can carry cookies before app JavaScript runs. Do not claim
+that the client can suppress those browser requests. Public board SSR and
+public image/settings handlers ignore those cookies; they must not resolve
+an admin session or serialize authenticated user data from them. Board auth
+starts only through the resolved surface's explicit transport. Private admin
+routes still enforce first-party authorization and deny framing. V19's
+no-cookie assertion covers script-created auth/tRPC/upload/handoff requests
+from the first such subrequest, while document SSR separately proves no
+first-party session is exposed in a drawer or an unresolved board shell.
 
 **The embed signal is read with any-match semantics.** Next's `has` matcher
 compares the **last** value of a repeated query key
@@ -779,13 +812,24 @@ So there are two modes, chosen by the surface:
   it into the `Cookie` header — so a drawer token replayed as
   `Cookie: better-auth.session_token=…` from any HTTP client authenticates
   without an `Authorization` header *(measured)*; no header-based rule can
-  separate the two. So **one helper, `requireAdminSession(session)` in `lib/auth/server.ts`, requires `session.user.role === "admin"`, `session.scope === "first-party"`, and a session younger than 7 days**, and `adminProcedure`, `/api/chat` and every admin page, route handler or server action that reads data server-side call it (`session.createdAt`; older admin sessions get
+  separate the two. So **one predicate, `canAdminister(session)` in `lib/auth/authorization.ts`, requires a valid, unexpired session, `session.user.role === "admin"`, `session.session.scope === "first-party"`, and `session.session.createdAt` within the past 7 days**, and `requireAdminSession(session)` wraps that predicate for `adminProcedure`, `/api/chat` and every admin page, route handler or server action (`session.session.createdAt`; older admin sessions get
   `FORBIDDEN` with "sign in again"). The age rule is absolute because a
   `session.create.before` cap is undone by the first rolling refresh, which
   rewrites `expiresAt` to now + 30 days *(measured)*. A token lifted from the
   drawer — the one place a token is script-readable — cannot perform an admin
   action however it is presented. The drawer hides admin controls accordingly
   (§2).
+- **Author-or-admin operations use the same predicate.** `createContext`
+  computes `canAdminister` on the server; clients cannot supply it. The four
+  `userProcedure` update/delete paths in `queries/{update,delete}-{feedback-post,comment}.ts`
+  use `authorId === userId || canAdminister`, never a raw `role === 'admin'`
+  override. A drawer session or aged admin session keeps ordinary author
+  rights, but cannot change another author's content. Recheck permission,
+  current role and expected content revision in the final write transaction
+  after any model calls; revocation during a call must take effect. Delete,
+  status-change, invite and role-management paths follow the same rule. An
+  AST audit rejects privilege decisions based only on raw roles outside the
+  centralized helper; rendering an admin badge is not a privilege decision.
 - **CSRF.** First-party mutations carry a `SameSite=Lax` cookie, which cross-site subrequests do not carry but *same-site* ones do (a sibling subdomain; another port on the same host, which on an `http://<ip>:3000` install is the same site). tRPC 11 executes `multipart/form-data` POSTs — which a plain HTML form sends without a preflight — for any mutation with no input or all-optional input *(measured: `@trpc/server` 11.18.0)*. So `app/api/trpc/[trpc]/route.ts` and `/api/chat` answer 415 to every POST whose `Content-Type` does not start with `application/json`, and 403 to every POST whose `Sec-Fetch-Site` is `same-site` or `cross-site`, before any handler runs; the board and the drawer's own requests are `same-origin`. Better Auth's endpoints keep its own origin check. Embedded requests carry no ambient credential.
 - **Sign-out** calls `/api/auth/sign-out`, which deletes the session row, and clears the token store. It never navigates: the OIDC provider is configured with `disableProviderLogout: true` (below), because otherwise Better Auth 1.7.6 answers `/sign-out` for an OIDC user with the provider's end-session URL and its client navigates the page there — the drawer to a page that refuses framing, the board away from the site *(measured)*. The drawer gets a signed-in indicator and a **Sign
   out** action in `PlatformHeaderDrawer` (reusing the currently unused
@@ -906,7 +950,18 @@ is unreachable then (an identity provider in the same compose file that starts
 after the app), the provider is silently skipped and sign-in answers
 `404 PROVIDER_NOT_FOUND` until restart *(measured)*. So "enabled" in the System
 panel and the banner is derived from Better Auth's own provider list, a failed
-discovery is shown as such, and the panel's retry replaces `globalThis.__feedbackland.auth`.
+discovery is shown as such, and the panel's retry increments `auth_runtime.discoveryEpoch` atomically
+(single row, §6). Every process polls that epoch at most five seconds apart,
+also checking before a social start. An epoch change clears its failed
+discovery result and reconstructs its lazy auth instance with a ten-second
+discovery deadline. Keep the last working instance during construction;
+failure preserves password sign-in and reports the failed provider. A local
+failed discovery retries every sixty seconds even without an admin click.
+Concurrent construction is single-flight per process. Do not replace an
+instance while handling its OAuth callback: each request retains its captured
+instance. Capabilities report that process's usable provider list; after a
+successful retry all healthy replicas converge within five seconds plus the
+discovery deadline. V19 forces retry through A and sign-in through B.
 
 A provider is **enabled** only when its variables are set **and** the resolved
 app URL is `https:`: production OAuth state uses a `__Secure-` cookie, and
@@ -964,8 +1019,23 @@ email-equality check cannot be the control. `admin_invites` gains `expiresAt`
 (7 days) and is consumed on redemption. `queries/redeem-admin-invite.ts`
 additionally checks, server-side and case-insensitively, that the redeeming
 account's email matches (today only the client component checks) — defence in
-depth. The link is built with `URLSearchParams` (§1). Redemption happens in a
-first-party context, so the new admin's session is `first-party`.
+depth. The link is built with `URLSearchParams` (§1). Redemption explicitly requires a signed, non-expired `first-party` session
+younger than seven days (without requiring an existing admin role); an
+embedded session is rejected whether carried as bearer or cookie. Redemption
+does not mint or upgrade the scope of any session. Take the admin-membership
+lock below before consuming the invite and promoting the user.
+
+### Admin membership invariant
+
+After setup, at least one administrator must remain. Every promotion,
+demotion and user deletion that could affect an admin takes transaction-scoped
+`pg_advisory_xact_lock(4702111234474983748)` first, then re-reads the actor's
+session/role and target rows. A demotion/deletion that would leave zero admins
+returns `LAST_ADMIN`; self-demotion is also refused. Setup, invite redemption
+and recovery use the same lock. Lock order is membership lock → settings →
+user rows in id order; no external request occurs while held. Mutual demotion
+on two replicas must leave at least one admin. `/recover` also repairs a
+pre-existing zero-admin state (§7); mail password reset alone cannot do that.
 
 ### Client IP
 
@@ -1028,7 +1098,14 @@ With no proxy in front, per-IP limits are **best-effort**: a client can choose i
   would delay revocation first-party. If this cost ever matters, Better Auth's
   `secondaryStorage` or a short in-process memo keyed by token are
   call-site-transparent, each trading revocation latency.
-- **Avatars** stay remote: `user.image` is the provider's URL, rendered by Radix `AvatarImage` (not `next/image`), so every board visitor's browser fetches the provider's image host and a `pg_dump` does not carry avatars. Stated in the docs. Only a provider may set it: `/sign-up/email` and `/update-user` both accept `image`, which would let anyone make every visitor and admin fetch an attacker's host — the tracking pixel §4 removes from post bodies — so `databaseHooks.user.create.before` and `update.before` keep `image` only when `ctx.path` starts with `/callback/` and the value is an `https:` URL, and null it otherwise; `name` is trimmed and capped at 100 characters.
+- **Avatars** stay remote: `user.image` is the provider's URL, rendered by Radix `AvatarImage` (not `next/image`), so every board visitor's browser fetches the provider's image host and a `pg_dump` does not carry avatars. Stated in the docs. Only a provider may set it: `/sign-up/email` and `/update-user` both accept `image`, which would let anyone make every visitor and admin fetch an attacker's host — the tracking pixel §4 removes from post bodies — so `databaseHooks.user.create.before` and `update.before` keep `image` only when `ctx.path` starts with `/callback/` and the value is an `https:` URL, on create, and null it otherwise. On update, an absent **or undefined-valued** `image` field preserves the stored avatar.
+Better Auth 1.7.6's update endpoint explicitly passes `{ name, image }` even
+when image was omitted, so `Object.hasOwn(data, "image")` alone is wrong;
+check `data.image === undefined` and do not replace it with null. A non-callback attempt to supply a defined
+`image` is rejected with `FIELD_NOT_ALLOWED`, including null; a trusted
+provider callback may set only a valid `https:` URL (an absent callback image
+also preserves it). `name` is trimmed and capped at 100 characters. A name-only
+update must retain an existing provider avatar.
 
 ### Capabilities that must survive
 
@@ -1049,8 +1126,7 @@ With no proxy in front, per-IP limits are **best-effort**: a client can choose i
 ## §4 — Images
 
 Images move from a Supabase bucket to Postgres, uploaded through one endpoint
-and served same-origin. This is what makes a single `pg_dump` a complete copy
-of the board (avatars excepted, §3) and keeps the vendor surface at one.
+and served same-origin. This puts all attachment bytes in a database dump; a complete recovery also needs the external configuration/secrets bundle (§8) and keeps the vendor surface at one.
 
 ### Today, precisely
 
@@ -1116,19 +1192,40 @@ references.
 `POST /api/images` — multipart with one `file` part. Unauthenticated, because
 anonymous posting is a feature, and therefore bounded:
 
-1. Rate limit `images:ip` / `images:instance` (§1).
-2. Reject a declared `Content-Length` above `MAX_IMAGE_BYTES` + 65,536 bytes
-   of multipart framing (413), then **stream** the `file` part, counting bytes
-   and aborting once it passes `MAX_IMAGE_BYTES`. Next 16 route
-   handlers have no body-size limit of their own (only server actions do), so
-   without this a request is fully buffered before any check.
-3. Detect the type from **magic bytes** — PNG, JPEG (`FF D8 FF`), GIF
-   (`GIF87a`/`GIF89a`), WebP (`RIFF…WEBP`) — and ignore the client's
-   `Content-Type`. Anything else, SVG included, is 415.
-4. Read dimensions with `image-size`; reject anything wider or taller than
-   10,000 px or above 40 megapixels (422), a decompression-bomb guard.
-5. If `MAX_IMAGE_STORAGE_BYTES` is set and the sum of stored bytes would exceed it, 507. Independently, images referenced by no post, comment or logo may total at most `MAX_PENDING_IMAGE_BYTES` (default 200,000,000): beyond it, 507. Without that bound, uploads that are never posted could fill the database before the 24-hour sweep — at the instance cap of 60 a minute, a 1 GB database in under five minutes.
-6. Store; respond `201 { id, url: "/api/images/<id>", width, height }`.
+1. Rate limit `images:ip` / `images:instance` (§1). Before reading a body,
+   acquire a process upload slot (two at once, no in-memory queue); overload
+   answers 429 `UPLOAD_BUSY` with `Retry-After: 5` and cancels the stream.
+2. Put a counting transform **before** the multipart parser. Reject a declared
+   length above `MAX_IMAGE_BYTES + 65,536`, and stop the entire input stream
+   at that same cap regardless of `Content-Length`, transfer encoding or
+   which part is being read. File bytes separately stop at `MAX_IMAGE_BYTES`.
+   Exactly one part, named `file`, no fields, at most 8,192 header bytes, 16
+   header pairs and a 200-byte filename; reject extra parts, malformed framing,
+   preambles/trailers over the aggregate cap and premature EOF. Use a streaming
+   parser with these explicit limits, never `request.formData()` first. A
+   thirty-second wall deadline and five-second no-progress deadline cancel
+   the reader/parser and release the slot on all exits, including disconnect.
+3. Detect PNG, JPEG, GIF or WebP from bytes, ignoring the declared type. Reject
+   SVG and unknown/invalid containers with 415. Only GIF animation is supported:
+   bounded PNG/WebP chunk walks reject PNG `acTL` and WebP animation flags or
+   `ANIM`/`ANMF` chunks. Other PNG/WebP inputs are static; never assume their
+   canvas size bounds an unchecked animation. `image-size` reads dimensions;
+   reject either edge above 10,000 px or a canvas above 40 million pixels.
+   This is a bounded metadata check, not proof of harmless decoded content.
+4. GIFs retain animation only if a bounded full container walk (within the
+   byte cap, without raster decoding) validates every block, frame rectangle
+   and terminator. At most 100 frames, sixty seconds declared animation
+   duration (zero delays count as 10 ms), and `canvasPixels × frameCount ≤
+   40,000,000`; reject out-of-canvas rectangles, malformed subblocks and
+   incomplete data. Bound parser iterations by input bytes. Test high-frame,
+   tiny-compressed and corrupt files. The runtime still has no raster codec.
+5. In one transaction take the image quota lock (§ *Orphans*), calculate total
+   and unreferenced byte sums from committed rows, test both configured caps
+   including this insert, then insert. Crossing either cap answers 507.
+   `byteSize = octet_length(bytes)` is constrained in SQL. No check-then-insert
+   across separate transactions or independently cached quota counter.
+6. Respond `201 { id, url: "/api/images/<id>", width, height }`. Release all
+   process slots in `finally`. No body enters the logs.
 
 `GET /api/images/<id>` — public (the board is public and images render inside
 third-party frames). `Content-Type` is the stored detected type;
@@ -1136,7 +1233,7 @@ third-party frames). `Content-Type` is the stored detected type;
 on `If-None-Match`; plus §2's `nosniff`, `Content-Disposition: inline` and
 `default-src 'none'; sandbox` CSP. 404 for unknown ids.
 
-`MAX_IMAGE_BYTES` defaults to **4,000,000 bytes** of decoded image data,
+`MAX_IMAGE_BYTES` defaults to **4,000,000 bytes** of encoded file data (after multipart decoding),
 enforced on the server and mirrored in the client; it is a tightening of
 today's 5 MiB. `MAX_IMAGE_STORAGE_BYTES` is unset (unlimited) by default and
 recommended on small managed databases.
@@ -1168,6 +1265,29 @@ asserts they are absent; `getSharp()` loads lazily and is never called with
 
 ### Orphans
 
+**Quota/reference synchronization:** all image inserts, reference replacements,
+logo changes, owner deletions, admin reclaim and image sweeps take
+`pg_advisory_xact_lock(4702111234474983749)` before touching image ownership.
+Lock order is membership lock when needed → image lock → settings → content
+rows → image rows, each id-ordered. A privileged content transaction takes the membership lock before re-reading role/session, so demotion cannot race its admin override. Ordinary content writes hold the image
+lock even when removing their last image, because that increases pending
+bytes. Recompute both sums while locked; an edit that would exceed the pending
+cap deletes the newly orphaned images in that transaction instead of refusing
+the text edit. The client warns that detached images may need re-uploading.
+No model/network call occurs under these locks. Sweeps take the sweep advisory
+lock before the image lock; no path takes them in reverse. This global lock
+deliberately serializes attachment mutations on this small single board.
+Revalidate references while locked; attaching a swept id returns 400.
+
+The pending cap can be filled by fifty maximum-size anonymous uploads at the
+defaults. Settings → System shows total/pending usage and offers **Reclaim
+unattached uploads** to a fresh first-party admin, with a preview and explicit
+confirmation that unsent drafts lose attachments. Under the same lock it
+deletes only still-unreferenced, non-logo images; it never deletes an image
+attached since preview. Upload rate limits and the automatic grace sweep
+remain; there is no promise of uninterrupted anonymous upload availability.
+
+
 Image references are `<img src>` substrings in HTML, so orphan detection by
 text search would be an unindexable scan. Instead:
 
@@ -1187,6 +1307,12 @@ text search would be an unindexable scan. Instead:
 
 Deleting a post or comment also deletes, in the same transaction, every image that loses its last `image_ref` and is not the logo, so removing abusive content removes its images at once rather than after the sweep.
 
+Browser re-encoding usually removes EXIF from JPEG/PNG, but direct endpoint
+callers and untouched GIFs can retain metadata. The server does not re-encode
+or promise metadata removal. State that in SELFHOSTING and the upload help;
+test a direct JPEG with EXIF. Byte/dimension/animation limits constrain input
+and common browser work, not every decoder vulnerability.
+
 ### Storage lives in the database — and the cost is printed
 
 Every screenshot is Postgres bytes. The database and every `pg_dump` grow with
@@ -1204,7 +1330,7 @@ has a per-request privacy switch. One provider therefore covers everything the
 board does, and having only one is what makes turning AI on a single button:
 there is no provider to choose, no endpoint to enter and no model to find.
 Local models and other providers are not in v1 (Non-goals). What is locked in is
-the gateway, not the model: any model OpenRouter lists can be chosen, and
+the gateway, not the model: OpenRouter chat models can be chosen, and embedding models with a supported input-token profile can be chosen (§ *Embedding input bounds*);
 `lib/llm/` is the only module that knows OpenRouter exists. It speaks plain
 OpenAI-compatible HTTP, so adding another endpoint later is a contained change.
 
@@ -1270,7 +1396,11 @@ Every model call goes through one module; call sites never build a request.
   sets `redirect: "manual"` and treats any 3xx as an error (the SDK otherwise
   follows redirects *(measured)*); it merges the privacy `provider` object into
   every `/embeddings` body, which the SDK would otherwise drop *(measured)*; and
-  no response body it returns is passed to anything that reaches a browser. The provider is created with `includeUsage: true`. `lib/llm` sends none of
+  no response body it returns is passed to anything that reaches a browser.
+  Model responses have a streaming 1 MiB aggregate cap; metadata responses
+  have a 4 MiB cap and two process slots, with deadlines. Crossing a cap
+  aborts the reader and becomes a fixed reason. No raw SDK/provider exception
+  escapes lib/llm, including through a cause or promise rejection. The provider is created with `includeUsage: true`. `lib/llm` sends none of
   `HTTP-Referer`, `X-OpenRouter-Title`, `X-Title`, `X-OpenRouter-Categories`
   or `X-OpenRouter-App-Visibility`: without `HTTP-Referer`, OpenRouter creates
   no app page and attributes no usage to one (its app-attribution docs).
@@ -1285,7 +1415,7 @@ Every model call goes through one module; call sites never build a request.
 - **Output caps.** Every call sets `maxOutputTokens` from `defaults.ts` —
   moderation and titles 1,024, rewrite 2,048, an insight chunk and an Ask-AI
   answer measured in phase 6 (`scripts/measure-ai.ts`, § *Turning AI on*).
-  They bound the worst-case cost (§ *Bounding cost*) and OpenRouter's in-flight
+  They bound generated output and contribute to the scenario estimates (§ *Bounding cost*) and OpenRouter's in-flight
   budget, which for newer accounts holds the completion tokens `max_tokens`
   allows, or a fixed per-request cap when it is unset.
 - **No string model ids.** The `ai` package resolves a bare string model id
@@ -1308,12 +1438,12 @@ Every model call goes through one module; call sites never build a request.
   chatModel         = field(model)             default google/gemini-3.8-flash
   embeddingModel    = field(embeddingModel)    default openai/text-embedding-3-small; "none" disables
   keyReadable       = apiKey is not a stored one, or it decrypts
-  keyUsable         = lastCheck.key ∉ {invalid, management, expired}   (lastCheck is ignored unless its last4 is the current key's)
+  keyUsable         = lastCheck.key ∉ {invalid, management, expired}   (use only a result with the current configToken)
   hasChat           = aiConfigured && keyReadable && keyUsable
   hasEmbeddings     = aiConfigured && keyReadable && keyUsable && embeddingModel !== "none"
                       && probeVerified && (indexFingerprint == null || indexFingerprint matches)   (§ Embeddings)
   budget(feature)   = dailyCallLimit for moderation, floor(0.8 × dailyCallLimit) otherwise
-  failing(c)        = health[c].failingSince older than 15 min && health[c].lastFailureAt within 10 min   (c: chat | embeddings)
+  failing(c)        = current-token ai_health[c].failingSince older than 15 min && ai_health[c].lastFailureAt within 10 min   (c: chat | embeddings)
   capabilities.chat = hasChat && today's count < budget(rewrite) && !failing(chat)
   errorCode         = !aiConfigured → AI_NOT_CONFIGURED;
                       !keyReadable || !keyUsable || failing(chat) → AI_UNAVAILABLE;
@@ -1326,14 +1456,25 @@ Every model call goes through one module; call sites never build a request.
   not document) is dropped. Every JSON reply is parsed fence-tolerantly (the
   existing `stripCodeFence`) and validated with Zod, because the admin can pick
   any model and not every model honours `json_object`.
-- **Timeouts.** `AI_TIMEOUT_MS` (default 15,000) per request for moderation, titles, embeddings and rewrite; insight chunks get six times that. Each is passed as `abortSignal: AbortSignal.timeout(ms)`: `embed` and `embedMany` ignore a `timeout` option *(measured)*. Ask-AI's stream is aborted when no token arrives within `AI_TIMEOUT_MS`.
-- **Errors never log content.** `streamText`'s default `onError` is
-  `console.error(error)`, which on a 401 logged the **entire prompt** —
-  the board corpus and a user's email address *(measured)*. Every call passes
-  an `onError` that logs status and message only. Insight errors stop
-  embedding up to 500/200 characters of raw provider output into messages that
-  reach an admin's browser (`trpc/generate-insights.ts:286,302`); they carry a
-  status and a short message.
+- **Timeouts.** `AI_TIMEOUT_MS` is an integer in 1,000–120,000, default
+  15,000. Moderation, titles, embeddings and rewrite use it as an absolute
+  request deadline; insight chunks/merge use `min(6 × timeout, 180,000)`.
+  Ask-AI has that absolute 180-second ceiling and a no-token timeout of
+  `AI_TIMEOUT_MS`. Combine timeout, disconnect and lease-loss signals. Every
+  `embed`/`embedMany` passes `abortSignal`, not the ignored `timeout` option.
+- **Errors never log provider-controlled strings.** `lib/llm/errors.ts` maps
+  errors to numeric HTTP status (or null), an internal allowlisted reason,
+  feature and random request id only. Never include `error.message`, stack,
+  cause, response body, validation input, prompts, headers, key material or
+  arbitrary provider name/code in logs, browser responses, health or job
+  errors. Parse provider bodies only in bounded memory for classification;
+  map recognized values to fixed enums, discard unknown text. Every streaming
+  `onError` overrides the SDK logger. The one logger uses structured fields
+  and a restrictive schema, including aborted/background/JSON-parser paths.
+  Insight report `error` is a reason enum; user copy comes from local messages.
+  V20 injects private markers into nested provider error messages, invalid
+  JSON, stream errors and thrown causes and scans every output sink.
+
 - **Ask-AI** keeps its tuned behaviour — reasoning effort and the explicit
   cache breakpoint, which the route's own comments show matter (the lowest
   reasoning level miscounts; without the breakpoint caching fell to nothing).
@@ -1344,9 +1485,10 @@ Every model call goes through one module; call sites never build a request.
   breakpoint is therefore written by `createOpenAICompatible({
   transformRequestBody })`, which rewrites the system message to
   `content: [{ type: "text", text, cache_control: { type: "ephemeral" } }]` —
-  the part-level shape today's OpenRouter provider emits. It acts only on a body carrying `feedbackland_cache: true` (sent through `providerOptions.openrouter`, which the SDK spreads into the body *(measured)*) and deletes that field, so moderation, titles and rewrite get no breakpoint; Verification 12 asserts the request body. It sends the 300 most recent posts
-  (`ASK_AI_MAX_POSTS`), descriptions cut at 400 characters — about 45,000
-  tokens (`lib/ask-ai.ts:7-18`), unchanged. Its request body is capped at 1 MB.
+  the part-level shape today's OpenRouter provider emits. It acts only on a body carrying `feedbackland_cache: true` (sent through `providerOptions.openrouter`, which the SDK spreads into the body *(measured)*) and deletes that field, so moderation, titles and rewrite get no breakpoint; Verification 12 asserts the request body. It takes at most the 300 most recent posts (`ASK_AI_MAX_POSTS`), with
+  descriptions cut at 400 characters, additionally packed under the UTF-8
+  request budgets below. Corpus and history are untrusted data, separated
+  from fixed instructions. Its HTTP request body remains capped at 1 MB.
 
 ### Moderation: allowed, refused, or unavailable
 
@@ -1356,23 +1498,112 @@ Moderation gains a third outcome. **Unavailable is never a content ban.**
 |---|---|
 | a valid verdict | allowed or refused |
 | an input-caused 4xx (400, 413, 415, 422) — e.g. a text-only model given an image | retry once **text-only**; then as below |
-| a 403 whose `error.metadata.error_type` is `content_policy_violation` or `refusal`, or a reply whose raw finish reason is `content_filter` — the provider's own filter declined it (a Gemini `SAFETY` block, say) | **refused** (logged with the provider's name, never the text) |
+| a 403 whose `error.metadata.error_type` is `content_policy_violation` or `refusal`, or a reply whose raw finish reason is `content_filter` — the provider's own filter declined it (a Gemini `SAFETY` block, say) | **refused** (logged only as fixed reason `provider-refusal`, never provider text/name) |
 | 401, 402, 403 (other), 404, 429, 5xx, any other non-input status, a 200 whose body carries `error`, a raw finish reason `error`, timeout, network error, unparseable reply | **unavailable** |
 
 Unavailable degrades to the keyless path: the content is stored as written,
 the event is logged, and the item is recorded in `moderation_event` with a mapped reason (§6): 401, or 403 whose `error_type` is `authentication` or `permission_denied` → `provider-auth`; 402 → `provider-credit`, except `openrouter_in_flight_budget` → `provider-rate`; 429 → `provider-rate`; 404, any other 403, 5xx, any other status, a 200 whose body carries `error`, a raw finish reason `error`, a timeout, a network error, an unparseable reply or a failed text-only retry → `provider-error`; a limiter error → `limiter-error`; the full daily limit → `daily-limit`. Status, `error.code` and `error.metadata` are read with `JSON.parse(APICallError.responseBody)`, because the SDK's parsed `data` drops `metadata`, and a 200 whose body is only `error` surfaces as an `APICallError` with status 200 *(measured)*. A stored key that no longer decrypts while AI is on also takes *unavailable* (not the keyless path), as `key-unreadable`; Activity's **Unscreened** filter lists those items and the
-System panel counts the last 24 hours (§ *Telling the admin*). There is no
+System panel counts distinct surviving items with historical events in the last 24 hours (§ *Telling the admin*). There is no
 "hold for review" mode: v1 has no moderation queue to hold into. **This is an
 explicit bypass:** anyone who can exhaust the operator's quota *at OpenRouter* (the key's spend limit, or the account's credit) turns moderation off until it resets. The rate limits bound how fast that can happen; nothing
 else is claimed. The board's own daily limit is not such a bypass: at it,
 anonymous posts are refused instead (§ *Bounding cost*).
 
-Images are **inlined** as base64 exactly as stored (at most 4 per item, each at most `MAX_IMAGE_BYTES`, §4; browser uploads are at most 2,000 px, while GIFs and direct `POST /api/images` uploads may be up to 10,000 px, and an input-caused 4xx then retries text-only; GIFs are not sent). They are never re-encoded on the server — the runtime has no image
-codec, deliberately (§4) — and never passed as URLs: stored URLs are relative (§4), private
-boards are unreachable, and asking a provider to crawl the instance contradicts
-the privacy position below. Images are sent only when vision is on (Settings → AI → Advanced; by default whenever the chosen model reads images, § *Turning AI on*); a text-only model moderates the text.
+Images eligible for vision are inlined, never fetched by the provider. GIFs
+are excluded; at most four PNG/JPEG/WebP images, each at most 1,000,000 encoded
+bytes, total at most 4,000,000 bytes and four million pixels per image. Larger
+attachments remain valid uploads but only their text is screened; record
+`screened-text` and reason `vision-not-screened` so admins can see partial
+coverage. A configured text-only model or vision disabled has the same
+coverage semantics when the body contains images. No server re-encoding.
 
-Edits call the models **outside** the database transaction: permission check in one transaction, model calls, then the update (the new text with `embedding = null` and `"updatedAt" = now()`), then `writeEmbedding`. A create inserts with `embedding = null` and writes its vector through `writeEmbedding` with `$seen` set to the inserted `updatedAt`.
+**Vision memory admission:** before selecting any `bytea`, inspecting an SDK
+image object or base64 encoding, acquire the process's one vision slot and
+reserve 32 MiB of its explicit 32 MiB vision-work allowance. Read only size/type
+metadata first; reject a non-fitting plan before bytes are loaded. Load each
+unique id once. Keep raw buffers, base64 strings and serialized request bodies
+only until the bounded request completes; release in `finally`, on abort too.
+No unbounded waiting queue. If admission is busy, return 429 `VISION_BUSY`,
+`Retry-After: 5`, without storing the item or marking it screened. Never
+convert local saturation into the provider-unavailable publishing bypass.
+Also cap non-vision model work at eight concurrent calls per process with no
+in-memory queue; background work defers and interactive work receives a typed
+busy response. These are per-process limits; replicas multiply provider load
+but share the daily counter. The 32 MiB allowance is a design reservation,
+not a measured SDK peak; V20 must prove the whole process stays below its
+512 MiB container limit under a slow-provider burst, or the release fails.
+
+Edits call models outside transactions. A preflight validates parentage,
+references, author/admin rights and `revision`. The final transaction locks
+in the documented order, rechecks current authority and expected revision,
+then increments `revision = revision + 1`, updates display `updatedAt`, sets
+`embedding = null`, clears `embeddingSkipped` and writes current moderation
+coverage plus image references. A conflict returns `CONTENT_CHANGED`; it
+must not overwrite a newer edit. Creates start at revision 1. Every embedding
+write carries that integer revision, never a timestamp. Refused content is
+not stored. A provider-unavailable result is stored only under the explicit
+unavailable policy and receives the current revision's unscreened event.
+
+### Moderation history and current coverage
+
+`feedback` and `comment` carry `moderationState` in `disabled`, `screened`,
+`screened-text`, `unscreened`. Every successful create/edit sets the state
+for its new revision. `disabled` means intentionally keyless; it must not be
+presented as screened. `moderation_event` stores owner id, `contentRevision`,
+mapped reason and timestamp for unscreened/partial revisions, unique per
+owner/revision. A later fully screened edit changes the current state to
+`screened` without deleting history. Repeat failed edits create distinct
+historical revisions, not duplicate current feed items. Deletion cascades
+history. **Unscreened** selects current rows in `unscreened` or
+`screened-text`, with `EXISTS` on matching revision for the reason, never a
+one-to-many feed join. “Items published without full screening in 24 h”
+counts distinct surviving `(owner kind, owner id)` with events in that window;
+it is historical and may include an item now resolved. Show current pending
+count separately. The thirty-day history expiry never hides a currently
+unscreened row; current state is authoritative.
+
+### Request input and output bounds
+
+`lib/llm/input-budgets.ts` enforces the assembled request, not just source
+character limits. All cuts preserve Unicode code points and do not split UTF-8.
+Fixed instructions are at most 8,192 UTF-8 bytes. Per-call budgets below include
+instructions and metadata text; image bytes are separate under vision rules.
+
+| Feature | Maximum assembled text | Maximum output tokens |
+|---|---|---|
+| Moderation / title | 48,000 UTF-8 bytes each | 1,024 each |
+| Rewrite | 48,000 UTF-8 bytes | 2,048 |
+| Ask-AI | 128,000 UTF-8 bytes; history ≤ 8 messages, each ≤ 4,000 bytes and ≤ 16,000 bytes total; only user/assistant roles | 4,096 |
+| Insight chunk / merge | 64,000 UTF-8 bytes each; chunk ≤ 200 items, descriptions ≤ 700 characters, with a byte-aware packer | 4,096 each |
+| Query embedding | ≤ 200 query characters, then the embedding tokenizer limit | none |
+| Content embedding / backfill | profile-specific token and batch limits below | none |
+
+Reject invalid/oversized conversation history with 400 before spending budget;
+pack corpora deterministically by newest first, exposing omitted item counts.
+Insight merge receives bounded structured summaries and the same byte packer.
+These byte bounds limit payload/memory; they are **not** a universal token
+conversion. Unknown chat tokenizers or smaller model contexts may still reject
+bounded input and take the documented failure path. No “character ≈ token”
+claim is used to establish a currency upper bound.
+
+### Embedding input bounds
+
+The initial supported profiles are `openai/text-embedding-3-small` and
+`openai/text-embedding-3-large`, using `cl100k_base` through exactly pinned
+`js-tiktoken@1.0.21`, explicit ordinary-text encoding (special-looking tokens
+are ordinary user data), at most **8,000 tokens per input** and at most
+**32,000 tokens / 128,000 UTF-8 bytes per batch**, additionally at most 64
+items. Construct title + plain text, truncate by token count, decode, and
+re-encode to verify the final input fits; trim further at code point boundaries
+if needed. The same preparation serves immediate writes, query embeddings,
+probes and backfill. A valid long post is truncated and indexed, not marked
+poison solely for length. Image-only empty text is skipped intentionally.
+`lib/llm/model-profiles.ts` binds model id to tokenizer/context limit; adding an
+embedding model requires a reviewed profile and multilingual fixtures. An
+unknown profile disables embeddings with `UNSUPPORTED_EMBEDDING_TOKENIZER`,
+offers the default and leaves chat/posting available. A successful one-string
+dimension check alone cannot validate a tokenizer. Advanced and the environment
+reference state this constraint; arbitrary OpenRouter chat models remain allowed.
 
 ### Keyless behaviour
 
@@ -1381,8 +1612,8 @@ Edits call the models **outside** the database transaction: permission check in 
 | Create post | moderation, AI title and category, embedding | title = first sentence of the plain text, truncated to 80 characters, or "Untitled feedback" for an image-only post; category `general feedback`; **no moderation**; `embedding` null |
 | Create comment | moderation, embedding | stored as written |
 | Edit post / comment | moderation, re-embedding | stored as written |
-| Board search | vector similarity, distance cursor | `ILIKE` over `title` + `plainText` |
-| Admin activity search | vector similarity over posts ∪ comments | `ILIKE` over the same UNION, offset-paged |
+| Board search | materialized semantic search session, ordinal cursor | `ILIKE` over `title` + `plainText` |
+| Admin activity search | materialized semantic session over posts ∪ comments | `ILIKE` over the same UNION, offset-paged |
 | Insights, Ask-AI, "improve draft" | shown | **In the admin area**, Insights and Ask AI stay in the navigation and open on an explanation of what they do, with the one next step (§ *Telling the admin*). **On the board and in the drawer**, "improve draft" is simply absent — visitors are never told about AI. Everywhere, `/api/chat`, `startInsightsRun` and `rewriteFeedback` return a typed `AI_NOT_CONFIGURED` error — or, once the daily limit's 80% share is used, `AI_PAUSED` with the resume time (Insights and Ask AI say "Paused until <local time>", with **Raise the daily limit**, § *Bounding cost*); while the key is unusable or OpenRouter is failing, `AI_UNAVAILABLE` ("AI needs attention — <reason>", with **Reconnect OpenRouter** when the key was rejected or can't be read, otherwise **Test again**) |
 
 Model output is validated, not trusted: `title` is `NOT NULL` and `category`
@@ -1399,12 +1630,58 @@ and `comment.content` are sanitised HTML, and every uploaded image writes
 "href" and uuid fragments. `feedback` and `comment` therefore carry a stored
 **`plainText`** column (created in `0001`, §6), written by all four create and
 update paths from `getPlainText` with link targets dropped (`ignoreHref`).
-User input has `%`, `_` and `\` escaped. The board search's `ILIKE` branch
-falls into the non-search `else` arm wholesale (ordering *and* cursor), because
-the `isSearching` fork covers both. The activity feed gets its own `ILIKE`
-branch including `comment.plainText`.
+User input has `%`, `_` and `\` escaped. The keyless initial search uses
+`ILIKE` against these columns and materializes its own ordered session too.
 
-When `hasEmbeddings` is true but a query embedding fails, the search cap trips (§1) or the daily budget refuses the call, search falls back to `ILIKE` rather than returning nothing.
+### Search sessions and partial indexes
+
+Both board and Activity search use `lib/search/sessions.ts`. Initial search
+creates a random 256-bit client capability, stores only its SHA-256 hash,
+normalized query hash, validated filters (≤4096 UTF-8 bytes), surface, owner user id (required for
+admin search), mode, index generation, expiry, status and result metadata.
+Do not log query/capability values. Query text is not stored. At most 1,000
+live sessions per instance; creation/expiry uses a short transaction under
+`pg_advisory_xact_lock(4702111234474983750)`. At capacity return
+`SEARCH_BUSY` and offer a fresh search later, never evict an active cursor.
+Ten-minute absolute TTL, no extension on page reads. Results contain at most
+1,000 `(kind, id, rank, distance)` entries, stopping earlier if the 128 KiB row payload cap requires it; state the cap and `truncated` flag
+in the UI. Expired sessions are swept every minute; bound JSON and vector
+storage to 128 KiB per session with SQL/application checks.
+
+The unique capability hash is also the initial request's idempotency key:
+one process claims `pending` and spends at most one query embedding call.
+Concurrent attempts return pending status; they never start a second call.
+Failure/crash leaves a failed/expired session requiring a **new search**, not
+an automatic paid retry. Do not hold a connection or transaction during HTTP.
+After the vector arrives, one short repeatable-read transaction checks the
+current generation, takes the bounded HNSW candidate set, computes distances,
+and materializes a strict `(distance, kind, id)` order. On ≥ 0.8 use
+`hnsw.iterative_scan = strict_order`; on older versions use `ef_search = 400`.
+Approximate recall is still approximate and the older semantic candidate cap
+is 400. Search sessions are immutable snapshots of result ids, not promises
+that later edits/deletes cannot change the displayed content.
+
+Include a second result tier of **exact textual matches with null or skipped
+embeddings**, ordered by `(createdAt DESC, kind, id)`, deduplicated with the
+semantic tier. Thus backfill/partial write failures cannot hide exact matches
+only because they lack a vector. Apply identical filters to both tiers. Fill
+up to the 1,000-result session cap with the semantic tier first, mark truncation
+when either tier has more, and report the approximate/partial nature of search.
+
+If the initial embedding is unavailable, unverified, mismatched or refused by
+budget/rate limit, choose `mode = exact` once and materialize the ordinary
+`ILIKE` order. The returned cursor is `(capability, nextOrdinal)` and is bound
+server-side to query hash, filters, owner and mode. Later pages read the stored
+list without any model call, including on another replica. Deleted rows are
+omitted while advancing their ordinal; no duplicate id is emitted. Never
+reinterpret a distance cursor as an exact/offset cursor or re-embed on a page
+read. A semantic session's generation changing, admin authorization loss,
+expiry or incompatible filters returns `SEARCH_RESTART_REQUIRED` (or forbidden
+for lost authorization), clears displayed results only on explicit restart,
+and preserves the query. Provider outages/budget changes alone do not invalidate
+an already materialized session. A new generation must be checked from the
+database on each page, not a five-second cache. One call means one successful
+search-session creation; a fresh search after expiry/crash may cost another.
 
 ### Embeddings and dimensions
 
@@ -1420,9 +1697,7 @@ every request **asks** for that width.
   model (`google/gemini-embedding-001`) returns 3,072 values into a 768 column
   and every embedding is discarded.
 - **The default embedding model is `openai/text-embedding-3-small`**, because OpenAI documents `dimensions`, 768 included, for its `text-embedding-3` models. OpenRouter's catalogue lists `supported_parameters: []` for every embedding model, so it is no evidence either way; whether OpenRouter forwards `dimensions` is settled by phase 6's gate. Phase 6's gate requests 768 from
-  the default and checks that 768 values come back. Advanced accepts any other
-  OpenRouter embedding model id; the live check verifies that it returns the
-  index's width, and switching to it means a rebuild (below).
+  the default and checks that 768 values come back. Advanced accepts embedding ids with a supported tokenizer profile (§ *Embedding input bounds*); the live check also verifies the index's width. Switching model needs a rebuild.
 - **768 is the default because it is cheap and enough.** It is a documented
   output width of OpenAI's `text-embedding-3` models; at 768 plain `vector` is
   used and its HNSW index fits pgvector's 2,000-dimension limit, so `halfvec`
@@ -1438,7 +1713,7 @@ every request **asks** for that width.
   starts, and whenever the AI configuration changes, a background probe embeds
   a fixed string (timeout `AI_TIMEOUT_MS`) and compares the length with the
   column. A wrong length **disables embeddings for the process** — posting continues, search falls back to `ILIKE`, and the probe's `AI:` log line and the System panel name both numbers and the fix. The probe's result lives in the runtime state
-  (§6), where request handlers can see it. An unreachable OpenRouter, a timeout or a 5xx marks embeddings *unverified*, and a 401, 402 or 403 records *failed: <reason>*; either way the probe retries on the backfill's backoff (5 s, 30 s, 2 min, then every 10 minutes, run from the 5-second backfill loop) and at once on a configuration change or a passing live check, so a board whose credit ran out recovers without a restart. Each process re-probes whenever its cached configuration changes (a hash of the key's last four characters, the models and the index width);
+  (§6), where request handlers can see it. An unreachable OpenRouter, a timeout or a 5xx marks embeddings *unverified*, and a 401, 402 or 403 records *failed: <reason>*; either way the probe retries on the backfill's backoff (5 s, 30 s, 2 min, then every 10 minutes, run from the 5-second backfill loop) and at once on a configuration change or a passing live check, so a board whose credit ran out recovers without a restart. Each process re-probes whenever its cached configuration changes (the full configToken, model profile, index generation and re-read physical width);
   the live check seeds the saving process's probe. **Nothing about AI can stop
   the board from starting**; an earlier revision refused to boot, which made an
   optional feature a hard availability dependency and crash-looped under
@@ -1448,49 +1723,92 @@ every request **asks** for that width.
   otherwise throw `different vector dimensions` *(measured)*.
 - **Changing the embedding model always needs a full re-embed**, even at the
   same width: vectors from different models are not comparable.
-- **The index remembers what built it.** `ai_settings.indexFingerprint` =
-  `{ model, dimensions, generation }` is written when the first embedding is
-  stored into an empty index, and by every rebuild. When the configured model
-  or width — from the page or the environment — differs from it, indexing and
-  semantic search stop, and the AI page, the banner and the System panel say
-  "The search index was built with <old>; rebuild it for <new>". Every embedding write carries the generation it was computed under and is dropped if the generation has changed. `lib/llm/settings-store.ts` owns both statements that touch `ai_settings` for this: `writeEmbedding(db, table, id, vector, fingerprint, seen)`, the one statement that writes a vector — `UPDATE … SET embedding = $v WHERE id = $id AND "updatedAt" = $seen AND EXISTS (SELECT 1 FROM ai_settings WHERE id = 1 AND "indexFingerprint" = $fp FOR SHARE)`, plus `AND embedding IS NULL` for backfill writes, where `$fp` is the `{ model, dimensions, generation }` the vector was computed under (a `jsonb` equality). A process that saw no fingerprint computes under generation 1 and first runs, in the same transaction, `UPDATE ai_settings SET "indexFingerprint" = $fp WHERE id = 1 AND "indexFingerprint" IS NULL`, so the first write into an empty index seeds the fingerprint; a concurrent first writer with the same configuration then matches it, and a replica on another model cannot mix in *(measured on Postgres 17.5: nine cases, including concurrent first writers with the same and with different models, a write blocked behind a rebuild, and an edit between computing and writing)* — and `rebuildIndex(trx, …)`, which bumps the generation first, in the same transaction that nulls the columns. An edit writes its new text with `embedding = null` and `"updatedAt" = now()`, then its vector with `$seen` set to that `updatedAt`. So an in-flight write either commits before the rebuild (and is nulled by it) or waits and is dropped. A plain subquery without `FOR SHARE` let a stale vector through: under `READ COMMITTED` the blocked write re-checks only the row, not the subquery *(measured)*. So a batch in flight during a rebuild, or computed by a replica still holding the old configuration, cannot mix into the new index.
+- **The index remembers what built it.** `indexFingerprint` is
+  `{ model, dimensions, generation }`; generation is a monotone bigint
+  serialized as a decimal string. A singleton `indexEpoch bigint` changes
+  atomically with every fingerprint/physical-column change. Before the first vector dispatch, the first eligible process seeds generation
+  1 and increments epoch in a short AI-row-locked transaction, then refreshes
+  its physical snapshot and captures that new epoch. No vector is computed
+  against an uninitialized epoch; a competing configuration
+  cannot mix models. Rebuild takes the AI row lock **before** feedback/comment
+  locks and atomically increments epoch/generation, clears embeddings/skips,
+  changes both column types if needed and recreates HNSW indexes. No external
+  request occurs inside that transaction.
+- **Write fencing and lock order.** `writeEmbedding` starts a short
+  transaction, selects `ai_settings FOR SHARE`, compares the complete expected
+  fingerprint and epoch, then updates the content row only where
+  `revision = expectedRevision` (and `embedding IS NULL` for backfill).
+  A mismatch discards the vector. It never acquires an AI row lock after a
+  content row lock. This explicit sequence supersedes the old timestamp/CAS
+  subquery algorithm. Writes cannot survive a model change, concurrent edit
+  or rebuild with an obsolete vector. Display timestamps have no authority.
+- **All replicas refresh physical metadata.** Every process polls epoch at
+  most five seconds apart; before any embedding operation it checks the
+  current database epoch/config token. On change, block local vector work,
+  invalidate probes/query-vector hints and re-read `pg_attribute` for **both**
+  columns and the extension type. Publish a verified snapshot only if the
+  epoch is still unchanged afterward. Width/type disagreement disables
+  embeddings with a diagnostic, never boot. Operations in flight retain
+  captured epoch/revision and are fenced at write/materialization. A rebuild
+  on A at 1,536 must make B request 1,536 without restarting B. A process-local
+  cached width alone is insufficient.
 
 ### Backfill and rebuild, without a terminal
 
-- **Backfill is automatic.** While `hasEmbeddings` is true and rows have a null
-  embedding, the housekeeping loop (§6) embeds them in batches of up to 64
-  inputs per request (`embedMany`) every 5 seconds, within the daily limit's
-  80% share — a 1,000-post board is searchable in about a minute and a half,
-  and the AI page's progress bar counts the rows still to do. Posts created
-  while keyless, or during a provider outage, become searchable on their own.
-- **One bad row cannot stall it.** Rows with no embeddable text (an image-only
-  comment) are never sent and are marked `embeddingSkipped` (§6; cleared by an
-  edit, a rebuild or a model change). A batch answered with an input-caused 4xx
-  is halved, down to single rows; a row that still fails is marked skipped and
-  counted in the System panel ("3 items can't be indexed"). On 401, 402, 403, 404, 429, 5xx, any other non-input status or a timeout the loop backs off — 5 s, 30 s, 2 min, 10 min — and
-  resets on success or a configuration change. The embedding input is the title and `plainText`, cut to 24,000 characters (inside the default model's 8,192-token context), so a long post is indexed rather than skipped. A backfill write lands only while the row is still null and unedited (`writeEmbedding`'s `embedding IS NULL AND "updatedAt" = $seen`, § *Embeddings*), so a vector computed from old text cannot overwrite an edit; an edit whose re-embedding fails leaves `embedding = null` for the backfill to redo. For that comparison to work, `feedback."updatedAt"` and `comment."updatedAt"` are `timestamptz(3)` — at microsecond precision a value read back through a JS `Date` never matched, 0 of 5 *(measured)* — and every edit sets `"updatedAt" = now()`, which today's `queries/update-*.ts` never do.
-- **Rebuild is a button**, in the System panel and under Settings → AI →
-  Advanced, and it asks first ("The search index will be rebuilt: 500 posts
-  and comments, about 8 embedding requests, about a minute"). It increments the
-  fingerprint's generation, nulls every embedding and clears
-  `embeddingSkipped` (the backfill then refills them); when the width changes
-  it first drops the HNSW indexes, alters both columns to the new type
-  (`USING NULL`) and recreates the indexes in one transaction, which locks
-  `feedback` and `comment` while the columns are rewritten (the button says
-  so). **Rebuild at N** is offered at any N when `AI_EMBEDDING_DIMENSIONS` is unset and only at its value when it is set; N ≤ 4,000, and above 2,000 only on pgvector ≥ 0.7.0 (`halfvec`);
-  otherwise the page says why it is not offered.
-  This is the only supported way to change models or dimensions.
+- **Backfill is automatic** under the independent maintenance scheduler (§6).
+  It selects null, non-skipped rows and their revisions, prepares input with
+  the shared tokenizer, and sends one batch of at most 64 items subject to the
+  32,000-token/128,000-byte caps. Run the next batch no sooner than five seconds
+  after completion. Progress counts actual rows; no fixed completion-time
+  promise under provider latency, admission limits or budget contention.
+- Empty text is skipped. Input-caused non-length 4xx batches are halved down
+  to one row, each actual HTTP request separately admitted against the 80%
+  budget. Persistent malformed input is marked skipped only at its captured
+  revision/epoch. A context-length error first proves the tokenizer/profile
+  invariant; it disables that profile and exposes a diagnostic rather than
+  silently classifying valid long content as poison. Other provider failures
+  back off 5 s, 30 s, 2 min, then 10 min, resetting on success/config change.
+  No automatic retry escapes daily accounting. Edits/rebuild clear skips.
+- **Rebuild is a fresh first-party admin action**, with a confirmation showing
+  affected rows, estimated batch count, budget and possible write lock time.
+  The one atomic rebuild transaction above is the only supported model/width
+  transition. `Rebuild at N` permits 1–4,000, requiring pgvector ≥ 0.7.0 above
+  2,000; an environment-set width locks N to that value. Once committed, pollers
+  show progress and every replica resynchronizes. Failed DDL rolls back all
+  type/fingerprint/epoch changes together.
 
 ### Insights run in the background
 
-`generateInsights` today is one synchronous request of up to 300 seconds
-(`app/api/trpc/[trpc]/route.ts:5-8`, a Vercel `maxDuration`). Cloudflare's
-proxy caps requests at 100 seconds and Railway cuts idle streams at five
-minutes. On a long-lived server this is a job, not a request:
-`startInsightsRun` inserts an `insight_reports` row with `status = 'running'`
-and returns its id (a start while a run is `running` returns that run's id instead); the work runs in the server process and updates
-`heartbeatAt` every 30 s; the page polls `getInsightsRun`. A run whose `heartbeatAt` is more than five minutes old is marked `failed` by the housekeeping loop (every 60 s) and by boot, and `getInsightsRun` reports such a row as failed, so a run cut short by a quick restart cannot stay `running`. `trpc/generate-insights.ts` is deleted; its body moves to
-`lib/llm/insights.ts`. Both `maxDuration` exports are deleted.
+`startInsightsRun` takes `pg_advisory_xact_lock(4702111234474983751)` in a short
+transaction and returns the existing running run if present. A partial unique
+index on constant `(1) WHERE status = 'running'` is the structural backstop.
+Otherwise it inserts exactly one run in `running`, stage `admitting`, records
+the config token and immutable input snapshot/hash, creates the `insight:<id>` lease with its owner/fence in the same transaction, then commits. Snapshots contain at most 2,000 newest eligible posts, each bounded by
+the input packer, and at most 2 MiB total; the UI reports omissions. Expire the
+snapshot on completion/failure and keep report output under 1 MiB.
+
+The run's single owner freezes the chunk plan, **including one final merge
+request when there is more than one chunk**, and reserves `chunks + merge`
+requests against the 80% budget in one short transaction. Reservation and
+`run.stage = admitted`, reservation day/id/count commit atomically; a unique
+run id prevents double reservation. Failure marks that same run failed with a
+mapped reason. Reservation uses the common budget SQL on a dedicated short
+transaction; no network/content locks occur while the counter is held.
+Ordinary request accounting stays autocommit. There are **no insight retries**:
+remove the retained `withRetry` wrapper. Calls spend the reserved tokens only
+on their reserved UTC day; if the day ends before dispatching all of them,
+fail with `RESERVATION_EXPIRED` and retain already used counts. No refunds for
+crashes or unused reservations; quotas may be conservatively underused.
+
+Work runs outside transactions under a renewable fenced lease. Heartbeat every
+thirty seconds; a run older than five minutes is failed by boot, read and
+sixty-second housekeeping. Claim/heartbeat/final save all require the current
+owner token and `status = running`; stale workers cannot publish. Heartbeat
+failure aborts work. Do not resume a crashed run: fail it and let the admin
+start a new one. `queries/save-insights.ts` updates the **same run id**, never
+inserts a second report; persist derived insight rows and succeeded status
+atomically. The page polls `getInsightsRun`. Delete the old synchronous
+`trpc/generate-insights.ts`, its retry wrapper and both `maxDuration` exports.
 
 ### The dependency audit
 
@@ -1537,7 +1855,7 @@ in phase 8.
 | The key and user content are never logged | Every model call passes a status-only `onError`; no `console.*` on a model path; CI greps `lib/llm/` |
 | Nobody else sees the key or the data | There is no Feedbackland server. Requests go from the operator's server to OpenRouter, which forwards each to a provider serving the chosen model; the privacy switch, on by default, limits that to providers that do not train on prompts, and the strict switch to endpoints that retain none; OpenRouter itself stores no prompts unless the account opts in, apart from an anonymous categorisation sample (its data-collection page) (§ *Turning AI on*) |
 | Nothing phones home | No analytics or error-reporting SDK; Better Auth telemetry pinned off; string model ids (Vercel AI Gateway) impossible by construction; the Next.js **runtime** has no telemetry path (`Telemetry` is constructed only `if (opts.dev)`), and `NEXT_TELEMETRY_DISABLED=1` is set for `next build`, which does report. Until an admin connects OpenRouter or pastes a key, nothing contacts openrouter.ai — not even for prices. Verification 16 runs the container with egress blocked |
-| It is the operator's account, limits and bill | They own the OpenRouter account, set the key's spend limit (the AI page shows it and links to it) and can revoke the key; the product adds its own daily limit and shows usage and cost, typical and worst case (§ *Bounding cost*) |
+| It is the operator's account, limits and bill | They own the OpenRouter account, set the key's spend limit (the AI page shows it and links to it) and can revoke the key; the product adds its own daily limit and shows reported usage and labeled cost scenarios (§ *Bounding cost*) |
 | Turning it off changes nothing they own | One click in Settings → AI, which also overrides environment variables; AI surfaces return to their explanations; posts and history stay |
 
 **What is sent, and when** — everything below goes to OpenRouter
@@ -1558,8 +1876,7 @@ in phase 8.
 | Model list | the key, to `/api/v1/models/user` | when an admin opens the model picker, and when the AI page shows prices |
 | Key status | the key, to `/api/v1/key` | when an admin opens Settings → AI, and every 5 minutes (with one model call) while `failing(c)` |
 
-Per action: a post makes 3 model calls, a comment 2, an edit 2, a search 1
-however many pages are read, the probe 1. While no key is configured nothing is
+Per action: an ordinary successful text post makes 3 model calls, comment/edit 2, search-session creation at most 1 and probe 1; explicit retries/diagnostics are separately counted. While no key is configured nothing is
 sent, except the connect exchange and the check of a key being entered.
 
 ### Turning AI on: one button, in the admin panel
@@ -1606,10 +1923,10 @@ When `OPENROUTER_API_KEY` is set, the page says "Configured on the server (`OPEN
 
 1. `connectOpenRouter.start` generates a `code_verifier` (S256), keeps it
    **encrypted** (`lib/secret-box.ts`, bound to the admin, § *Stored, not
-   shown*) in an HttpOnly, `SameSite=Lax`, 1-hour cookie (`Path=/`; `Secure` exactly when `useSecureCookies` is, §3) together with the `ai_settings.updatedAt` it saw, and sends the browser, in the same tab, to
-   `https://openrouter.ai/auth?code_challenge=…&code_challenge_method=S256&key_label=Feedbackland%20–%20<board name>&callback_url=<origin>/admin/settings/ai/return/<n>`, where `n` is 128 random bits kept inside the same encrypted cookie; the board name is truncated so `key_label` stays within OpenRouter's 100 characters.
+   shown*) in an HttpOnly, `SameSite=Lax`, 1-hour cookie (`Path=/`; `Secure` exactly when `useSecureCookies` is, §3) together with the `ai_settings.revision` it saw, and sends the browser, in the same tab, to
+   `https://openrouter.ai/auth?code_challenge=…&code_challenge_method=S256&key_label=Feedbackland%20–%20<board name>&callback_url=<origin>/admin/settings/ai/return/<n>&state=<n>`, where `n` is 128 random bits kept inside the same encrypted cookie; the board name is truncated so `key_label` stays within OpenRouter's 100 characters.
 2. On OpenRouter the admin signs in or signs up and presses **Authorize**;
-   OpenRouter redirects back with `?code=`.
+   OpenRouter redirects back with `?code=…&state=<n>` (redirect mode).
 3. The return page (`/admin/settings/ai/return/<n>`), loaded with `?code=` and a pending-flow cookie for this admin whose `n` matches the path,
    removes the code from the address bar (`history.replaceState`) and calls
    `connectOpenRouter.finish` — a POST; nothing is exchanged on a GET. It
@@ -1631,12 +1948,18 @@ When `OPENROUTER_API_KEY` is set, the page says "Configured on the server (`OPEN
    `finish` refuses before exchanging ("Dana connected OpenRouter a moment
    ago"). A `?code=` without a pending flow exchanges nothing and says "That
    connection timed out — press Connect OpenRouter again (you're already signed
-   in there)." OpenRouter defines no `state` parameter and documents `code_challenge` as optional, so a code minted *without* a challenge might exchange with no verifier; the path nonce `n` is therefore the state: `finish` called from the return page refuses before exchanging unless the path's `n` matches the cookie's. The cookie also records the flow's mode, and a headless flow — whose code is pasted, never delivered by a redirect — accepts a code only from the paste field. Phase 6 records whether `/api/v1/auth/keys` rejects a verifier for a challenge-less code.
+   in there)." OpenRouter's current OAuth documentation supports echoed `state` and
+   requires a challenge for headless flows. Redirect mode sends `state=n`;
+   `finish` checks the returned state **and** the path nonce against the
+   encrypted cookie, binding both to the admin, flow mode and settings
+   revision before exchanging. Retain the path nonce as an additional binding;
+   do not rely on a provider accepting/rejecting a challenge-less code to
+   establish CSRF protection. Missing/wrong/repeated state is rejected. The cookie also records the flow's mode, and a headless flow — whose code is pasted, never delivered by a redirect — accepts a code only from the paste field. Phase 6 records whether `/api/v1/auth/keys` rejects a verifier for a challenge-less code.
 4. The page says "AI is on" and what is now happening (below). If the account
    has no credit (step 3), it says instead: "Connected. One
    step left: add credit to your OpenRouter account — at today's prices $5
    covers about N posts", with **Add credit on OpenRouter** (its credits page,
-   in a new tab). It re-runs the check every 15 seconds while the page is open, and otherwise the housekeeping loop re-runs it every 5 minutes for 7 days (§6) — a call refused for lack of credit costs nothing — so AI turns on by itself when credit arrives, whether or not the tab is open: "Credit received — AI is on". The page says "You can close this page." After 7 days the wait stops and the page says "Still no credit — press Test again once you've added it".
+   in a new tab). It re-runs the check every 15 seconds while the page is open, and otherwise the housekeeping loop re-runs it every 5 minutes for 7 days while ordinary budget is available (§6) — a call refused for lack of credit costs nothing — so AI turns on by itself when credit arrives, whether or not the tab is open: "Credit received — AI is on". The page says "You can close this page." After 7 days the wait stops and the page says "Still no credit — press Test again once you've added it".
 
 OpenRouter documents `localhost` callbacks on any port. The redirect is used
 for `https:` origins and the hostname `localhost` (not `127.0.0.1`) — Render,
@@ -1646,9 +1969,7 @@ no `callback_url`, and OpenRouter shows the code after **Authorize**. In
 headless mode the button opens a new tab on the click (so popup blockers allow
 it) and points it at `/auth` once `start` returns, and the current tab goes to
 Settings → AI with "Paste the code OpenRouter shows you" focused; pasting
-submits it to the same `finish`. A public `callback_url` makes OpenRouter create an app page for that address — public by default and not changeable afterwards; a `localhost` callback and headless mode create none (its OAuth and app-attribution docs). So on an `https:` origin other than `localhost` the redirect is used only when the board is itself public (`allowIndexing` on), and the button then says underneath "OpenRouter will show this board's address as the app that created the key", with **Connect without listing** (headless mode); a board with indexing off connects headlessly. Phase 6 records what that app page shows. The verifier
-never leaves the server unencrypted, so someone watching a plain-HTTP
-connection who sees the code still cannot exchange it. Phase 6 checks whether
+submits it to the same `finish`. A public `callback_url` makes OpenRouter create an app page for that address — public by default and not changeable afterwards; a `localhost` callback and headless mode create none (its OAuth and app-attribution docs). So on an `https:` origin other than `localhost` the redirect is used only when the board is itself public (`allowIndexing` on), and the button then says underneath "OpenRouter will show this board's address as the app that created the key", with **Connect without listing** (headless mode); a board with indexing off connects headlessly. Phase 6 records what that app page shows. The verifier stays encrypted outside the server; PKCE prevents exchanging an intercepted code without it. Plain HTTP still exposes the session and permits active page tampering, so this is not a claim that the entire connection is protected. Phase 6 checks whether
 `/auth` honours `limit` and `usage_limit_type` (OpenRouter's key-creation API
 accepts them); if it does, Connect creates the key with a $10 monthly limit,
 shown as "Monthly spend limit: $10 (change it on OpenRouter)", and otherwise
@@ -1673,7 +1994,10 @@ checklist: "New posts and comments are screened for spam and abuse and get a
 title and a category", "Search: 132 of 500 posts and comments indexed" (a live
 progress bar while the backfill runs), "Insights and Ask AI are ready". Then
 **Usage and limits**, **Privacy**, **Advanced**, **Turn off AI** (keeps the stored key; overrides the environment until an admin turns AI back on; also records `keepOffAt`/`keepOffBy`, so the nudges stay quiet, § *Telling the admin*), **Reconnect OpenRouter** and **Paste a new key** (each replaces the stored key; an unreadable key counts as none for **Turn on AI**) and **Remove key** ("Removed from this board. The key still exists in your
-OpenRouter account — delete it there", linking the key's page). Each change is stamped with who made it and when; only admin actions write `updatedAt`/`updatedBy` — `lastCheck`, `health`, `indexFingerprint` and the credit wait never do, so a background write can never make an admin's save look stale. Saves carry the settings' `updatedAt`; a
+OpenRouter account — delete it there", linking the key's page). Each admin change increments `revision bigint`, stamps display
+`updatedAt`/`updatedBy` and changes the effective config token. Background
+health/probe/index writes do not increment this admin revision. Saves carry
+the decimal-string `revision`, never `updatedAt`; a
 save against a newer version is refused ("Dana changed these settings a moment
 ago — reload").
 
@@ -1785,6 +2109,49 @@ settings also apply (linking them), and repeats the *What is sent* table.
   admin turns AI back on.
 - Only `lib/llm/settings-store.ts` reads or writes `ai_settings` — including the two statements that join it to the embedding columns, `writeEmbedding` and `rebuildIndex` (§ *Embeddings*); `lib/config.ts`, `lib/housekeeping.ts`, `lib/boot/` (its seed calls `ensureAiSettingsRow(trx)`) and the AI procedures call that module. CI fails if any file other than it, `db/migrations/` and the generated `db/schema.ts` names the table (like `instance_secret`'s rule).
 
+### Configuration identity and asynchronous results
+
+`ai_settings.revision bigint not null default 1` is the admin CAS value; API
+values are decimal strings, never JS numbers or timestamps. SQL increments
+the integer on every admin action, including Undo, Keep AI off and key removal.
+Undo is a new conditional save; it cannot overwrite a subsequent admin action.
+Every call captures `configToken`: a server-only SHA-256 over canonical resolved
+options, enabled state, complete-key SHA-256 digest and revision. Last four
+characters are display only. The row stores `effectiveConfigToken`; updating
+configuration atomically sets it and clears stale checks/waits/health. Boot
+synchronizes environment overrides while holding the AI row lock. All replicas
+must use identical environment configuration; changing it requires stopping
+all replicas, changing it everywhere and starting them together. A process
+whose derived token differs from the database disables its AI work and reports
+`CONFIGURATION_DIVERGED`; it must not overwrite another configuration's status.
+
+Probe/check/credit/health writes require `effectiveConfigToken = capturedToken`
+and the captured admin revision. Credit completion additionally requires
+`enabled IS NULL`, the same key digest and the still-current wait window;
+it sets enabled true, increments revision and computes the replacement token
+atomically. Keep AI off or key removal wins over any older completion. Any successful enable transition
+(`null/false → true`, from paste, Connect, Turn on or credit completion) CASes
+the captured revision/token, increments revision and writes the result with
+the **replacement** token in the same transaction. Transfer a passing dimension
+probe only if key/model/privacy and index epoch/physical width are unchanged;
+otherwise re-probe. Do not immediately invalidate the check by retaining its
+old pre-enable token. A passing check from the same revision may seed that process's probe; it never
+verifies another generation/width without checking it. Different keys sharing
+a suffix never share checks or probes. A lost CAS result is discarded.
+
+Health is stored in `ai_health`, one row per capability and configToken, not a
+whole-object read/overwrite. Update one capability atomically under its row
+lock using database time: success clears its failure streak; first eligible
+failure after success sets `failingSince`, subsequent failures retain it.
+Only mapped real-call provider failures count, as defined in §6; checks,
+budget/limiter refusals and content refusals do not. Every observation has a
+monotone per-capability sequence allocated **before** dispatch; accept it only
+when greater than the last applied sequence. Thus an older request completing
+late cannot override a later observation, and parallel replicas cannot erase
+each other's chat/embedding state. This is dispatch-order health, not a claim
+to know an exact global provider incident start. Poll public/admin status as
+specified in §10; the server cache does not update mounted browsers itself.
+
 ### Telling the admin
 
 The rules: **outcomes first, then the mechanism in terms that can be checked**
@@ -1820,16 +2187,24 @@ resolves on the server so they are right on first paint. The tab labels "Insight
 
 ### Bounding cost
 
-- **One call is one HTTP request to OpenRouter** (an `embedMany` batch is one); with `maxRetries: 0` there are no hidden ones. `startInsightsRun` reserves its chunk count up front with `consumeAiBudget(cap, n)` (below, with `n` in place of 1) and is refused whole if it does not fit the 80% share, so a run never stops midway; its chunk calls then consume nothing further.
-- **A daily limit**: `dailyCallLimit` calls per UTC day — default **5,000**
+- **One model call is one attempted HTTP model request**, including failed
+  requests. SDK retries are zero. Insight runs reserve all chunk **and merge**
+  requests atomically with their run record (§ *Insights*); reservations
+  prevent mid-run budget rejection, not provider failure. All other explicit
+  retries (text-only moderation, backfill split, allowed data-policy retry,
+  in-flight-budget retry) consume a fresh request admission before dispatch.
+  Limit in-flight-budget retries to one, honoring a bounded Retry-After only
+  within the original absolute deadline; otherwise return the mapped failure.
+  Key/account/model-list metadata endpoints share a database-backed instance limit of 60 requests/minute plus the existing per-user check limit and usage classification; they are not model requests. No retry loop is unbounded.
+- **A daily limit**: `dailyCallLimit` admitted model requests per UTC day — default **5,000**
   (the phase-6 measurement states what that costs with the default models), set
-  under Advanced, locked by `AI_DAILY_CALL_LIMIT`, and validated to be at least
-  10 in both places (below that, the first call would always be admitted and the
+  under Advanced, locked by `AI_DAILY_CALL_LIMIT`, and validated as an integer from
+  10 through 1,000,000 in both places (below that, the first call would always be admitted and the
   80% share could be zero). It is counted in the `rate_limit` row
   `ai:instance:day:<UTC date>`, consumed by `consumeAiBudget(cap, n = 1)` in
   `queries/check-rate-limit.ts`, which counts only **allowed** calls:
   `INSERT INTO rate_limit (key, count, "windowStart") VALUES ($key, $n, now()) ON CONFLICT (key) DO UPDATE SET count = rate_limit.count + $n WHERE rate_limit.count + $n <= $cap RETURNING count`
-  — `$n` is 1 except for an insights run, and a call with `$n > $cap` is refused without a query; no row returned means refused, and a database error refuses the call. It runs on the pool in autocommit, never inside a transaction: a refused call inside one held the instance-wide row locked until commit and made every other AI call wait *(measured)*; `$cap` is an integer. A
+  — `$n` is 1 except for an insights run, and a call with `$n > $cap` is refused without a query; no row returned means refused, and a database error refuses the call. Ordinary per-request consumption runs on the pool in autocommit; the sole exception is the short insight-reservation transaction described above, without network calls or content locks: a refused call inside one held the instance-wide row locked until commit and made every other AI call wait *(measured)*; `$cap` is an integer. A
   new UTC date is a new key, so the budget resets at 00:00 UTC exactly, and the
   §6 sweep never deletes today's key.
 - **Moderation is reserved the last 20%.** Titles, indexing, search embeddings,
@@ -1846,13 +2221,28 @@ resolves on the server so they are right on first paint. The tab labels "Insight
   a cap. Signed-in posts, comments and edits are stored unscreened and recorded
   (`moderation_event`, reason `daily-limit`): they carry per-user caps and an
   author an admin can remove. The pill says "AI paused"; **Raise the daily
-  limit** takes effect within 5 seconds (when `AI_DAILY_CALL_LIMIT` locks the
+  limit** changes server admission within five seconds and active UI within ten seconds plus network latency (when `AI_DAILY_CALL_LIMIT` locks the
   limit, the button reads "Set on the server by `AI_DAILY_CALL_LIMIT`").
-- **The cost, typical and worst**: the page states the typical cost ("about $X
-  per 100 posts") and the worst case — `dailyCallLimit` × the cost of the
-  largest single request (Ask AI's full context plus its output cap): "Worst
-  case, if every call were the largest possible: $Y a day". It recommends a key
-  limit with a monthly reset at or below that.
+- **Cost scenarios, not a promised currency upper bound.** Display measured
+  typical cost per 100 posts and an explicitly labeled “large-request scenario
+  at today's listed prices”. Compute the latter across **all** bounded
+  feature shapes, including maximum Ask-AI history/corpus, insight chunk and
+  merge, vision pricing and permitted explicit retries; show model, dated
+  price source, token/image assumptions and missing prices. Unknown tokenizer,
+  routing/provider pricing, reasoning/image billing or missing costs means
+  “estimate unavailable”, never zero. The daily counter bounds attempted model
+  requests, not dollars; a provider-enforced key spend limit is the monetary
+  control. Checks/probes are accounted too; enabling/test operations bypass the
+  ordinary daily cap only for explicit manual **Test again**, under `ai-check:user` plus a shared
+  **40 model requests per UTC day** diagnostic allowance. Ordinary checks,
+  probes and automated credit/health polls first consume the normal 80% share,
+  even while enabled is null; they wait until rollover if that share is full.
+  Only manual Test again may use the extra diagnostic allowance after ordinary
+  admission refuses. Each retry requires admission. Status says when either
+  allowance is exhausted. Thus closed-tab credit completion is within one due
+  tick **when budget is available**, not an unconditional promise under a flood. Display their usage separately and never
+  describe the ordinary 5,000-call cap as all possible provider activity.
+
 - **Usage you can read**: `lib/llm/usage.ts` records every call per feature per
   day in `llm_usage` (§6) — calls, tokens and the cost OpenRouter reports for
   every request, embeddings included, read from `steps[].usage.raw.cost` (chat)
@@ -1862,26 +2252,26 @@ resolves on the server so they are right on first paint. The tab labels "Insight
 - **The key's own limit**: the page shows the key's spend limit and what
   remains (`limit`, `limit_remaining`), recommends setting one when there is
   none, and links to the key's page.
-- **Search costs one call however many pages are read**: query vectors are
-  cached per process for 10 minutes by (the query trimmed, lower-cased and with whitespace collapsed, and the index fingerprint),
-  at most 1,000 entries — today every "load more" re-embeds the query
-  (`queries/get-feedback-posts.ts:33`, `get-activity-feed.ts:47`).
-- For scale: a post makes 3 model calls, a comment 2, an edit 2, a search 1;
-  embedding 10,000 posts with the default model costs about four cents.
+- **Search-session creation costs at most one query embedding attempt.** All
+  page reads use the durable shared result snapshot (§ *Search sessions*).
+  A new query/session or explicit restart may cost another call. Initial exact
+  mode costs none; there is no hidden re-embedding on cache expiry or another
+  replica. Count probes/checks and explicit retries separately in usage.
+- “A post makes 3 calls, a comment/edit 2” describes the ordinary successful
+  text path only. Vision fallback/retries, optional embeddings/titles, batches,
+  empty text and budget state change that count. Per-action prices must name
+  the fixture and model; do not extrapolate a universal four-cent backfill.
 
 **Floods, stated.** Someone flooding the board can exhaust the day's limit.
 At the default limit and §1's instance caps (240 anonymous posts a minute
-across the board and the API, 3 calls each), about ten minutes of sustained
-posting uses it up: after about six, titles and indexing stop; after about
-ten, anonymous posting pauses until 00:00 UTC, and signed-in content is
+across the board and the API; feature admission and retries change calls per post), a sustained flood can consume it within minutes; titles/indexing stop at 80%, and anonymous posting pauses at the full limit until 00:00 UTC, and signed-in content is
 published unscreened and recorded. About thirteen minutes of distinct
 searches at the search cap uses up the 80% share, so semantic search and AI
 titles stop for the rest of the day. A flood cannot make anonymous content
 skip screening through the board's own limit; exhausting the key's spend limit
-first (one set below the day's worst case) still can, as stated under
+first (independent of the displayed cost scenarios) still can, as stated under
 *Moderation*. The amber pill, `moderation_event` and **Raise the daily limit**
-make it visible and recoverable; that trade — a hard ceiling on the operator's
-bill against a posting pause under a sustained flood — is the operator's to
+make it visible and recoverable; that trade — a bounded request allowance plus provider-side spend controls against a posting pause under a sustained flood — is the operator's to
 tune with the limit.
 
 ## §6 — Schema, migrations and boot
@@ -1939,22 +2329,49 @@ The tracking tables are Kysely's defaults, `kysely_migration` and
 
 | Table | Definition |
 |---|---|
-| `settings` | `id integer primary key default 1 CHECK (id = 1)`, `platformTitle text not null default 'Feedback'`, `platformDescription text`, `logoImageId uuid references images(id) on delete set null`, `allowIndexing boolean not null default true`, `setupCompletedAt timestamptz` (null = unclaimed), `createdAt`, `updatedAt`. **Read with explicit columns only** — never `selectAll()` |
+| `settings` | `id integer primary key default 1 CHECK (id = 1)`, `platformTitle text not null default 'Feedback'`, `platformDescription text`, `logoImageId uuid references images(id) on delete set null`, `allowIndexing boolean not null default true`, `setupCompletedAt timestamptz`, `revision bigint not null default 1 CHECK (revision > 0)`, display `createdAt`, `updatedAt`. Admin saves compare/increment revision. Explicit-column reads only |
 | `instance_secret` | `id integer primary key default 1 CHECK (id = 1)`, `authSecret text`, `setupCode text`, `createdAt`. **Read and written only by `lib/boot/`**, which exports `verifySetupCode(code)` and `clearSetupCode(trx)` for `/setup`. CI fails if any file outside `lib/boot/`, `db/migrations/` and the generated `db/schema.ts` names it. It is separate from `settings` because the settings read is public: today `queries/get-org.ts` is `selectAll()` behind a `publicProcedure`, and a mechanical rename would serve the auth secret to anonymous visitors |
 | `user`, `auth_session`, `auth_account`, `auth_verification`, `auth_rate_limit` | Better Auth's DDL, generated for the pinned version and pasted verbatim, followed by the `role`/`scope` defaults and `CHECK`s (§3). Better Auth's migrator never runs at runtime |
-| `feedback` | `id uuid pk default gen_random_uuid()`, `authorId text references "user"(id) on delete set null` (nullable: anonymous posts), `title text not null`, `description text not null` (sanitised HTML), **`plainText text not null`**, `category feedback_category`, `status feedback_status`, `upvotes numeric not null default 0`, `embedding <vector type>`, `embeddingSkipped boolean not null default false` (§5), `createdAt`, `updatedAt timestamptz(3) not null default now()` (set by every edit; §5 compares it). **No `orgId`** |
-| `comment` | `id`, `postId uuid not null references feedback(id) on delete cascade`, `parentCommentId uuid references comment(id) on delete cascade`, `authorId text references "user"(id) on delete set null` (**now nullable**; rendering shows a deleted author), `content text not null`, **`plainText text not null`**, `upvotes`, `embedding <vector type>`, `embeddingSkipped boolean not null default false`, `createdAt`, `updatedAt timestamptz(3) not null default now()` (as `feedback`'s) |
-| `images` | `id uuid pk default gen_random_uuid()`, `bytes bytea not null`, `contentType text not null CHECK ("contentType" IN ('image/png','image/jpeg','image/gif','image/webp'))`, `byteSize integer not null`, `width integer not null`, `height integer not null`, `createdAt timestamptz not null default now()` |
+| `feedback` | `id uuid pk default gen_random_uuid()`, nullable `authorId text references "user"(id) on delete set null`, `title text not null`, `description text not null` (sanitised HTML), `plainText text not null`, category/status enums, `upvotes numeric not null default 0`, nullable `embedding <vector type>`, `embeddingSkipped boolean not null default false`, `revision bigint not null default 1 CHECK (revision > 0)`, `moderationState text not null CHECK ("moderationState" IN ('disabled','screened','screened-text','unscreened'))`, display `createdAt`, `updatedAt timestamptz not null default now()`. No `orgId`; text/title edits atomically increment revision |
+| `comment` | `id uuid pk`, `postId uuid not null references feedback(id) on delete cascade`, nullable `parentCommentId uuid`, `UNIQUE (id, "postId")`, composite `FOREIGN KEY ("parentCommentId", "postId") REFERENCES comment(id, "postId") ON DELETE CASCADE` (MATCH SIMPLE permits null parent), `CHECK ("parentCommentId" IS NULL OR "parentCommentId" <> id)`, nullable author FK set null; content/plainText, upvotes, embedding, skip flag, revision, moderationState and display timestamps as feedback. Parent/post immutable after insert; write checks max depth eight edges and same-post parent before model calls, then rechecks in final transaction. A missing/cross-post parent is 400 |
+| `images` | `id uuid pk default gen_random_uuid()`, `bytes bytea not null`, `contentType text not null CHECK` PNG/JPEG/GIF/WebP, `byteSize integer not null CHECK ("byteSize" > 0 AND "byteSize" = octet_length(bytes))`, positive integer width/height, `createdAt timestamptz not null default now()`. Shared quota/reference advisory lock on all ownership mutations (§4) |
 | `image_ref` | `imageId uuid not null references images(id) on delete cascade`, `postId uuid references feedback(id) on delete cascade`, `commentId uuid references comment(id) on delete cascade`, `CHECK (num_nonnulls("postId", "commentId") = 1)`; unique per (image, owner) as two partial unique indexes, `("postId", "imageId") WHERE "postId" IS NOT NULL` and `("commentId", "imageId") WHERE "commentId" IS NOT NULL` — a plain `UNIQUE` over the three columns enforces nothing, because one owner is always null, and `NULLS NOT DISTINCT` needs Postgres 15 *(measured)* — plus `("imageId")` for the sweep; writers use `ON CONFLICT DO NOTHING` |
 | `insights` | today's columns including those added by `2026-07-25-insights.sql` (with `firstSeenAt` as a column default, not a backfill), **no `orgId`** |
-| `insight_reports` | **no `orgId`**; gains `status text not null CHECK (status IN ('running','succeeded','failed'))`, `startedAt timestamptz not null default now()`, `heartbeatAt timestamptz not null default now()` (so a run that dies before its first heartbeat still ages out — a null one never matched the stale-run predicate *(measured)*), `finishedAt timestamptz`, `error text` (§5 background runs) |
+| `insight_reports` | existing report columns without `orgId`, `status text not null CHECK` running/succeeded/failed, `stage text not null CHECK` admitting/admitted/complete, `startedAt`, `heartbeatAt` not null default now(), nullable `finishedAt`, nullable mapped `error`, `configToken text not null`, `owner text not null`, `fence bigint not null`, `inputSnapshot jsonb` (≤ 2 MiB, cleared on finish), `inputHash text`, `requestPlan jsonb`, nullable reservation id/day/count. Partial unique index `ON insight_reports ((1)) WHERE status = 'running'`; same-id final update and owner/fence guard (§5) |
 | `admin_invites` | **no `orgId`**; gains `expiresAt timestamptz not null default now() + interval '7 days'` |
-| `moderation_event` | `id bigint generated always as identity primary key`, `createdAt timestamptz not null default now()`, `postId uuid references feedback(id) on delete cascade`, `commentId uuid references comment(id) on delete cascade`, `CHECK (num_nonnulls("postId", "commentId") = 1)`, `reason text not null CHECK (reason IN ('provider-auth','provider-credit','provider-rate','provider-error','daily-limit','key-unreadable','limiter-error'))` — one row per item stored unscreened (§5); Activity's **Unscreened** filter and the System panel's 24-hour count read it |
-| `job_lease` | `name text primary key`, `holder text not null`, `until timestamptz not null` — which replica runs the embedding backfill |
-| `ai_settings` | `id integer primary key default 1 CHECK (id = 1)`, `enabled boolean` (**nullable**: null = not chosen, true = on, false = turned off, which also overrides the environment), `apiKey text` (ciphertext, §5), `apiKeyLast4 text`, `apiKeySetAt timestamptz`, `creditWaitUntil timestamptz` (§5), `options jsonb not null default '{}'` (chat and embedding models, vision, timeout, daily limit, privacy switches; validated with Zod), `indexFingerprint jsonb` (`{ model, dimensions, generation }`, §5), `keepOffAt timestamptz`, `keepOffBy text references "user"(id) on delete set null`, `lastCheck jsonb` (`{ at, last4, key: 'ok'\|'invalid'\|'management'\|'expired'\|'unknown', chat, search }` — mapped verdicts only; ignored when `last4` is not the current key's), `health jsonb` (per capability, `{ chat, embeddings }`, each `{ lastSuccessAt, lastFailureAt, failingSince, lastReason, failuresLastHour }`, mapped reasons only; only `provider-auth`, `provider-credit`, `provider-rate` and `provider-error` outcomes of real calls count — never input-caused 4xx, refusals, budget or limiter refusals, the live check or the credit wait; `failingSince` is set by the first counted failure after a success and cleared by the next success; written at most once a minute per process, and at once when it turns failing or healthy; drives "needs attention"), `updatedAt timestamptz(3) not null default now()` (millisecond precision, so it survives the round trip through a JS `Date` and JSON — at the default microsecond precision no save ever matched, 0 of 5 *(measured)*; written only by admin actions; a save against a newer value is refused), `updatedBy text references "user"(id) on delete set null`. Read and written only through `lib/llm/settings-store.ts` (a CI rule, §5) |
+| `moderation_event` | identity bigint pk, createdAt not null default now(), nullable post/comment cascade FKs with exactly one owner CHECK, `contentRevision bigint not null CHECK > 0`, mapped reason CHECK including provider-auth/credit/rate/error, daily-limit, key-unreadable, limiter-error, vision-not-screened. Two partial unique indexes `(postId, contentRevision)` / `(commentId, contentRevision)` for nonnull owners. Historical coverage events; current filter reads content.moderationState (§5) |
+| `job_lease` | `name text primary key`, `holder text not null` (random per process boot), `until timestamptz not null`, `fence bigint not null CHECK (fence > 0)`. New acquisition increments fence; renewal requires matching unexpired holder/fence. Database clock; separate maintenance and insight-run names (§6) |
+| `ai_settings` | singleton id CHECK, nullable enabled, ciphertext apiKey, display apiKeyLast4/apiKeySetAt; server-only full apiKeyDigest and effectiveConfigToken; nullable creditWaitUntil bound to config token, validated options jsonb default '{}', nullable indexFingerprint with decimal-string generation, `indexEpoch bigint not null default 1`, keepOffAt/keepOffBy; lastCheck jsonb `{at, configToken, key, chat, search}` mapped verdicts only; `revision bigint not null default 1 CHECK (revision > 0)`, display updatedAt/updatedBy. Background writes are token/revision fenced; only admin changes increment admin revision, except the explicit atomic credit-enable transition. Access only through settings-store (§5). Health lives in ai_health |
 | `llm_usage` | `day date not null` (the UTC date, from `(now() AT TIME ZONE 'UTC')::date` or computed in JS — never `current_date`, which follows the session time zone), `feature text not null CHECK (feature IN ('moderation','title','embed-write','embed-query','backfill','insights','ask-ai','rewrite','check','probe'))`, `calls`, `errors` and `uncostedCalls` `integer not null default 0`, `inputTokens` and `outputTokens` `bigint not null default 0` (read back as strings by `pg`; converted before adding), `costUsd numeric(20,12) not null default 0` (as OpenRouter reports it; a query embedding costs about $0.0000002; a response without a cost adds 0 and counts in `uncostedCalls`, which the page shows as "N calls without a reported cost"), primary key `(day, feature)`; each call is one `INSERT … ON CONFLICT DO UPDATE` adding to the row — the AI page's usage figures |
 | `admin_notice` | `userId text not null references "user"(id) on delete cascade`, `notice text not null CHECK (notice IN ('ai-off-card','ai-unseen-notice','ai-broken-card'))`, `dismissedAt timestamptz not null default now()`, `hiddenUntil timestamptz` (null = until the condition recurs), primary key `(userId, notice)` — per-admin dismissals (§5, *Telling the admin*) |
 | `user_upvote`, `activity_seen`, `rate_limit` | unchanged in shape. `user_upvote.contentId` and `activity_seen.itemId` have no FK by design (they point at either a post or a comment); the sweep removes orphans |
+
+Additional tables in `0001`:
+
+| Table | Definition |
+|---|---|
+| `auth_runtime` | singleton id CHECK, `discoveryEpoch bigint not null default 1`; no provider secrets. Auth server owns changes/reads |
+| `ai_health` | primary key `(configToken, capability)` with capability chat/embeddings, monotone nextSequence/lastAppliedSequence bigint, lastSuccessAt/lastFailureAt/failingSince, fixed-enum lastReason, bounded failuresLastHour counter/window. Atomic per-capability updates through settings-store only; clear obsolete-token rows after 24 h |
+| `search_session` | capabilityHash text pk (SHA-256), queryHash text not null, filters jsonb, surface text CHECK board/activity, nullable userId cascade FK (required for activity), mode CHECK semantic/exact, nullable fingerprint/epoch, nullable queryVector bytea (little-endian float32, ≤16000 bytes), bounded results jsonb, status CHECK pending/ready/failed, createdAt/expiresAt not null, truncate flag. Ten-minute TTL, total vector+results+filters ≤ 128 KiB per row; no raw query text or capability. Index expiresAt; capacity serialized under search lock (§5) |
+| `recovery_claim` | primary key `(codeDigest, userId)` with user cascade FK, random operation id, owner token, status CHECK resetting/reset/promoted, createdAt/expiresAt, mapped failure only. Atomic insert/expired-claim replacement grants one active operation; a concurrent caller gets in-progress, never a second reset; completion requires owner token. Fifteen-minute claim TTL; retries after expiry revalidate current code and account. Sweep after 24 h; no raw recovery code/password/reset token |
+
+**Revision contract:** settings/content/AI revisions and job fences are bigint
+counters incremented in SQL, serialized as decimal strings and validated as
+positive canonical decimal input. No `Date`, `now()` or microsecond precision
+is used as a CAS token. Timestamps are display/expiry data. Revision overflow
+fails closed; never wrap to zero. A same-millisecond double edit must conflict
+and a delayed embedding from revision N must not attach to N+1.
+
+**Reply contract:** creation validates an existing parent's post and follows
+its immutable parent chain with a bounded recursive query (at most eight
+edges). Reject cycles/missing ancestors, depth overflow and caller attempts to
+change postId/parentCommentId later. The composite FK enforces same-post
+parentage even for raw SQL inserts. Parent deletion during a model call causes
+the final insert to fail cleanly with no orphan. Validation runs before paid
+work and again before commit. A content-edit transaction that needs both image
+references and admin authority follows membership → image → settings → content
+locks; embedding persistence is separate and follows AI → content. Never take
+an AI lock while retaining content/image locks from the edit transaction.
 
 Enums: `feedback_category` and `feedback_status` are kept. The dead
 `subscription_frequency` and `subscription_name`, and `user_org_role`
@@ -1965,7 +2382,10 @@ Indexes: `insights_org_archived_idx (orgId, isArchived)` and
 `(isArchived)` and `(createdAt DESC)`, not dropped (they back the insights
 page's filter and ordering). The duplicates `user_id_key` (beside the primary
 key) and `activity_seen_userid_itemid_unique` (beside its primary key) are not
-reproduced. Every foreign-key column on a multi-row table gets an index — `feedback("authorId")` among them — plus `moderation_event("createdAt")` and the backfill's partial indexes `("id") WHERE embedding IS NULL AND NOT "embeddingSkipped"` on `feedback` and `comment`. Identifiers are camelCase; in raw `sql` fragments they are double-quoted (`num_nonnulls("postId", "commentId")` — unquoted, it fails with `42703` *(measured)*). The whole `0001`, written from this table, runs as 52 statements on Postgres 18.3 with pgvector 0.8.1 and, without the vector columns, on 13.2 and 17.5 *(measured, 2026-09-27)*.
+reproduced. Every foreign-key column on a multi-row table gets an index — `feedback("authorId")` among them — plus `moderation_event("createdAt")` and the backfill's partial indexes `("id") WHERE embedding IS NULL AND NOT "embeddingSkipped"` on `feedback` and `comment`. Identifiers are camelCase; in raw `sql` fragments they are double-quoted (`num_nonnulls("postId", "commentId")` — unquoted, it fails with `42703` *(measured)*). The historical revision-3 scratchpad ran an earlier 52-statement schema;
+that count and result do **not** validate this expanded schema. V1/V19–V23
+must run the final `0001` in full, including constraints and indexes, against
+the production-supported floor and bundled major with real pgvector.
 
 Foreign keys: **authorship** (`feedback.authorId`, `comment.authorId`) is
 `ON DELETE SET NULL`: cascading from `user` would reach other people's content
@@ -2010,15 +2430,17 @@ migrating role, took effect only on new connections (a pooler's existing
 backends kept the old path), and aborted `0001` when the provider forbade the
 `ALTER ROLE`. Nothing else in the app names a pgvector type.
 
-**Paging through semantic search.** With an HNSW index a filtered query stops
-after `hnsw.ef_search` candidates (40 by default), so "load more" on a
-semantic search stopped at 40 results *(measured, 3,000 matching rows)*. The
-search queries run **inside a transaction** (a `SET LOCAL` outside one is
-silently ignored) that sets `SET LOCAL hnsw.iterative_scan = relaxed_order` on
-pgvector ≥ 0.8.0 — which paged the full test window *(measured)*, up to
-`hnsw.max_scan_tuples` (20,000) — and `SET LOCAL hnsw.ef_search = 400` on older versions (written as literal SQL text or `set_config('hnsw.ef_search', '400', true)`: `SET LOCAL` takes no bind parameter *(measured)*), which caps a semantic search at 400 results (documented). Approximate
-search loses a few percent of recall at realistic dimensions, as any HNSW
-search does.
+**Semantic candidate collection and pagination.** Use the strict-order
+candidate transaction and shared immutable search sessions specified in §5.
+Set local pgvector options inside that transaction (literal SQL or
+`set_config`, not parameterized `SET LOCAL`). Never use `relaxed_order` with a
+distance keyset cursor. HNSW remains approximate; ≥ 0.8 permits iterative
+collection bounded by `hnsw.max_scan_tuples = 20000`, while older versions
+collect at most 400 semantic candidates. Exact unindexed matches form the
+second tier. Materialize and sort once; ordinal pagination never re-runs ANN.
+V8 uses varied vectors, ties and filters, not only identical-text rows, and
+asserts ordered unique traversal of the captured candidate set without
+claiming exhaustive nearest-neighbor recall.
 
 ### Boot runs inside the server process
 
@@ -2081,14 +2503,13 @@ to a route handler *(measured)*. Only `process.env` and `globalThis` are
 shared. Therefore:
 
 - `db/db.ts` memoises the pool and the Kysely instance on
-  `globalThis.__feedbackland` (`pool ??= new Pool(…)`), so a process opens at
-  most `DATABASE_POOL_MAX` connections, not three times that.
+  `globalThis.__feedbackland` (`pool ??= new Pool(…)`), so the app and maintenance pools together open at most `DATABASE_POOL_MAX` connections, not three times that; the temporary dedicated setup pool is separately bounded (§7).
 - **`lib/runtime-state.ts`** holds everything boot, housekeeping or the probe
   writes and request handlers read — the pgvector schema and version, the
   embeddings state (verified, unverified, disabled and why), the cached AI
   configuration (§5, 5-second lifetime), the setup-complete latch, the banner
   facts — on `globalThis[Symbol.for("feedbackland.runtime")]`.
-  The embedding column's width and the query-vector cache (§5) live here too. Durable facts (unscreened items, AI health, insight runs) live in the database.
+  The observed index epoch/physical width and local probe hints live here too; durable search-session vectors/results live in Postgres (§5). Durable facts (unscreened items, AI health, insight runs) live in the database.
 - The auth secret reaches Better Auth through `lib/config.ts`, which keeps its
   resolved values on `globalThis.__feedbackland`, beside the pool.
 
@@ -2104,14 +2525,13 @@ shared. Therefore:
    reboot, and Render, Railway and Kubernetes have no ordering at all.
 3. **One transaction, on one connection**, opened on `new Kysely({ dialect: new BootDialect({ pool }) })` (below) so that the Migrator inside it uses the non-locking adapter — which is what makes boot safe
    across replicas and through a transaction pooler:
-   1. `SET LOCAL lock_timeout = '15min'; SET LOCAL statement_timeout = 0` (a role- or database-level `statement_timeout` would otherwise end the lock wait or a long migration regardless, *(measured)*); `SELECT pg_try_advisory_xact_lock(4702111234474983745)`; when that fails, log "Waiting for another instance to finish migrating…" at once and block in `pg_advisory_xact_lock(4702111234474983745)`, logging every 30 s. Once the lock is held, `SET LOCAL lock_timeout = '30s'`, so a migration's DDL lock that cannot be had — an old replica's open transaction during a rolling upgrade — fails the boot (the restart retries) instead of stalling every board read queued behind it *(measured)*. The three lock keys (…745 boot, …746 sweeps, …747 setup) are written inline in the SQL or as BigInt (`4702111234474983745n`): as JS numbers all three round to `4702111234474983000` *(measured)*. No migration may use `CREATE INDEX CONCURRENTLY`, which cannot run inside a transaction.
+   1. `SET LOCAL lock_timeout = '15min'; SET LOCAL statement_timeout = 0` (a role- or database-level `statement_timeout` would otherwise end the lock wait or a long migration regardless, *(measured)*); `SELECT pg_try_advisory_xact_lock(4702111234474983745)`; when that fails, log "Waiting for another instance to finish migrating…" at once and block in `pg_advisory_xact_lock(4702111234474983745)`, logging every 30 s. Once the lock is held, `SET LOCAL lock_timeout = '30s'`, so a migration's DDL lock that cannot be had — another same-artifact replica's open transaction during an independent restart — fails the boot (the restart retries) instead of stalling every board read queued behind it *(measured)*. All lock keys (…745 boot, …746 sweeps, …747 setup, …748 membership, …749 images, …750 search, …751 insights) are written inline in SQL or as BigInt (`4702111234474983745n`): as JS numbers these nearby constants collapse to the same rounded value `4702111234474983000` *(measured)*. No migration may use `CREATE INDEX CONCURRENTLY`, which cannot run inside a transaction.
    2. `CREATE EXTENSION IF NOT EXISTS vector` with the SQLSTATE mapping (above), then read the extension's schema and version from `pg_extension`, check the version against the configured dimension, and record both in the runtime state — on every boot, before comparing migrations. `0001` itself contains no `CREATE EXTENSION`.
    3. **Compare** applied migrations with the registry: `select to_regclass(current_schema() || '.kysely_migration') is not null` (and the Migrator gets `migrationTableSchema` set to the same schema: Kysely finds its table in any schema, so another app's `kysely_migration` elsewhere made boot fail *(measured)*), then the applied names. If
       the database has migrations this image does not know, it is *newer than
       the image*: log "database is newer than this image (<names>); starting
       without migrating" and skip — Kysely's own check (`previously executed
-      migration X is missing`) would otherwise kill every older replica during
-      a rolling upgrade and every rollback *(measured)*.
+      migration X is missing`) would otherwise kill older-image rollback *(measured)*.
    4. Otherwise migrate: the boot transaction is opened from `new Kysely({ dialect: new BootDialect({ pool }) })`, and its `trx` is passed to `new Migrator({ db: trx, provider })` (Kysely 0.29 runs a `Migrator` given a `Transaction` inside it, `migrator.js:433-440`), with a **non-locking adapter**:
       ```ts
       class BootAdapter extends PostgresAdapter { async acquireMigrationLock() {} async releaseMigrationLock() {} }
@@ -2134,12 +2554,12 @@ shared. Therefore:
       both land here). Otherwise the stored one, else a generated 32-byte
       base64url value, stored.
    7. **Setup code** (§7): while `setupCompletedAt` is null, an injected
-      `SETUP_CODE` (normalised, at least 12 characters, else boot fails naming
+      `SETUP_CODE` (validated as a random 32-byte secret in one of §7's encodings, else boot fails naming
       the rule) overwrites the stored one on every boot; else the stored one;
       else a generated one. Once claimed, the stored code is cleared and
       `SETUP_CODE` is ignored.
    8. Mark `insight_reports` rows that are `running` with `"heartbeatAt" < clock_timestamp() - interval '5 minutes'` as `failed` (`now()` is the transaction's start, stale by any lock wait) — not every `running` row, because during a
-      rolling deploy another replica may be executing one.
+      same-artifact restart another replica may be executing one.
 
    Any failure rolls the whole transaction back — migrations, seed and all.
 4. Record the auth secret in `lib/config.ts` before anything constructs Better
@@ -2165,29 +2585,40 @@ migrate step anywhere.
 
 `db/db.ts` is fifteen lines today (`new Pool({ connectionString })`). It gains:
 
-- the `globalThis` memoisation above;
+- the `globalThis` memoisation above for both pools;
 - `pool.on("error", …)`, logging the host and SQLSTATE only: pg-pool re-emits an idle client's error (e.g. `57P01` when Postgres restarts) on the pool, and with no listener Node exits the process (`pg-pool/index.js:51-63`; Kysely attaches none);
-- `max` from `DATABASE_POOL_MAX` (default 10), `connectionTimeoutMillis`
+- Application pool `max = DATABASE_POOL_MAX - 1` (configured total default 10), `connectionTimeoutMillis`
   10,000, `idleTimeoutMillis` 30,000, `keepAlive: true`;
-- **explicit TLS.** `pg` 8.23 / `pg-connection-string` 2.14 treat
-  `sslmode=require` as **`verify-full`**, print a SECURITY WARNING on every
-  start, and let the URL's SSL parameters override an explicit `ssl` object
-  *(measured)*. Managed providers' dashboards hand out `sslmode=require`
-  meaning libpq's "encrypt, don't verify", and providers whose CA is not in
-  Node's store then fail. So `db/db.ts` removes `ssl`, `sslmode`,
-  `sslrootcert`, `sslcert`, `sslkey`, `sslpassword` and `uselibpqcompat` from
-  the URL (any of them would override the object; `?ssl=true` alone forces
-  verification *(measured)*) and builds `ssl` itself:
+- **Explicit TLS with no silent downgrade.** Parse the URL once and reject
+  duplicate security parameters, unknown `sslmode`, incompatible aliases and
+  unsupported certificate parameters **before opening a connection**. Strip
+  recognized SSL parameters only after converting their meaning into the
+  explicit `pg` TLS object. Never log the URL/password/PEM.
 
-  | `sslmode` | TLS |
+  | Input | Effective policy |
   |---|---|
-  | absent, `disable`, `allow` | none — node-pg cannot fall back from TLS to plaintext, so libpq's default `prefer` is not reproducible; the bundled database has no TLS |
-  | `prefer`, `require` | encrypted, unverified (`prefer` behaves as `require`: no plaintext fallback) |
-  | `verify-ca` | chain verified against `DATABASE_SSL_CA`, which is then required; hostname not checked (`checkServerIdentity: () => undefined`) |
-  | `verify-full` | verified against `DATABASE_SSL_CA` when set, else Node's store; for an IP host, `checkServerIdentity` is set explicitly, because `pg` omits the TLS `servername` for IP hosts and Node would otherwise check the name `localhost` instead of the address *(measured)* |
+  | no SSL parameter and no TLS env values | plaintext, for the bundled private-network database |
+  | `ssl=false` or `sslmode=disable` | plaintext; reject if a CA is configured |
+  | `ssl=true` | `verify-full`, using configured CA or Node's trust store |
+  | `sslmode=require` or `prefer` | encrypted, unverified; `prefer` never falls back to plaintext; the docs warn about missing server identity verification |
+  | `sslmode=allow` | rejected: fallback semantics are unsupported; choose disable or require explicitly |
+  | `sslmode=verify-ca` | verify chain with required `DATABASE_SSL_CA`, skip hostname check deliberately |
+  | `sslmode=verify-full` | verify chain and hostname/IP with configured CA or Node store; explicitly check IP identity |
+  | `DATABASE_SSL_CA` without an SSL selector | `verify-full` |
 
-  Tested against plain, self-signed, Neon-style `channel_binding=require` and
-  private-CA servers with no warning *(measured)*.
+  `ssl` accepts only literal `true`/`false`. Reject simultaneous `ssl` and
+  `sslmode`, even if apparently equivalent. Reject URL `sslrootcert`, `sslcert`,
+  `sslkey`, `sslpassword`, `uselibpqcompat` with a named unsupported-option
+  error; URL file reads/client certificates are not supported in v1, and are
+  never silently discarded. Use `DATABASE_SSL_CA` for a PEM CA; client mTLS
+  is an explicit non-goal. A CA with `prefer`/`require` is rejected rather than
+  silently unused; use verify-ca/full. Every connection path (boot, dedicated
+  setup pool, application pool, tooling adapters) uses this parser. Stock
+  libpq backup tools keep their own documented TLS behavior and must use the
+  matching secure connection flags, not assume the app parser applies to them.
+  `pg` must receive a clean URL and one unambiguous TLS object. V10 proves
+  both `pg_stat_ssl` and certificate/hostname rejection; startup without a
+  warning is insufficient evidence of security.
 
 `DIRECT_DATABASE_URL` from earlier revisions is gone: boot's only lock is
 transaction-scoped inside one transaction, which is valid through a
@@ -2200,10 +2631,52 @@ to prove it.
 `lib/housekeeping.ts`, started by boot (phase 1 ships the sweeps; phase 6 adds
 the backfill and probe retry):
 
-- **A 5-second loop in every process.** Each tick first runs that process's embedding-probe retry when its backoff allows (§5). Then — only when embeddings are verified and the index fingerprint matches (or none is recorded yet), and on every tick while rows that are null and not `embeddingSkipped` remain (else every twelfth tick) — it runs **the embedding backfill** (up to 64 inputs per embedding request, `embedMany`, backing off on provider errors), only on the replica holding the
-  `job_lease` row `embedding-backfill` (taken or renewed for 90 s with one
-  `INSERT … ON CONFLICT DO UPDATE … WHERE until < now() OR holder = <me>`), so
-  replicas do not duplicate model calls. The model calls happen **outside** any transaction. Also every 60 s: while `creditWaitUntil > now()`, `enabled IS NULL` and a readable key is stored, re-run the live check every fifth tick (every 5 minutes) on the same lease holder, turning AI on when it passes; while `failing(c)`, re-check every fifth tick on the same lease holder (`GET /api/v1/key`, then one call for `c`), a success clearing it; and fail `running` insight runs whose `heartbeatAt` is more than five minutes old.
+- **Independent maintenance leadership.** Every process has one awaited,
+  non-overlapping scheduler: schedule the next tick five seconds **after** the
+  prior tick completes, never an async `setInterval` that re-enters. Acquire
+  `job_lease('ai-maintenance')` regardless of whether AI is on, embeddings are
+  verified, any backfill exists or a key has credit. The holder handles due
+  credit checks (five minutes), unhealthy-capability checks (five minutes)
+  and backfill (when eligible). Local discovery/epoch synchronization and eligible local probes still
+  occur on every process. No automatic provider work runs with enabled=false or no readable key.
+  Effective AI configuration follows the environment/database precedence in §5:
+  enabled=null with an environment key can be on; otherwise null permits only
+  its current credit wait. Explicit Test again and enable/connect checks are
+  authorized administrative diagnostics; only Test again may use the extra
+  allowance after ordinary budget admission refuses; provider probes share the
+  diagnostic budget. Distinct due times prevent a slow backfill from starving
+  credit work; process credit/health due work before the next batch.
+- **Lease and fencing.** Use database `clock_timestamp()` for a ninety-second
+  TTL, renew every ten seconds in an independent, single-flight timer using a separate globally memoized one-connection maintenance pool,
+  counted inside DATABASE_POOL_MAX (the app pool has max minus one), and use a monotone `fence bigint` increased on each
+  new acquisition. Renewal requires matching holder/fence and an unexpired
+  lease; a late holder cannot revive an expired claim. A failed renewal, lost
+  comparison or process shutdown aborts active provider work, forbids further
+  dispatch and rejects all later fenced writes. Work carries holder/fence and
+  checks ownership immediately before dispatch and in the final transaction.
+  Insight jobs have separate names `insight:<runId>` with the same protocol.
+  No external request or long computation may block the JS event loop; token
+  and image preparation are bounded/chunked, and V20 observes renewal lag.
+  Only short lease/epoch/heartbeat operations use that maintenance pool;
+  each has a five-second client/statement deadline. A connection error or
+  timeout destroys that client, aborts the associated work and fences dispatch;
+  no HTTP, user transaction or migration runs there. Pool sizing reserves one
+  renewal connection; with pool max 2 the
+  remaining work must not hold a connection over HTTP. Release on graceful
+  shutdown; process death permits takeover after expiry.
+- **Delivery semantics.** Leases fence stored results and prevent ordinary
+  overlap; they cannot retract a provider request already received when a
+  holder dies or loses the network. A batch may be paid again after takeover.
+  No exactly-once billing claim: each new attempt is counted and bounded by
+  budget, concurrency and backoff. Pending search sessions and crashed insight
+  runs are failed rather than automatically resumed. V20 checks a >90-second
+  embedding call while renewal works (no duplicate), then kills/stalls the
+  holder (at most one takeover batch per lease expiry, stale writes rejected).
+- Every sixty seconds, independently of AI eligibility, mark stale insight
+  runs failed and expire search sessions. The maintenance scheduler starts
+  on fresh unpaid accounts and with embedding model `none`; neither requires
+  an embedding lease to exist.
+
 - **Every 60 min**, the first one minute after boot: the sweeps below, one after another. Each batch of 1,000 runs in its own transaction that begins with `pg_try_advisory_xact_lock(4702111234474983746)` and skips when another replica holds it; each catches and
   logs its own errors. The sweep is not on the rate limiter's code path
   (`checkRateLimit` fails open and swallows errors, so a sweep inside it could
@@ -2217,10 +2690,13 @@ the backfill and probe retry):
 | `admin_invites` | `expiresAt < now() - interval '1 day'` |
 | `activity_seen` | **orphans only** — `itemId` matching neither a post nor a comment. It has no timestamp, and a missing row means "unseen", so an age-based sweep would re-mark every old item as new |
 | `user_upvote` | orphans only, by the same rule |
-| `insight_reports` | all but the newest 50 (only the latest is read) |
+| `insight_reports` | completed/failed rows beyond the newest 50; never a running/admitting row |
 | `moderation_event` | older than 30 days |
 | `llm_usage` | older than 400 days |
-| `images` | `id IN (SELECT i.id FROM images i WHERE NOT EXISTS (SELECT 1 FROM image_ref r WHERE r."imageId" = i.id) AND NOT EXISTS (SELECT 1 FROM settings s WHERE s."logoImageId" = i.id) AND i."createdAt" < now() - interval '24 hours' LIMIT 1000 FOR UPDATE SKIP LOCKED)` (§4). `NOT IN`/`<>` against a null `logoImageId` match nothing, and without `SKIP LOCKED` a post attaching a day-old image lost it to the sweep *(measured)* |
+| `search_session` | expired rows every minute, independent of AI eligibility |
+| `ai_health` | obsolete config-token rows older than 24 hours |
+| `recovery_claim` | expired terminal/abandoned rows older than 24 hours |
+| `images` | while holding the image quota/reference lock, `id IN (SELECT i.id FROM images i WHERE NOT EXISTS (SELECT 1 FROM image_ref r WHERE r."imageId" = i.id) AND NOT EXISTS (SELECT 1 FROM settings s WHERE s."logoImageId" = i.id) AND i."createdAt" < now() - interval '24 hours' LIMIT 1000 FOR UPDATE SKIP LOCKED)` (§4). `NOT IN`/`<>` against a null `logoImageId` match nothing, and without `SKIP LOCKED` a post attaching a day-old image lost it to the sweep *(measured)* |
 
 ### Generated types
 
@@ -2241,9 +2717,7 @@ The order inside phase 1 is fixed: **`docker compose -f compose.dev.yml up -d` (
 
 - Migrations are forward-only; there are no down migrations.
 - From `v1.0.0-rc.1`, every migration is **backward-compatible with the
-  previous release** (additive first; destructive one release later), because
-  during a rolling upgrade the new process migrates while the old one still
-  serves, and boot lets an older image start against a newer database (above).
+  the previous release** (additive first; destructive one release later), to permit tested stop/start rollback to the previous artifact against the newer schema. Frontend mixed-release rolling operation is unsupported (§8), even when the schema is compatible.
 - Rolling back across an incompatible change means restoring a backup; the
   release notes say when a release contains one.
 
@@ -2260,11 +2734,10 @@ refuses HTTP requests except `/get-session` (§3). Writes are closed too: `/api/
 email, password. Its server action:
 
 1. Calls `verifySetupCode(code)` from `lib/boot/` — the only module that reads
-   `instance_secret` (§6) — which normalises the input (uppercase, dashes and
-   whitespace removed) and compares it in constant time with the stored code.
+   `instance_secret` (§6) — which trims surrounding ASCII whitespace and validates/decodes the 32-byte hex/base64 secret (§7) and compares it in constant time with the stored code.
    Rate limit `setup:ip`, 5 per 15 minutes, consumed before the code is compared, **failing closed**: if the limiter
    itself errors, the attempt is refused.
-2. Opens a transaction on a **dedicated connection** (a one-connection `pg.Pool` built from the same resolved configuration — Kysely's `PostgresDialect` needs a pool — and destroyed afterwards; never a connection from the app pool), takes `pg_advisory_xact_lock(4702111234474983747)`, and re-checks `"setupCompletedAt" IS NULL`. Better Auth's queries in step 3 use the pool, so they never wait behind the connection holding the lock; with a pool connection, `DATABASE_POOL_MAX=1` made setup impossible and 2 failed under concurrency *(measured)*. No code path anywhere holds an **app-pool** connection in a transaction while calling `getAuth().api.*`. Two simultaneous submissions
+2. Opens a transaction on a **dedicated connection** (a one-connection `pg.Pool` built from the same resolved configuration — Kysely's `PostgresDialect` needs a pool — and destroyed afterwards; never a connection from the app pool), takes `pg_advisory_xact_lock(4702111234474983747)`, then the membership lock `4702111234474983748`, and re-checks `"setupCompletedAt" IS NULL`. Better Auth's queries in step 3 use the pool, so they never wait behind the connection holding the lock; with a pool connection, `DATABASE_POOL_MAX=1` made setup impossible and 2 failed under concurrency *(measured)*. No code path anywhere holds an **app-pool** connection in a transaction while calling `getAuth().api.*`. Two simultaneous submissions
    serialise; the second sees the instance claimed and is refused.
 3. Creates the identity with `auth.api.signUpEmail({ body, headers })` — a
    server call, which the pre-setup hook lets through (§3) — with the
@@ -2288,52 +2761,61 @@ empty-state copy carries that weight.
 
 ### The setup code
 
-An instance reachable on the internet before it is claimed would otherwise
-grant admin to whoever loads `/setup` first, and new `*.onrender.com` hosts
-appear in public certificate-transparency logs within minutes. So a setup code
-is **always** required. (Making it conditional on a loopback client is not
-implementable: `NextRequest` has no socket address in Next 16, and the only
-signal is the spoofable `x-forwarded-for`.)
+Every unclaimed install requires a setup code. A platform-generated hostname
+may be public before its owner opens it; request headers cannot reliably prove
+a trusted loopback client in Next route handlers.
 
-| Rule | |
+| Rule | Contract |
 |---|---|
-| Generated | 12 characters of Crockford base32, shown as `XXXX-XXXX-XXXX` (60 bits) |
-| Chosen (`SETUP_CODE`) | at least 12 characters after normalisation, else boot fails naming the rule. Empty means unset |
-| Precedence | while unclaimed, an injected `SETUP_CODE` **wins and overwrites** the stored code on every boot — so "change `SETUP_CODE` in the dashboard and restart" works for someone who lost it. Once claimed, the stored code is cleared and `SETUP_CODE` is ignored |
-| Display | a generated code is printed in the startup banner. A **chosen** code is never logged; the banner says "Setup code: the value you set in SETUP_CODE" |
-| Brute force | per-IP limit (best-effort without a trusted proxy, §3) plus the code's strength. There is **no instance-wide ceiling**: it would let anyone lock the real operator out of first-run setup indefinitely, and 60 bits (or 12 chosen characters) is out of brute-force reach even without per-IP limits |
+| Generated default | 32 cryptographically random bytes encoded as **64 hexadecimal characters** (256 bits); compare case-insensitively after trimming surrounding ASCII whitespace only |
+| Injected `SETUP_CODE` / `RECOVERY_CODE` | 32 bytes produced by a CSPRNG/password manager, encoded as 64 hex characters **or canonical padded base64** (44 characters including the final `=`). Reject noncanonical encodings by decode/re-encode comparison. On decoded bytes reject all-identical values, repeated byte blocks of length 1–16, repeated ascending/descending byte cycles and documented example values. Invalid configuration fails before serving. These checks cannot prove randomness; docs must say so |
+| Precedence | Injected setup code overwrites the stored code while unclaimed; after setup it is ignored and the stored code cleared. Empty means unset |
+| Comparison | Decode either supported encoding to exactly 32 bytes and compare with `timingSafeEqual`; malformed input gets the same generic failure. Hex is case-insensitive; base64 is case-sensitive. Never uppercase base64 or strip interior characters/dashes |
+| Display | Generated Compose code appears in the startup banner; injected values never appear in logs/HTML/API responses. Logs are credentials until setup is completed |
+| Brute force | Existing fail-closed per-IP limits remain best-effort without a trusted proxy. There is no attacker-triggerable permanent global lockout. The strength argument applies to **random generation**, not character count |
 
-Where the operator finds it:
-
-| Install | How |
-|---|---|
-| `docker compose up` (foreground) | the banner, in the terminal they are watching |
-| detached / `docker run -d` | `docker compose logs app` or `docker logs feedbackland`, look for `Setup code` |
-| Render | chosen in the deploy form (`sync: false` prompts during the initial blueprint creation; later changes are a dashboard edit plus restart) |
-| Railway | chosen in the template's variable form |
-| App stores | the store's generated secret, per store (§8) |
-
-Binding the published port to `127.0.0.1` instead was considered and rejected:
-it breaks the "bring it up on a VPS and visit `http://ip:3000`" flow, trading
-a visible one-line step for an invisible connection failure.
+Compose generates the code internally; detached operators retrieve the banner.
+Render uses `generateValue: true` and Railway `secret(64, "abcdef0123456789")`
+for setup. The deploy walkthrough opens the platform's secret/variable UI,
+copies its generated value and pastes it into `/setup`; it never asks for a
+memorable code. Render documents **base64-encoded 256-bit** generateValue output;
+the validator accepts that exact format as well as Railway/Compose hex. V9
+checks actual platform values round-trip to 32 bytes and that validation does
+not case-fold base64. A changed unsupported platform encoding blocks release. App-store wrappers use
+their random secret generators and the same validation. For manual injection,
+document `openssl rand -hex 32` and a password-manager alternative. Example
+values are clearly unusable placeholders, never accepted production defaults.
 
 ### `/recover` — admin recovery without a terminal
 
-The last-resort path when every admin is locked out and there is no SMTP. It
-replaces an earlier `docker compose exec app node scripts/reset-password.mjs`,
-which could not work (Render's free tier has no shell; the script could not
-see a secret generated at boot; it could not import the auth configuration)
-and still would have needed a terminal.
+The operator sets a fresh random **`RECOVERY_CODE`** under the same hex/base64 rules and
+restarts all replicas consistently. The banner warns recovery is enabled;
+the code is never logged. `/recover` is first-party, denies framing, is
+noindex, and answers 404 when the code is absent. It verifies the code before
+reading account information, uses `recover:ip` (five per fifteen minutes,
+fail closed), and takes an email and trimmed 8–128-character password.
 
-- The operator sets **`RECOVERY_CODE`** (at least 20 characters; compared in constant time and never logged) wherever they set environment variables, and restarts. There is no instance-wide ceiling, for the reason given for the setup code (§7): it would let anyone keep the last-resort path closed; 20 characters are out of brute-force reach. The banner warns, on every boot,
-  that recovery is enabled.
-- `/recover` (first-party, framing denied, noindex) checks the code before reading anything else; it takes the code, an
-  **admin's** email and a new password (trimmed, 8–128). It is rate-limited
-  (`recover:ip`, 5 per 15 minutes) and fails closed. It resets that admin's
-  password through `requestPasswordReset` with the token captured (§3) and
-  `resetPassword`, which also revokes that admin's other sessions.
-- `/recover` answers 404 whenever `RECOVERY_CODE` is unset.
-- The docs tell the operator to remove the variable afterwards.
+Normally the account must already be an admin. To repair **zero admins**, the
+code is operator-level authority: after checking it, take the membership lock,
+recount admins and allow promotion of a specifically entered **existing
+password identity** only when the count is still zero. The recovery endpoint never creates a user or turns a social-only account
+into a password identity. If no password identity exists, the operator first
+registers one through ordinary first-party sign-up (setup is already complete),
+then uses that address with the recovery code. The code remains the authority;
+an unverified email alone never grants the role. Display the
+chosen address for confirmation before the final POST. Serialize password
+reset and promotion under this recovery operation: use a one-time durable
+recovery claim tied to code digest and user id, perform Better Auth's reset
+outside the membership transaction, then re-lock/recount and promote only if
+zero remains; delete that user's auth_session rows in the same final SQL transaction. A crash after
+reset but before promotion is retryable with the same operator code; the UI
+reports no successful role restoration until commit. If another admin now
+exists and the target is not admin, fail without granting the role. The
+password may already have been reset by the authorized recovery operation;
+state this partial-failure case in the response and docs. All responses to
+wrong code/email remain generic. Deliberate zero-admin corruption is a release
+fixture, not just mutual-demotion testing. Remove the environment code and
+restart all replicas after use; no recovery code is copied into a backup log.
 
 ## §8 — Packaging and hosting
 
@@ -2343,7 +2825,7 @@ number a reader might act on is a real number.
 
 | Way in | Who | What they do | Terminal? |
 |---|---|---|---|
-| **One-click** (Render, Railway) | anyone | click, sign in, choose a setup code, wait | **No** |
+| **One-click** (Render, Railway) | anyone | click, sign in, wait, copy the generated setup code from the platform UI | **No** |
 | **Docker Compose** | comfortable in a terminal | download one file, run one command | yes, once |
 | **`docker run`** against an existing Postgres | has a database already | one command | yes, once |
 | **App stores / control planes** (phase 10) | homelab and VPS-PaaS users | install from the store | no |
@@ -2385,6 +2867,11 @@ services:
     depends_on: { db: { condition: service_healthy } }
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:${POSTGRES_PASSWORD:-feedbackland}@db:5432/feedbackland}
+      PORT: "3000"             # override env_file; fixed mapping/healthcheck
+      HOSTNAME: "0.0.0.0"
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      KEEP_ALIVE_TIMEOUT: "65000"
       APP_URL: ${APP_URL:-}
       SETUP_CODE: ${SETUP_CODE:-}
       CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-x-forwarded-for}
@@ -2411,7 +2898,7 @@ services:
   backup:
     profiles: [backup]
     image: pgvector/pgvector:pg18   # pg_dump must be at least the server's major version
-    restart: unless-stopped
+    restart: "no"               # invalid config fails once; operator restarts after fixing
     init: true                      # sh as PID 1 ignores SIGTERM otherwise
     depends_on: { db: { condition: service_healthy } }
     environment:
@@ -2423,16 +2910,21 @@ services:
     command:
       - |
         umask 077
-        [ "$${BACKUP_KEEP}" -ge 1 ] || { echo "BACKUP_KEEP must be at least 1" >&2; exit 1; }
+        case "$${BACKUP_INTERVAL_HOURS}" in ''|*[!0-9]*) echo "BACKUP_INTERVAL_HOURS must be an integer in 1..168" >&2; exit 1;; esac
+        case "$${BACKUP_KEEP}" in ''|*[!0-9]*) echo "BACKUP_KEEP must be an integer in 1..365" >&2; exit 1;; esac
+        [ "$${#BACKUP_INTERVAL_HOURS}" -le 3 ] && [ "$${BACKUP_INTERVAL_HOURS}" -ge 1 ] && [ "$${BACKUP_INTERVAL_HOURS}" -le 168 ] || { echo "BACKUP_INTERVAL_HOURS must be in 1..168" >&2; exit 1; }
+        [ "$${#BACKUP_KEEP}" -le 3 ] && [ "$${BACKUP_KEEP}" -ge 1 ] && [ "$${BACKUP_KEEP}" -le 365 ] || { echo "BACKUP_KEEP must be in 1..365" >&2; exit 1; }
+        # Canonical positive decimals only: reject leading zeroes before arithmetic.
+        case "$${BACKUP_INTERVAL_HOURS}:$${BACKUP_KEEP}" in 0*|*:0*) echo "backup values must be canonical positive integers" >&2; exit 1;; esac
         while true; do
           f=/backups/feedbackland-$$(date +%Y%m%d-%H%M%S).dump
-          if pg_dump -h db -U postgres -d feedbackland -Fc -Z 6 -f "$$f.partial"; then
-            mv "$$f.partial" "$$f" && echo "backup: $$f"
+          if pg_dump -h db -U postgres -d feedbackland -Fc -Z 6 -f "$$f.partial" && mv "$$f.partial" "$$f"; then
+            echo "backup: $$f"
+            ls -1t /backups/feedbackland-*.dump | tail -n +$$((BACKUP_KEEP+1)) | xargs -r rm --
           else
-            rm -f "$$f.partial"; echo "backup FAILED" >&2
+            rm -f "$$f.partial"; echo "backup FAILED; retaining prior dumps" >&2
           fi
-          ls -1t /backups/feedbackland-*.dump | tail -n +$$((BACKUP_KEEP+1)) | xargs -r rm --
-          sleep $$((BACKUP_INTERVAL_HOURS*3600))
+          sleep $$((BACKUP_INTERVAL_HOURS*3600)) || exit 1
         done
 
 volumes:
@@ -2443,9 +2935,9 @@ What is a decision, not boilerplate:
 
 - **`name: feedbackland`.** Without it the volume is named after the folder,
   and moving the file makes the board "disappear" onto a fresh empty volume.
-- **Overridable defaults, `""` meaning unset.** `environment:` beats
+- **Operator defaults are overridable, `""` means unset.** `environment:` beats
   `env_file:`, so a hard-coded `DATABASE_URL` would silently ignore the one in
-  `.env` *(measured)*. Every value is `${VAR:-default}`, which also lets
+  `.env` *(measured)*. Operator values use `${VAR:-default}`; the five runtime invariants PORT/HOSTNAME/NODE_ENV/NEXT_TELEMETRY_DISABLED/KEEP_ALIVE_TIMEOUT above are explicit constants that override `env_file`. This also lets
   Coolify, Dokploy and CasaOS show the operator-facing settings in their UIs;
   `env_file` passes everything else from `.env`.
 - **`PORT` is not an operator setting here.** The container always listens on
@@ -2563,8 +3055,7 @@ an operator who cannot upgrade without risking their only copy of the data.
   (`daemon/container/container.go:802-831`), and containerd's CRI does the same
   (`internal/cri/server/container_create.go:730-738`), so the image's
   `HOSTNAME=0.0.0.0` wins on Docker, Compose and Kubernetes. Render and Railway
-  do not inject `HOSTNAME`. Only an explicit `-e HOSTNAME=…` or a Kubernetes
-  `env:` entry overrides it, and then the operator meant it. (Earlier revisions
+  do not inject `HOSTNAME`. An explicit `-e HOSTNAME=…`, Kubernetes `env:` entry or Compose `env_file` could override it; the supplied Compose file explicitly restores the five runtime invariants above, so stray `.env` entries cannot break its fixed mapping/healthcheck. (Earlier revisions
   claimed platform-injected values always win, then claimed an entrypoint had
   to fix it; both were wrong.)
 - **`PORT`** is 3000 by default; a platform-injected `PORT` (Render uses
@@ -2572,15 +3063,15 @@ an operator who cannot upgrade without risking their only copy of the data.
   unmodified. **`KEEP_ALIVE_TIMEOUT=65000`** keeps Node's keep-alive above
   Railway's 60-second edge idle timeout, which otherwise produces intermittent
   502s.
-- **Multi-architecture:** `linux/amd64` and `linux/arm64`, built on **native**
+- **Multi-architecture distribution:** `linux/amd64` and `linux/arm64`, built on **native**
   runners (GitHub's free arm64 runners for public repositories, GA
-  2025-08-07), pushed by digest and merged into one manifest. Render requires
+  2025-08-07), pushed by digest and merged into one manifest; replica sets pin a single child digest under the policy below. Render requires
   amd64. 32-bit ARM is impossible: `pgvector/pgvector` publishes neither
   `arm/v7` nor `arm/v6`.
 - **`.dockerignore` is an allow-list**: `*` excluded, then the build inputs
   re-included — `app/ components/ db/ feedbackland-react/ hooks/ lib/
   providers/ public/ queries/ trpc/`, `next.config.ts`, `tsconfig.json`,
-  `postcss.config.mjs`, `components.json`, `package.json`,
+  `postcss.config.mjs`, `components.json`, `scripts/build-identity.mjs`, `package.json`,
   `package-lock.json`, `.npmrc`, `instrumentation.ts`, `proxy.ts`, and, until
   phase 3 deletes it, `firebaseConfig.ts` (imported by `lib/firebase/client.ts`;
   the build fails without it *(measured)*) — with
@@ -2633,7 +3124,7 @@ services:
       - key: BETTER_AUTH_SECRET
         generateValue: true
       - key: SETUP_CODE
-        sync: false
+        generateValue: true
       - key: CLIENT_IP_HEADER
         value: true-client-ip   # observed on Render's edge, not documented by Render
       - key: MAX_IMAGE_STORAGE_BYTES
@@ -2651,8 +3142,7 @@ Confirmed against Render's Blueprint reference: `runtime: image` takes an
 `image:` **object** (`url`, optional `creds` — only private images need
 credentials); `fromDatabase.property: connectionString` is the private-network
 URL; `generateValue` creates a 256-bit value only if the variable does not
-already exist; `sync: false` **prompts during the initial blueprint creation**
-(and is ignored by later syncs); `healthCheckPath` must answer 2xx/3xx within
+already exist; both auth and setup secrets use it (copy setup from the dashboard after creation); `healthCheckPath` must answer 2xx/3xx within
 5 s. The button needs no fork (`render.com/deploy?repo=…`).
 
 - **APP_URL comes from Render.** Blueprints support no interpolation, so
@@ -2695,13 +3185,11 @@ definition lives outside the repository, it is **specified in the repository**
 | Service | Settings |
 |---|---|
 | `postgres` | image `pgvector/pgvector:pg18` (Railway's stock Postgres has no pgvector and Railway does not plan to add extensions); volume mounted at **`/var/lib/postgresql`**; `POSTGRES_PASSWORD=${{secret(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")}}` (an explicit URL-safe alphabet, since the value is embedded in `DATABASE_URL`), `POSTGRES_DB=feedbackland` |
-| `feedbackland` | image `ghcr.io/feedbackland/feedbackland:1`; public domain enabled; `DATABASE_URL=postgres://postgres:${{postgres.POSTGRES_PASSWORD}}@${{postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/feedbackland`; `APP_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}`; `SETUP_CODE` (required, user-filled); `BETTER_AUTH_SECRET=${{secret(64, "abcdef0123456789")}}` (injected, so a database dump alone cannot decrypt the stored OpenRouter key, §5); `CLIENT_IP_HEADER=x-real-ip`; healthcheck `/api/health` |
+| `feedbackland` | image `ghcr.io/feedbackland/feedbackland:1`; public domain enabled; `DATABASE_URL=postgres://postgres:${{postgres.POSTGRES_PASSWORD}}@${{postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/feedbackland`; `APP_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}`; `SETUP_CODE=${{secret(64, "abcdef0123456789")}}` (copy from the variable UI); `BETTER_AUTH_SECRET=${{secret(64, "abcdef0123456789")}}` (injected, so a database dump alone cannot decrypt the stored OpenRouter key, §5); `CLIENT_IP_HEADER=x-real-ip`; healthcheck `/api/health` |
 
 Release candidates are walked from an unpublished copy of the template pinned
 to the rc tag; the published template points at `:1` from phase 9. Cost: the
-Hobby plan, $5/month including $5 of usage. Railway can update an
-image service automatically when a new tag is published, backing up volumes
-first on Pro — the best upgrade story of any target, documented as such.
+Hobby plan, $5/month including $5 of usage. Disable automatic registry-triggered updates in the shipped Railway template. Upgrades are explicit redeploys under the artifact/cutover policy below; platform volume snapshots do not replace the recovery bundle.
 
 #### App stores and control planes (phase 10)
 
@@ -2745,55 +3233,124 @@ vendor-owned images only. **Swarm** — see Non-goals.
 | Compose | `docker compose pull && docker compose up -d` (`pull` alone "does not start containers based on those images"); with TLS, `COMPOSE_FILE` in `.env` keeps the overlay. Portainer stacks read `stack.env`, not `.env` |
 | `docker run` | `docker pull …:1`, then remove and re-run the container |
 | Render | "Deploy latest reference", or the deploy hook with `imgURL` (a one-off: later deploys return to the service's configured tag) |
-| Railway | automatic image updates, or redeploy |
+| Railway | explicit redeploy after the recovery bundle and verified single-version traffic cutover; automatic registry updates disabled |
 
-Back up first. **Rolling back**: set `FEEDBACKLAND_IMAGE=ghcr.io/feedbackland/feedbackland:<previous X.Y.Z>` in `.env` and run `docker compose up -d` (the older image logs "database is newer than this image" and runs, §6); on Render or Railway, set the service's image to that tag. A release whose notes say it is not backward-compatible needs a restore instead. There are no update notifications (nothing phones home); the
+Back up first. **Rolling back** uses the same stop/start protocol: stop every app replica, then set `FEEDBACKLAND_IMAGE=ghcr.io/feedbackland/feedbackland:<previous X.Y.Z>` in `.env` and run `docker compose up -d` (the older image logs "database is newer than this image" and runs, §6); on Render or Railway, set the service's image to that tag. A release whose notes say it is not backward-compatible needs a restore instead. There are no update notifications (nothing phones home); the
 admin System panel shows the running version, and the docs point at GitHub
 Releases and `SECURITY.md`.
 
-**Backups.** `pg_dump -Fc -Z 6`, never a plain `pg_dump > backup.sql`:
-`pg_dump` inherits the server's `bytea_output=hex`, two characters per byte, so
-a plain dump of 500 MB of screenshots exceeds a gigabyte. The backup profile
-(above) schedules it with retention. **Backups contain secrets** (the stored
-auth secret, password hashes, session rows — whose tokens are rejected as
-bearer credentials unless signed, §3 — and reset tokens; provider OAuth tokens are never stored): the docs
-say to store them like credentials. Per platform: the backup profile on Compose; Render's paid Postgres keeps its own backups (Render Free keeps none, §8 cost table); Railway backs up volumes on Pro, and on Hobby the docs give the `pg_dump` command to schedule.
+**Recovery bundle, not a database-only promise.** A restorable installation
+requires (1) a verified custom-format `pg_dump -Fc -Z 6`; (2) a separately
+protected inventory of environment variables/secrets, application version,
+Postgres/pgvector versions and extension schema; and (3) instructions for its
+URL/domain/DNS and optional integrations. The inventory records whether the
+auth secret is generated in the DB or injected, and includes the original
+injected `BETTER_AUTH_SECRET`, OAuth/SMTP credentials and relevant settings.
+Do not export the AI plaintext key through an API: its ciphertext is in the
+dump; preserving the original auth secret restores its decryption. Keep a
+provider-side recovery/reconnection path if intentionally rotating that secret.
+Exclude one-time setup/recovery codes from a completed-install recovery bundle.
+The bundle contains credentials: encrypted at rest, narrowly accessible and
+never attached to a public issue/release artifact. Provider avatar bytes are
+external and remain outside this bundle.
 
-**Restore**, in full:
+**Schedule and retention.** The Compose backup profile validates interval
+1–168 hours and keep count 1–365, canonical positive integers, before any
+dump/rotation. Failure exits once; ordinary dump failures retain previous
+files and wait the full interval. Rotation occurs only after successful
+dump **and** atomic rename. `BACKUP_KEEP=14` is fourteen successful dumps,
+not fourteen days. Same-host dumps protect against operator/schema mistakes,
+not host/disk loss. Nominal documented target: RPO 24 hours and RTO two hours
+for a ≤ 1 GiB test board, contingent on a successful off-host daily copy and
+a measured restore drill; not a service-level guarantee. Display missed-copy
+or failed-drill evidence in the operator's own monitoring/runbook; this app
+does not claim to monitor an external backup destination.
 
-1. Stop the app (`docker compose stop app`).
-2. Start from an **empty** database on a server of the **same or newer** Postgres major. For the bundled database: `docker compose exec db dropdb -U postgres --force feedbackland && docker compose exec db createdb -U postgres feedbackland`.
-3. pgvector must live in the **same schema as in the source**: the dump writes
-   types fully qualified (`public.vector(768)`, `public.vector_cosine_ops`), so
-   a restore where pgvector sits elsewhere fails with `type "public.vector"
-   does not exist` *(measured)*. If the target has no pgvector and the
-   restoring user may create it, do nothing: the dump itself creates it in the
-   source schema *(measured)*. Where the provider pre-installed it in another
-   schema, `ALTER EXTENSION vector SET SCHEMA <source schema>` — pgvector is
-   relocatable, but this needs the extension's owner (a superuser, or the
-   provider's extension settings) *(measured)*. If you had to create the source
-   schema to do that, skip its entry in the dump: `pg_restore -l backup.dump |
-   grep -v ' SCHEMA - <source schema> ' > list`, then add `-L list` below.
-4. `pg_restore --no-owner --no-privileges --no-comments --single-transaction
-   --exit-on-error -d <url> backup.dump`, run from `pgvector/pgvector:pg18` or
-   newer (`pg_restore` must be at least as new as the `pg_dump` that wrote the
-   file). `--no-comments` because a non-owner cannot `COMMENT ON EXTENSION`;
-   `--exit-on-error` because otherwise `pg_restore` carries on past a missing
-   object and exits 1 with "errors ignored", and the board would then boot on a
-   partial schema whose `kysely_migration` says it is complete *(measured)*.
-   For the bundled database: `docker compose run --rm --no-deps --entrypoint
-   pg_restore backup -h db -U postgres -d feedbackland --no-owner
-   --no-privileges --no-comments --single-transaction --exit-on-error
-   /backups/<file>.dump`.
-5. Start the app; boot discovers the extension's schema and finds nothing to
-   migrate.
+**Off-host path.** SELFHOSTING gives a concrete operator-host runbook:
+create the mode-0600 dump; export the secrets inventory from the operator's
+secret manager/platform settings into a mode-0600 temporary file; encrypt both
+with `age -r <operator-recipient> -o <dated-bundle>.tar.age` from a tar stream;
+copy the encrypted bundle with `scp` to a separately administered host; verify
+its SHA-256 there; remove the plaintext temporary inventory securely according
+to that host's storage policy. Keep the age identity/recovery key elsewhere
+and test decryption. `age`/`scp` are optional operator-host tools, not runtime
+dependencies, and commands never put secrets in arguments/logs. Default
+retention is at least fourteen daily off-host recovery points plus the
+operator's required historical copies; a failed copy never deletes the last
+verified off-host bundle. Platform-managed backups can replace the dump step
+only after a tested export/restore path, and still need the secrets inventory.
+Render Free has no backups; Railway/Render plan features are dated in the docs.
 
-**Postgres major upgrades** (bundled database): dump with the backup profile, change the `db` image to the new major and start it — since Postgres 18 the image keeps each major in its own subdirectory (`/var/lib/postgresql/<major>/docker`), so a fresh `19/` cluster initialises beside `18/` in the same volume — then restore; delete `/var/lib/postgresql/18` once satisfied. Removing the volume would destroy the only rollback. The docs give the exact commands.
+**Restore drill, in full:**
+
+1. Stop **all** app replicas and every writer/backup job. Verify the target
+   identity and snapshot/copy the current database before destructive work.
+   Restore into a **new, empty database/volume** by default; do not drop the
+   only source/rollback database. Decrypt the off-host bundle in an isolated
+   location and verify its checksum/version inventory. Do not expose the
+   target publicly until the restore and secret checks pass.
+2. Use the same or a newer supported Postgres major, compatible pgvector and
+   `pg_restore` at least as new as the dumping tool. Restore pgvector into
+   the source extension schema: the dump's qualified vector types/operators
+   require it. If the provider preinstalled it elsewhere, relocate it as its
+   owner first; if its schema had to be created, exclude only that schema's
+   already-created TOC entry using an inspected `pg_restore -l` list. Fail
+   rather than carrying on when extension relocation is unavailable.
+3. Run `pg_restore --no-owner --no-privileges --no-comments
+   --single-transaction --exit-on-error -d <target> <dump>` with credentials
+   supplied via protected environment/passfile, never a logged URL. Configure
+   app DATABASE_URL to that new target, and restore the **original injected
+   auth secret** plus OAuth/SMTP settings. A fresh platform `generateValue`
+   secret must be replaced with the saved value before app boot.
+4. Boot the intended app version privately; verify schema, content/image
+   hashes, password login, AI-key decryption, configured OAuth callbacks and
+   SMTP reset via controlled fixtures, then switch traffic. Record measured
+   elapsed restore time and recovery-point age. Revoke pre-restore sessions
+   and pending resets if the incident calls for it; document which route
+   invalidates them rather than relying on timestamp expiry.
+5. **Intentional secret rotation** is a separate path: revoke all restored
+   auth sessions/verifications pending popup/connect flows and outstanding admin invites before public
+   access, set a new auth secret consistently, reconnect the unreadable AI
+   key, recheck integrations, then reopen. Password hashes remain usable;
+   retained session/AI ciphertext is deliberately invalid. V4 exercises both
+   preservation and rotation. Re-enable scheduled backups only after success.
+
+**Postgres major upgrades: new volume, preserved rollback.** The official
+entrypoint detects an old `*/docker/PG_VERSION` in a shared parent volume and
+refuses to initialize a new major there. Never upgrade by changing only the
+image while reusing the volume, and never delete the old major directory.
+`deploy/postgres-major-upgrade.yml` defines isolated services `db-next` and
+`backup-next`, both pinned to the **target** major, mounting a newly named
+`feedbackland-db-next` volume at `/var/lib/postgresql` and **no** source volume.
+It has no published DB port; it joins the project's private network. The
+existing `db`/`backup` continue to name the old major until cutover.
+
+SELFHOSTING supplies this exact sequence with 17→18 as the CI fixture (future
+targets must first be upstream-stable and included in the release matrix):
+
+1. Stop all app replicas, external writers and backup jobs; take and verify
+   the final old-major dump using a dump client at least that major. Save the
+   old image digests, volume name, env inventory and final checksum off-host.
+2. Start only `db-next` with the target image and new volume, wait for TCP
+   readiness, inspect its `PG_VERSION`, then restore into its empty database
+   using `backup-next`'s target-major `pg_restore`. Verify data and extensions.
+3. Run the same app digest privately with DATABASE_URL pointing at `db-next`;
+   complete V4's validations. Switch **both** app connection and scheduled
+   backup service to `db-next` and the target-major tools, then reopen traffic.
+   Complete one scheduled new-major dump **and restore it** to a third empty
+   target before calling the upgrade successful.
+4. Keep old cluster stopped and volume untouched at least fourteen days.
+   Before any new writes, rollback switches app/backup configuration back to
+   old DB/images and restarts them. After new writes, old volume rollback
+   loses those writes: freeze traffic and use a tested data-reconciliation or
+   forward restore strategy; do not promise an automatic downgrade. Cleanup
+   is a separately confirmed, explicitly named volume removal after retention,
+   never a directory delete or `docker compose down -v` in upgrade instructions.
 
 ### Bring-your-own Postgres
 
 pgvector is available on most managed Postgres — RDS, Cloud SQL, Neon,
-Supabase, Render (every Postgres 13+) — but not everywhere: **Railway's stock
+Supabase and Render (subject to supported major/extension availability) — but not everywhere: **Railway's stock
 Postgres does not include it**, **Azure Flexible Server** requires
 allowlisting `vector` in `azure.extensions` first, and self-managed Postgres
 needs a superuser for `CREATE EXTENSION` (§6). Each is named in the docs with
@@ -2807,7 +3364,7 @@ shrinking minority.
 
 | Dependency | When | Verdict |
 |---|---|---|
-| **Postgres + pgvector** | runtime, required | The one hard dependency. Postgres 13+; pgvector 0.5.0+ (0.7.0+ above 2,000 dimensions, 0.8.0+ for deep semantic paging) |
+| **Postgres + pgvector** | runtime, required | The one hard dependency. Postgres 15+ on an upstream-supported major; pgvector 0.5.0+ (0.7.0+ above 2,000 dimensions, 0.8.0+ for deep semantic paging) |
 | **Next.js** | framework | Open source (MIT), maintained by Vercel; runs as a plain Node server with no Vercel service involved |
 | **npm registry** | build | unavoidable for a Node project; also the widget's distribution channel |
 | **GHCR / Docker Hub** | distribution | GHCR hosts our image; Docker Hub hosts `node`, `pgvector/pgvector` and `caddy` (anonymous pull limits apply). The Dockerfile is in the repo and `docker build` is a documented path |
@@ -2831,17 +3388,72 @@ exactly as it does now.
 is what lets one prebuilt image serve every operator. `feedbackland-react` has
 no build-time environment of any kind. CI asserts the count stays zero.
 
-**Leaving is as easy as arriving.** Identity, content and images live in one
-Postgres, so a single `pg_dump -Fc` restored anywhere (procedure above) brings
-the board back whole. The one asterisk is avatars, which are provider URLs
-(§3).
+**Leaving.** Identity, content and attachments live in one Postgres. Restore the database **plus** the protected external configuration/secrets inventory above to recover the installation; provider avatar bytes remain remote (§3).
+
+### Supported Postgres versions
+
+The production floor is **15**, and every production major must still be
+supported upstream on the release date. The legacy SQL compatibility floor
+was 13; that is not a security-support claim. PostgreSQL 13 ended support on
+2025-11-13; 14 ends on 2026-11-12. Neither is a supported production target for
+this release. CI runs full pgvector/schema/lifecycle checks on 15 and bundled
+18; recheck the [upstream version policy](https://www.postgresql.org/support/versioning/)
+before every release and advance the production floor before its EOL. Old
+scratchpad runs without vector columns do not establish supported operation.
+
+### Replica and frontend artifact policy
+
+V1 supports replicas of **one immutable per-architecture image digest** with
+identical environment. An amd64/arm64 manifest is a distribution convenience;
+mixing architectures in one load-balanced replica set is **unsupported**.
+Native builds generate independent Next build/action manifests. Every build
+uses `generateBuildId` and `deploymentId` derived from full source commit plus
+architecture and a build-artifact id, embedded via generated
+`lib/build-identity.json` (gitignored output of the committed build script); the release publishes each child digest and build
+identity in its manifest record. `next.config.ts` reads that file, not a new
+runtime environment variable. A developer build generates its own id before `next build`; npm build and
+pretypecheck hooks own this step so clean-checkout typechecking resolves the
+JSON import. Release CI supplies the full source SHA as build-only
+`SOURCE_COMMIT`; local builds without git metadata use a source-tree hash
+prefixed `local`. Both add architecture and a random artifact id. No rebuild
+can masquerade as the same artifact just because its source SHA matches. All replicas pin the **same child
+digest**, never independently rebuild the same tag. The generated Server
+Action key belongs to that artifact; do not inject a public release-wide key
+and claim it is an installation secret. No action closure contains secrets or
+relies on that encryption for authorization; actions recheck server credentials.
+
+**Upgrade strategy is stop/start (`Recreate`), not rolling mixed releases.**
+Drain and stop every old replica, take the recovery bundle, start the new
+digest, wait for readiness, then reopen traffic. A single-instance managed
+platform may instead perform an atomic traffic cutover: old processes may
+finish already-started requests, but **all new requests must route to one new
+artifact**, never alternate releases. V9/V23 must observe that behavior on
+the actual target; otherwise its upgrade instructions must enforce a full
+stop before redeploy, and that target cannot claim a supported seamless path. During the stop clients may
+see temporary errors. Previously open pages can have stale assets/actions:
+an explicit build identity in the public status detects a change and offers
+a reload; error boundaries preserve embed query parameters and handle missing
+chunks with a reload prompt. Do not silently retry a stale mutation. Setup/
+recovery forms detect version change before submit and ask to reload/re-enter
+sensitive fields; passwords/codes are not persisted in browser storage. A
+late stale action is rejected and requires reload. The docs do not promise
+zero downtime or automatic old-asset routing. Operators wanting rolling/blue-
+green traffic must supply version-aware asset/request routing and validate it;
+mixed-version load balancing is outside v1 support. The limited atomic cutover above still permits stale-client errors/reload and is not a zero-downtime guarantee. This policy follows the concerns in
+[Next's multi-server guidance](https://nextjs.org/docs/app/guides/self-hosting).
+
+`deploy/kubernetes.yaml` uses `strategy: { type: Recreate }`, fixed child
+digest, and `nodeSelector: { kubernetes.io/arch: amd64 }` (document the arm64
+alternative). CI validates these constraints and tests two replicas of the
+same digest with deliberately alternating form/RSC requests. It separately
+checks the architecture child manifests/ids and stop/start upgrade with an
+already-open drawer/form; it must not label cross-architecture mixing safe.
 
 ### Running it somewhere that is not Compose
 
 - **Kubernetes:** no Helm chart. `deploy/kubernetes.yaml` gives a
   Deployment (with the health endpoint as the readiness probe and a `tcpSocket` liveness probe — a database-dependent liveness probe would kill every pod during a database outage; `readOnlyRootFilesystem`, `runAsNonRoot`, and `emptyDir` volumes for `/tmp` and `/app/.next/cache`, mirroring Compose; plus a `startupProbe` whose `failureThreshold × periodSeconds` is at least 1,020 s, covering the 90 s database wait and the 15-minute boot lock), a
-  Service, a Secret for `DATABASE_URL`, and an optional Ingress. Replicas are
-  safe: boot serialises on the advisory lock and all state is in Postgres.
+  Service, a Secret for `DATABASE_URL`, and an optional Ingress. Replicas obey the same-digest/architecture and Recreate policy above; database locks, fenced jobs and stable search sessions provide the shared application state. Database migration compatibility alone does not prove frontend compatibility.
 - **Podman / rootless:** works; `:Z` volume labels under SELinux, and rootless
   cannot bind ports below 1024.
 - **Resources:** the target floor is **1 GB RAM and 1 vCPU for app plus
@@ -3004,6 +3616,8 @@ type PublicSettings = {
   appUrl: string;                 // getAppUrl() for this request
   appUrlInferred: boolean;        // true when no app URL is resolved (the Widget page warns)
   version: string;
+  buildIdentity: string;          // artifact + architecture; version-change reload prompt
+  publicVersion: string;          // hash of this public payload only
   capabilities: {
     chat: boolean;                // capabilities.chat (§5): false past the daily limit's 80% share or while the provider is failing
     embeddings: boolean;          // hasEmbeddings: verified, and the index fingerprint matches
@@ -3019,16 +3633,46 @@ No secret, setup code or raw environment value is ever part of it. `/setup`,
 `/recover`, `/reset-password` and `/auth/popup` live outside the board layout and call
 `lib/settings.ts` directly for what they need. After an admin changes a
 setting, `useUpdateSettings` calls `router.refresh()`, which re-renders the
-layout and `generateMetadata` with the new values. The board icon is the
+layout and `generateMetadata` with the new values. That only refreshes
+the saving browser; active clients use the protocol below. The board icon is the
 uploaded logo when there is one (set through `generateMetadata().icons`), else
 the neutral `app/icon.svg`.
 
+### Refreshing already-open clients
+
+`GET /api/settings` returns exactly PublicSettings, credentials unnecessary,
+`Cache-Control: no-store`, with an ETag based only on the public payload.
+SettingsProvider starts from SSR data and polls every five seconds while
+visible (including the thirty-second stale-data cutoff), with `credentials: omit` in both surfaces and one in-flight request.
+Refresh immediately on focus/online, same-origin BroadcastChannel save hints,
+and after local settings/AI actions; hints trigger a fetch, never carry secrets
+or set authority. A five-second server snapshot cache gives an active-client
+convergence target **ten seconds plus network latency**, not five seconds.
+Hidden/offline tabs update on return. Failed refreshes back off to thirty
+seconds and mark capabilities stale; after thirty seconds without confirmation
+hide visitor AI actions until a successful refresh. Server authorization and
+budget checks always run even if a client displays stale controls.
+
+Admin AI/System status uses a separate authenticated endpoint with the same
+visible polling schedule, fresh first-party authorization and explicit mapped
+fields. Daily budget/health are included in the computed status version, so
+UTC rollover and background credit/health transitions update the **same DOM**.
+Changing Keep AI off on A updates a mounted drawer and admin tab on B without
+reload. A build identity change stops new mutations and prompts reload, keeping
+the drawer's query. Ordinary title/icon/robots metadata updates follow
+router.refresh for that browser; other browsers get current visible title
+from settings polling and current metadata on their next full load. No claim
+that layout reuse alone updates metadata. Polling endpoints are registered in
+phase 1 for settings and phase 6 for private AI status, have bounded explicit
+responses, no-cache/CDN treatment and normal request-level abuse controls;
+do not apply model-call rate limits to status reads.
+
 ### The admin System panel
 
-A page under `/admin/system` — read-only apart from **Rebuild search index** and the OIDC discovery retry — shows what the operator otherwise has to
+A page under `/admin/system` — read-only apart from **Rebuild search index**, **Reclaim unattached uploads** and the OIDC discovery retry — shows what the operator otherwise has to
 dig out of logs: version; the app URL and its source; AI chat and embeddings
 status (model, configured vs column dimensions, last probe result,
-items left unscreened in 24 h, rows awaiting embedding, items that can't be indexed) with the **Rebuild
+current unscreened/partially screened items plus distinct items published without full screening in 24 h, rows awaiting embedding, items that can't be indexed) with the **Rebuild
 search index** button (§5); SMTP; each sign-in provider, enabled or why not,
 with its **callback URI** to copy (and, for OIDC, whether discovery succeeded,
 with a retry); the client-IP header; and warnings — recovery enabled; app URL
@@ -3063,11 +3707,11 @@ plan changed the design.
 | bare `LLM_*=…` blocks with no location | any AI variables go in `.env` beside `compose.yml`, under their new names (Environment reference) |
 | the Ollama block and its references (:264-277, :281-282 "or any OpenAI-compatible provider", :302-303 "Option 1 is free too") | deleted: AI goes through OpenRouter only (§5) |
 | the backfill tip, `docker compose exec app node scripts/backfill-embeddings.mjs` (:305-309) | deleted: the backfill is automatic (§5 *Backfill and rebuild*) |
-| "When it asks for a Setup code, type anything you'll remember" (:37) | "type a code of at least 12 characters you'll remember — a shorter one stops the deploy with an error that says so" |
+| "When it asks for a Setup code, type anything you'll remember" (:37) | Copy the platform-generated random setup code from its secret/variable UI; for manual injection generate 32 random bytes as 64 hex characters (§7) |
 | "Nothing in Feedbackland needs to change" when adding a domain (:59-61) | set `APP_URL`, update OAuth redirect URIs, re-copy widget snippets |
 | a `wget` healthcheck (:120) | the image has no `wget`; use the compose file's |
 | "remove the db service" for an external database (:339-341) | use `compose.external-db.yml` or `docker run` |
-| "the dump holds everything" (:194; README :90-91) | everything except avatars |
+| "the dump holds everything" (:194; README :90-91) | Database plus protected external configuration/secrets inventory forms the recovery bundle; provider avatar bytes remain external (§8) |
 | the "what is sent" table omits edits | add them (§5) |
 | "answer two questions" (:9) vs "the one thing" (:39) | one question |
 | Windows | `curl.exe` (PowerShell's `curl` is an alias), no `grep` (use `Select-String`) |
@@ -3125,9 +3769,9 @@ unset, everywhere. `lib/config.ts` is the only module that reads or writes `proc
 
 | Variable | Default | Effect |
 |---|---|---|
-| `DATABASE_URL` | none in the app (boot fails with `DATABASE_URL is not set`); `compose.yml` supplies the bundled database's URL | **The only hard dependency.** A pooled (transaction-mode) URL is fine (§6). `sslmode`: absent or `disable` → no TLS; `require` → encrypted, unverified; `verify-full` → verified (§6) |
+| `DATABASE_URL` | none in the app (boot fails with `DATABASE_URL is not set`); Compose supplies the bundled private-network URL | Pooled transaction-mode URL supported. TLS uses §6's complete parser: absent selector/CA → plaintext, `ssl=true` → verify-full, require/prefer → encrypted unverified, verify-ca/full → verified; conflicts/unsupported URL certificate options fail before connect |
 | `DATABASE_SSL_CA` | unset | PEM of a private CA; required for `verify-ca`, used by `verify-full` |
-| `DATABASE_POOL_MAX` | `10` | Pool size per process; lower it on small managed databases — minimum 2, `lib/config.ts` rejects less |
+| `DATABASE_POOL_MAX` | `10` | Combined app plus one reserved maintenance connection per process (app pool max = value−1); minimum 2. Dedicated setup pool is separately bounded to one and destroyed after use (§7) |
 
 **URLs and proxies**
 
@@ -3142,8 +3786,8 @@ unset, everywhere. `lib/config.ts` is the only module that reads or writes `proc
 | Variable | Default | Effect |
 |---|---|---|
 | `BETTER_AUTH_SECRET` | generated and stored | An injected value always wins and is never stored (§6) |
-| `SETUP_CODE` | generated | ≥ 12 characters. Wins while unclaimed; ignored after (§7) |
-| `RECOVERY_CODE` | unset | ≥ 20 characters. Enables `/recover` (§7). Remove after use |
+| `SETUP_CODE` | generated random 32 bytes as 64 hex characters | Injected values are random 32-byte secrets in canonical hex or padded base64 with the weak-pattern checks; wins while unclaimed, ignored after (§7) |
+| `RECOVERY_CODE` | unset | Random 32 bytes in canonical hex or padded base64; enables operator recovery including the specified zero-admin repair (§7). Remove after use |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | unset | Google sign-in (needs an `https:` app URL) |
 | `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` / `MICROSOFT_TENANT_ID` | unset / `common` | Microsoft sign-in |
 | `OIDC_ISSUER` / `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` / `OIDC_NAME` | unset / "Single sign-on" | Any OpenID Connect provider, by discovery |
@@ -3157,36 +3801,40 @@ locks it in the UI.
 |---|---|---|
 | `OPENROUTER_API_KEY` | unset | An OpenRouter key. Setting it turns AI on, unless an admin has turned AI off in Settings → AI |
 | `OPENROUTER_MODEL` | `google/gemini-3.8-flash` | Chat model: any OpenRouter model id |
-| `OPENROUTER_EMBEDDING_MODEL` | `openai/text-embedding-3-small`; `none` disables | Embedding model; changing it needs **Rebuild search index** (§5) |
+| `OPENROUTER_EMBEDDING_MODEL` | `openai/text-embedding-3-small`; `none` disables | Requires a supported tokenizer profile (§5); changing model needs **Rebuild search index** |
 | `OPENROUTER_PRIVACY` | unset (the page's setting, default `deny`) | `deny`, `zdr` or `allow`: sets and locks the privacy switches (§5) |
 | `AI_EMBEDDING_DIMENSIONS` | `768` | Sizes the column at first boot; requests always ask for the column's width. A later different value stops semantic search until **Rebuild search index** (§5) |
 | `AI_SEARCH_MAX_DISTANCE` | measured in phase 6, fixed in `lib/llm/defaults.ts` | Cosine-distance cut-off for semantic search |
-| `AI_TIMEOUT_MS` | `15000` | Per-request timeout; insight chunks get 6× |
-| `AI_DAILY_CALL_LIMIT` | `5000` (at least 10) | Model calls per UTC day. Every feature but moderation stops at 80%; at the limit anonymous posts are refused until 00:00 UTC (§5) |
+| `AI_TIMEOUT_MS` | `15000` | Integer 1000–120000; absolute per-request deadline; insight chunk/merge min(6×,180000); stream absolute max 180000 (§5) |
+| `AI_DAILY_CALL_LIMIT` | `5000` (integer 10–1000000) | Model calls per UTC day. Every feature but moderation stops at 80%; at the limit anonymous posts are refused until 00:00 UTC (§5) |
 
 **Images**
 
 | Variable | Default | Effect |
 |---|---|---|
-| `MAX_IMAGE_BYTES` | `4000000` | Per-image cap, decoded bytes, enforced on the server |
-| `MAX_IMAGE_STORAGE_BYTES` | unset (unlimited; `render.yaml` sets 600,000,000) | Total image storage ceiling |
+| `MAX_IMAGE_BYTES` | `4000000` | Encoded file bytes after multipart decoding; integer 1–4000000, server enforced; full request cap adds 65536 (§4) |
+| `MAX_IMAGE_STORAGE_BYTES` | unset (unlimited; `render.yaml` sets 600,000,000) | Total image storage ceiling; quota byte sums/comparisons use SQL bigint, never lossy JS Number arithmetic |
 | `MAX_PENDING_IMAGE_BYTES` | `200000000` | Ceiling on uploaded images not yet referenced by any post, comment or logo (§4) |
 
 **Set by the image or platform — not operator settings**
 
 | Variable | Value | Note |
 |---|---|---|
-| `PORT` | `3000` | A platform-injected `PORT` wins (Render, Railway) |
-| `HOSTNAME` | `0.0.0.0` | The image's value wins over Docker's injected container id (§8) |
+| `PORT` | `3000` | Platform injection wins for direct images; supplied Compose explicitly fixes 3000 |
+| `HOSTNAME` | `0.0.0.0` | Image overrides container-id default; explicit env can override; Compose fixes 0.0.0.0 (§8) |
 | `NODE_ENV` | `production` | |
 | `NEXT_TELEMETRY_DISABLED` | `1` | For `next build`; the runtime has no telemetry |
 | `KEEP_ALIVE_TIMEOUT` | `65000` | Above Railway's 60 s edge idle timeout |
 | `RENDER_EXTERNAL_URL`, `RAILWAY_PUBLIC_DOMAIN` | platform-provided | Read as app-URL fallbacks |
 
+**Build-only metadata:** `SOURCE_COMMIT` is supplied to the Docker build and
+read only by `scripts/build-identity.mjs`; it is not a runtime/operator setting
+or a `NEXT_PUBLIC_*` variable. The runner embeds the generated identity file.
+
 **Compose and overlay variables** (read by the compose files, not the app):
 `POSTGRES_PASSWORD` (bundled database; set before the first `up`; letters and digits only — e.g. `openssl rand -hex 24` — because it is embedded in `DATABASE_URL`, where `p@ss/w#rd` parses as another host *(measured)*),
 `FEEDBACKLAND_IMAGE`, `FEEDBACKLAND_PORT`, `DOMAIN` and `COMPOSE_FILE`
-(`compose.tls.yml`), `COMPOSE_PATH_SEPARATOR`, `COMPOSE_PROFILES` (`backup` turns the backup profile on without `--profile`), `BACKUP_INTERVAL_HOURS`, `BACKUP_KEEP` (backup profile; at least 1 — at 0 the rotation would delete the new dump too).
+(`compose.tls.yml`), `COMPOSE_PATH_SEPARATOR`, `COMPOSE_PROFILES` (`backup` turns the backup profile on without `--profile`), `BACKUP_INTERVAL_HOURS`, `BACKUP_KEEP` (backup profile; canonical positive integers: interval 1–168 hours, keep 1–365 successful dumps, not days; invalid values fail before any work).
 
 **Neutralised at boot, with a warning if set** (Better Auth would read them,
 §3): `BETTER_AUTH_URL`, `NEXT_PUBLIC_BETTER_AUTH_URL`,
@@ -3217,28 +3865,43 @@ the phase that first needs it.
 | 3 | `lib/auth/server.ts`, `lib/auth/client.ts`; `app/api/auth/[...all]/route.ts`; `app/setup/`; `lib/auth/popup-handoff.ts` (the `set-auth-token` strip only); `scripts/e2e/v6-urls.ts` (first needed now) |
 | 4 | `app/auth/popup/` (start and done pages); `app/reset-password/`; `app/recover/`; `trpc/create-password-reset-link.ts` and its control in `components/app/admins/`; `lib/mail.ts`; `ci/oidc-mock.ts` (plain and COOP-enforcing), `ci/helmet-host.ts`, `ci/compose.https.yml` (a Caddy `tls internal` board at `https://localhost:8443`, also serving `https://board.test:8443` for V18); `ci/compose.mailpit.yml` |
 | 5 | `app/api/images/route.ts`, `app/api/images/[id]/route.ts`; `components/ui/minimal-tiptap/upload.ts`; `queries/image-refs.ts`; `scripts/e2e/v4-backup.ts` |
-| 6 | `lib/llm/` (constants, defaults, settings store, usage, client, fetch, moderation, titles, embeddings and the query-vector cache, probe, insights, `ask-ai` — the `streamText` call `/api/chat` delegates to — `rewrite`, `check` — the live check — and `openrouter-api` — `/auth/keys`, `/key`, `/models/user`, all through `fetch.ts`); `lib/secret-box.ts`; `trpc/{get-ai-settings,test-ai-settings,save-ai-settings,remove-ai-key,get-ai-status,list-ai-models,connect-openrouter,set-ai-keep-off,dismiss-admin-notice}.ts`; `app/(board)/admin/settings/ai/` (the page and its `return/[nonce]` route); `components/app/ai-settings/` (the page's sections); `components/app/ai-status/` (the header pill, the Activity card, the locked Insights and Ask AI states, the in-context hints); `trpc/start-insights-run.ts`, `trpc/get-insights-run.ts`, `trpc/rebuild-search-index.ts`, `trpc/get-system-status.ts`, `trpc/retry-oidc-discovery.ts`; `app/(board)/admin/system/`; `scripts/mock-llm.ts` (serves as `openrouter.ai`, including `/auth`, `/api/v1/auth/keys`, `/api/v1/key` and `/api/v1/models/user` (with `?output_modalities=embeddings`)); `scripts/fixtures/search-corpus.json`, `scripts/fixtures/moderation-corpus.json`; `scripts/measure-ai.ts`; `scripts/e2e/v2-primary.ts` (V2 and V11 in CI), `v12-broken-key.ts`, `v13-search-index.ts`, `v18-onboarding.ts`; `ci/compose.mock-llm.yml` — a `mock-llm` service running `scripts/mock-llm.ts` on 443 with an `openrouter.ai` certificate from a CA the job generates with `openssl`, while the app gets `extra_hosts: ["openrouter.ai:<mock IP>"]` and `NODE_EXTRA_CA_CERTS` pointing at a read-only mount of that CA; `ci/compose.https.yml` gains `app2` (same image and database) behind Caddy at `https://localhost:8444` — "the second replica" of V12 and V18; `ci/compose.dns-log.yml` (V16) |
+| 6 | `lib/llm/` (constants, defaults, settings store, usage, client, fetch, moderation, titles, embeddings and durable search sessions, probe, insights, `ask-ai` — the `streamText` call `/api/chat` delegates to — `rewrite`, `check` — the live check — and `openrouter-api` — `/auth/keys`, `/key`, `/models/user`, all through `fetch.ts`); `lib/secret-box.ts`; `trpc/{get-ai-settings,test-ai-settings,save-ai-settings,remove-ai-key,get-ai-status,list-ai-models,connect-openrouter,set-ai-keep-off,dismiss-admin-notice}.ts`; `app/(board)/admin/settings/ai/` (the page and its `return/[nonce]` route); `components/app/ai-settings/` (the page's sections); `components/app/ai-status/` (the header pill, the Activity card, the locked Insights and Ask AI states, the in-context hints); `trpc/start-insights-run.ts`, `trpc/get-insights-run.ts`, `trpc/rebuild-search-index.ts`, `trpc/get-system-status.ts`, `trpc/retry-oidc-discovery.ts`; `app/(board)/admin/system/`; `scripts/mock-llm.ts` (serves as `openrouter.ai`, including `/auth`, `/api/v1/auth/keys`, `/api/v1/key` and `/api/v1/models/user` (with `?output_modalities=embeddings`)); `scripts/fixtures/search-corpus.json`, `scripts/fixtures/moderation-corpus.json`; `scripts/measure-ai.ts`; `scripts/e2e/v2-primary.ts` (V2 and V11 in CI), `v12-broken-key.ts`, `v13-search-index.ts`, `v18-onboarding.ts`; `ci/compose.mock-llm.yml` — a `mock-llm` service running `scripts/mock-llm.ts` on 443 with an `openrouter.ai` certificate from a CA the job generates with `openssl`, while the app gets `extra_hosts: ["openrouter.ai:<mock IP>"]` and `NODE_EXTRA_CA_CERTS` pointing at a read-only mount of that CA; `ci/compose.https.yml` gains `app2` (same image and database) behind Caddy at `https://localhost:8444` — "the second replica" of V12 and V18; `ci/compose.dns-log.yml` (V16) |
 | 7 | `render.yaml` (on `main`, and the `render-rc` branch); `deploy/railway/TEMPLATE.md`; `compose.tls.yml`; `compose.external-db.yml`; `.github/workflows/release.yml`; `deploy/kubernetes.yaml`; `CONTRIBUTING.md`; `SECURITY.md`; `ci/compose.private-ca.yml` (V10, with the step that generates its CA); `scripts/e2e/v10-readonly.ts`; `scripts/e2e/fixtures/9999_v3_probe.ts` |
 | 8 | `.github/workflows/release-widget.yml`; an HTTPS host page for V15's mixed-content case |
 | 9 | the `render-v1` branch; the published Railway template |
 | 10 | `deploy/<store>/…` and `scripts/gen-wrappers.ts` |
+
+**Additional revision-4 surfaces (part of the phase above, not later work)**
+
+| Phase | Required files / changes |
+|---|---|
+| −1 | `deploy/retirement/RECORD.md` and private evidence references |
+| 0 | `scripts/build-identity.mjs`, generated `lib/build-identity.json` (build output, not a runtime secret); Docker runtime/build-identity policy; explicit Compose runtime constants |
+| 1 | expanded `0001` tables/constraints/revisions; shared lock helpers `db/locks.ts`; `app/api/settings/route.ts`; `providers/settings.tsx` polling; complete TLS parser; reply-parent validation; `queries/delete-admin.ts` membership invariant; schema gate portions of V19–V22 |
+| 2 | remove root auth/tRPC providers; board `EmbedProvider → SurfaceProviders` with unresolved state; explicit first-party route-group providers; isolated surface caches in `providers/surface.tsx` |
+| 3 | `lib/auth/authorization.ts`; all four author-or-admin query overrides; invite scope check; random setup-code rules, undefined-safe avatar hooks and privileged-write rechecks |
+| 4 | `lib/auth/server.ts` discovery epochs/retries; recovery claims/zero-admin repair; provider avatar callback validation; V19 |
+| 5 | `lib/http/limited-body.ts`; `lib/images/container-limits.ts`; shared quota/ref locking; `trpc/reclaim-pending-images.ts`; System upload usage/reclaim control; V20 upload leg |
+| 6a | `lib/llm/{errors,input-budgets,model-profiles}.ts`; `lib/search/sessions.ts`; `lib/jobs/leases.ts`; fenced insights/reservations; `queries/save-insights.ts` same-run update; `js-tiktoken@1.0.21` exact; independent maintenance loop; V20/V21 |
+| 6b | config-token/CAS actions and private status polling; Connect echoed-state validation; held-out fixtures `scripts/fixtures/moderation-validation.json`; diagnostic allowance; V21/V23 |
+| 7 | `deploy/postgres-major-upgrade.yml`; new-volume restore/backup runbook; build-child manifests; Recreate/architecture constraints; V22/V23; all recovery/cost/code wording in README/SELFHOSTING |
 
 **Changed**
 
 | Phase | Files and changes |
 |---|---|
 | 0 | `db/db.ts` (`pool.on("error")`, so a database restart cannot kill the process); `next.config.ts` (`output: "standalone"`, `images: { unoptimized: true }`, `experimental: { isrFlushToDisk: false }`); `app/layout.tsx` (`next/font/google` import and font variables deleted); `package.json` (`engines`, `license`, devDependency `tsx`); `lib/firebase/*` and `lib/supabase.ts` made lazy behind their existing export names (`adminAuth`, `auth` and `supabase` become lazily initialised getters, so no consumer changes) so a secret-less build and container start work — throwaway, deleted in phases 3 and 5; `SELFHOSTING.md` quick start (download the committed `compose.yml`) |
-| 1 | `db/db.ts` (`globalThis` pool, sizing, TLS; `DATABASE_URL` through `getConfig()`); `db/schema.ts` (regenerated); `lib/trpc.ts` (org guard and `subdomain` header removed; Firebase token verification removed, so until phase 3 `userId` and `userRole` are null and `adminProcedure` and `/api/chat` answer `UNAUTHORIZED`); `providers/trpc-client.tsx` (no `subdomain` header, no `getVercelUrl()`/`PORT`; a relative `/api/trpc` URL); `proxy.ts` (tenancy removed; embed set-and-strip kept; `_vercel` exclusion removed); `app/[orgSubdomain]/(board)/**` → `app/(board)/**`, including `layout.tsx`, which gains the settings provider; `lib/rate-limit.ts` (§1 table, `lib/client-ip.ts`); `queries/check-rate-limit.ts` (`failClosed`); `queries/create-feedback-post.ts`, `create-comment.ts`, `update-feedback-post.ts`, `update-comment.ts` (write `plainText`; since `getConfig().llm.aiConfigured` is hard-coded false until phase 6, whatever the environment (the banner says `OPENROUTER_API_KEY` is ignored until then), take §5's keyless path — first-sentence title, `general feedback`, no moderation, null embedding); `app/api/chat/route.ts`, `lib/utils-server.ts`, `trpc/generate-insights.ts`, `trpc/rewrite-feedback.ts` (the key through `getConfig().llm.apiKey`; `/api/chat`, `rewriteFeedback` and `generateInsights` answer `AI_NOT_CONFIGURED` while `!aiConfigured`); `queries/get-feedback-posts.ts`, `queries/get-activity-feed.ts` (no query embedding while `!aiConfigured`, so search returns no results until phase 6's `ILIKE`); `trpc/create-comment.ts`, `trpc/update-feedback-post.ts`, `trpc/update-comment.ts` (their §1 caps); the `search-text:*` caps and the 200-character query cut in `queries/get-feedback-posts.ts` and `get-activity-feed.ts`; `queries/save-insights.ts` (writes `status: 'succeeded'`, now NOT NULL); every surviving importer of a module this phase deletes or renames — today `hooks/use-platform-url.ts` is imported by `app/[orgSubdomain]/(board)/admin/page.tsx`, `components/app/activity-feed/list-item.tsx`, `admin-root/index.tsx`, `admins/invite.tsx` (which also sends the removed `platformUrl` input), `ask-ai/citations.tsx`, `ask-ai/thread.tsx`, `feedback-form/index.tsx`, `feedback-post/compact.tsx`, `go-back-button.tsx`, `options-menu.tsx`, `insights/evidence.tsx`, `platform-header/buttons.tsx` and `platform-header/title.tsx`, and `use-org`/`use-update-org` and the deleted setting editors by `platform-header/title.tsx`, `description.tsx`, `settings/index.tsx`, `logo.tsx`, `platform-title.tsx` and `platform-description.tsx`; the fallout of regenerating `db/schema.ts` — `photoURL` → `image` (`queries/get-comment.ts:33`, `get-comments.ts:45`, `get-feedback-post.ts:36`, `get-activity-feed.ts:97,124`, `get-user-session.ts:27,48`, `platform-header/buttons.tsx:107`), `session.userOrg.role` → `session.user.role` (`buttons.tsx:141`), and `authorId`/`authorRole` becoming `string \| null` with a null author rendered as deleted (`comment/index.tsx:13,18`, `comment/inner.tsx:15`, `comment/options-menu.tsx:37`); in phases 1–4 the Settings page does not render `Logo` and the header shows no logo (the `logo` column is gone; `logoImageId` arrives with uploads in phase 5); every file Verification 6's pattern matches, comments included (today `app/globals.css:231`, `platform-root/index.tsx:15,22`, `platform-header/drawer.tsx:3`, `settings/loading.tsx:44,50`, `hooks/use-platform-ready.ts:28`, `(board)/admin/ask-ai/page.tsx:10`); after the route move, delete `.next/` locally (`tsconfig.json` includes `.next/types`, which still import the old paths); `lib/utils.ts` (tenant and URL helpers removed); `lib/schemas.ts` (`upsertUserSchema`, `claimOrgSchema`, `orgSubdomainSchema` removed); `lib/typings.ts` (`UpsertUser`, `ActivityFeedItem.orgId`, `IframeParentAPI` removed); `lib/atoms.ts` (`iframeParentAtom` removed); `lib/api-snippets.ts`, `lib/widget-snippets.ts`, `lib/ask-ai.ts` (`appUrl`); `components/app/api-docs/*` (no org id; `endpoint-card.tsx` uses `appUrl`); `components/app/widget-docs/index.tsx` (until phase 8 its preview, and the snippet from `lib/widget-snippets.ts`, pass `platformId=""` with `url={appUrl}` (the snippet with a comment that the server ignores it), because the workspace widget is 2.x, whose `platformId` is a required prop, and 2.x resolves a parseable `url` first); `components/app/ask-ai/index.tsx` and `storage.ts` (no `subdomain` header; a constant conversation key — today it keys on `getSubdomain()`, which returns null on two-label hosts and disables saving); `trpc/create-admin-invite.ts` (server-derived URL, `URLSearchParams`); `hooks/use-auth.tsx` (stops calling the deleted upsert route; `orgSubdomain`/`getSubdomain` and the demo auto-login removed; `import type` from `db/schema`); `lib/firebase/admin.ts` (`getIsSelfHosted` guard and `adminDatabase` removed); `app/api/chat/route.ts` and `app/api/trpc/[trpc]/route.ts` (`maxDuration` and the org lookup removed); `app/api/feedback/create/route.ts` (the §9 contract: `{ description }` only, `orgId` ignored, CORS on every response, 400 on validation, `{ id }` response, `Allow-Methods`, `Max-Age`); every file carrying `orgId`; the 37 surviving bare-`"server-only"` files and the modules §2 lists; `package.json` (add `better-auth` 1.7.6 exact; remove `next-safe-action`, root `penpal`, `kysely-ctl`, `overrides.jose`, the `migrate-*` and `schema-dump` scripts; rename `kysely-codegen` to `db:codegen`; add `db:auth-ddl`); `.gitignore` (the `/supabase` line; `.vercel` stays while the maintainer still runs the `vercel` CLI, until phase 9) |
+| 1 | `db/db.ts` (`globalThis` pool, sizing, TLS; `DATABASE_URL` through `getConfig()`); `db/schema.ts` (regenerated); `lib/trpc.ts` (org guard and `subdomain` header removed; Firebase token verification removed, so until phase 3 `userId` and `userRole` are null and `adminProcedure` and `/api/chat` answer `UNAUTHORIZED`); `providers/trpc-client.tsx` (no `subdomain` header, no `getVercelUrl()`/`PORT`; a relative `/api/trpc` URL); `proxy.ts` (tenancy removed; embed set-and-strip kept; `_vercel` exclusion removed); `app/[orgSubdomain]/(board)/**` → `app/(board)/**`, including `layout.tsx`, which gains the settings provider; `lib/rate-limit.ts` (§1 table, `lib/client-ip.ts`); `queries/check-rate-limit.ts` (`failClosed`); `queries/create-feedback-post.ts`, `create-comment.ts`, `update-feedback-post.ts`, `update-comment.ts` (write `plainText`; since `getConfig().llm.aiConfigured` is hard-coded false until phase 6, whatever the environment (the banner says `OPENROUTER_API_KEY` is ignored until then), take §5's keyless path — first-sentence title, `general feedback`, no moderation, null embedding); `app/api/chat/route.ts`, `lib/utils-server.ts`, `trpc/generate-insights.ts`, `trpc/rewrite-feedback.ts` (the key through `getConfig().llm.apiKey`; `/api/chat`, `rewriteFeedback` and `generateInsights` answer `AI_NOT_CONFIGURED` while `!aiConfigured`); `queries/get-feedback-posts.ts`, `queries/get-activity-feed.ts` (no query embedding while `!aiConfigured`, so search returns no results until phase 6's `ILIKE`); `trpc/create-comment.ts`, `trpc/update-feedback-post.ts`, `trpc/update-comment.ts` (their §1 caps); the `search-text:*` caps and the 200-character query cut in `queries/get-feedback-posts.ts` and `get-activity-feed.ts`; `queries/save-insights.ts` (disabled typed stub returning AI_NOT_CONFIGURED until phase 6, then same-run fenced update; it must not insert an incomplete new-schema report); every surviving importer of a module this phase deletes or renames — today `hooks/use-platform-url.ts` is imported by `app/[orgSubdomain]/(board)/admin/page.tsx`, `components/app/activity-feed/list-item.tsx`, `admin-root/index.tsx`, `admins/invite.tsx` (which also sends the removed `platformUrl` input), `ask-ai/citations.tsx`, `ask-ai/thread.tsx`, `feedback-form/index.tsx`, `feedback-post/compact.tsx`, `go-back-button.tsx`, `options-menu.tsx`, `insights/evidence.tsx`, `platform-header/buttons.tsx` and `platform-header/title.tsx`, and `use-org`/`use-update-org` and the deleted setting editors by `platform-header/title.tsx`, `description.tsx`, `settings/index.tsx`, `logo.tsx`, `platform-title.tsx` and `platform-description.tsx`; the fallout of regenerating `db/schema.ts` — `photoURL` → `image` (`queries/get-comment.ts:33`, `get-comments.ts:45`, `get-feedback-post.ts:36`, `get-activity-feed.ts:97,124`, `get-user-session.ts:27,48`, `platform-header/buttons.tsx:107`), `session.userOrg.role` → `session.user.role` (`buttons.tsx:141`), and `authorId`/`authorRole` becoming `string \| null` with a null author rendered as deleted (`comment/index.tsx:13,18`, `comment/inner.tsx:15`, `comment/options-menu.tsx:37`); in phases 1–4 the Settings page does not render `Logo` and the header shows no logo (the `logo` column is gone; `logoImageId` arrives with uploads in phase 5); every file Verification 6's pattern matches, comments included (today `app/globals.css:231`, `platform-root/index.tsx:15,22`, `platform-header/drawer.tsx:3`, `settings/loading.tsx:44,50`, `hooks/use-platform-ready.ts:28`, `(board)/admin/ask-ai/page.tsx:10`); after the route move, delete `.next/` locally (`tsconfig.json` includes `.next/types`, which still import the old paths); `lib/utils.ts` (tenant and URL helpers removed); `lib/schemas.ts` (`upsertUserSchema`, `claimOrgSchema`, `orgSubdomainSchema` removed); `lib/typings.ts` (`UpsertUser`, `ActivityFeedItem.orgId`, `IframeParentAPI` removed); `lib/atoms.ts` (`iframeParentAtom` removed); `lib/api-snippets.ts`, `lib/widget-snippets.ts`, `lib/ask-ai.ts` (`appUrl`); `components/app/api-docs/*` (no org id; `endpoint-card.tsx` uses `appUrl`); `components/app/widget-docs/index.tsx` (until phase 8 its preview, and the snippet from `lib/widget-snippets.ts`, pass `platformId=""` with `url={appUrl}` (the snippet with a comment that the server ignores it), because the workspace widget is 2.x, whose `platformId` is a required prop, and 2.x resolves a parseable `url` first); `components/app/ask-ai/index.tsx` and `storage.ts` (no `subdomain` header; a constant conversation key — today it keys on `getSubdomain()`, which returns null on two-label hosts and disables saving); `trpc/create-admin-invite.ts` (server-derived URL, `URLSearchParams`); `hooks/use-auth.tsx` (stops calling the deleted upsert route; `orgSubdomain`/`getSubdomain` and the demo auto-login removed; `import type` from `db/schema`); `lib/firebase/admin.ts` (`getIsSelfHosted` guard and `adminDatabase` removed); `app/api/chat/route.ts` and `app/api/trpc/[trpc]/route.ts` (`maxDuration` and the org lookup removed); `app/api/feedback/create/route.ts` (the §9 contract: `{ description }` only, `orgId` ignored, CORS on every response, 400 on validation, `{ id }` response, `Allow-Methods`, `Max-Age`); every file carrying `orgId`; the 37 surviving bare-`"server-only"` files and the modules §2 lists; `package.json` (add `better-auth` 1.7.6 exact; remove `next-safe-action`, root `penpal`, `kysely-ctl`, `overrides.jose`, the `migrate-*` and `schema-dump` scripts; rename `kysely-codegen` to `db:codegen`; add `db:auth-ddl`); `.gitignore` (the `/supabase` line; `.vercel` stays while the maintainer still runs the `vercel` CLI, until phase 9) |
 | 2 | `next.config.ts` (`headers()`; Supabase `remotePatterns` removed); `lib/embed-surface.ts` (`string[]`) and its callers — `proxy.ts` (`parseEmbedSurface(req.nextUrl.searchParams.getAll(EMBED_PARAM))`) and `app/(board)/layout.tsx` (passes `header ? [header] : []`); `providers/embed.tsx` (any-match, corrected comment); `app/layout.tsx` (boot script any-match; the static root `metadata`); `components/ui/tiptap-output.tsx` (anchors open in a new tab; `<img>` fallback; status spans, §2); `components/app/process-admin-invite-params/` (no `location.reload()`); `components/app/admin-root/index.tsx` (refuses to render framed; `TAB_WIDTHS` derived from the visible tabs); the `[postId]` page (a server component; `notFound()` for non-UUIDs); `clean()` in `lib/utils-server.ts` (status spans, §2); the board layout's `generateMetadata` (title, robots from `allowIndexing`, `metadataBase`, icons); `components/app/settings/` (an indexing toggle); `components/app/feedback-post/options-menu.tsx` and the post and comment admin controls (`feedback-post/compact.tsx:53`, `comment/options-menu.tsx:88`; hidden when embedded); every copy site (§2, *Copy to clipboard*); `package.json` (devDependency `playwright`) |
 | 3 | `lib/auth/options.ts` (hooks, `databaseHooks`, telemetry, IP options, `popupHandoff()` in the plugin list); `lib/trpc.ts` (`createContext` session; the admin rule of §3); `app/api/chat/route.ts` (the admin rule; `ask-ai:*` caps; the CSRF gate of §3); `app/api/trpc/[trpc]/route.ts` (the CSRF gate); `lib/boot/` (`verifySetupCode`, `clearSetupCode`); `app/(board)/layout.tsx` (the `/setup` redirect); `hooks/use-auth.tsx` (rewritten on Better Auth); `hooks/use-platform-ready.ts`; `providers/trpc-client.tsx`; `components/app/ask-ai/index.tsx` (transport credentials); `components/app/sign-in/*`, `sign-up/*`, `sso/*`, `sign-up-in/*`, `forgot-password/form.tsx`, `account-settings/*`; `components/app/platform-header/drawer.tsx` (signed-in indicator, sign out); `queries/redeem-admin-invite.ts` (server email match, expiry); `trpc/update-user.ts`; `feedbackland-react/src/OverlayWidget.tsx` (sandbox comment only); `scripts/drawer-auth-check.ts` (auth steps); `package.json` (remove `firebase`, `firebase-admin`); `.dockerignore` (drops `firebaseConfig.ts`) |
 | 4 | `lib/auth/options.ts` (`genericOAuth`, the account token hooks); `lib/auth/popup-handoff.ts` (the `start`/`claim` endpoints and the social and callback hooks); `lib/auth/client.ts` (the popup handoff client); `components/app/sign-in/*` and `sign-up/*` (provider buttons from `capabilities.socialProviders`); `components/app/admins/*` (reset links); `lib/boot/` banner (SMTP, providers); `package.json` (`nodemailer`, `@types/nodemailer`, `oauth2-mock-server`, `helmet`); `scripts/drawer-auth-check.ts` (social steps) |
 | 5 | `lib/utils.ts` (image helpers deleted); `components/ui/minimal-tiptap/hooks/use-minimal-tiptap.ts` (`uploadFn`, paste, drop, caps); `components/ui/minimal-tiptap/extensions/image/components/image-view-block.tsx` (natural size kept, resize handles removed); `…/utils.ts` and `…/extensions/file-handler/index.ts` (the 25 MB input cap); `…/extensions/image/image.ts` (absolute copy link); `components/app/settings/logo.tsx` and `components/ui/image-cropper.tsx` (`logoImageId`); `components/app/feedback-form/*`, `comment-form/*`, `feedback-post/edit.tsx`, `comment/edit.tsx`; `clean()` in `lib/utils-server.ts`; `queries/create-feedback-post.ts`, `create-comment.ts`, `update-feedback-post.ts`, `update-comment.ts` (image references); `app/api/trpc/[trpc]/route.ts`, `app/api/feedback/create/route.ts` (the 256 KB streaming body cap) and `app/api/auth/[...all]/route.ts` (64 KB); `package.json` (remove `@supabase/supabase-js`) |
-| 6 | `lib/utils-server.ts` (model code moves to `lib/llm/`; `clean()` stays); `queries/check-rate-limit.ts` (`consumeAiBudget`); `lib/rate-limit.ts` (`ai-check:user`; the 429 `DAILY_LIMIT` path for anonymous posts); `app/api/feedback/create/route.ts` (429 `DAILY_LIMIT`); `app/(board)/admin/layout.tsx` (already a server component; it becomes `async` and resolves `getAiStatus` — calling `requireAdminSession` — before rendering `AdminRoot`); `queries/create-feedback-post.ts`, `create-comment.ts`, `update-feedback-post.ts`, `update-comment.ts` (moderation outcomes; models outside transactions; creates and edits write vectors through `writeEmbedding`, and edits set `"updatedAt" = now()`); `scripts/drawer-auth-check.ts` (discovery retry); `queries/get-feedback-posts.ts`, `get-activity-feed.ts` (`vectorDistance`, `ILIKE` branches, iterative scan, threshold, search-cap and budget fallback, the query-vector cache, the **Unscreened** filter); `trpc/rewrite-feedback.ts`; `app/api/chat/route.ts` (delegates to `lib/llm/ask-ai.ts`; the 1 MB cap); `components/app/admin-root/index.tsx` (the status pill, "off" markers on the Insights and Ask AI tabs); `components/app/insights/*` and `components/app/ask-ai/*` (their off states); `components/app/activity-feed/*` (the off card, the broken card, the search hint, the unseen notice, the **Unscreened** filter); `components/app/settings/index.tsx` (the *Board* and *AI* sections); `app/setup/` (lands on the AI step); `components/app/feedback-form/*` (improve-draft gating; its label becomes the outcome-first "Improve my draft", replacing "Let AI polish your feedback" at `feedback-form/index.tsx:63,215`); `lib/housekeeping.ts` (backfill, probe retry, the credit wait, stale insight runs); `lib/boot/` (probe, AI banner lines); `lib/config.ts` (AI fields from `ai_settings` with the 5-second cache); `hooks/use-generate-insights.ts` (starts a run and polls `getInsightsRun`); `package.json` (add `@ai-sdk/openai-compatible` 3.0.48 exact; remove `@openrouter/ai-sdk-provider`, `@ai-sdk/openai`, `@ai-sdk/google`) |
+| 6 | `lib/utils-server.ts` (model code moves to `lib/llm/`; `clean()` stays); `queries/check-rate-limit.ts` (`consumeAiBudget`); `lib/rate-limit.ts` (`ai-check:user`; the 429 `DAILY_LIMIT` path for anonymous posts); `app/api/feedback/create/route.ts` (429 `DAILY_LIMIT`); `app/(board)/admin/layout.tsx` (already a server component; it becomes `async` and resolves `getAiStatus` — calling `requireAdminSession` — before rendering `AdminRoot`); `queries/create-feedback-post.ts`, `create-comment.ts`, `update-feedback-post.ts`, `update-comment.ts` (moderation outcomes; models outside transactions; creates and edits write vectors through `writeEmbedding`, and edits compare/increment integer revision and update display timestamps); `scripts/drawer-auth-check.ts` (discovery retry); `queries/get-feedback-posts.ts`, `get-activity-feed.ts` (`vectorDistance`, `ILIKE` branches, iterative scan, threshold, search-cap and budget fallback, durable search sessions, the **Unscreened** filter); `trpc/rewrite-feedback.ts`; `app/api/chat/route.ts` (delegates to `lib/llm/ask-ai.ts`; the 1 MB cap); `components/app/admin-root/index.tsx` (the status pill, "off" markers on the Insights and Ask AI tabs); `components/app/insights/*` and `components/app/ask-ai/*` (their off states); `components/app/activity-feed/*` (the off card, the broken card, the search hint, the unseen notice, the **Unscreened** filter); `components/app/settings/index.tsx` (the *Board* and *AI* sections); `app/setup/` (lands on the AI step); `components/app/feedback-form/*` (improve-draft gating; its label becomes the outcome-first "Improve my draft", replacing "Let AI polish your feedback" at `feedback-form/index.tsx:63,215`); `lib/housekeeping.ts` (backfill, probe retry, the credit wait, stale insight runs); `lib/boot/` (probe, AI banner lines); `lib/config.ts` (AI fields from `ai_settings` with the 5-second cache); `hooks/use-generate-insights.ts` (starts a run and polls `getInsightsRun`); `package.json` (add `@ai-sdk/openai-compatible` 3.0.48 exact; remove `@openrouter/ai-sdk-provider`, `@ai-sdk/openai`, `@ai-sdk/google`) |
 | 7 | `compose.yml` (the backup profile); `.gitignore` (`/backups`); `package.json` (the already-unused packages of §5 and the `components/ui/*` sweep; version `1.0.0-rc.1`); `.env.example`; `README.md` (Railway button, five fields, the AI paragraph); `SELFHOSTING.md`; the "superseded" banners on `docs/superpowers/*` |
 | 8 | `feedbackland-react/*` (3.0.0, §9) including `README.md`, `package.json` (metadata; remove `penpal`, `uuid`, `@rollup/plugin-commonjs`), `src/main.tsx` and the `resolve-board-urls.ts` rename; the root `package.json` (`release:react` removed); `components/app/widget-docs/*` and `lib/widget-snippets.ts` (snippet pins `^3`, versioned README link; the interim `platformId=""` removed); `scripts/drawer-auth-check.ts` (the packed widget) |
 | 9 | `package.json` (version `1.0.0`); `.gitignore` (drops `.vercel`) |
 
-The tRPC router (`trpc/index.ts`) registers each new procedure in the phase
+The tRPC router (`trpc/index.ts`) registers reclaimPendingImages in phase 5 and each new procedure in the phase
 that adds it (`updateSettings` in 1; `createPasswordResetLink` in 4;
 `startInsightsRun`, `getInsightsRun`, `rebuildSearchIndex`, `getSystemStatus`, `retryOidcDiscovery` and the AI page's `getAiSettings`, `testAiSettings`, `saveAiSettings`, `removeAiKey`, `getAiStatus`, `listAiModels`, `connectOpenRouter` (a sub-router: `start`, `finish`), `setAiKeepOff` and `dismissAdminNotice` in 6) and drops `getOrg`/`updateOrg` in 1 and `generateInsights` in 6.
 
@@ -3271,17 +3934,17 @@ then and a `.env` that already sets `OPENROUTER_API_KEY` (the maintainer's does,
 
 | # | Phase | Deliverables | Gate |
 |---|---|---|---|
-| −1 | **Pre-flight** (out of tree, §0) | Vercel Git integration disconnected (project kept); npm maintainer email moved off the domain, 2FA on; domain renewals committed; hosted signups frozen and hosted boards notified; the hosted-era `.env` moved out of the checkout (§0 step 8) | V0 (pre-flight) |
-| 0 | **Foundations** | `.dockerignore`, `Dockerfile`, `compose.yml`, `compose.dev.yml`, `/api/health`, `ci.yml`, `scripts/ci-gates.ts`; `next.config.ts` (`standalone`, `unoptimized`, `experimental.isrFlushToDisk`); `next/font/google` removed; `db/db.ts`'s `pool.on("error")`; Firebase and Supabase clients made lazy; `tsx`, `engines`, `license`; `SELFHOSTING.md`'s broken compose block replaced by a download | V1 (static), V16, V7 (phase-0 items), V10 (`HOSTNAME`/`PORT` leg). `/api/health` is 200 under `compose.yml` and 503 after `docker compose stop db` — blocking in every phase: boot waits for the database only at start, and a running server answers 503 when its database stops |
-| 1 | **Single tenant, schema, boot** | the route move to `app/(board)`; the org removal everywhere (§1) including `/api/user/upsert-user` and `getIsSelfHosted`; `better-auth` installed, `lib/auth/options.ts` and `scripts/print-auth-ddl.ts`; `0001_init` with the full target schema; `instrumentation.ts`, `lib/boot/`, `lib/config.ts`, `lib/runtime-state.ts`; `db/db.ts`; `db/vector.ts`; settings read/update and provider; `lib/app-url.ts`; `lib/client-ip.ts` and the rate-limit table; `lib/housekeeping.ts` (sweeps); `plainText` writes and the keyless write path; in-board links through `boardHref()` (§1); the `/api/feedback/create` contract; `server-only` imports; `board-state`; dead code; `db/schema.ts` regenerated; `scripts/e2e/` and `ci/compose.pgbouncer.yml` | V1 (static and boot smoke, before the auth steps), V6 (server scope), V14, V8 (migration convergence), V3 (persistence, failing migration, concurrent boots), V7 (phase-1 items) |
-| 2 | **Framing, embed signal, metadata** | `headers()`; the remaining full-load hazards (§2, *The embed signal must survive navigation*); any-match embed parsing; `global-error.tsx`; user links open in a new tab; `AdminRoot` refuses when framed; admin controls hidden when embedded; metadata, `allowIndexing`, icons, `notFound()` for non-UUIDs; `lib/copy-text.ts`; `playwright` and `scripts/drawer-auth-check.ts` (navigation steps) | V7 (phase-2 items), V5 (navigation steps, Chromium, signed-out drawer) |
-| 3 | **Better Auth and first run** | §3's configuration and the credential model (session `scope`, the admin rule, the `set-auth-token` strip); token store; email sign-up/in/out; drawer sign-out; pre-setup lockdown; `/setup` and its code rules; the `/setup` redirect; invite expiry and server match; Firebase deleted; the drawer check's auth steps | V1 (including `/setup` and a second sign-up — the schema-drift check — and the `compileMigrations()` diff), V5 (email/password, all three engines), V7 (phase-3 items), V2 (*manual*, skipping search and images) |
-| 4 | **Social sign-in and recovery** | Google, Microsoft, OIDC behind configuration; `popupHandoff`; provider buttons from capabilities; `/reset-password`; SMTP tier; admin reset links; `/recover`; provider tokens nulled; `ci/oidc-mock.ts`, `ci/helmet-host.ts`, `ci/compose.https.yml`, `ci/compose.mailpit.yml` | V5 (social: mock IdP plain and COOP-enforcing, Helmet host page, the HTTPS board, all three engines), V7 (phase-4 items). Real Google and Microsoft are walked per release from phase 7 (they need OAuth clients registered for a public HTTPS board, a Mac and an iPhone), not in this gate |
-| 5 | **Images** | §4 in full; `scripts/e2e/v4-backup.ts`; Supabase deleted | V7 (phase-5 items), V4 (with an image; search excluded), V2 (*manual*, with images) |
-| 6 | **AI** | §5 in full: `lib/llm/`, moderation outcomes, `ILIKE`, embeddings and dimensions, backfill, rebuild, background insights, the System panel; **Settings → AI** (Connect OpenRouter with its credit step, or paste a key; defaults, the live check, privacy, usage, the daily limit and its anonymous-posting pause, **Keep AI off**) and everything that tells the admin AI is off or failing; `AI_SEARCH_MAX_DISTANCE` measured and fixed; the test harnesses (`mock-llm`, the search corpus) | V11, V12 (with its *manual* real-OpenRouter check), V13, V18, V5 (discovery retry), V16 (runtime egress), V8 (search, `EXPLAIN`, paging past 40), V2 (CI from here), V7 (phase-6 items). **Then merge to `main`**. The phase lands in two parts: **6a**, the AI engine configured through environment variables (every check above except V18, V11's admin-surface assertions and V16's Settings → AI visit), and **6b**, Settings → AI and the admin notices (V18 and those two legs); the merge follows 6b |
-| 7 | **One-click, release machinery, operations** | `render.yaml` and the `render-rc` branch, the Railway template spec, `compose.tls.yml`, `compose.external-db.yml`, the backup profile, `release.yml`, `deploy/kubernetes.yaml`, the dependency cull, `.env.example`, `CONTRIBUTING.md`, `SECURITY.md`, README and SELFHOSTING; make the GHCR package public, then tag **`v1.0.0-rc.1`** | V9 (*manual*, against `rc.1` on both platforms), V10, V3 (upgrade and rollback), V4 (full), V7 (phase-7 item); the resource floor measured and stated |
+| −1 | **Pre-flight** (out of tree, §0) | Vercel Git integration disconnected (project kept); npm maintainer email moved off the domain, 2FA on; domain renewals committed; hosted signups frozen and hosted boards notified; the hosted-era `.env` moved out of the checkout (§0 step 8) | V0 (pre-flight). V23 (retirement record). |
+| 0 | **Foundations** | `.dockerignore`, `Dockerfile`, `compose.yml`, `compose.dev.yml`, `/api/health`, `ci.yml`, `scripts/ci-gates.ts`; `next.config.ts` (`standalone`, `unoptimized`, `experimental.isrFlushToDisk`); `next/font/google` removed; `db/db.ts`'s `pool.on("error")`; Firebase and Supabase clients made lazy; `tsx`, `engines`, `license`; `SELFHOSTING.md`'s broken compose block replaced by a download | V1 (static), V16, V7 (phase-0 items), V10 (`HOSTNAME`/`PORT` leg). `/api/health` is 200 under `compose.yml` and 503 after `docker compose stop db` — blocking in every phase: boot waits for the database only at start, and a running server answers 503 when its database stops. V23 (artifact identity and Compose invariants). |
+| 1 | **Single tenant, schema, boot** | the route move to `app/(board)`; the org removal everywhere (§1) including `/api/user/upsert-user` and `getIsSelfHosted`; `better-auth` installed, `lib/auth/options.ts` and `scripts/print-auth-ddl.ts`; `0001_init` with the full target schema; `instrumentation.ts`, `lib/boot/`, `lib/config.ts`, `lib/runtime-state.ts`; `db/db.ts`; `db/vector.ts`; settings read/update and provider; `lib/app-url.ts`; `lib/client-ip.ts` and the rate-limit table; `lib/housekeeping.ts` (sweeps); `plainText` writes and the keyless write path; in-board links through `boardHref()` (§1); the `/api/feedback/create` contract; `server-only` imports; `board-state`; dead code; `db/schema.ts` regenerated; `scripts/e2e/` and `ci/compose.pgbouncer.yml` | V1 (static and boot smoke, before the auth steps), V6 (server scope), V14, V8 (migration convergence), V3 (persistence, failing migration, concurrent boots), V7 (phase-1 items). V19 (schema/membership/reply invariants), V21 (integer schema), V22 (TLS parser). |
+| 2 | **Framing, embed signal, metadata** | `headers()`; the remaining full-load hazards (§2, *The embed signal must survive navigation*); any-match embed parsing; `global-error.tsx`; user links open in a new tab; `AdminRoot` refuses when framed; admin controls hidden when embedded; metadata, `allowIndexing`, icons, `notFound()` for non-UUIDs; `lib/copy-text.ts`; `playwright` and `scripts/drawer-auth-check.ts` (navigation steps) | V7 (phase-2 items), V5 (navigation steps, Chromium, signed-out drawer). V19 (provider hierarchy and unresolved-state requests). |
+| 3 | **Better Auth and first run** | §3's configuration and the credential model (session `scope`, the admin rule, the `set-auth-token` strip); token store; email sign-up/in/out; drawer sign-out; pre-setup lockdown; `/setup` and its code rules; the `/setup` redirect; invite expiry and server match; Firebase deleted; the drawer check's auth steps | V1 (including `/setup` and a second sign-up — the schema-drift check — and the `compileMigrations()` diff), V5 (email/password, all three engines), V7 (phase-3 items), V2 (*manual*, skipping search and images). V19 (all privilege paths/invite scopes), V22 (random setup codes). |
+| 4 | **Social sign-in and recovery** | Google, Microsoft, OIDC behind configuration; `popupHandoff`; provider buttons from capabilities; `/reset-password`; SMTP tier; admin reset links; `/recover`; provider tokens nulled; `ci/oidc-mock.ts`, `ci/helmet-host.ts`, `ci/compose.https.yml`, `ci/compose.mailpit.yml` | V5 (social: mock IdP plain and COOP-enforcing, Helmet host page, the HTTPS board, all three engines), V7 (phase-4 items). Real Google and Microsoft are walked per release from phase 7 (they need OAuth clients registered for a public HTTPS board, a Mac and an iPhone), not in this gate. V19 (avatar/OIDC/recovery), V22 (zero-admin recovery). |
+| 5 | **Images** | §4 in full; `scripts/e2e/v4-backup.ts`; Supabase deleted | V7 (phase-5 items), V4 (with an image; search excluded), V2 (*manual*, with images). V20 (full multipart stream, GIF and concurrent quota tests). |
+| 6 | **AI** | §5 in full: `lib/llm/`, moderation outcomes, `ILIKE`, embeddings and dimensions, backfill, rebuild, background insights, the System panel; **Settings → AI** (Connect OpenRouter with its credit step, or paste a key; defaults, the live check, privacy, usage, the daily limit and its anonymous-posting pause, **Keep AI off**) and everything that tells the admin AI is off or failing; `AI_SEARCH_MAX_DISTANCE` measured and fixed; the test harnesses (`mock-llm`, the search corpus) | V11, V12 (with its *manual* real-OpenRouter check), V13, V18, V5 (discovery retry), V16 (runtime egress), V8 (search, `EXPLAIN`, paging past 40), V2 (CI from here), V7 (phase-6 items). **Then merge to `main`**. The phase lands in two parts: **6a**, the AI engine configured through environment variables (every check above except V18, V11's admin-surface assertions and V16's Settings → AI visit), and **6b**, Settings → AI and the admin notices (V18 and those two legs); the merge follows 6b. V20 (vision/logging), V21 (all state/search/job/accounting races), V23 (independent fixtures/active clients). |
+| 7 | **One-click, release machinery, operations** | `render.yaml` and the `render-rc` branch, the Railway template spec, `compose.tls.yml`, `compose.external-db.yml`, the backup profile, `release.yml`, `deploy/kubernetes.yaml`, the dependency cull, `.env.example`, `CONTRIBUTING.md`, `SECURITY.md`, README and SELFHOSTING; make the GHCR package public, then tag **`v1.0.0-rc.1`** | V9 (*manual*, against `rc.1` on both platforms), V10, V3 (upgrade and rollback), V4 (full), V7 (phase-7 item); the resource floor measured and stated. V22 (full bundle, major upgrade, backup validation), V23 (child-digest replicas/upgrades). |
 | 8 | **Widget 3.0.0** | §9 in full; `release-widget.yml` | V15, V5 (against the packed widget) |
-| 9 | **Release and retirement** | tag `v1.0.0`; publish `feedbackland-react@3.0.0`; create the `render-v1` branch and publish the Railway template on `:1`; §0 steps 5–8; `.gitignore` drops `.vercel` | V0 (retirement), V9 (*manual* smoke from the README buttons, with an anonymous pull), V6 (full scope) |
+| 9 | **Release and retirement** | tag `v1.0.0`; publish `feedbackland-react@3.0.0`; create the `render-v1` branch and publish the Railway template on `:1`; §0 steps 5–8; `.gitignore` drops `.vercel` | V0 (retirement), V9 (*manual* smoke from the README buttons, with an anonymous pull), V6 (full scope). V23 (dated retirement completion). |
 | 10 | **App-store wrappers** | `scripts/gen-wrappers.ts`, `deploy/<store>/` for Umbrel, CasaOS, Coolify, Dokploy, Easypanel, Zeabur, CapRover | V17 per store (*manual*); CI wrapper-drift check |
 
 **Accepted interim states**, written down so nobody debugs them:
@@ -3304,7 +3967,7 @@ then and a `.env` that already sets `OPENROUTER_API_KEY` (the maintainer's does,
 
 - **Server:** a `vX.Y.Z` tag on `main` builds both architectures on native
   runners and publishes `ghcr.io/feedbackland/feedbackland:X.Y.Z`, `:X.Y`,
-  `:X` and `:latest`, then performs an anonymous `docker pull` and fails if the
+  `:X` and `:latest`, records child digests/build identities, then performs an anonymous `docker pull` and fails if the
   image is not public. A `vX.Y.Z-rc.N` tag publishes only `:X.Y.Z-rc.N`. Pushes
   to `main` publish `:edge` (from phase 7), for manual testing only.
 - **Visibility:** the first publish — the `:edge` push that merges `release.yml` — creates the GHCR package as **private**. Making it public is a one-time, irreversible manual step in phase 7, done then, before `v1.0.0-rc.1` is tagged; an rc being public is harmless. rc tags skip the anonymous-pull check, which runs with an empty `DOCKER_CONFIG`. (The
@@ -3361,7 +4024,7 @@ then and a `.env` that already sets `OPENROUTER_API_KEY` (the maintainer's does,
 | The privacy switch misses embedding requests | `lib/llm/fetch.ts` merges `provider` into every `/embeddings` body | V12 |
 | OpenRouter is down or unreachable | AI is optional; moderation takes its *unavailable* path and nothing about AI can stop the board or posting; the pill and the broken card say so | V12, V13 |
 | A new OpenRouter account has no credit, so turning AI on stalls | The credit step: stated before and after connecting, and AI turns on by itself when credit arrives | V18 |
-| AI runs up an unbounded bill | A daily limit (default 5,000) counted per UTC date, only allowed calls counted, moderation reserved the last 20%; typical and worst-case cost shown; key spend limit shown and linked | V18 |
+| AI runs up an unbounded bill | A daily limit (default 5,000) counted per UTC date, only allowed calls counted, moderation reserved the last 20%; bounded request inputs and labeled scenario estimates shown; key spend limit shown and linked | V18 |
 | A flood exhausts the daily limit | Features stop at 80%; at the limit anonymous posts are refused (429) rather than published unscreened; signed-in content is recorded; **Raise the daily limit** | V18 |
 | A poison row makes the backfill spend the budget | `embeddingSkipped`, batch halving, backoff | V12 |
 | Vectors from two models mix in one index | Index fingerprint; generation-tagged writes; a mismatch stops semantic search until Rebuild | V13, V18 |
@@ -3384,11 +4047,22 @@ then and a `.env` that already sets `OPENROUTER_API_KEY` (the maintainer's does,
 | `jose@5` override breaks Better Auth | Removed in phase 1 | V7 (`npm ls jose`) |
 | Better Auth patch releases change security code | Exact pin; V5 and V7 re-run on every bump | V5, V7 |
 
+Revision-4 invariants also carry these explicit release risks:
+
+| Risk | Required control | Gate |
+|---|---|---|
+| Role-only override, unresolved surface or cross-replica OIDC drift | One complete predicate, isolated providers, durable discovery epoch | V19 |
+| Chunked multipart or concurrent vision work exhausts memory | Full stream/part/deadline limits and process admission before byte loading | V20 |
+| Concurrent quota, edit, key, index or worker transitions break invariants | Serialized ownership, integer revisions, config tokens and renewable fenced leases | V20, V21 |
+| Search mode/order changes between pages or exact unindexed matches vanish | Bounded durable search snapshots, strict candidate order and unindexed exact tier | V21 |
+| Restored secrets, major upgrades or invalid backup configuration destroy recovery | Protected complete bundle, new volume, validation before any work, measured drill | V22 |
+| Cached active UI, incompatible frontend artifacts or overfit fixture claims mislead operators | Bounded client polling, constrained replica/upgrade topology and independent validation | V23 |
+
 ## Verification
 
-"CI" means `ci.yml` runs it on every push from the phase named. "Manual" means walked and recorded in the PR or the release. From phase 3, every check that drives the board, writes through any endpoint (the public API included) or signs in first completes `/setup` — except the pre-setup assertions of V7-3 and V7-5 — with a harness-set `SETUP_CODE` (an unclaimed board redirects to `/setup`, which refuses framing). All static checks scan the tracked app-code scope (`app lib components hooks queries trpc db providers proxy.ts instrumentation.ts next.config.ts`), never `scripts/`, `ci/` or `docs/` (except V6, which also scans `scripts/`), and any pattern that would match its own source lives in `ci.yml`. Harness scripts that import guarded modules run with `tsx --conditions=react-server`. The harness is committed:
+"CI" means `ci.yml` runs it on every push from the phase named. "Manual" means walked and recorded in the PR or the release. From phase 3, every check that drives the board, writes through any endpoint (the public API included) or signs in first completes `/setup` — except the pre-setup assertions of V7-3 and V7-5 — with a harness-set `SETUP_CODE` (an unclaimed board redirects to `/setup`, which refuses framing). All static checks scan the tracked app-code scope (`app lib components hooks queries trpc db providers proxy.ts instrumentation.ts next.config.ts`), never `scripts/`, `ci/` or `docs/` (except V6, which also scans `scripts/`), and any pattern that would match its own source lives in `ci.yml`. Harness scripts that import guarded modules run with `tsx --conditions=react-server`. The implementation must commit the harness; these files are currently proposed:
 `scripts/ci-gates.ts`, `scripts/drawer-auth-check.ts` (Playwright),
-`scripts/e2e/*.ts`, `scripts/mock-llm.ts`, `scripts/fixtures/search-corpus.json`,
+`scripts/e2e/*.ts` (including `v19-auth-invariants.ts`, `v20-resource-limits.ts`, `v21-state-transitions.ts`, `v22-recovery.ts`, `v23-release-contracts.ts`), `scripts/mock-llm.ts`, `scripts/fixtures/search-corpus.json`,
 the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private CA, mock OpenRouter — every service image pinned by digest), `ci/oidc-mock.ts` and `ci/helmet-host.ts`, and the migration fixtures under `scripts/e2e/fixtures/`.
 
 0. **Retirement** (*manual*). Phase −1: a push produces no Vercel status.
@@ -3438,12 +4112,23 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
    - *Discovery retry (phase 6):* the same start order shows "discovery failed" in the System panel, and its retry enables the button without a restart.
    - *Manual, per release:* real Google and Microsoft in Chrome and Safari on
      macOS and iOS (where the session is expected to end with the browser).
-6. **No org remains (CI, phase 1 / 9).** `git grep -n -i -P` (tracked files
-   only; the pattern lives in `ci.yml`, not under a scanned path) for
-   `(?<![\w./-])orgs?\b|orgid|orgname|orgurl|orgsubdomain|isclaimed|user_org|userorg|platform-?urls?|platformid|subdomain|maindomain|claimorg|createorg|getorg|updateorg|useorg|globalorgstate|organi[sz]ation|(?<!microsoft_)tenant(?!_?id)|isselfhosted|self_hosted|vercel|feedbackland\.com`
-   over `app lib components hooks queries trpc db providers scripts proxy.ts next.config.ts instrumentation.ts` from phase 1 (`platformid` only from phase 8, when the 3.x widget drops the prop; until then the 2.x widget in the workspace requires it, §1 *Surfaces*), and additionally over
-   `feedbackland-react` (excluding its `README.md`) from phase 9; plus the same terms against the file names from `git ls-files ':!docs' ':!feedbackland-react'` from phase 1, and from `git ls-files ':!docs'` from phase 9 (the widget's `resolve-platform-urls.ts` is renamed in phase 8). Separately
-   (`scripts/e2e/v6-urls.ts`): the invite link, the widget snippet and the API example (from phase 3, when an admin exists) and a copied Ask-AI citation (from phase 6) are absolute and use the app URL.
+6. **No org remains (CI, phase 1 / 9).** Retain the tracked-file and
+   filename residue scan for tenancy/vendor integration over the app scope
+   and scripts, adding the widget from phase 9 and `platformId` only from phase
+   8. The forbidden pattern is
+   `(?<![\w./-])orgs?\b|orgid|orgname|orgurl|orgsubdomain|isclaimed|user_org|userorg|platform-?urls?|platformid|subdomain|maindomain|claimorg|createorg|getorg|updateorg|useorg|globalorgstate|organi[sz]ation|(?<!microsoft_)tenant(?!_?id)|isselfhosted|self_hosted|vercel|feedbackland\.com`.
+   **One exact AST exception:** the literal names in the exported frozen
+   `AUTH_ENV_TO_NEUTRALISE` array in `lib/config.ts`, used only by the fixed
+   deletion/warning loop (§3). Assert that this array equals the documented
+   complete list, contains only string literals, is not exported to client
+   bundles, and every configured name is deleted before auth construction.
+   Exempt only those literal nodes from residue matching, not the whole file
+   or arbitrary uses of VERCEL_URL. Reject computed-name evasions and any actual
+   vendor integration. Run residue and neutralization checks together on the
+   same final config fixture, including malicious extra references outside
+   the allowlisted nodes. URL checks still prove invite, widget/API example
+   and Ask-AI citations use the server-derived absolute app URL.
+
 7. **Security (CI).** Each item is blocking from the phase shown.
 
    | Phase | Assertion |
@@ -3451,9 +4136,9 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
    | 0 | after decoy `.env` and `.env.production` files are written into the build context, the image contains no `.env*` anywhere, and no `sharp` or `@img` anywhere in its filesystem |
    | 1 | `/api/user/upsert-user` 404s and nothing references it; every module in §2's list starts with `import "server-only"` and no bare string remains; no `process.env` outside `lib/config.ts`, `instrumentation.ts` and the shrinking legacy allow-list (Environment reference); no `selectAll` on `settings`; nothing outside `lib/boot/`, `db/migrations/` and `db/schema.ts` names `instance_secret`; the setup code appears in no HTML, tRPC response or log line when chosen, and the auth secret in no HTML, `/api/*` response or log line; `/api/feedback/create` takes `{ orgId, description }` → 201 `{ id }`, `{}` → 400 with CORS headers, and `OPTIONS` → `Allow-Methods: POST, OPTIONS`, `Max-Age: 86400`; `npm ls jose` resolves 6.x for Better Auth |
    | 2 | (routes that do not exist yet answer 404, still with their `headers()` values) full header values on `/`, `/?embed=drawer`, `/<uuid>?embed=drawer`, `/?embed=x&embed=drawer`, `/admin`, `/setup`, `/recover`, `/reset-password`, `/auth/popup` and `/api/images/<id>` match §2; `/?embed=x&embed=drawer` renders no account menu; no `navigator.clipboard` outside `lib/copy-text.ts`; `GET /robots.txt` → 404; a post containing `<span data-type="status" data-label="planned fixed inset-0">` renders the label as plain text with no class |
-   | 3 | `/setup`: rejected without the code, rate-limited, refused when the limiter's table is unavailable (fails closed), two concurrent correct submissions (with fresh `X-Forwarded-For` values after the rate-limit assertion) create one admin; a sign-up with `role: "admin"` is stored as `user`, and `/update-user { role }` answers 400; before setup, a post, `POST /api/feedback/create` and `/api/chat` answer 403 `SETUP_REQUIRED`; `/setup` completes with `DATABASE_POOL_MAX=2`; a rolling refresh moves `auth_session.expiresAt` forward; the code stops working once claimed, a pre-existing identity is not adopted, and before setup `POST /api/auth/sign-up/email` answers 403. A drawer token sent as `Authorization` **and** as a forged `Cookie` cannot call an admin procedure or `/api/chat`; `/update-session { scope }` is refused; an admin session older than 7 days is refused; a raw `auth_session.token` is rejected as bearer and as cookie; first-party sign-in, `/update-user` and refresh responses carry no `set-auth-token`; a token captured before sign-out is rejected after; `/change-password` with `revokeOtherSessions` from a drawer token yields an embedded session. Expired and used invites are refused, as is a non-matching email. Repeated failed sign-ins rate-limit that client only — two clients behind a multi-hop `X-Forwarded-For` land in two buckets with `TRUSTED_PROXIES` set. No `firebase` import remains. A `multipart/form-data` POST to an input-less admin mutation with a valid admin cookie answers 415 and changes nothing; a JSON POST with `Sec-Fetch-Site: same-site` answers 403. The eleventh failed sign-in for one email within 15 minutes answers 429 from a fresh `X-Forwarded-For`. A sign-up or `/update-user` carrying `image` stores null, and a 500-character `name` is cut to 100. No response carries `set-auth-token` in `Access-Control-Expose-Headers` except an embedded one; a drawer token for an admin identity cannot call an admin procedure |
-   | 4 | `/recover`: 404 without `RECOVERY_CODE`; its code is compared in constant time and never logged; rate-limited, and refused while the limiter's table is renamed (fails closed); a mock-IdP profile carrying `role: admin` signs in as `user`; `createPasswordResetLink` for another admin answers FORBIDDEN; resets an admin's password and revokes their other sessions; refuses a non-admin email. A second sign-in method on an existing email does not link. Handoff: `GET /auth/popup` with `Sec-Fetch-Site: cross-site`, and with `none`, is 400; `GET /auth/popup/done?ticket=<foreign ticket>` in a signed-in browser binds nothing; a claim with a wrong secret, a second claim and a claim after expiry fail. With a Mailpit service: SMTP set and `APP_URL` set → exactly one email whose link resets the password, and a request with `X-Forwarded-Host: evil.example` still yields a link on `APP_URL`'s host; `APP_URL` unset → nothing is sent and the form shows the ask-an-admin copy. An admin-generated link, with and without `APP_URL`, opens `/reset-password` and resets the password. A returning provider user's `auth_account` row holds no tokens. A token claimed through the handoff has `scope = embedded`; sent as `Authorization` and as a forged `Cookie` for an admin identity, it cannot call an admin procedure or `/api/chat`. A post containing `<a href="/auth/popup?…">` and `<a href="<APP_URL>/auth/popup?…">` is stored and rendered without either link |
-   | 5 | uploads: an SVG labelled `image/png` is refused; 50 MB bodies to `/api/images`, `/api/trpc`, `/api/feedback/create` and `/api/auth/sign-up/email` are refused before the body is read (resident memory grows by less than 32 MB); a pasted external `<img>` is stripped; a `data:` source or an unknown image id is refused with 400; `/api/images/<id>` carries `nosniff` and the sandbox CSP; uploads past `MAX_PENDING_IMAGE_BYTES` answer 507; before setup, `POST /api/images` answers 403 `SETUP_REQUIRED`. No `supabase` import; zero `NEXT_PUBLIC_` |
+   | 3 | `/setup`: rejected without the code, rate-limited, refused when the limiter's table is unavailable (fails closed), two concurrent correct submissions (with fresh `X-Forwarded-For` values after the rate-limit assertion) create one admin; a sign-up with `role: "admin"` is stored as `user`, and `/update-user { role }` answers 400; before setup, a post, `POST /api/feedback/create` and `/api/chat` answer 403 `SETUP_REQUIRED`; `/setup` completes with `DATABASE_POOL_MAX=2`; a rolling refresh moves `auth_session.expiresAt` forward; the code stops working once claimed, a pre-existing identity is not adopted, and before setup `POST /api/auth/sign-up/email` answers 403. A drawer token sent as `Authorization` **and** as a forged `Cookie` cannot call an admin procedure or `/api/chat`; `/update-session { scope }` is refused; an admin session older than 7 days is refused; a raw `auth_session.token` is rejected as bearer and as cookie; first-party sign-in, `/update-user` and refresh responses carry no `set-auth-token`; a token captured before sign-out is rejected after; `/change-password` with `revokeOtherSessions` from a drawer token yields an embedded session. Expired and used invites are refused, as is a non-matching email. Repeated failed sign-ins rate-limit that client only — two clients behind a multi-hop `X-Forwarded-For` land in two buckets with `TRUSTED_PROXIES` set. No `firebase` import remains. A `multipart/form-data` POST to an input-less admin mutation with a valid admin cookie answers 415 and changes nothing; a JSON POST with `Sec-Fetch-Site: same-site` answers 403. The eleventh failed sign-in for one email within 15 minutes answers 429 from a fresh `X-Forwarded-For`. A sign-up carrying `image` stores null, a non-provider `/update-user` image attempt is rejected, a name-only update preserves an existing provider avatar, and a 500-character `name` is cut to 100. No response carries `set-auth-token` in `Access-Control-Expose-Headers` except an embedded one; a drawer token for an admin identity cannot call an admin procedure |
+   | 4 | `/recover`: 404 without `RECOVERY_CODE`; its code is compared in constant time and never logged; rate-limited, and refused while the limiter's table is renamed (fails closed); a mock-IdP profile carrying `role: admin` signs in as `user`; `createPasswordResetLink` for another admin answers FORBIDDEN; resets an admin's password and revokes their other sessions; refuses a non-admin email while any admin remains; a deliberately zero-admin database permits only §7's recovery-code-authorized existing-password-identity repair. A second sign-in method on an existing email does not link. Handoff: `GET /auth/popup` with `Sec-Fetch-Site: cross-site`, and with `none`, is 400; `GET /auth/popup/done?ticket=<foreign ticket>` in a signed-in browser binds nothing; a claim with a wrong secret, a second claim and a claim after expiry fail. With a Mailpit service: SMTP set and `APP_URL` set → exactly one email whose link resets the password, and a request with `X-Forwarded-Host: evil.example` still yields a link on `APP_URL`'s host; `APP_URL` unset → nothing is sent and the form shows the ask-an-admin copy. An admin-generated link, with and without `APP_URL`, opens `/reset-password` and resets the password. A returning provider user's `auth_account` row holds no tokens. A token claimed through the handoff has `scope = embedded`; sent as `Authorization` and as a forged `Cookie` for an admin identity, it cannot call an admin procedure or `/api/chat`. A post containing `<a href="/auth/popup?…">` and `<a href="<APP_URL>/auth/popup?…">` is stored and rendered without either link |
+   | 5 | uploads: an SVG labelled `image/png` is refused; 50 MB bodies to `/api/images`, `/api/trpc`, `/api/feedback/create` and `/api/auth/sign-up/email` are refused before full buffering (declared oversize before reading; chunked input at the streaming limit) (resident memory grows by less than 32 MB); a pasted external `<img>` is stripped; a `data:` source or an unknown image id is refused with 400; `/api/images/<id>` carries `nosniff` and the sandbox CSP; uploads past `MAX_PENDING_IMAGE_BYTES` answer 507; before setup, `POST /api/images` answers 403 `SETUP_REQUIRED`. No `supabase` import; zero `NEXT_PUBLIC_` |
    | 6 | a 50 MB body to `/api/chat` is refused the same way; the legacy `process.env` allow-list is empty; no `generateText`/`streamText`/`embed` call outside `lib/llm/`; no `openrouter` package import; no `console.*` in `lib/llm/`; nothing outside `lib/llm/settings-store.ts`, `db/migrations/` and the generated `db/schema.ts` names `ai_settings`; no AI procedure response contains a key beyond its last four characters; the only `createOpenAICompatible` call is in `lib/llm/client.ts`, with the base URL from `lib/llm/constants.ts` and `fetch` from `lib/llm/fetch.ts`; nothing in `lib/llm/` calls `fetch` except `fetch.ts`; no `openrouter.ai` literal outside `lib/llm/constants.ts` |
    | 7 | under `compose.tls.yml` (with `COMPOSE_FILE` in `.env`), `http://<host>:3000` is refused, including after `docker compose pull --ignore-pull-failures && docker compose up -d` (the local tag cannot be pulled; the command is run for its `COMPOSE_FILE` handling) |
 
@@ -3461,10 +4146,10 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
    migrations converge on pgvector in `public` (the stock image), on pgvector
    pre-installed in `extensions`, and through PgBouncer in transaction mode —
    including a boot through PgBouncer right after a failed migration, which completes within 30 s. Phase 6, with embeddings from `scripts/mock-llm.ts` (deterministic: the same text always yields the same vector, so a post's own title finds it): a post is created and found by search in each topology;
-   `EXPLAIN` of the SQL `vectorDistance()` compiles (under `tsx --conditions=react-server`, with the same `SET LOCAL`s and `enable_seqscan = off`) shows the HNSW index under `OPERATOR(<schema>.<=>)`; with 45 posts of identical text, "load more" pages past 40 results.
+   `EXPLAIN` of the SQL `vectorDistance()` compiles (under `tsx --conditions=react-server`, with the same `SET LOCAL`s and `enable_seqscan = off`) shows the HNSW index under `OPERATOR(<schema>.<=>)`; with at least 200 nonidentical, filtered vectors and ties, an ordered captured search session pages past 40 with no duplicate/missing candidate; include null/skipped exact matches and repeat through alternating replicas (V21).
 9. **One-click, without a terminal (*manual*, phase 7 / 9).** Phase 7, against
    `:1.0.0-rc.1` through the `render-rc` branch and an unpublished Railway
-   template: deploy, choose a setup code in the form, open the HTTPS URL,
+   template: deploy, retrieve the generated setup code from the platform UI, open the HTTPS URL,
    complete setup, post, embed the widget on another site; confirm the resolved
    app URL in the System panel; record whether Railway treats `:1` as a moving tag or pins the digest it resolved; confirm Render delivers `true-client-ip` and
    overwrites a client-sent one; check the bill matches §8; record whether the
@@ -3522,7 +4207,17 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
     a static-IP dnsmasq that logs queries and answers `db`; a Caddy container
     on both networks publishes the app to the harness. The app starts and
     serves — including an admin opening Activity and Settings → AI with no key
-    configured — and the log shows `db` and nothing else. (Docker's embedded
+    configured — all optional OAuth/OIDC/SMTP variables are explicitly absent, and the DNS
+    log shows `db` and nothing else. Also capture process-tree network syscalls
+    from before Node starts (`strace -ff -e trace=network`, CI-only observer
+    image with the necessary ptrace capability, never the production image).
+    Classify outbound connect/sendto destinations; only database and the
+    explicit local resolver/loopback harness traffic are allowed. Failed
+    connections to public or literal IPs count as attempts. Assert no external
+    DNS **or** connect/sendto attempt, with a positive-control fixture that
+    deliberately attempts both and is detected. Exclude passive listening and
+    responses to inbound browser requests by matching socket direction; keep
+    traces private, redact payload bytes, and retain endpoint-only evidence. (Docker's embedded
     resolver would answer container names itself, so the database host would
     never reach a logger.)
 17. **App stores (*manual*, phase 10), per store.** It installs from its own
@@ -3530,23 +4225,22 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
     completes, and a post survives a restart.
 
 18. **AI onboarding (CI, phase 6, with `scripts/mock-llm.ts`).** The mock is
-    served as `openrouter.ai`, as in V12 (`ci/compose.mock-llm.yml`); the CI legs run in Chromium, whose `--host-resolver-rules` maps `openrouter.ai` for the browser. Time is advanced by rewriting stored timestamps with the app stopped and then restarting it — `health.<capability>.failingSince` (15 minutes), `admin_notice.hiddenUntil` (14 days), `apiKeySetAt`/`creditWaitUntil` (the 7-day wait); the UTC rollover is proven by seeding `ai:instance:day:<yesterday>` at the cap and asserting that calls are admitted under today's key. Only the 15-second and 5-minute credit polls wait in real time.
+    served as `openrouter.ai`, as in V12 (`ci/compose.mock-llm.yml`); the CI legs run in Chromium, whose `--host-resolver-rules` maps `openrouter.ai` for the browser. Time is advanced by rewriting stored timestamps with the app stopped and then restarting it — `ai_health.failingSince` (15 minutes), `admin_notice.hiddenUntil` (14 days), `apiKeySetAt`/`creditWaitUntil` (the 7-day wait); the UTC rollover is proven by seeding `ai:instance:day:<yesterday>` at the cap and asserting that calls are admitted under today's key. Only the 15-second and 5-minute credit polls wait in real time.
     - *Connect, redirect:* from a keyless board on the HTTPS board
       (`ci/compose.https.yml`), completing `/setup` lands on the AI step;
       **Connect OpenRouter** goes to the mock's `/auth` (Playwright maps `openrouter.ai` to the mock with `--host-resolver-rules` and trusts its CA) with an S256 challenge
       and a `callback_url` on the board, the mock redirects back with
-      `?code=`, and with no further click the page exchanges the code by POST,
+      `?code=…&state=<n>`, and with no further click the page validates echoed state and exchanges the code by POST,
       removes it from the address bar and shows "AI is on". Without a restart,
       `capabilities.chat` and `capabilities.embeddings` are true at once in
-      the saving process and within 5 seconds plus one probe in a second
-      replica; a new post is moderated and titled; the backfill indexes
+      the saving process and within 5 seconds plus one probe in a second replica at the API layer; mounted DOM updates within ten seconds plus network/probe latency; a new post is moderated and titled; the backfill indexes
       existing posts and comments with visible progress. A `GET` of the page
-      with a `?code=` and no pending flow exchanges nothing; a `finish` from another admin's session, with no cookie, or at a return path whose nonce does not match, is refused — including for a challenge-less code; on the HTTPS board reached as `https://board.test:8443` (`APP_URL` set to it; `--host-resolver-rules` maps `board.test`), the public-app note shows only while `allowIndexing` is on, and a board with it off uses headless mode; the verifier
+      with a `?code=` and no pending flow exchanges nothing; a `finish` from another admin's session, with no cookie, with missing/wrong state, or at a return path whose nonce does not match, is refused — including for a challenge-less code; on the HTTPS board reached as `https://board.test:8443` (`APP_URL` set to it; `--host-resolver-rules` maps `board.test`), the public-app note shows only while `allowIndexing` is on, and a board with it off uses headless mode; the verifier
       cookie holds ciphertext.
     - *Connect, headless:* on `http://<LAN IP>:3000` (a board without `APP_URL`, since a LAN-IP sign-in against `APP_URL=https://localhost:8443` is refused as `INVALID_ORIGIN`, §3) the button opens `/auth` in a new tab with no `callback_url`, the first tab shows the focused code field, and pasting the mock's code turns AI on. After **Turn off AI** with a key stored, the page's **Turn on AI** re-enables it without calling `/auth`.
     - *The credit step:* with the mock reporting `is_free_tier: true` and
       answering chat with 402 `openrouter_credits`, the page shows the credit
-      step and the pill "AI: add credit"; posts meanwhile take the path without AI, and the pill never turns red; when the mock flips, AI turns on by itself within 15 seconds with the page open, and with the page closed within one 5-minute housekeeping tick; no more than 4 checks a minute were sent. Pressing Back and **Authorize** again after a finished flow exchanges nothing and says the connection timed out.
+      step and the pill "AI: add credit"; posts meanwhile take the path without AI, and the pill never turns red; when the mock flips, AI turns on by itself within 15 seconds with the page open, and with the page closed within one 5-minute housekeeping tick when budget is available; no more than 4 checks a minute were sent. Pressing Back and **Authorize** again after a finished flow exchanges nothing and says the connection timed out.
     - *Paste:* pasting an `sk-or-v1-` key checks it and turns AI on with no further click, and **Undo** turns it off again; OpenAI-, Anthropic- and Google-shaped keys each get their
       named answer, and the mock receives no request for them.
     - *Verdicts:* each mock error mode produces its mapped message (invalid,
@@ -3555,7 +4249,7 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
       with the rebuild offer); no provider text reaches the browser,
       `lastCheck` or `health`. **Test again** works while AI is paused;
       saving only the daily limit makes no model call; a save carrying a stale
-      `updatedAt` is refused.
+      `revision` is refused.
     - *The key:* no procedure returns more than its last four characters;
       `ai_settings.apiKey` is `v1.`-format ciphertext that decrypts with the
       auth secret, and a ciphertext with another column's associated data fails
@@ -3572,7 +4266,7 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
       /api/feedback/create` answer 429 `{ code: "DAILY_LIMIT", resetsAt }`,
       while a signed-in comment is stored with a `daily-limit`
       `moderation_event` row and appears under **Unscreened**; the pill says
-      "AI paused"; raising the limit restores AI within 5 seconds; a budget row seeded for yesterday at the cap does not refuse today's calls.
+      "AI paused"; raising the limit restores API admission within five seconds and active DOM within ten seconds plus network latency; a budget row seeded for yesterday at the cap does not refuse today's calls.
     - *The index:* **Rebuild the index at 1,536** (the mock returning 1,536)
       alters the column and the next request asks for 1,536; an embedding
       computed under the old generation and written after the rebuild is
@@ -3587,19 +4281,136 @@ the compose files under `ci/` (PgBouncer, HTTPS board, Mailpit, DNS log, private
     - *Environment:* with `OPENROUTER_MODEL` set the field is locked; with
       `OPENROUTER_API_KEY` set the page shows "Configured on the server", and
       **Turn off AI** still turns AI off. **Turn off AI** returns the board to
-      the keyless behaviour at once in the saving process and within 5 seconds
-      in a second replica.
+      the keyless behaviour at once in the saving process and within five seconds at the API layer in a second replica; active DOM converges within ten seconds plus network latency.
     - *Manual, once per release:* the real Connect OpenRouter flow on an HTTPS
       install — with an existing account, and with a brand-new one through
       adding credit — recording whether `/auth` honours `limit` and whether a public `callback_url` lists the board among OpenRouter's public apps — and on `http://localhost:3000` (redirect, in Chromium, Firefox and WebKit) and a LAN IP (headless); **Confirm
       it's yours**; pasting a real key.
 
+19. **Authorization and auth lifecycle (CI from the owning phase).**
+    Schema portions start in phase 1, surface isolation in 2, permissions in 3,
+    recovery/provider hooks in 4. Exercise each of the four userProcedure
+    update/delete operations against another author's item using an embedded
+    admin token as bearer **and** cookie, and an aged first-party admin: all
+    refused; own-content actions still work. Revoke admin rights/session during
+    a delayed model call; final write is refused. Reject embedded invite
+    redemption as bearer/cookie. Test a same-site frame holding a first-party
+    admin cookie with proxy intentionally bypassed: observe every request from
+    initial mount, no ambient credential in script-created auth/tRPC/upload/handoff subrequests before/after resolution, no authenticated document-SSR data, and no cache
+    crossing on surface remount. Repeat cross-site and on all V5 engines.
+    Concurrent mutual admin demotion leaves ≥ 1; cross-post/nonexistent/deep
+    parent fails before model dispatch and raw SQL composite-FK violations fail.
+    A name-only provider-user update preserves image; arbitrary tracking-image
+    updates fail. Start two replicas before IdP, start IdP, retry through A and
+    force provider status/sign-in through B within the stated convergence bound.
+
+20. **Input, memory and output sinks (CI, phases 5/6).** Chunked uploads with
+    no/false Content-Length, huge non-file field, preamble/trailer, oversized
+    headers, multiple files, malformed terminator, tiny chunks, slow/incomplete
+    streams and disconnect all stop within aggregate/part/deadline limits.
+    Assert parser never buffers past bounds and slots are reclaimed. Parallel
+    replicas near total/pending caps never exceed them; race attach/logo/delete/
+    reclaim/sweep and verify references, accounting and lock order. Direct EXIF
+    input remains possible and docs say so; high-frame/large-canvas/corrupt GIFs
+    are refused by bounded parsing. Hold mock vision responses, submit full
+    instance-rate bursts reusing max-size eligible ids, measure cgroup memory
+    below 512 MiB and bounded active HTTP calls; busy requests publish nothing,
+    other normal routes remain responsive. Abort/disconnect/timeout releases
+    every reservation. Provider errors echo prompt/email/key markers in message,
+    metadata, malformed JSON and stream events: no marker in logs/responses,
+    lastCheck/health or insight error rows, including crashes/cleanup paths.
+
+21. **Revisions, search, jobs and budget transitions (CI, phase 6; schema in 1).**
+    - Two edits/settings saves in one millisecond: one expected-revision save
+      wins and one conflicts. Out-of-order commits/embeddings cannot change a
+      newer revision. Include two different keys with identical last4; old
+      probe/check/credit completion after a new success or Keep AI off is
+      discarded. Concurrent capability failures/successes keep both health rows
+      and follow dispatch sequence. Old configuration writes never re-enable AI.
+    - Keep B running while A rebuilds 768→1536: B reads physical metadata,
+      invalidates old probes/vectors, then requests 1536; an old write is fenced.
+      With varied distances/ties/filters, traverse a captured session across A/B
+      during provider outage, budget exhaustion, query-cache absence and then
+      rebuild/expiry. Assert stable mode/order/ids and zero extra embedding
+      calls; rebuild/expiry explicitly requires restart. Include null/skipped
+      exact matches, mixed post/comment ids, deleted rows and capacity limits.
+    - Fresh unpaid key with no lease/verified embeddings, page closed: credit
+      completion runs. Repeat embedding model none and failed width probe. Hold
+      a batch >90 s while ten-second lease renewal succeeds: exactly one active
+      request. Kill holder; prove bounded takeover after expiry, no overlapping
+      scheduler tick, stale owner writes rejected and every new attempt counted.
+    - Concurrent insight starts return one run/worker/reservation; multi-chunk
+      plan reserves chunks **plus merge** near 80%, provider mock counts equal
+      dispatches. Failing chunk/merge has no hidden retry. Kill a worker, age
+      heartbeat, start a new run and release old completion: old result cannot
+      publish. Test midnight reservation expiry and no double charging/escape.
+    - Maximum multilingual/code/emoji/combining input fits the pinned embedding
+      tokenizer (include 3,000 space-separated U+9F98), is indexed by truncation,
+      not poison. Assert batch token/byte caps; unknown tokenizer model disables
+      embeddings without breaking chat. Maximum histories/corpora/insight merge/
+      images/output caps satisfy every request budget. Every explicit retry and
+      diagnostic request is admitted; no unknown price is rendered as zero.
+    - Unscreened→screened edit resolves current filter without erasing history;
+      repeat failed revisions yield one current item, and 24-hour counts use
+      distinct surviving owners. History expiry never hides current unscreened.
+
+22. **TLS, secrets and recovery (CI, phase 1/3/4/7).** Test every TLS table
+    row, duplicate/conflicting aliases, unsupported certificate options, ssl=true
+    with no sslmode, CA-only, hostname/IP mismatch and trust rejection. Inspect
+    negotiated encryption via pg_stat_ssl; invalid selectors never connect.
+    Setup/recovery reject weak/repeated/example decoded-byte values, malformed/noncanonical encodings and truncated values;
+    generated bytes retain their 32-byte identity through both accepted encodings; base64 is never case-folded.
+    Exercise lost-admin recovery and deliberately zero-admin repair, interrupted
+    reset/promotion, concurrent recovery, wrong/social-only target and code removal.
+    Backup interval/keep zero, negative, fractional, malformed, leading-zero and
+    excessive values perform **no** dump/rotation; rename/dump/copy failures
+    preserve good points. Restore an injected-secret board onto a fresh target
+    whose initially generated secret differs: preservation recovers AI-key
+    decryption and OAuth/SMTP fixtures; intentional rotation revokes sessions/
+    flows, requires AI reconnection and retains password access. From an off-host
+    encrypted bundle measure RPO/RTO, hashes and secrets inventory. Upgrade
+    PostgreSQL 17→18 using **new volume**, preserve stopped old cluster, take and
+    restore the first scheduled new-major backup, and exercise documented rollback
+    before new writes. Never test the obsolete shared-volume initialization claim.
+
+23. **Delivery evidence and active surfaces (CI/manual by phase).**
+    - CI checks generated build identity, child digest manifest and same-digest
+      replica policy; K8S Recreate/nodeSelector required. Alternate every form/
+      RSC request across two replicas of one child digest. Compare both native
+      architecture identities/manifests and verify docs exclude mixed replicas.
+      Test stop/start with open drawer/setup/recovery form: version reload works,
+      no silent stale-action retry, embed query survives, no password persistence.
+      Compose `.env` PORT=8080/HOSTNAME=bad/NODE_ENV=development cannot override
+      its five fixed runtime invariants. Render/Railway still accept platform PORT.
+    - Selection uses `moderation-corpus.json`; independent validation uses at
+      least eighty held-out cases (≥40 allow, ≥40 refuse), stratified across
+      languages, benign criticism, prompt injection, obfuscation, provider refusal
+      and image/text-only paths. Record fixture hash, expected verdict rationale,
+      model/version/date/privacy, price and all mismatches. Require all expected
+      regression verdicts to pass before selecting the default. Do not tune on
+      held-out answers; a changed model/prompt needs a freshly reviewed validation
+      set plus prior cases as regressions. A small perfect fixture is not a general
+      moderation-quality/safety guarantee. Token/cost fixtures independently cover
+      the maximum request shapes; a cheapest-model selection corpus is not their
+      only evidence. Budget for the release's manual paid checks explicitly.
+    - Keep the **same DOM** in a drawer and second admin tab open while another
+      admin enables/disables AI, Keep AI off, raises cap and rotates keys; change
+      mock health and advance the UTC clock without restarting browser/app.
+      Active surfaces converge within ten seconds plus network latency; hidden
+      surfaces refresh on focus. Expired diagnostic/daily allowances reset at UTC
+      rollover. A stale/offline tab hides visitor AI actions under the stated rule.
+      The V18 restart-based timestamp fixtures supplement, never replace, this.
+    - Manual phase −1/9: record named owner/backup owner, notice/shutdown/export
+      dates and private export evidence, integration disconnection, revocations,
+      domain/payment/parking renewal and succession owner in the retirement record.
+      Phase 9 cannot pass before actual dates/actions; no credentials/customer
+      exports in public artifacts. Repeat parking/API CORS and npm deprecation.
+
 ## Appendix A — Corrections that must not be reintroduced
 
 Each of these appeared in an earlier revision, reads plausibly, and is wrong.
 
-- "If `proxy.ts` doesn't run the drawer only flashes once" — the layout swaps
-  after hydration (§2).
+- "If proxy does not run, only first paint is affected" — surface remains unresolved and credential work must wait; otherwise the first request can send a first-party cookie (§2).
 - "Constraining `/:postId` to a UUID removes the row-order hazard" — order
   still controls three rows sharing one header key (§2).
 - "A full reload re-reads `embed` from the iframe `src`" — it re-requests the
@@ -3669,7 +4480,7 @@ Each of these appeared in an earlier revision, reads plausibly, and is wrong.
   ten-minute moderation bypass; anonymous posts are refused instead (§5).
 - "`providerOptions.openrouter.provider` reaches embedding requests" — the
   embedding body is built from a fixed list; `lib/llm/fetch.ts` adds it (§5).
-- "OpenRouter's `/auth` echoes a `state` value" — it defines none; the verifier is encrypted and bound to the admin, and a per-flow path nonce is the state (§5).
+- "OpenRouter defines no state parameter" — obsolete as of the 2026-10-18 documentation check. Send/verify the documented echoed state plus the path nonce, encrypted verifier, admin and revision binding (§5).
 - "OpenRouter's cost is at `result.usage.raw.cost`" — it is at
   `steps[].usage.raw.cost` for chat and `responses[].body.usage.cost` for `embedMany`, and `response.body.usage.cost` for a single `embed` (§5).
 - "There is no hosted service" — it is live until §0 retires it.
@@ -3680,10 +4491,9 @@ Each of these appeared in an earlier revision, reads plausibly, and is wrong.
 ## Appendix B — Evidence
 
 The 2026-09-26 audit's scripts live in a session scratchpad and are not part
-of the repository; each claim they settled is therefore re-proven by the
-committed check named here.
+of the repository; each claim remains historical evidence. The checks below are **required future implementation gates**, not currently committed passing proofs. The October review harness is committed separately; its synthetic reproductions test the old defects, not revision 4's complete implementation.
 
-| Claim | Re-proven by |
+| Historical claim | Required implementation verification |
 |---|---|
 | Next standalone `request.url` uses the bind address; Better Auth 403s without `trustedProxyHeaders` | V2, V5 (email and password at `http://localhost:3000` with no `APP_URL`, phase 3) |
 | Reset-link poisoning through `X-Forwarded-Host` | V7 (phase 4) |
@@ -3701,3 +4511,19 @@ committed check named here.
 | Compose override appends `ports`; `!reset` removes them; `COMPOSE_FILE` keeps the overlay | V7 (phase 7) |
 | Postgres 18 refuses the `/var/lib/postgresql/data` mount | V3 (the bundled compose file boots and persists) |
 | Browser storage partitioning and WebKit ephemerality | V5 (partitioning, in Chromium and Firefox) and the manual Safari/iOS pass (Playwright's Linux WebKit is not Safari) |
+
+### Revision-4 external checks (2026-10-18)
+
+- [Next self-hosting](https://nextjs.org/docs/app/guides/self-hosting): per-build
+  identity/action key and multi-server/version skew concerns inform the restricted
+  same-artifact replica and stop/start upgrade policy; no rolling support inferred.
+- [Render Blueprint specification](https://render.com/docs/blueprint-spec):
+  generated secrets replace human-chosen setup codes; V9 checks actual encoding/UI.
+- [OpenRouter OAuth](https://openrouter.ai/docs/guides/overview/auth/oauth):
+  echoed state is supported; the prior permanent “no state” assertion is removed.
+- [PostgreSQL version policy](https://www.postgresql.org/support/versioning/):
+  technical legacy compatibility is separated from production support.
+- [Postgres image entrypoint](https://github.com/docker-library/postgres/blob/master/docker-entrypoint.sh)
+  and [pgvector iterative scans](https://github.com/pgvector/pgvector#iterative-index-scans):
+  new-volume major upgrade and strict/materialized pagination need real-image
+  integration proofs; local Docker execution was unavailable during this review.
