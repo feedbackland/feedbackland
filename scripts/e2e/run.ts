@@ -23,8 +23,20 @@ export async function command(
     cwd?: string;
     env?: Record<string, string | undefined>;
     timeout?: number;
+    maxOutputBytes?: number;
   } = {},
 ): Promise<string> {
+  const timeout = options.timeout ?? 120_000;
+  const limit = options.maxOutputBytes ?? 8 * 1024 * 1024;
+  if (
+    !Number.isSafeInteger(timeout) ||
+    timeout < 1 ||
+    !Number.isSafeInteger(limit) ||
+    limit < 1
+  )
+    throw new Error(
+      "Command timeout and output limit must be positive integers",
+    );
   return new Promise((resolve, reject) => {
     const child = spawn(program, args, {
       cwd: options.cwd,
@@ -32,23 +44,47 @@ export async function command(
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe"],
     });
-    let output = "";
+    const chunks: Buffer[] = [];
+    let size = 0;
+    let termination: string | undefined;
+    let forceKill: ReturnType<typeof setTimeout> | undefined;
+    const stop = (reason: string) => {
+      if (termination) return;
+      termination = reason;
+      child.kill();
+      forceKill = setTimeout(() => child.kill("SIGKILL"), 1_000);
+      forceKill.unref();
+    };
     const capture = (data: Buffer) => {
-      output += data.toString();
-      if (output.length > 8 * 1024 * 1024) child.kill();
+      if (termination) return;
+      const remaining = limit - size;
+      if (remaining > 0) {
+        const retained = data.subarray(0, remaining);
+        chunks.push(retained);
+        size += retained.length;
+      }
+      if (data.length > remaining)
+        stop(`exceeded output limit of ${limit} bytes`);
     };
     child.stdout.on("data", capture);
     child.stderr.on("data", capture);
     const timer = setTimeout(() => {
-      child.kill();
-    }, options.timeout ?? 120_000);
+      stop(`timed out after ${timeout}ms`);
+    }, timeout);
     child.on("error", (error) => {
       clearTimeout(timer);
+      clearTimeout(forceKill);
       reject(error);
     });
     child.on("close", (code) => {
       clearTimeout(timer);
-      if (code === 0) resolve(output.trim());
+      clearTimeout(forceKill);
+      const output = Buffer.concat(chunks, size).toString("utf8").trim();
+      if (termination)
+        reject(
+          new Error(`${program} ${args[0] ?? ""} ${termination}:\n${output}`),
+        );
+      else if (code === 0) resolve(output);
       else
         reject(
           new Error(`${program} ${args[0] ?? ""} failed (${code}):\n${output}`),

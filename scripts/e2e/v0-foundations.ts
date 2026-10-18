@@ -29,6 +29,7 @@ export async function foundations(image: string, runId: string, check: Check) {
   const network = `${project}-net`;
   let projectCreated = false;
   let networkCreated = false;
+  let primaryError: unknown;
   const containers: string[] = [];
   const composeEnv = { FEEDBACKLAND_IMAGE: image, FEEDBACKLAND_PORT: "0" };
   const compose = (...args: string[]) =>
@@ -56,12 +57,17 @@ export async function foundations(image: string, runId: string, check: Check) {
     let identity: {
       artifactId: string;
       deploymentId: string;
+      buildNonce: string;
+      sourceTreeHash: string;
       version: string;
       sourceCommit: string | null;
       architecture: string;
     };
     await check("image/identity/filesystem", async () => {
       const metadata = (await json("image", "inspect", image))[0];
+      // Resolve a mutable tag once; every later container must use this image.
+      image = metadata.Id;
+      composeEnv.FEEDBACKLAND_IMAGE = image;
       assert.equal(metadata.Config.User, "node");
       assert.deepEqual(metadata.Config.Cmd, ["node", "server.js"]);
       assert(!metadata.Config.Entrypoint?.length);
@@ -82,10 +88,18 @@ export async function foundations(image: string, runId: string, check: Check) {
         await readFile("lib/build-identity.json", "utf8"),
       );
       assert.equal(
-        identity.artifactId,
-        local.artifactId,
-        "image does not match checkout identity",
+        identity.sourceTreeHash,
+        local.sourceTreeHash,
+        "image does not match checkout source tree",
       );
+      assert.equal(
+        identity.sourceCommit,
+        local.sourceCommit,
+        "image source commit differs",
+      );
+      assert.match(identity.artifactId, /^[a-f0-9]{64}$/);
+      assert.match(identity.buildNonce, /^[a-f0-9]{32}$/);
+      assert.equal(identity.deploymentId, identity.artifactId.slice(0, 32));
       assert.equal(
         identity.architecture,
         metadata.Architecture === "amd64" ? "x64" : metadata.Architecture,
@@ -168,6 +182,7 @@ export async function foundations(image: string, runId: string, check: Check) {
       await compose("up", "-d", "--wait", "--wait-timeout", "120");
       const appId = await compose("ps", "-q", "app");
       const state = await inspect(appId);
+      assert.equal(state.Image, image);
       assert.equal(state.HostConfig.ReadonlyRootfs, true);
       assert.deepEqual(Object.keys(state.HostConfig.Tmpfs).sort(), [
         "/app/.next/cache",
@@ -258,8 +273,8 @@ export async function foundations(image: string, runId: string, check: Check) {
       };
     });
     await check("direct-image/port-hostname", async () => {
-      await docker("network", "create", network);
       networkCreated = true;
+      await docker("network", "create", network);
       const dbId = await compose("ps", "-q", "db");
       await docker("network", "connect", "--alias", "db", network, dbId);
       const runtime = [
@@ -293,6 +308,7 @@ export async function foundations(image: string, runId: string, check: Check) {
         image,
       );
       const state = await inspect(direct);
+      assert.equal(state.Image, image);
       const url = `http://127.0.0.1:${state.NetworkSettings.Ports["8080/tcp"][0].HostPort}`;
       const result = await eventually(
         () => health(url),
@@ -329,33 +345,54 @@ export async function foundations(image: string, runId: string, check: Check) {
         explicitBadHostnameExit: failed.State.ExitCode,
       };
     });
+  } catch (error) {
+    primaryError = error;
+    throw error;
   } finally {
-    // Every name is generated here. Never touch operator projects or volumes.
-    const failures: string[] = [];
-    for (const name of containers.reverse()) {
-      try {
-        await docker("rm", "-f", name);
-      } catch (error) {
-        failures.push(String(error));
-      }
+    try {
+      await check("cleanup", async () => {
+        // Every name is generated here. Never touch operator projects or volumes.
+        const failures: string[] = [];
+        for (const name of containers.reverse()) {
+          try {
+            await docker("rm", "-f", name);
+          } catch (error) {
+            failures.push(String(error));
+          }
+        }
+        if (projectCreated) {
+          try {
+            await compose("down", "--volumes", "--remove-orphans");
+          } catch (error) {
+            failures.push(String(error));
+          }
+        }
+        if (networkCreated) {
+          try {
+            await docker("network", "rm", network);
+          } catch (error) {
+            failures.push(String(error));
+          }
+        }
+        // mkdtemp returns a task-owned absolute directory; no computed workspace delete.
+        await rm(directory, { recursive: true, force: true });
+        if (failures.length)
+          throw new Error(
+            `test resource cleanup failed: ${failures.join("; ")}`,
+          );
+        return {
+          project,
+          temporaryDirectoryRemoved: true,
+          resourceCleanup: "passed",
+        };
+      });
+    } catch (cleanupError) {
+      if (primaryError)
+        throw new AggregateError(
+          [primaryError, cleanupError],
+          "Verification and cleanup failed",
+        );
+      throw cleanupError;
     }
-    if (projectCreated) {
-      try {
-        await compose("down", "--volumes", "--remove-orphans");
-      } catch (error) {
-        failures.push(String(error));
-      }
-    }
-    if (networkCreated) {
-      try {
-        await docker("network", "rm", network);
-      } catch (error) {
-        failures.push(String(error));
-      }
-    }
-    // mkdtemp returns a task-owned absolute directory; no computed workspace delete.
-    await rm(directory, { recursive: true, force: true });
-    if (failures.length)
-      throw new Error(`test resource cleanup failed: ${failures.join("; ")}`);
   }
 }

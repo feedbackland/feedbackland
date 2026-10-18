@@ -31,11 +31,12 @@ jobs:
           rm .env .env.production
       - run: npm run verify -- --phase 0 --image feedbackland:ci --artifacts artifacts/self-hosting
       - name: Inspect evidence for fixture-only output
+        id: evidence
         if: always()
         run: |
-          node --input-type=module -e "import{readdirSync,readFileSync}from'node:fs';const p='artifacts/self-hosting';for(const d of readdirSync(p,{withFileTypes:true,recursive:true})){if(d.isFile()){const s=readFileSync(d.parentPath+'/'+d.name,'utf8');if(/PRIVATE KEY|AIza[0-9A-Za-z_-]{30,}|sk-or-v1-/.test(s))throw Error('evidence requires private review')}}"
+          node --input-type=module -e "import{existsSync,readdirSync,readFileSync,appendFileSync}from'node:fs';const p='artifacts/self-hosting';if(existsSync(p)){for(const d of readdirSync(p,{withFileTypes:true,recursive:true})){if(d.isFile()){const s=readFileSync(d.parentPath+'/'+d.name,'utf8');if(/PRIVATE KEY|AIza[0-9A-Za-z_-]{30,}|sk-or-v1-/.test(s))throw Error('evidence requires private review')}}appendFileSync(process.env.GITHUB_OUTPUT,'present=true\n')}else{console.log('No verification evidence was produced; inspect the earlier failing step.')}"
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
         with:
           name: self-hosting-phase-0
           path: artifacts/self-hosting/

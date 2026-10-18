@@ -130,13 +130,19 @@ Do not reuse a production volume or run schema migration commands from P01.
 For a standalone copy of the committed Compose file (macOS/Linux):
 
 ```bash
-curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/codex/self-hosting-foundations/compose.yml
+curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/694c5437976c498c123506b9a88953ae4cf999d2/compose.yml
 ```
 
 On Windows use `curl.exe`. This download alone does not supply an application
 image: until a release is published, build from a checkout and set
 `FEEDBACKLAND_IMAGE` as above. The default `:1` reference is reserved for the
 future release and is not a P01 installation path.
+
+The download is pinned to the initial P01 Compose revision and remains available
+after the feature branch is deleted. A checkout always contains its matching
+Compose revision. If you customize `POSTGRES_PASSWORD`, use URL-unreserved
+characters (`A-Z`, `a-z`, digits, `-._~`) or also set `DATABASE_URL` with the password
+percent-encoded. Keep the password in the URL and the database service consistent.
 
 ### Everyday commands
 

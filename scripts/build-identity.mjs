@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
@@ -68,9 +68,37 @@ const sourceCommit = process.env.SOURCE_COMMIT || null;
 if (sourceCommit && !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(sourceCommit))
   throw new Error("SOURCE_COMMIT must be a Git object id");
 const architecture = process.arch;
-const artifactId = createHash("sha256")
-  .update(`${sourceCommit ?? "tree"}:${sourceTreeHash}:${architecture}`)
-  .digest("hex");
+const flags = process.argv.slice(2);
+if (flags.some((flag) => flag !== "--fresh"))
+  throw new Error("Unknown build identity option");
+const artifactFor = (nonce) =>
+  createHash("sha256")
+    .update(
+      `${sourceCommit ?? "local"}:${sourceTreeHash}:${architecture}:${nonce}`,
+    )
+    .digest("hex");
+let buildNonce = randomBytes(16).toString("hex");
+// Reuse for typechecking/dev, but every actual build requests a fresh nonce:
+// identical source may still produce different Next action keys/manifests.
+if (!flags.includes("--fresh")) {
+  try {
+    const previous = JSON.parse(
+      await readFile("lib/build-identity.json", "utf8"),
+    );
+    if (
+      previous &&
+      previous.sourceCommit === sourceCommit &&
+      previous.sourceTreeHash === sourceTreeHash &&
+      previous.architecture === architecture &&
+      /^[a-f0-9]{32}$/.test(previous.buildNonce) &&
+      previous.artifactId === artifactFor(previous.buildNonce)
+    )
+      buildNonce = previous.buildNonce;
+  } catch (error) {
+    if (error.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
+  }
+}
+const artifactId = artifactFor(buildNonce);
 const pkg = JSON.parse(await readFile("package.json", "utf8"));
 await writeFile(
   "lib/build-identity.json",
@@ -79,6 +107,7 @@ await writeFile(
       sourceCommit,
       sourceTreeHash,
       architecture,
+      buildNonce,
       artifactId,
       // Vercel accepts at most 32 URL-safe characters (128 bits of this hash).
       deploymentId: artifactId.slice(0, 32),

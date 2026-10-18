@@ -20,6 +20,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      # URL-reserved password characters require an explicit encoded DATABASE_URL.
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:${POSTGRES_PASSWORD:-feedbackland}@db:5432/feedbackland}
       PORT: "3000"
       HOSTNAME: "0.0.0.0"

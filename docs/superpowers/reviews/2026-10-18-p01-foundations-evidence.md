@@ -27,11 +27,12 @@ notice/export/shutdown dates and private export handling require actual operator
 records. None was performed or marked complete by this implementation. P01 does
 not authorize hosted retirement, merge to main, or a release.
 
-The legacy Vercel integration still creates preview checks. The first P01
-preview failed; no authenticated Vercel CLI session was available to inspect
-its private build logs, so no cause is claimed. This is recorded separately
-from the self-hosting Actions gates. Its disconnection remains an external
-P00 owner action, and P00 is not complete.
+The legacy Vercel integration still creates preview checks. The user supplied
+the failed preview's diagnostic: its deploymentId exceeded Vercel's 32-character
+limit. PR review corrected this by retaining the full artifact hash and deriving
+a separate 32-character deploymentId. Vercel passed on commit `99db446`.
+Its eventual disconnection remains an external P00 owner action, and P00 is not
+complete. See the [full PR review](2026-10-18-pr-11-review.md) for later corrections.
 
 ## Baseline and prerequisite fixes
 
@@ -56,9 +57,10 @@ The stricter bundled-identity assertion found a second prerequisite issue:
 Next 16.3.5 replaces BUILD_ID with a constant when deploymentId is configured,
 ignoring an explicit generateBuildId. Next 16.3.8 retains that behavior. P01
 therefore updates Next to the stable 16.4.2 release, which includes the
-[upstream fix](https://github.com/vercel/next.js/pull/99147). Both bundled
-BUILD_ID and deploymentId must equal the generated artifact identity; the
-assertion is retained. This is an evidence-driven implementation adjustment
+[upstream fix](https://github.com/vercel/next.js/pull/99147). Bundled BUILD_ID
+must equal the full artifact identity; deploymentId must equal its generated
+32-character derivative so it also satisfies Vercel. Both assertions are retained.
+This is an evidence-driven implementation adjustment
 to the planning baseline, not a relaxation of the identity contract.
 
 ## Acceptance evidence

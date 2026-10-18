@@ -28,6 +28,7 @@ export async function staticFoundations() {
     await readFile("lib/build-identity.json", "utf8"),
   );
   assert.match(identity.artifactId, /^[a-f0-9]{64}$/);
+  assert.match(identity.buildNonce, /^[a-f0-9]{32}$/);
   assert.match(identity.deploymentId, /^[a-f0-9]{32}$/);
   assert.equal(identity.deploymentId, identity.artifactId.slice(0, 32));
   const nextConfig = await import("../next.config");
@@ -45,6 +46,16 @@ export async function staticFoundations() {
     "--import",
     "tsx",
     "scripts/e2e/readiness-bounds.ts",
+  ]);
+  await command(process.execPath, [
+    "--import",
+    "tsx",
+    "scripts/e2e/runner-failures.ts",
+  ]);
+  await command(process.execPath, [
+    "--import",
+    "tsx",
+    "scripts/e2e/build-identity.ts",
   ]);
   await command(process.execPath, [
     "--require",
@@ -65,14 +76,18 @@ export async function staticFoundations() {
     "scripts/e2e/run.ts",
     "scripts/e2e/import-boundaries.ts",
     "scripts/e2e/readiness-bounds.ts",
+    "scripts/e2e/runner-failures.ts",
+    "scripts/e2e/build-identity.ts",
     "scripts/e2e/v0-foundations.ts",
   ]);
   return {
     checkout,
     sourceTreeHash: identity.sourceTreeHash,
-    artifactId: identity.artifactId,
+    hostArtifactId: identity.artifactId,
     importBoundaries: "passed",
     readinessBounds: "passed",
     changedCodeLint: "passed",
+    runnerFailures: "passed",
+    buildIdentity: "passed",
   };
 }

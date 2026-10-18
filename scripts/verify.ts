@@ -28,6 +28,23 @@ async function main() {
     evidence?: unknown;
     error?: string;
   }[] = [];
+  const save = async (status: "running" | "passed" | "failed") => {
+    await writeFile(
+      resolve(directory, "summary.json"),
+      JSON.stringify(
+        {
+          runId,
+          phase: 0,
+          image: values.image,
+          status,
+          checks: rows,
+          futurePhases: "not yet due",
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+  };
   const check = async (name: string, action: () => Promise<unknown>) => {
     try {
       const evidence = await action();
@@ -41,24 +58,19 @@ async function main() {
       });
       throw error;
     } finally {
-      await writeFile(
-        resolve(directory, "summary.json"),
-        JSON.stringify(
-          {
-            runId,
-            phase: 0,
-            image: values.image,
-            checks: rows,
-            futurePhases: "not yet due",
-          },
-          null,
-          2,
-        ) + "\n",
+      await save(
+        rows.some((row) => row.status === "failed") ? "failed" : "running",
       );
     }
   };
-  await check("static/import-boundaries", staticFoundations);
-  await foundations(values.image, runId, check);
+  try {
+    await check("static/import-boundaries", staticFoundations);
+    await foundations(values.image, runId, check);
+    await save("passed");
+  } catch (error) {
+    await save("failed");
+    throw error;
+  }
   console.log(`Evidence: ${directory}`);
 }
 main().catch((error: unknown) => {

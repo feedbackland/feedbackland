@@ -3410,7 +3410,11 @@ Native builds generate independent Next build/action manifests. Every build
 uses `generateBuildId` and `deploymentId` derived from full source commit plus
 architecture and a build-artifact id, embedded via generated
 `lib/build-identity.json` (gitignored output of the committed build script); the release publishes each child digest and build
-identity in its manifest record. `next.config.ts` reads that file, not a new
+identity in its manifest record. The full artifact hash remains the Next BUILD_ID;
+deploymentId uses its 32-character hex prefix to meet Vercel's platform limit.
+Independent builds require a fresh random nonce, including rebuilds of identical
+source; typecheck-only generation may reuse an unchanged descriptor.
+`next.config.ts` reads that file, not a new
 runtime environment variable. A developer build generates its own id before `next build`; npm build and
 pretypecheck hooks own this step so clean-checkout typechecking resolves the
 JSON import. Release CI supplies the full source SHA as build-only

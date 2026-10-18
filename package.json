@@ -22,7 +22,7 @@
     "schema-dump": "npx supabase db dump -f db/schema.sql",
     "widget-dev": "concurrently -k -n vite,next \"npm run build:watch -w feedbackland-react\" \"next dev --turbopack\"",
     "identity": "node scripts/build-identity.mjs",
-    "prebuild": "npm run identity",
+    "prebuild": "npm run identity -- --fresh",
     "pretypecheck": "npm run identity",
     "predev": "npm run identity",
     "verify": "tsx scripts/verify.ts"
