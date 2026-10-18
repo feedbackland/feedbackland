@@ -2,7 +2,7 @@
 
 # Feedbackland
 
-**Self-hosted user feedback: an embeddable widget, a feedback board, and AI insights that tell you what to build next.**
+**Self-hosted user feedback: an embeddable widget, a feedback board, and AI-powered insights.**
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
@@ -44,7 +44,7 @@ your email and a password — and then your board is live.
 
 ## The widget
 
-One component, one prop:
+One component, one prop, added to your app in 30 seconds:
 
 ```bash
 npm install feedbackland-react
@@ -84,7 +84,7 @@ Feedbackland phones home. [How it works →](SELFHOSTING.md#turn-on-ai)
 
 ## Open source, and yours
 
-- **MIT-licensed** — fork it, run it, sell it.
+- **MIT-licensed** — free for any and all purposes.
 - **No accounts, no telemetry, no phone-home.** There is no Feedbackland
   service; there is only your instance.
 - **One `pg_dump` takes everything** — posts, comments, accounts and images —
