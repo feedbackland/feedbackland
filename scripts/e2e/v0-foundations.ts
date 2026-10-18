@@ -55,6 +55,7 @@ export async function foundations(image: string, runId: string, check: Check) {
     );
     let identity: {
       artifactId: string;
+      deploymentId: string;
       version: string;
       sourceCommit: string | null;
       architecture: string;
@@ -103,7 +104,8 @@ export async function foundations(image: string, runId: string, check: Check) {
         ),
       );
       assert.equal(bundled.buildId, identity.artifactId);
-      assert.equal(bundled.deploymentId, identity.artifactId);
+      assert.equal(bundled.deploymentId, identity.deploymentId);
+      assert.match(bundled.deploymentId, /^[a-f0-9]{32}$/);
       const forbidden = await docker(
         "run",
         "--rm",

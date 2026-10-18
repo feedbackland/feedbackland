@@ -80,6 +80,8 @@ await writeFile(
       sourceTreeHash,
       architecture,
       artifactId,
+      // Vercel accepts at most 32 URL-safe characters (128 bits of this hash).
+      deploymentId: artifactId.slice(0, 32),
       version: `${pkg.version}+${artifactId.slice(0, 12)}`,
     },
     null,

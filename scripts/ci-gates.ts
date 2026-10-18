@@ -28,6 +28,14 @@ export async function staticFoundations() {
     await readFile("lib/build-identity.json", "utf8"),
   );
   assert.match(identity.artifactId, /^[a-f0-9]{64}$/);
+  assert.match(identity.deploymentId, /^[a-f0-9]{32}$/);
+  assert.equal(identity.deploymentId, identity.artifactId.slice(0, 32));
+  const nextConfig = await import("../next.config");
+  assert.equal(nextConfig.default.deploymentId, identity.deploymentId);
+  assert.equal(
+    await nextConfig.default.generateBuildId?.(),
+    identity.artifactId,
+  );
   await command(process.execPath, [
     "--import",
     "tsx",

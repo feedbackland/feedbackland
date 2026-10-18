@@ -3,7 +3,7 @@ import identity from "./lib/build-identity.json";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  deploymentId: identity.artifactId,
+  deploymentId: identity.deploymentId,
   generateBuildId: async () => identity.artifactId,
   experimental: { isrFlushToDisk: false },
   images: {
