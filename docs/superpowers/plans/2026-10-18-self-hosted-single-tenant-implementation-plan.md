@@ -176,7 +176,11 @@ P01 does not claim a migrated board, setup, new authentication or keyless egress
 4. **Introduce artifact identity.** Generate the identity file before clean
    typechecking and every image build; CI passes its tested SHA through the
    build-only SOURCE_COMMIT argument. Local builds use the documented tree-hash
-   fallback. Wire `generateBuildId`/`deploymentId` to the generated file. Do not
+   fallback. Each actual build uses a fresh random nonce, even for identical
+   source. Keep the full artifact hash as `generateBuildId` and use its generated
+   32-character prefix as `deploymentId` to satisfy Vercel. Verification compares
+   the image's source identity with the checkout, then checks its own bundled IDs;
+   independent host and Docker builds must not share an artifact ID. Do not
    create an installation-secret claim for an image's Server Action key.
 5. **Implement bounded DB readiness.** Add the pg pool error listener without
    logging URLs/credentials. Health uses no user table and works against an

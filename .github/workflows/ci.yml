@@ -1,0 +1,55 @@
+name: Self-hosting foundations
+on:
+  push:
+    branches: [main, single-tenant-self-hosting]
+  pull_request:
+    branches: [main, single-tenant-self-hosting]
+permissions:
+  contents: read
+jobs:
+  foundations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      SOURCE_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build -w feedbackland-react
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Build exact checkout with dotenv decoys
+        run: |
+          printf 'P01_BUILD_DECOY=must-never-ship\n' > .env
+          printf 'P01_BUILD_DECOY=must-never-ship\n' > .env.production
+          docker build --build-arg SOURCE_COMMIT="$SOURCE_COMMIT" --tag feedbackland:ci .
+          rm .env .env.production
+      - run: npm run verify -- --phase 0 --image feedbackland:ci --artifacts artifacts/self-hosting
+      - name: Inspect evidence for fixture-only output
+        id: evidence
+        if: always()
+        run: |
+          node --input-type=module -e "import{existsSync,readdirSync,readFileSync,appendFileSync}from'node:fs';const p='artifacts/self-hosting';if(existsSync(p)){for(const d of readdirSync(p,{withFileTypes:true,recursive:true})){if(d.isFile()){const s=readFileSync(d.parentPath+'/'+d.name,'utf8');if(/PRIVATE KEY|AIza[0-9A-Za-z_-]{30,}|sk-or-v1-/.test(s))throw Error('evidence requires private review')}}appendFileSync(process.env.GITHUB_OUTPUT,'present=true\n')}else{console.log('No verification evidence was produced; inspect the earlier failing step.')}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
+        with:
+          name: self-hosting-phase-0
+          path: artifacts/self-hosting/
+          retention-days: 14
+  development-database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify separate development database
+        run: |
+          docker compose -p p01-dev-${{ github.run_id }} -f compose.dev.yml up -d --wait
+          test "$(docker compose -p p01-dev-${{ github.run_id }} -f compose.dev.yml exec -T db psql -U postgres -d feedbackland -Atc 'SELECT 1')" = 1
+      - name: Remove only this job's resources
+        if: always()
+        run: docker compose -p p01-dev-${{ github.run_id }} -f compose.dev.yml down --volumes

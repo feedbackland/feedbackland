@@ -20,7 +20,12 @@
     "migrate-down": "npx kysely migrate:down",
     "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts",
     "schema-dump": "npx supabase db dump -f db/schema.sql",
-    "widget-dev": "concurrently -k -n vite,next \"npm run build:watch -w feedbackland-react\" \"next dev --turbopack\""
+    "widget-dev": "concurrently -k -n vite,next \"npm run build:watch -w feedbackland-react\" \"next dev --turbopack\"",
+    "identity": "node scripts/build-identity.mjs",
+    "prebuild": "npm run identity -- --fresh",
+    "pretypecheck": "npm run identity",
+    "predev": "npm run identity",
+    "verify": "tsx scripts/verify.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.69",
@@ -104,7 +109,7 @@
     "kysely": "^0.29.5",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.45.0",
-    "next": "^16.3.5",
+    "next": "^16.4.2",
     "next-safe-action": "^8.7.3",
     "next-themes": "^0.4.6",
     "node-html-parser": "^9.0.4",
@@ -147,6 +152,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@eslint/compat": "2.1.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/he": "^1.2.3",
     "@types/node": "^26.5.1",
@@ -164,6 +170,11 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "4.23.15",
     "typescript": "7.0.2"
-  }
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "license": "MIT"
 }

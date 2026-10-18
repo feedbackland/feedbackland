@@ -1,0 +1,51 @@
+name: feedbackland
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-feedbackland}
+      POSTGRES_DB: feedbackland
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d feedbackland"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    image: ${FEEDBACKLAND_IMAGE:-ghcr.io/feedbackland/feedbackland:1}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # URL-reserved password characters require an explicit encoded DATABASE_URL.
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:${POSTGRES_PASSWORD:-feedbackland}@db:5432/feedbackland}
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      KEEP_ALIVE_TIMEOUT: "65000"
+    env_file:
+      - path: .env
+        required: false
+    ports: ["${FEEDBACKLAND_PORT:-3000}:3000"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    read_only: true
+    tmpfs: ["/tmp:size=64m", "/app/.next/cache:size=64m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  db:
