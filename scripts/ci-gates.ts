@@ -42,11 +42,20 @@ export async function staticFoundations() {
     "tsx",
     "scripts/e2e/import-boundaries.ts",
   ]);
-  await command(process.execPath, [
-    "--import",
-    "tsx",
-    "scripts/e2e/readiness-bounds.ts",
-  ]);
+  await command(
+    process.execPath,
+    [
+      "--conditions=react-server",
+      "--import",
+      "tsx",
+      "scripts/e2e/readiness-bounds.ts",
+    ],
+    {
+      env: {
+        DATABASE_URL: "postgres://fixture:fixture-only@127.0.0.1:1/fixture",
+      },
+    },
+  );
   await command(process.execPath, [
     "--import",
     "tsx",
@@ -65,7 +74,6 @@ export async function staticFoundations() {
     "app/layout.tsx",
     "db/db.ts",
     "lib/lazy-delegate.ts",
-    "lib/firebase/admin.ts",
     "lib/firebase/client.ts",
     "lib/supabase.ts",
     "next.config.ts",

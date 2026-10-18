@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 
@@ -25,7 +25,8 @@ export const getFeedbackPostQuery = async ({
         "feedback.id",
         "feedback.createdAt",
         "feedback.updatedAt",
-        "feedback.orgId",
+        "feedback.revision",
+        "feedback.moderationState",
         "feedback.authorId",
         "feedback.category",
         "feedback.title",
@@ -33,7 +34,7 @@ export const getFeedbackPostQuery = async ({
         "feedback.upvotes",
         "feedback.status",
         "user.name as authorName",
-        "user.photoURL as authorPhotoURL",
+        "user.image as authorImage",
         (eb) =>
           eb
             .case()

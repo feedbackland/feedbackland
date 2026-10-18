@@ -77,6 +77,7 @@ export function FeedbackPostFull({
     const {
       title,
       description,
+      revision,
       createdAt,
       category,
       upvotes,
@@ -90,6 +91,7 @@ export function FeedbackPostFull({
       <div>
         {isEditing ? (
           <FeedbackPostEdit
+            expectedRevision={revision}
             postId={postId}
             title={title}
             description={description}

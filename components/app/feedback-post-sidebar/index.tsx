@@ -57,7 +57,7 @@ export default function FeedbackPostSidebar({
   }
 
   if (data) {
-    const { category, authorName, authorPhotoURL, status, createdAt } = data;
+    const { category, authorName, authorImage, status, createdAt } = data;
 
     return (
       <div
@@ -69,7 +69,7 @@ export default function FeedbackPostSidebar({
         <div className="flex items-center gap-2.5">
           <Avatar className="size-8">
             <AvatarImage
-              src={authorPhotoURL || undefined}
+              src={authorImage || undefined}
               alt="User avatar image"
             />
             <AvatarFallback>
@@ -77,7 +77,9 @@ export default function FeedbackPostSidebar({
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium">{authorName || "Anonymous"}</span>
+            <span className="text-sm font-medium">
+              {authorName || "Anonymous"}
+            </span>
             <span className="text-muted-foreground text-xs">Author</span>
           </div>
         </div>
@@ -86,13 +88,15 @@ export default function FeedbackPostSidebar({
           {createdAt && (
             <div className="flex items-center justify-between">
               <Label className="text-muted-foreground text-xs">Posted on</Label>
-              <span className="text-xs">{format(createdAt, "MMM d, yyyy")}</span>
+              <span className="text-xs">
+                {format(createdAt, "MMM d, yyyy")}
+              </span>
             </div>
           )}
           {category && (
             <div className="flex items-center justify-between">
               <Label className="text-muted-foreground text-xs">Category</Label>
-              <Badge variant="secondary" className="capitalize text-xs">
+              <Badge variant="secondary" className="text-xs capitalize">
                 {capitalizeFirstLetter(category)}
               </Badge>
             </div>
@@ -102,7 +106,10 @@ export default function FeedbackPostSidebar({
               <Label className="text-muted-foreground text-xs">Status</Label>
               <Badge
                 variant="secondary"
-                className={cn("capitalize text-xs", `text-${status?.replace(" ", "-")}`)}
+                className={cn(
+                  "text-xs capitalize",
+                  `text-${status?.replace(" ", "-")}`,
+                )}
               >
                 {capitalizeFirstLetter(status)}
               </Badge>

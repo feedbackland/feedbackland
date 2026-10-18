@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import type { FeedbackStatus } from "@/lib/typings";
@@ -11,11 +11,9 @@ import type { FeedbackStatus } from "@/lib/typings";
  * that status on the public board — instead of opening each post in turn.
  */
 export const setInsightStatusQuery = async ({
-  orgId,
   insightId,
   status,
 }: {
-  orgId: string;
   insightId: string;
   status: FeedbackStatus;
 }) => {
@@ -24,7 +22,6 @@ export const setInsightStatusQuery = async ({
       .selectFrom("insights")
       .select(["insights.ids"])
       .where("insights.id", "=", insightId)
-      .where("insights.orgId", "=", orgId)
       .executeTakeFirstOrThrow();
 
     const postIds = insight.ids ?? [];
@@ -34,7 +31,6 @@ export const setInsightStatusQuery = async ({
     const result = await trx
       .updateTable("feedback")
       .set({ status })
-      .where("feedback.orgId", "=", orgId)
       .where("feedback.id", "in", postIds)
       .executeTakeFirst();
 

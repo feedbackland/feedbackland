@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import type {
@@ -55,15 +55,10 @@ const asSignals = (value: unknown): InsightSignals | null => {
   };
 };
 
-export const getInsightsQuery = async ({
-  orgId,
-}: {
-  orgId: string;
-}): Promise<Insights> => {
+export const getInsightsQuery = async (): Promise<Insights> => {
   const insightsPromise = db
     .selectFrom("insights")
     .selectAll()
-    .where("insights.orgId", "=", orgId)
     .where("insights.isArchived", "=", false)
     .orderBy("insights.priority", "desc")
     .orderBy("insights.reach", "desc")
@@ -73,7 +68,6 @@ export const getInsightsQuery = async ({
   const runPromise = db
     .selectFrom("insight_reports")
     .selectAll()
-    .where("insight_reports.orgId", "=", orgId)
     .orderBy("insight_reports.createdAt", "desc")
     .limit(1)
     .executeTakeFirst();
@@ -85,7 +79,6 @@ export const getInsightsQuery = async ({
   const postsPromise = db
     .selectFrom("feedback")
     .select(["feedback.id", "feedback.status"])
-    .where("feedback.orgId", "=", orgId)
     .execute();
 
   try {

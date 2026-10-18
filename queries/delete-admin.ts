@@ -1,38 +1,28 @@
-"server-only";
-
+import "server-only";
 import { db } from "@/db/db";
-
-export async function deleteAdminQuery({
-  adminId,
-  userId,
-  orgId,
-}: {
-  adminId: string;
-  userId: string;
-  orgId: string;
-}) {
-  try {
-    return await db.transaction().execute(async (trx) => {
-      const { role } = await trx
-        .selectFrom("user_org")
-        .select("role")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .executeTakeFirstOrThrow();
-
-      if (role !== "admin" || userId === adminId) {
-        throw new Error("Not authorized to delete admin");
-      }
-
-      return await trx
-        .updateTable("user_org")
-        .set({ role: "user" })
-        .where("userId", "=", adminId)
-        .where("orgId", "=", orgId)
-        .returningAll()
-        .executeTakeFirstOrThrow();
-    });
-  } catch (error) {
-    throw error;
-  }
+import { lock, locks } from "@/db/locks";
+import { requireAdmin, type Actor } from "@/lib/auth/authorization";
+export async function deleteAdminQuery(input: Actor & { adminId: string }) {
+  return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.membership);
+    await requireAdmin(trx, input);
+    const admins = await trx
+      .selectFrom("user")
+      .select("id")
+      .where("role", "=", "admin")
+      .orderBy("id")
+      .forUpdate()
+      .execute();
+    if (
+      input.adminId === input.userId ||
+      (admins.some((u) => u.id === input.adminId) && admins.length <= 1)
+    )
+      throw new Error("LAST_ADMIN");
+    return trx
+      .updateTable("user")
+      .set({ role: "user" })
+      .where("id", "=", input.adminId)
+      .returning("id")
+      .executeTakeFirstOrThrow();
+  });
 }

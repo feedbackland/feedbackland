@@ -4,6 +4,9 @@ import { parseArgs } from "node:util";
 import { randomUUID } from "node:crypto";
 import { staticFoundations } from "./ci-gates";
 import { foundations } from "./e2e/v0-foundations";
+import { phaseOne } from "./e2e/v1-boot";
+import { removal } from "./e2e/v14-tenancy";
+import { command } from "./e2e/run";
 
 async function main() {
   const { values } = parseArgs({
@@ -14,12 +17,20 @@ async function main() {
     },
     strict: true,
   });
-  if (values.phase !== "0" || !values.image || !values.artifacts) {
+  if (
+    !["0", "1"].includes(values.phase ?? "") ||
+    !values.image ||
+    !values.artifacts
+  ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0 --image feedbackland:ci --artifacts artifacts/self-hosting (only phase 0 is implemented)",
+      "Usage: npm run verify -- --phase 0|1 --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
-  const runId = `p01-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const runId = `p0${Number(values.phase) + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  // Resolve once for every group, so a retag cannot mix builds during the run.
+  const image = JSON.parse(
+    await command("docker", ["image", "inspect", values.image]),
+  )[0].Id as string;
   const directory = resolve(values.artifacts, runId);
   await mkdir(directory, { recursive: true });
   const rows: {
@@ -34,11 +45,12 @@ async function main() {
       JSON.stringify(
         {
           runId,
-          phase: 0,
-          image: values.image,
+          phase: Number(values.phase),
+          image,
           status,
           checks: rows,
-          futurePhases: "not yet due",
+          futurePhases:
+            "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
         },
         null,
         2,
@@ -65,7 +77,10 @@ async function main() {
   };
   try {
     await check("static/import-boundaries", staticFoundations);
-    await foundations(values.image, runId, check);
+    if (values.phase === "1")
+      await check("static/removal-configuration", removal);
+    await foundations(image, runId, check);
+    if (values.phase === "1") await phaseOne(image, runId, check);
     await save("passed");
   } catch (error) {
     await save("failed");

@@ -30,12 +30,14 @@ type FormData = z.infer<typeof formSchema>;
 
 export function FeedbackPostEdit({
   postId,
+  expectedRevision,
   title,
   description,
   onClose,
   className,
 }: {
   postId: string;
+  expectedRevision: string;
   title: string;
   description: string;
   onClose: () => void;
@@ -90,6 +92,7 @@ export function FeedbackPostEdit({
 
     updatePost.mutate({
       postId,
+      expectedRevision,
       title,
       description,
     });

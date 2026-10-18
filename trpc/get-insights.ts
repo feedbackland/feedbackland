@@ -1,3 +1,4 @@
+import "server-only";
 import { adminProcedure } from "@/lib/trpc";
 import { getInsightsQuery } from "@/queries/get-insights";
 
@@ -6,6 +7,6 @@ import { getInsightsQuery } from "@/queries/get-insights";
  * to rank, filter and export the list, so it is fetched whole. Paging it would
  * only make client-side sorting and search silently wrong.
  */
-export const getInsights = adminProcedure.query(async ({ ctx }) => {
-  return await getInsightsQuery({ orgId: ctx.orgId });
+export const getInsights = adminProcedure.query(async () => {
+  return await getInsightsQuery();
 });

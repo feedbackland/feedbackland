@@ -228,7 +228,7 @@
   board with only a post or two is pinned by `min-h-screen` to exactly 100vh and
   shows no scrollbar. Without this the column widened by the scrollbar width at
   handover and `mx-auto` shifted it sideways — the horizontal jump the shimmer's
-  geometry exists to prevent, on precisely the sparse board a new org starts with.
+  geometry exists to prevent, on precisely the sparse board a new board starts with.
   The class is set by the boot script in app/layout.tsx before first paint.
 */
 html.fl-embed-drawer {

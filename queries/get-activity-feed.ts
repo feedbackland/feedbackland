@@ -1,8 +1,8 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
-import { cosineDistance } from "pgvector/kysely";
+import { vectorDistance } from "@/db/vector";
 import {
   ActivityFeedItem,
   FeedbackCategories,
@@ -10,10 +10,8 @@ import {
   FeedbackOrderBy,
   FeedbackStatus,
 } from "@/lib/typings";
-import { generateQueryVector } from "@/lib/utils-server";
 
 export async function getActivityFeedQuery({
-  orgId,
   userId,
   page,
   pageSize,
@@ -25,7 +23,6 @@ export async function getActivityFeedQuery({
   searchValue,
   unseenOnly,
 }: {
-  orgId: string;
   userId: string;
   page: number;
   pageSize: number;
@@ -39,27 +36,20 @@ export async function getActivityFeedQuery({
 }) {
   try {
     const offset = (page - 1) * pageSize;
-    const isSearching = searchValue.length > 0;
-    const maxDistance = 0.4;
-    let searchVector: number[] | null = null;
-
-    if (isSearching) {
-      searchVector = await generateQueryVector(searchValue);
-
-      if (!searchVector) {
-        return {
-          items: [],
-          totalItemsCount: 0,
-          totalPages: 0,
-          currentPage: page,
-        };
-      }
-    }
-
+    searchValue = Array.from(searchValue).slice(0, 200).join("");
+    if (searchValue.trim())
+      return {
+        items: [],
+        totalItemsCount: 0,
+        totalPages: 0,
+        currentPage: page,
+      };
+    const isSearching = false,
+      maxDistance = 0.4,
+      searchVector: number[] = [];
     let feedbackQuery = db
       .selectFrom("feedback")
-      .leftJoin("user", "feedback.authorId", "user.id")
-      .where("feedback.orgId", "=", orgId);
+      .leftJoin("user", "feedback.authorId", "user.id");
 
     if (status) {
       feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
@@ -74,7 +64,6 @@ export async function getActivityFeedQuery({
     }
 
     const feedbackCTE = feedbackQuery.select([
-      "feedback.orgId",
       "feedback.id",
       "feedback.id as postId",
       sql<string | null>`null`.as("commentId"),
@@ -94,9 +83,13 @@ export async function getActivityFeedQuery({
           .as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
-      "user.photoURL as authorPhotoURL",
+      "user.image as authorImage",
       ...(isSearching
-        ? [cosineDistance("feedback.embedding", searchVector).as("distance")]
+        ? [
+            vectorDistance(sql.ref("feedback.embedding"), searchVector).as(
+              "distance",
+            ),
+          ]
         : [sql<null>`null`.as("distance")]),
     ]);
 
@@ -104,10 +97,8 @@ export async function getActivityFeedQuery({
       .selectFrom("comment")
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
-      .where("feedback.orgId", "=", orgId)
       .where("comment.content", "not like", "Updated status to%")
       .select([
-        "feedback.orgId",
         "comment.id",
         "comment.postId",
         "comment.id as commentId",
@@ -121,9 +112,13 @@ export async function getActivityFeedQuery({
         sql<string>`'0'`.as("commentCount"),
         "user.id as authorId",
         "user.name as authorName",
-        "user.photoURL as authorPhotoURL",
+        "user.image as authorImage",
         ...(isSearching
-          ? [cosineDistance("comment.embedding", searchVector).as("distance")]
+          ? [
+              vectorDistance(sql.ref("comment.embedding"), searchVector).as(
+                "distance",
+              ),
+            ]
           : [sql<null>`null`.as("distance")]),
       ]);
 

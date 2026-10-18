@@ -41,13 +41,13 @@ export function SettingsLoading() {
         </div>
       </div>
 
-      {/* OrgName, OrgUrl, PlatformTitle, PlatformDescription */}
+      {/* Title and description */}
       <TextRow />
       <TextRow />
       <TextRow />
       <TextRow />
 
-      {/* PlatformUrl */}
+      {/* Public URL */}
       <TextRow last />
     </div>
   );

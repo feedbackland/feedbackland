@@ -34,7 +34,7 @@ export function CommentsOptionsMenu({
 }: {
   postId: string;
   commentId: string;
-  authorId?: string;
+  authorId?: string | null;
   variant?: "ghost" | "link" | "default" | "secondary";
   onEdit?: () => void;
 }) {

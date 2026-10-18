@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
 import {
@@ -6,6 +7,8 @@ import {
   feedbackStatusSchema,
 } from "@/lib/schemas";
 import { getFeedbackPostsQuery } from "@/queries/get-feedback-posts";
+import { enforceSearchLimit } from "@/lib/rate-limit";
+import { TRPCError } from "@trpc/server";
 
 export const getFeedbackPosts = publicProcedure
   .input(
@@ -20,11 +23,12 @@ export const getFeedbackPosts = publicProcedure
   .query(
     async ({
       input: { limit, cursor, orderBy, status, searchValue },
-      ctx: { userId, orgId },
+      ctx: { userId, ip },
     }) => {
       try {
+        if (searchValue && !(await enforceSearchLimit(ip)).allowed)
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
         const { feedbackPosts, nextCursor } = await getFeedbackPostsQuery({
-          orgId,
           userId,
           limit,
           cursor,

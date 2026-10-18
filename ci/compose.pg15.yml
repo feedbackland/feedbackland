@@ -1,0 +1,13 @@
+services:
+  pg15:
+    image: pgvector/pgvector@sha256:47af0b65960b14f1c6945aa4ccae37836c632e9a6fe0eea9160936e616e5b2e9
+    environment:
+      POSTGRES_PASSWORD: fixture-only
+      POSTGRES_DB: feedbackland
+    ports: ["127.0.0.1::5432"]
+    tmpfs: ["/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "feedbackland"]
+      interval: 1s
+      timeout: 3s
+      retries: 60

@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { UpvoteButton } from "@/components/app/upvote-button";
 import { cn } from "@/lib/utils";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
@@ -38,7 +38,7 @@ function Inner({
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
   const router = useRouter();
   const { isAdmin } = useAuth();
 
@@ -58,7 +58,7 @@ function Inner({
         />
       )}
       <Link
-        href={`${platformUrl}/${postId}`}
+        href={href(`/${postId}`)}
         className="flex flex-col items-stretch gap-3.5"
       >
         <div className="group flex flex-col items-stretch gap-3.5">
@@ -104,7 +104,7 @@ function Inner({
           <CommentsButton
             commentCount={commentCount}
             onClick={() => {
-              router.push(`${platformUrl}/${postId}`);
+              router.push(href(`/${postId}`));
             }}
           />
         </div>

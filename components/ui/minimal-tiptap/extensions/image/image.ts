@@ -1,4 +1,5 @@
 import type { ImageOptions } from "@tiptap/extension-image";
+import { clientRuntime } from "@/lib/client-runtime";
 import { Image as TiptapImage } from "@tiptap/extension-image";
 import type { Editor } from "@tiptap/react";
 import { ReactNodeViewRenderer } from "@tiptap/react";
@@ -169,7 +170,11 @@ const copyLink = async (
 ): Promise<void> => {
   const { src } = props;
   try {
-    await navigator.clipboard.writeText(src);
+    if (!clientRuntime.appUrl)
+      throw new Error("The public app URL is unavailable");
+    await navigator.clipboard.writeText(
+      new URL(src, clientRuntime.appUrl).toString(),
+    );
     options.onActionSuccess?.({ ...props, action: "copyLink" });
   } catch (error) {
     handleError(error, { ...props, action: "copyLink" }, options.onActionError);

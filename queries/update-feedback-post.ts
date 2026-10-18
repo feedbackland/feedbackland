@@ -1,76 +1,47 @@
-"server-only";
-
+import "server-only";
+import { sql } from "kysely";
 import { db } from "@/db/db";
-import {
-  clean,
-  generateSQLEmbedding,
-  getImageUrls,
-  getPlainText,
-  isInappropriateCheck,
-} from "@/lib/utils-server";
-
-export const updateFeedbackPostQuery = async ({
-  postId,
-  orgId,
-  userId,
-  title,
-  description,
-}: {
-  postId: string;
-  orgId: string;
-  userId: string;
-  title: string;
-  description: string;
-}) => {
-  try {
-    return await db.transaction().execute(async (trx) => {
-      const { role } = await trx
-        .selectFrom("user_org")
-        .select("role")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .select("user_org.role")
-        .executeTakeFirstOrThrow();
-
-      const { authorId } = await trx
-        .selectFrom("feedback")
-        .where("id", "=", postId)
-        .where("orgId", "=", orgId)
-        .select("feedback.authorId")
-        .executeTakeFirstOrThrow();
-
-      if (role === "admin" || authorId === userId) {
-        const imageUrls = getImageUrls(description);
-        const plainText = getPlainText(description);
-
-        const isInappropriate = await isInappropriateCheck({
-          orgId,
-          plainText: `${title}: ${plainText}`,
-          imageUrls,
-        });
-
-        if (isInappropriate) {
-          throw new Error("inappropriate-content");
-        }
-
-        const embedding = await generateSQLEmbedding(`${title}: ${plainText}`);
-
-        return await trx
-          .updateTable("feedback")
-          .set({
-            title,
-            description: clean(description),
-            ...(embedding !== null && { embedding }),
-          })
-          .where("id", "=", postId)
-          .where("orgId", "=", orgId)
-          .returningAll()
-          .executeTakeFirstOrThrow();
-      } else {
-        throw new Error("Not authorized to update this post");
-      }
-    });
-  } catch (error) {
-    throw error;
-  }
-};
+import { lock, locks } from "@/db/locks";
+import { canAdminister, type Actor } from "@/lib/auth/authorization";
+import { revision } from "@/lib/revision";
+import { textContent } from "@/lib/utils-server";
+export async function updateFeedbackPostQuery(
+  input: Actor & {
+    postId: string;
+    title: string;
+    description: string;
+    expectedRevision: string;
+  },
+) {
+  const text = textContent(input.description);
+  return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.membership);
+    const admin = await canAdminister(trx, input);
+    const row = await trx
+      .selectFrom("feedback")
+      .select("authorId")
+      .where("id", "=", input.postId)
+      .forUpdate()
+      .executeTakeFirstOrThrow();
+    if (!admin && row.authorId !== input.userId)
+      throw new Error("UNAUTHORIZED");
+    const result = await trx
+      .updateTable("feedback")
+      .set({
+        title: input.title,
+        description: text.content,
+        plainText: text.plainText,
+        revision: sql`revision+1`,
+        updatedAt: sql`clock_timestamp()`,
+        embedding: null,
+        embeddingSkipped: false,
+        moderationState: "disabled",
+      })
+      .where("id", "=", input.postId)
+      .where("revision", "=", revision(input.expectedRevision))
+      .returningAll()
+      .executeTakeFirst();
+    if (!result) throw new Error("CONFLICT");
+    return result;
+  });
+}

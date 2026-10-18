@@ -32,7 +32,7 @@ export function CommentForm({
 }: {
   postId: string;
   parentCommentId: string | null;
-  replyToAuthorId?: string;
+  replyToAuthorId?: string | null;
   replyToAuthorName?: string | null;
   scrollIntoView?: boolean;
   showCloseButton?: boolean;
@@ -126,10 +126,6 @@ export function CommentForm({
     onClose?.();
   };
 
-  useKey("Escape", () => {
-    handleOnClose();
-  });
-
   // Check if text exists beyond the initial mention (if any)
   const hasText = value?.replace(initialContent, "").trim().length > 0;
 
@@ -138,6 +134,15 @@ export function CommentForm({
     setValue(initialContent);
     onClose?.();
   };
+
+  useKey("Escape", handleOnClose);
+
+  if (!session)
+    return (
+      <p className="text-muted-foreground text-sm">
+        Comments require sign-in, available in a later milestone.
+      </p>
+    );
 
   return (
     <>

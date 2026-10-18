@@ -10,14 +10,15 @@ export type Comment = {
   id: string;
   parentCommentId: string | null;
   postId: string;
-  authorId: string;
+  authorId: string | null;
+  revision: string;
   content: string;
   createdAt: Date;
   updatedAt: Date;
   upvotes: string;
   authorName: string | null;
   authorRole: "user" | "admin" | null;
-  authorPhotoURL: string | null;
+  authorImage: string | null;
   hasUserUpvote: boolean;
 };
 

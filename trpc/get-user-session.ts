@@ -1,15 +1,13 @@
+import "server-only";
 import { userProcedure } from "@/lib/trpc";
 import { getUserSessionQuery } from "@/queries/get-user-session";
 import z from "zod/v4";
 
 export const getUserSession = userProcedure
   .input(z.object({}))
-  .query(async ({ ctx: { orgId, userId } }) => {
+  .query(async () => {
     try {
-      const session = await getUserSessionQuery({
-        orgId,
-        userId,
-      });
+      const session = await getUserSessionQuery();
 
       return session;
     } catch (error) {

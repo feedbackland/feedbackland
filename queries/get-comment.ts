@@ -1,4 +1,5 @@
-"server-only";
+import "server-only";
+import { sql } from "kysely";
 
 import { db } from "@/db/db";
 
@@ -26,11 +27,14 @@ export const getCommentQuery = async ({
         "comment.postId",
         "comment.createdAt",
         "comment.updatedAt",
+        "comment.revision",
+        "comment.moderationState",
         "comment.authorId",
         "comment.content",
         "comment.upvotes",
         "user.name as authorName",
-        "user.photoURL as authorPhotoURL",
+        sql<"admin" | "user" | null>`"user".role`.as("authorRole"),
+        "user.image as authorImage",
         (eb) =>
           eb
             .case()

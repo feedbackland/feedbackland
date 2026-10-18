@@ -1,0 +1,29 @@
+services:
+  db:
+    image: pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+    environment:
+      POSTGRES_PASSWORD: fixture-only
+      POSTGRES_DB: feedbackland
+      POSTGRES_INITDB_ARGS: --auth-host=md5
+    command: ["postgres", "-c", "password_encryption=md5"]
+    ports: ["127.0.0.1::5432"]
+    tmpfs: ["/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "feedbackland"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+  pooler:
+    image: edoburu/pgbouncer@sha256:9c78945868a6a142c7fc40ccd843bbe5a606df163c7ffce4de70e0d628d696a2
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: fixture-only
+      DB_NAME: feedbackland
+      AUTH_TYPE: md5
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: "2"
+      MAX_CLIENT_CONN: "20"
+    ports: ["127.0.0.1::5432"]
+    depends_on:
+      db: { condition: service_healthy }

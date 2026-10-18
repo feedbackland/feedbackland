@@ -1,4 +1,4 @@
-import { pool } from "@/db/db";
+import { getPool } from "@/db/db";
 import identity from "@/lib/build-identity.json";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 let inFlight: Promise<boolean> | undefined;
 function probe() {
   if (!inFlight) {
-    inFlight = pool
+    inFlight = getPool()
       .connect()
       .then(async (client) => {
         let failed = false;

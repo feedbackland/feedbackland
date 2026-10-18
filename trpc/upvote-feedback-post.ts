@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { upvoteFeedbackPostQuery } from "@/queries/upvote-feedback-post";

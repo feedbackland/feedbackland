@@ -16,17 +16,10 @@ export type Variant =
   | "destructive"
   | "unstyled";
 
-export type Size =
-  | "default"
-  | "sm"
-  | "lg"
-  | "icon"
-  | "icon-sm"
-  | "icon-lg";
+export type Size = "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg";
 
 export type WidgetSnippetConfig = {
-  orgId: string;
-  url?: string;
+  url: string;
   widget: Widget;
   text: string;
   variant: Variant;
@@ -49,9 +42,10 @@ export function buildPlaygroundSnippet(c: WidgetSnippetConfig): string {
     `import { FeedbackButton } from "feedbackland-react";`,
     ``,
     `export function GiveFeedback() {`,
+    `  // 2.x requires this empty compatibility prop; the server ignores it.`,
     `  return (`,
     `    <FeedbackButton`,
-    `      platformId=${jsxStr(c.orgId)}`,
+    `      platformId=${jsxStr("")}`,
   ];
 
   if (c.url) lines.push(`      url=${jsxStr(c.url)}`);

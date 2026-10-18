@@ -7,7 +7,7 @@ import { timeAgo } from "@/lib/time-ago";
 import { FeedbackPostOptionsMenu } from "../feedback-post/options-menu";
 import { CommentsOptionsMenu } from "../comment/options-menu";
 import { useSetActivitiesSeen } from "@/hooks/use-set-activities-seen";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -38,11 +38,20 @@ export function ActivityFeedListItem({
   item: ActivityFeedItem;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
   const setActivitySeen = useSetActivitiesSeen();
 
-  const { id, postId, type, status, title, content, createdAt, authorName, isSeen } =
-    item;
+  const {
+    id,
+    postId,
+    type,
+    status,
+    title,
+    content,
+    createdAt,
+    authorName,
+    isSeen,
+  } = item;
 
   const isComment = type === "comment";
   const isUnseen = !isSeen;
@@ -52,15 +61,15 @@ export function ActivityFeedListItem({
   return (
     <div
       className={cn(
-        "group/item border-border flex items-start gap-2.5 border-b border-l-2 py-3 pr-2 pl-3 transition-colors last:border-b-0 hover:bg-muted/50",
+        "group/item border-border hover:bg-muted/50 flex items-start gap-2.5 border-b border-l-2 py-3 pr-2 pl-3 transition-colors last:border-b-0",
         isUnseen
-          ? "border-l-blue-600 bg-muted/30 dark:border-l-blue-500"
+          ? "bg-muted/30 border-l-blue-600 dark:border-l-blue-500"
           : "border-l-transparent",
         className,
       )}
     >
       <Link
-        href={`${platformUrl}/${postId}`}
+        href={href(`/${postId}`)}
         onClick={markSeen}
         className="group/link flex min-w-0 flex-1 items-start gap-2.5"
       >
@@ -96,11 +105,18 @@ export function ActivityFeedListItem({
                 <span className="shrink-0 text-[8px]">•</span>
               </>
             )}
-            <span className={cn(!isComment && "min-w-0 truncate", isComment && "shrink-0")}>
+            <span
+              className={cn(
+                !isComment && "min-w-0 truncate",
+                isComment && "shrink-0",
+              )}
+            >
               {authorName || "Anonymous"}
             </span>
             <span className="shrink-0 text-[8px]">•</span>
-            <span className="shrink-0">{timeAgo.format(createdAt, "mini-now")}</span>
+            <span className="shrink-0">
+              {timeAgo.format(createdAt, "mini-now")}
+            </span>
             {!isComment && status && (
               <>
                 <span className="shrink-0 text-[8px]">•</span>

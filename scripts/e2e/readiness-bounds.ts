@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { pool } from "../../db/db";
+import { getPool } from "../../db/db";
 import { GET } from "../../app/api/health/route";
 
 async function main() {
+  const pool = getPool();
   let connections = 0;
   let rejectConnect: (error: Error) => void = () => {
     throw new Error("probe was not started");

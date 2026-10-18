@@ -12,7 +12,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useIsDrawerEmbed } from "@/providers/embed";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { cn, isUuidV4 } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FeedbackPostsEmpty } from "./empty";
 import { Separator } from "@/components/ui/separator";
 
@@ -31,7 +31,7 @@ function isInViewport(el: Element) {
 
 export function FeedbackPosts() {
   const isDesktop = useIsDesktop();
-  const [isScrolledIntoView, setIsScrolledIntoView] = useState(false);
+  const isScrolledIntoView = useRef(false);
   const [feedbackPostsState, setFeedbackPostsState] = useAtom(
     feedbackPostsStateAtom,
   );
@@ -91,10 +91,10 @@ export function FeedbackPosts() {
     if (
       isDrawerEmbed &&
       postIdToScrollIntoView &&
-      !isScrolledIntoView &&
+      !isScrolledIntoView.current &&
       !isPending
     ) {
-      setIsScrolledIntoView(true);
+      isScrolledIntoView.current = true;
 
       const element = document.querySelector(
         `[data-post-id="${postIdToScrollIntoView}"]`,
@@ -124,24 +124,23 @@ export function FeedbackPosts() {
 
   return (
     <div className="">
-      {!!((!isPending && !isPlatformEmpty) || isSearchActive) &&
-        !isDesktop && (
-          <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-4">
-            <SortingFilteringDropdown
-              orderBy={orderBy}
-              status={status}
-              onChange={({ orderBy, status }) => {
-                setFeedbackPostsState((prev) => ({
-                  ...prev,
-                  orderBy,
-                  status,
-                }));
-              }}
-            />
+      {!!((!isPending && !isPlatformEmpty) || isSearchActive) && !isDesktop && (
+        <div className="relative mb-1.5 flex h-[40px] items-center justify-between gap-4">
+          <SortingFilteringDropdown
+            orderBy={orderBy}
+            status={status}
+            onChange={({ orderBy, status }) => {
+              setFeedbackPostsState((prev) => ({
+                ...prev,
+                orderBy,
+                status,
+              }));
+            }}
+          />
 
-            <FeedbackPostsSearchInput />
-          </div>
-        )}
+          <FeedbackPostsSearchInput />
+        </div>
+      )}
 
       {isPending && <FeedbackPostsLoading />}
 
@@ -155,7 +154,8 @@ export function FeedbackPosts() {
 
       {isSearchEmpty && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-          No feedback found that matches your search
+          Search is unavailable in this preview. Exact and semantic search
+          arrive in the search milestone.
         </div>
       )}
 

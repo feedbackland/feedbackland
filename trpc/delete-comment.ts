@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { deleteCommentQuery } from "@/queries/delete-comment";
@@ -8,11 +9,12 @@ export const deleteComment = userProcedure
       commentId: z.uuid(),
     }),
   )
-  .mutation(async ({ input: { commentId }, ctx: { userId, orgId } }) => {
+  .mutation(async ({ input: { commentId }, ctx: { userId, sessionId } }) => {
     try {
       return await deleteCommentQuery({
         userId,
-        orgId,
+
+        sessionId,
         commentId,
       });
     } catch (error) {

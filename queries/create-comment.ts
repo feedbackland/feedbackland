@@ -1,58 +1,40 @@
-"server-only";
-
+import "server-only";
 import { db } from "@/db/db";
-import {
-  clean,
-  generateSQLEmbedding,
-  getImageUrls,
-  getPlainText,
-  isInappropriateCheck,
-} from "@/lib/utils-server";
-
+import { textContent } from "@/lib/utils-server";
+import { validateReplyParent } from "./reply-parent";
 export async function createCommentQuery({
-  orgId,
   content,
   authorId,
   postId,
   parentCommentId,
 }: {
-  orgId: string;
   content: string;
   authorId: string;
   postId: string;
   parentCommentId: string | null;
 }) {
-  try {
-    const imageUrls = getImageUrls(content);
-    const plainText = getPlainText(content);
-
-    const [isInappropriate, embedding] = await Promise.all([
-      isInappropriateCheck({
-        orgId,
-        plainText,
-        imageUrls,
-      }),
-      generateSQLEmbedding(plainText),
-    ]);
-
-    if (isInappropriate) {
-      throw new Error("inappropriate-content");
-    }
-
-    const comment = await db
+  const text = textContent(content);
+  await validateReplyParent(db, postId, parentCommentId);
+  return db.transaction().execute(async (trx) => {
+    await trx
+      .selectFrom("feedback")
+      .select("id")
+      .where("id", "=", postId)
+      .forKeyShare()
+      .executeTakeFirstOrThrow();
+    await validateReplyParent(trx, postId, parentCommentId);
+    return trx
       .insertInto("comment")
       .values({
-        content: clean(content),
+        content: text.content,
+        plainText: text.plainText,
         authorId,
         postId,
         parentCommentId,
-        embedding,
+        revision: "1",
+        moderationState: "disabled",
       })
       .returningAll()
       .executeTakeFirstOrThrow();
-
-    return comment;
-  } catch (error) {
-    throw error;
-  }
+  });
 }

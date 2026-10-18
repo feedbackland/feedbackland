@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 
@@ -59,7 +59,6 @@ export async function upvoteFeedbackPostQuery({
       return { success: true };
     });
   } catch (error) {
-    console.error("Error for upvoteFeedbackPostQuery", error);
     throw error;
   }
 }

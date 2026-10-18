@@ -23,11 +23,11 @@
 
 ## Run it yourself
 
-> **Implementation status:** this branch currently delivers P01 container and
-> database-readiness foundations. Single-tenant schema, setup, authentication,
-> images and AI are subsequent milestones. The deployment instructions below
-> describe the planned product; this branch is not a usable self-hosted release.
-> Contributors can run the [foundation checks](SELFHOSTING.md#run-it-with-docker).
+> **Implementation status:** P02 adds transactional database boot, the single-tenant
+> schema and an anonymous text board at `/`. Setup/sign-in, uploads, AI,
+> exact/semantic search and the remaining release gates are later milestones.
+> This branch is a development milestone, not a self-hosted release. Use only a
+> new disposable database. See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
 
 Feedbackland is self-hosted. You run it, you own the data, and it needs one
 thing: a Postgres database.

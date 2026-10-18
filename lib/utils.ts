@@ -9,29 +9,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const subdomainRegex = /^(?!.*\.)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
-
-export const reservedSubdomains = [
-  "api",
-  "feedback",
-  "new",
-  "auth",
-  "public",
-  "static",
-  "get-started",
-];
-
-export const convertToSubdomain = (text: string) => {
-  return text
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/[^\w.-]+/g, "") // Remove non-alphanumeric characters (except hyphens and periods initially)
-    .replace(/\.+/g, "") // Remove all periods
-    .replace(/--+/g, "-") // Replace multiple hyphens with single hyphen
-    .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
-    .slice(0, 63); // Truncate to the maximum subdomain length (63 characters)
-};
-
 export function capitalizeFirstLetter(val: string) {
   return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
@@ -39,124 +16,6 @@ export function capitalizeFirstLetter(val: string) {
 export function isUuidV4(uuid: string) {
   return uuidValidate(uuid) && uuidVersion(uuid) === 4;
 }
-
-const getUrlObject = (urlString?: string | null) => {
-  if (urlString && urlString.length > 0) {
-    return new URL(urlString);
-  }
-
-  if (typeof window !== "undefined") {
-    return window.location;
-  }
-
-  return null;
-};
-
-export const getIsSubdirOrg = (urlString?: string | null) => {
-  const url = getUrlObject(urlString);
-
-  if (!url) return false;
-
-  const { host } = url;
-
-  return host?.includes("localhost") || host?.includes("vercel.app");
-};
-
-export const getSubdomain = (urlString?: string | null) => {
-  const url = getUrlObject(urlString);
-
-  if (!url) return null;
-
-  const { hostname, pathname } = url;
-
-  const isSubdirOrg = getIsSubdirOrg(urlString);
-
-  if (isSubdirOrg) {
-    const segments = pathname.split("/").filter(Boolean);
-    return segments.length > 0 ? segments[0] : "";
-  }
-
-  const parts = hostname.split(".");
-
-  return parts.length > 2 ? parts[0] : null;
-};
-
-export const getMaindomain = (urlString?: string) => {
-  const url = getUrlObject(urlString);
-
-  if (!url) return null;
-
-  const { hostname, host } = url;
-
-  const isSubdirOrg = getIsSubdirOrg(urlString);
-
-  if (isSubdirOrg) return host;
-
-  const parts = hostname.split(".");
-
-  return parts.length > 1 ? parts.slice(-2).join(".") : hostname;
-};
-
-export const getPlatformUrl = (urlString?: string) => {
-  const url = getUrlObject(urlString);
-
-  if (!url) return null;
-
-  const { pathname, protocol, hostname, host } = url;
-
-  const isSubdirOrg = getIsSubdirOrg(urlString);
-
-  if (!isSubdirOrg) return `${protocol}//${hostname}`;
-
-  const parts = pathname.split("/");
-
-  const orgName = parts?.[1];
-
-  return `${protocol}//${host}${orgName ? `/${orgName}` : ""}`;
-};
-
-export const getVercelUrl = () => {
-  if (process?.env?.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  } else if (process?.env?.NEXT_PUBLIC_VERCEL_URL) {
-    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
-  }
-
-  return null;
-};
-
-export const navigateToSubdomain = ({ subdomain }: { subdomain: string }) => {
-  if (subdomain) {
-    const { protocol } = window.location;
-    const isSubdirOrg = getIsSubdirOrg();
-    const maindomain = getMaindomain();
-    const url = isSubdirOrg
-      ? `${protocol}//${maindomain}/${subdomain}`
-      : `${protocol}//${subdomain}.${maindomain}`;
-    window.location.href = url;
-  }
-};
-
-export const getIsSelfHosted = (
-  context: "server" | "client" | "all" = "all",
-) => {
-  if (context === "server") {
-    return process?.env?.SELF_HOSTED === "true";
-  }
-
-  if (context === "client") {
-    return process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true";
-  }
-
-  if (context === "all") {
-    return !!(
-      process?.env?.SELF_HOSTED === "true" ||
-      process?.env?.NEXT_PUBLIC_SELF_HOSTED === "true"
-    );
-  }
-
-  return false;
-};
 
 function getImageInfoFromDataUrl(dataUrl: string) {
   if (!dataUrl || !dataUrl.startsWith("data:")) {
@@ -274,4 +133,3 @@ export const processImagesInHTML = async (html: string) => {
 
   return modifiedHTML;
 };
-

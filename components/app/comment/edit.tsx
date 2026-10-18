@@ -27,12 +27,14 @@ type FormData = z.infer<typeof formSchema>;
 
 export function CommentEdit({
   commentId,
+  expectedRevision,
   content,
   onClose,
   className,
 }: {
   postId: string;
   commentId: string;
+  expectedRevision: string;
   content: string;
   onClose: () => void;
   className?: React.ComponentProps<"div">["className"];
@@ -81,6 +83,7 @@ export function CommentEdit({
 
     updateComment.mutate({
       commentId,
+      expectedRevision,
       content,
     });
   };
