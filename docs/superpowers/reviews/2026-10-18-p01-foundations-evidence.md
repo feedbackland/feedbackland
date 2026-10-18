@@ -27,6 +27,12 @@ notice/export/shutdown dates and private export handling require actual operator
 records. None was performed or marked complete by this implementation. P01 does
 not authorize hosted retirement, merge to main, or a release.
 
+The legacy Vercel integration still creates preview checks. The first P01
+preview failed; no authenticated Vercel CLI session was available to inspect
+its private build logs, so no cause is claimed. This is recorded separately
+from the self-hosting Actions gates. Its disconnection remains an external
+P00 owner action, and P00 is not complete.
+
 ## Baseline and prerequisite fixes
 
 An archived clean baseline with its own `npm ci` installation passed the widget
@@ -45,6 +51,15 @@ unchanged baseline with the same compatibility wrapper produced the identical
 lint failure remains visible; it is not represented as a passing P01 check or
 hidden behind an exclusion. Those UI diagnostics are outside the container and
 readiness changes.
+
+The stricter bundled-identity assertion found a second prerequisite issue:
+Next 16.3.5 replaces BUILD_ID with a constant when deploymentId is configured,
+ignoring an explicit generateBuildId. Next 16.3.8 retains that behavior. P01
+therefore updates Next to the stable 16.4.2 release, which includes the
+[upstream fix](https://github.com/vercel/next.js/pull/99147). Both bundled
+BUILD_ID and deploymentId must equal the generated artifact identity; the
+assertion is retained. This is an evidence-driven implementation adjustment
+to the planning baseline, not a relaxation of the identity contract.
 
 ## Acceptance evidence
 
