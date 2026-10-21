@@ -5,7 +5,7 @@ import {
   QueryClientProvider,
   QueryObserver,
 } from "@tanstack/react-query";
-import { createTRPCClient } from "@trpc/client";
+import { createTRPCClient, TRPCClientError } from "@trpc/client";
 import { observable } from "@trpc/server/observable";
 import {
   AppRouterContext,
@@ -37,8 +37,20 @@ function Probe({
 }
 
 async function main() {
-  let revision = "1",
-    reads = 0,
+  let state = {
+    revision: "1",
+    platformTitle: "Fixture",
+    platformDescription: null,
+    logoImageId: null,
+    allowIndexing: true,
+    setupCompletedAt: null,
+  };
+  let failNextRead = false;
+  let holdNextRead = false;
+  let holdNextSave = false;
+  let releaseRead: (() => void) | undefined;
+  let releaseSave: (() => void) | undefined;
+  let reads = 0,
     saves = 0,
     refreshes = 0,
     outbound = 0;
@@ -62,23 +74,45 @@ async function main() {
             let data: unknown;
             if (op.path === "getSettings") {
               reads++;
-              data = {
-                revision,
-                platformTitle: "Fixture",
-                platformDescription: null,
-                logoImageId: null,
-                allowIndexing: true,
-                setupCompletedAt: null,
-              };
+              if (failNextRead) {
+                failNextRead = false;
+                observer.error(
+                  TRPCClientError.from(new Error("Fixture read outage")),
+                );
+                return;
+              }
+              data = { ...state };
+              if (holdNextRead) {
+                holdNextRead = false;
+                releaseRead = () => {
+                  observer.next({ result: { data } });
+                  observer.complete();
+                };
+                return;
+              }
             } else if (op.path === "updateSettings") {
               assert.equal(
                 (op.input as { expectedRevision: string }).expectedRevision,
-                revision,
+                state.revision,
                 "Save used a stale private revision",
               );
               saves++;
-              revision = (BigInt(revision) + 1n).toString();
-              data = { revision };
+              state = {
+                ...state,
+                platformTitle: (
+                  op.input as { platformTitle: string }
+                ).platformTitle.trim(),
+                revision: (BigInt(state.revision) + 1n).toString(),
+              };
+              data = { ...state };
+              if (holdNextSave) {
+                holdNextSave = false;
+                releaseSave = () => {
+                  observer.next({ result: { data } });
+                  observer.complete();
+                };
+                return;
+              }
             } else throw new Error(`Unexpected client operation ${op.path}`);
             observer.next({ result: { data } });
             observer.complete();
@@ -180,7 +214,7 @@ async function main() {
       assert(current);
       await mutation.mutateAsync({
         expectedRevision: current.revision,
-        platformTitle: "Changed",
+        platformTitle: "  Changed  ",
       });
       assert.equal(cache.getQueryData(options.queryKey)?.revision, expected);
       assert.equal(observer.getCurrentResult().data?.revision, expected);
@@ -188,9 +222,68 @@ async function main() {
     assert.equal(saves, 2);
     assert.equal(reads, 3);
     assert.equal(refreshes, 2);
+    failNextRead = true;
+    // A committed write stays successful and retains canonical values even when
+    // its subsequent refetch fails. Optional browser notifications can fail too.
+    Reflect.set(
+      globalThis,
+      "BroadcastChannel",
+      class {
+        constructor() {
+          throw new Error("Fixture browser API disabled");
+        }
+      },
+    );
+    await mutation.mutateAsync({
+      expectedRevision: "3",
+      platformTitle: "  Canonical  ",
+    });
+    assert.equal(observer.getCurrentResult().status, "error");
+    assert.equal(cache.getQueryData(options.queryKey)?.revision, "4");
+    assert.equal(
+      cache.getQueryData(options.queryKey)?.platformTitle,
+      "Canonical",
+    );
+    await mutation.mutateAsync({
+      expectedRevision: "4",
+      platformTitle: "Recovered",
+    });
+    assert.equal(cache.getQueryData(options.queryKey)?.revision, "5");
+
+    // Cancel a read taken before commit. Its late response cannot roll back the
+    // cache, including when the replacement read also fails.
+    holdNextRead = true;
+    const oldRead = cache.refetchQueries({ queryKey: options.queryKey });
+    assert(releaseRead);
+    failNextRead = true;
+    await mutation.mutateAsync({
+      expectedRevision: "5",
+      platformTitle: "Newer",
+    });
+    releaseRead();
+    await oldRead;
+    assert.equal(cache.getQueryData(options.queryKey)?.revision, "6");
+
+    // Out-of-order mutation responses must not replace a newer snapshot. Use
+    // revisions beyond Number.MAX_SAFE_INTEGER to exercise exact comparison.
+    state = { ...state, revision: "9007199254740993" };
+    cache.setQueryData(options.queryKey, { ...state });
+    holdNextSave = true;
+    const delayed = mutation.mutateAsync({
+      expectedRevision: state.revision,
+      platformTitle: "Delayed",
+    });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert(releaseSave);
+    state = { ...state, revision: "9007199254740995", platformTitle: "Newest" };
+    cache.setQueryData(options.queryKey, { ...state });
+    failNextRead = true;
+    releaseSave();
+    await delayed;
+    assert.deepEqual(cache.getQueryData(options.queryKey), state);
     assert.equal(outbound, 0);
     console.log(
-      "client contracts: auth surfaces closed and consecutive settings saves refetch private revisions",
+      "client contracts: auth surfaces closed; settings snapshots survive refetch failures, stale reads and out-of-order responses",
     );
   } finally {
     unsubscribe?.();

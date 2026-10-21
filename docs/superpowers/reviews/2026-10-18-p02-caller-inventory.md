@@ -26,7 +26,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/get-insights-inputs.ts` | No active importer; retained typed/internal interface for a later milestone |
 | `queries/get-insights.ts` | `trpc/get-insights.ts` |
 | `queries/get-mentionable-users.ts` | `trpc/get-mentionable-users.ts` |
-| `queries/get-settings.ts` | `lib/settings.ts`, `trpc/get-settings.ts` |
+| `queries/get-settings.ts` | `lib/settings.ts`, `queries/update-settings.ts`, `trpc/get-settings.ts` |
 | `queries/get-user-session.ts` | `trpc/get-user-session.ts` |
 | `queries/redeem-admin-invite.ts` | `trpc/redeem-admin-invite.ts` |
 | `queries/reply-parent.ts` | `queries/create-comment.ts` |
