@@ -1,0 +1,405 @@
+{
+  "runId": "p03-1792581110380-3de2f39d",
+  "phase": 2,
+  "image": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+  "status": "passed",
+  "checks": [
+    {
+      "check": "static/import-boundaries",
+      "status": "passed",
+      "evidence": {
+        "checkout": "da1ffbe532e3b0868a5cb048f5bdb50cc07e513f",
+        "sourceTreeHash": "c74dbe65a2235a231cad6efdd84b07295b37b7a5d6db43a1009181e205ad20a1",
+        "hostArtifactId": "cdb8a28a490cb87ac35402d938b195852de62802d30998901a9d9a5bcd448070",
+        "importBoundaries": "passed",
+        "readinessBounds": "passed",
+        "changedCodeLint": "passed",
+        "runnerFailures": "passed",
+        "buildIdentity": "passed",
+        "clientContracts": "passed",
+        "callerInventory": "passed"
+      }
+    },
+    {
+      "check": "static/removal-configuration",
+      "status": "passed",
+      "evidence": {
+        "scannedFiles": 422,
+        "literalExceptions": 17,
+        "computedOrExtraReferences": "rejected",
+        "actualEnvironmentDeletion": "passed",
+        "lintedFiles": 170
+      }
+    },
+    {
+      "check": "image/identity/filesystem",
+      "status": "passed",
+      "evidence": {
+        "imageId": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+        "sourceCommit": null,
+        "artifactId": "b3885472358ddd1e559f6081c20753adceb90bd7abb6a67cc77aae0374de5b80",
+        "architecture": "amd64",
+        "forbiddenFiles": 0,
+        "prerenderedRoutes": [
+          "/_global-error",
+          "/_not-found",
+          "/icon.svg"
+        ]
+      }
+    },
+    {
+      "check": "compose/runtime-invariants",
+      "status": "passed",
+      "evidence": {
+        "constants": "passed",
+        "readOnly": true,
+        "bootedDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+b3885472358d"
+          },
+          "elapsedMs": 33
+        },
+        "boardPage": "/",
+        "writes": "only declared tmpfs"
+      }
+    },
+    {
+      "check": "readiness/outage-concurrency-recovery",
+      "status": "passed",
+      "evidence": {
+        "concurrentRequests": 40,
+        "maximumMs": 1769,
+        "stoppedDatabase": {
+          "status": 503,
+          "body": {
+            "status": "down",
+            "version": "0.1.0+b3885472358d"
+          },
+          "elapsedMs": 1906
+        },
+        "restoredDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+b3885472358d"
+          },
+          "elapsedMs": 14
+        },
+        "restarts": 0
+      }
+    },
+    {
+      "check": "direct-image/port-hostname",
+      "status": "passed",
+      "evidence": {
+        "port": 8080,
+        "dockerHostnameOverridden": true,
+        "readiness": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+b3885472358d"
+          },
+          "elapsedMs": 317
+        },
+        "explicitBadHostnameExit": 1
+      }
+    },
+    {
+      "check": "cleanup",
+      "status": "passed",
+      "evidence": {
+        "project": "p03-1792581110380-3de2f39d",
+        "temporaryDirectoryRemoved": true,
+        "resourceCleanup": "passed"
+      }
+    },
+    {
+      "check": "schema/pg15-pg18-dimensions-ddl-types",
+      "status": "passed",
+      "evidence": {
+        "databases": [
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          }
+        ],
+        "authDdl": "exact match",
+        "generatedTypes": "all eight combinations match",
+        "invalidWidth4096": "refused before migration",
+        "existingSchema": "Existing schema refused and preserved"
+      }
+    },
+    {
+      "check": "boot/failure-pooler-concurrency",
+      "status": "passed",
+      "evidence": {
+        "concurrentBlockedBoots": 2,
+        "committedMigrations": 1,
+        "originalFailure": "42P01",
+        "rollbackAndRetry": "passed through transaction-mode PgBouncer",
+        "sessionLocksRemaining": 0
+      }
+    },
+    {
+      "check": "tls/policies-chain-hostname-expiry",
+      "status": "passed",
+      "evidence": {
+        "plaintextPolicies": 3,
+        "encryptedUnverifiedPolicies": 2,
+        "verifiedPolicies": 4,
+        "pgStatSsl": "checked on every accepted connection",
+        "untrustedChain": "refused",
+        "wrongHostnameAndIp": "refused",
+        "expiredCertificate": "refused",
+        "malformedAndConflictingSelectors": "parser gate"
+      }
+    },
+    {
+      "check": "standalone/public-persistence-secrets-pools",
+      "status": "passed",
+      "evidence": {
+        "root": 200,
+        "anonymousCreate": 201,
+        "restartPersistence": "passed",
+        "corsOnSuccessAndValidation": "passed",
+        "protectedRoutes": "unauthorized",
+        "publicAi": "AI_NOT_CONFIGURED",
+        "publicSettingsSecrets": "absent",
+        "injectedSecretsInDatabaseAndLogs": "absent",
+        "sharedAppConnectionsAcrossLayers": 1,
+        "configuredTotal": 2
+      }
+    },
+    {
+      "check": "boot/runtime-fatal-bounds",
+      "status": "passed",
+      "evidence": [
+        {
+          "case": "missing",
+          "exit": 1,
+          "elapsedMs": 910
+        },
+        {
+          "case": "unreachable",
+          "exit": 1,
+          "elapsedMs": 90894
+        },
+        {
+          "case": "invalid-tls",
+          "exit": 1,
+          "elapsedMs": 894
+        }
+      ]
+    },
+    {
+      "check": "phase1/cleanup",
+      "status": "passed",
+      "evidence": {
+        "ownedProjectsRemoved": 2,
+        "ownedContainersRemoved": 4,
+        "ownedCertificateVolumeRemoved": true
+      }
+    },
+    {
+      "check": "surface/static-ssr-content",
+      "status": "passed",
+      "evidence": {
+        "unresolvedSsr": "passed",
+        "statusLabels": "passed",
+        "clipboardScope": "passed"
+      }
+    },
+    {
+      "check": "surface/drawer-navigation-isolation-clipboard",
+      "status": "passed",
+      "evidence": {
+        "image": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+        "proxyBypassFixture": {
+          "image": "sha256:2fecfd40dbc90b1ca2689ee4558654df9749e84e02d7733eff2bae7a40e0402d",
+          "change": "generated proxy registration removed",
+          "productionBase": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae"
+        },
+        "engine": "chromium",
+        "headers": "passed",
+        "metadata": "indexing setting, private/drawer noindex and neutral icon passed",
+        "navigation": [
+          {
+            "mode": "reload",
+            "injected": 0,
+            "recoveredDocuments": 2
+          },
+          {
+            "mode": "mismatch",
+            "injected": 3,
+            "recoveredDocuments": 2
+          },
+          {
+            "mode": "502",
+            "injected": 3,
+            "recoveredDocuments": 2
+          }
+        ],
+        "isolation": [
+          {
+            "bypass": false,
+            "site": "same-site",
+            "ambientDocumentCookieObserved": true,
+            "firstApiRequests": 9,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": false,
+            "site": "cross-site",
+            "ambientDocumentCookieObserved": false,
+            "firstApiRequests": 9,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": true,
+            "site": "same-site",
+            "ambientDocumentCookieObserved": true,
+            "firstApiRequests": 7,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": true,
+            "site": "cross-site",
+            "ambientDocumentCookieObserved": false,
+            "firstApiRequests": 7,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          }
+        ],
+        "clipboard": {
+          "plainHttp": "checked",
+          "manualFallback": "selected read-only field",
+          "errorQuery": "preserved"
+        },
+        "cleanup": "owned containers, network, fixture tags and temporary directory removed"
+      }
+    }
+  ],
+  "futurePhases": "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed."
+}

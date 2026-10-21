@@ -1,4 +1,5 @@
 "use client";
+import { copyText } from "@/lib/copy-text";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -92,8 +93,8 @@ export function AdminsInvite() {
                 variant="outline"
                 size="sm"
                 className="shrink-0"
-                onClick={() => {
-                  navigator.clipboard.writeText(successLink);
+                onClick={async () => {
+                  if (!(await copyText(successLink))) return;
                   toast.success("Link copied to clipboard", {
                     position: "top-right",
                   });

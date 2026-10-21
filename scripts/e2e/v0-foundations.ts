@@ -22,7 +22,7 @@ async function health(url: string) {
 
 export async function foundations(image: string, runId: string, check: Check) {
   const project = runId.toLowerCase();
-  assert.match(project, /^p0[12]-[0-9]+-[a-f0-9]+$/);
+  assert.match(project, /^p0[123]-[0-9]+-[a-f0-9]+$/);
   const directory = await mkdtemp(join(tmpdir(), `${project}-`));
   const direct = `${project}-direct`;
   const bad = `${project}-bad-host`;

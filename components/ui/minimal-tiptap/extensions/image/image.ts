@@ -1,3 +1,4 @@
+import { copyText, copyImage as copyImageBlob } from "@/lib/copy-text";
 import type { ImageOptions } from "@tiptap/extension-image";
 import { clientRuntime } from "@/lib/client-runtime";
 import { Image as TiptapImage } from "@tiptap/extension-image";
@@ -153,7 +154,8 @@ const copyImage = async (
   try {
     const res = await fetch(src);
     const blob = await res.blob();
-    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    if (!(await copyImageBlob(blob)))
+      throw new Error("Image copying requires a secure context");
     options.onActionSuccess?.({ ...props, action: "copyImage" });
   } catch (error) {
     handleError(
@@ -172,9 +174,10 @@ const copyLink = async (
   try {
     if (!clientRuntime.appUrl)
       throw new Error("The public app URL is unavailable");
-    await navigator.clipboard.writeText(
+    const copied = await copyText(
       new URL(src, clientRuntime.appUrl).toString(),
     );
+    if (!copied) return;
     options.onActionSuccess?.({ ...props, action: "copyLink" });
   } catch (error) {
     handleError(error, { ...props, action: "copyLink" }, options.onActionError);

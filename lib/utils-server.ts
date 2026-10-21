@@ -3,6 +3,7 @@ import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import { DomainError } from "./domain-error";
 import { escapeFeedbackText, MAX_FEEDBACK_TEXT_LENGTH } from "./feedback-text";
+import { isStatusLabel } from "./feedback-status";
 export class ContentInputError extends DomainError {
   constructor(message: string) {
     super("BAD_REQUEST", message);
@@ -17,6 +18,14 @@ export function plainTextContent(text: string) {
 }
 export function clean(html: string) {
   return sanitizeHtml(html, {
+    transformTags: {
+      span(tagName, attribs) {
+        const label = attribs["data-label"];
+        if (attribs["data-type"] === "status" && label && !isStatusLabel(label))
+          return { tagName, attribs: {}, text: label };
+        return { tagName, attribs };
+      },
+    },
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["span"]),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,

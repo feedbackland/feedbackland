@@ -47,7 +47,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
     ),
     "Use an isolated checkout without operator dotenv files",
   );
-  assert.match(runId, /^p02-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[23]-[0-9]+-[a-f0-9]+$/);
   const project = `${runId}-db`,
     tlsProject = `${runId}-tls`,
     certificateVolume = `${runId}-certs`;

@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { staticFoundations } from "./ci-gates";
 import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
+import { phaseTwo } from "./e2e/v2-surfaces";
 import { removal } from "./e2e/v14-tenancy";
 import { command } from "./e2e/run";
 
@@ -18,12 +19,12 @@ async function main() {
     strict: true,
   });
   if (
-    !["0", "1"].includes(values.phase ?? "") ||
+    !["0", "1", "2"].includes(values.phase ?? "") ||
     !values.image ||
     !values.artifacts
   ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0|1 --image feedbackland:ci --artifacts artifacts/self-hosting",
+      "Usage: npm run verify -- --phase 0|1|2 --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
   const runId = `p0${Number(values.phase) + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -77,10 +78,11 @@ async function main() {
   };
   try {
     await check("static/import-boundaries", staticFoundations);
-    if (values.phase === "1")
+    if (values.phase !== "0")
       await check("static/removal-configuration", removal);
     await foundations(image, runId, check);
-    if (values.phase === "1") await phaseOne(image, runId, check);
+    if (values.phase !== "0") await phaseOne(image, runId, check);
+    if (values.phase === "2") await phaseTwo(image, directory, check);
     await save("passed");
   } catch (error) {
     await save("failed");

@@ -24,6 +24,7 @@ import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useIsDrawerEmbed } from "@/providers/embed";
 
 export function CommentsOptionsMenu({
   postId,
@@ -39,6 +40,7 @@ export function CommentsOptionsMenu({
   onEdit?: () => void;
 }) {
   const { session, isAdmin } = useAuth();
+  const embedded = useIsDrawerEmbed();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -85,7 +87,7 @@ export function CommentsOptionsMenu({
   };
 
   const isAuthor = session?.user?.id === authorId;
-  const isVisible = !!(isAuthor || isAdmin);
+  const isVisible = !!(isAuthor || (isAdmin && !embedded));
 
   if (isVisible) {
     return (

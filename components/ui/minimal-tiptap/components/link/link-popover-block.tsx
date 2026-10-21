@@ -1,3 +1,4 @@
+import { copyText } from "@/lib/copy-text";
 import * as React from "react";
 import { Separator } from "@/components/ui/separator";
 import { ToolbarButton } from "../toolbar-button";
@@ -23,9 +24,9 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
   const handleCopy = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
+      copyText(url)
+        .then((copied) => {
+          if (!copied) return;
           setCopyTitle("Copied!");
           setTimeout(() => setCopyTitle("Copy"), 1000);
         })
