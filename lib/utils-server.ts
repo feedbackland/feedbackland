@@ -1,7 +1,20 @@
 import "server-only";
 import { convert } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
-export class ContentInputError extends Error {}
+import { DomainError } from "./domain-error";
+import { escapeFeedbackText, MAX_FEEDBACK_TEXT_LENGTH } from "./feedback-text";
+export class ContentInputError extends DomainError {
+  constructor(message: string) {
+    super("BAD_REQUEST", message);
+  }
+}
+export function plainTextContent(text: string) {
+  if (text.length > MAX_FEEDBACK_TEXT_LENGTH)
+    throw new ContentInputError("Feedback exceeds the text length limit");
+  if (!text.trim()) throw new ContentInputError("Content is empty");
+  const content = escapeFeedbackText(text);
+  return { content, plainText: getPlainText(content) };
+}
 export function clean(html: string) {
   return sanitizeHtml(html, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["span"]),

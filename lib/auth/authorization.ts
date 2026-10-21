@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql, type Kysely } from "kysely";
 import type { DB } from "../../db/schema";
 export type Actor = { userId: string; sessionId?: string | null };
@@ -24,5 +25,6 @@ export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
   return !!row;
 }
 export async function requireAdmin(trx: Kysely<DB>, actor: Actor) {
-  if (!(await canAdminister(trx, actor))) throw new Error("UNAUTHORIZED");
+  if (!(await canAdminister(trx, actor)))
+    throw new DomainError("UNAUTHORIZED", "UNAUTHORIZED");
 }

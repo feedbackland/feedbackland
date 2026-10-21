@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
 import { db } from "../db/db";
 import { lock, locks } from "../db/locks";
@@ -34,7 +35,7 @@ export async function updateSettingsQuery(
       .where("revision", "=", revision(input.expectedRevision))
       .returning("revision")
       .executeTakeFirst();
-    if (!result) throw new Error("CONFLICT");
+    if (!result) throw new DomainError("CONFLICT", "CONFLICT");
     return result;
   });
 }

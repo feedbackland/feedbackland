@@ -4,18 +4,20 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "@/lib/trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { enforceFeedbackCreateLimit } from "@/lib/rate-limit";
+import { MAX_FEEDBACK_TEXT_LENGTH } from "@/lib/feedback-text";
 
 export const createFeedbackPost = publicProcedure
   .input(
     z.object({
-      description: z.string().trim().min(1).max(10000),
+      description: z
+        .string()
+        .max(MAX_FEEDBACK_TEXT_LENGTH)
+        .refine((text) => text.trim().length > 0),
     }),
   )
   .mutation(async ({ input: { description }, ctx: { userId, ip } }) => {
     try {
-      // Creating a post spends several LLM calls, and this procedure is
-      // public. Cap per source IP and per board so it can't be used to burn
-      // OpenRouter credit. Shares its buckets with the public HTTP endpoint.
+      // Share per-source and board limits with the public HTTP endpoint.
       const { allowed } = await enforceFeedbackCreateLimit({ ip });
 
       if (!allowed) {
@@ -28,6 +30,7 @@ export const createFeedbackPost = publicProcedure
       return await createFeedbackPostQuery({
         description,
         authorId: userId,
+        descriptionFormat: "plain-text",
       });
     } catch (error) {
       throw error;

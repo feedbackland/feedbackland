@@ -1,14 +1,19 @@
 import "server-only";
 import { db } from "@/db/db";
-import { textContent } from "@/lib/utils-server";
+import { plainTextContent, textContent } from "@/lib/utils-server";
 export async function createFeedbackPostQuery({
   description,
   authorId,
+  descriptionFormat = "html",
 }: {
   description: string;
   authorId: string | null;
+  descriptionFormat?: "html" | "plain-text";
 }) {
-  const text = textContent(description);
+  const text =
+    descriptionFormat === "plain-text"
+      ? plainTextContent(description)
+      : textContent(description);
   const title = Array.from(
     text.plainText.match(/^.*?[.!?](?:\s|$)/u)?.[0].trim() ?? text.plainText,
   )

@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { requireAdmin, type Actor } from "@/lib/auth/authorization";
@@ -13,7 +14,7 @@ export async function createAdminInviteQuery(input: Actor & { email: string }) {
       .where("email", "=", email)
       .where("expiresAt", ">", new Date())
       .executeTakeFirst();
-    if (existing) throw new Error("INVITE_EXISTS");
+    if (existing) throw new DomainError("CONFLICT", "INVITE_EXISTS");
     return trx
       .insertInto("admin_invites")
       .values({ email })

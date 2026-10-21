@@ -15,6 +15,7 @@ import { vectorDistance, vectorMetadata } from "../../db/vector";
 import { sweep } from "../../lib/housekeeping";
 import { checkRateLimit } from "../../queries/check-rate-limit";
 import { readSurfaces } from "./v8-search";
+import { rpcContracts } from "./rpc-contracts";
 let outboundHttp = 0;
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async () => {
@@ -203,6 +204,7 @@ async function main() {
   const actor = await membershipAndReplies();
   await revisions(actor);
   await readSurfaces(actor);
+  await rpcContracts(actor);
   await sql`alter table rate_limit rename to rate_limit_fixture`.execute(db);
   try {
     assert.equal(
@@ -317,6 +319,7 @@ async function main() {
       replies: "passed",
       membership: "passed",
       revisions: "passed",
+      rpcContracts: "passed",
       secretPersistence: "passed",
       corruption: "refused",
       sweeps: "passed",

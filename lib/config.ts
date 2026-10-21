@@ -74,6 +74,7 @@ export function parseDatabaseOptions(
     "sslcert",
     "sslkey",
     "sslpassword",
+    "sslnegotiation",
     "uselibpqcompat",
   ];
   for (const [key] of url.searchParams) {

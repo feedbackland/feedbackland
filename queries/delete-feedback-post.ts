@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { canAdminister, type Actor } from "@/lib/auth/authorization";
@@ -15,7 +16,7 @@ export async function deleteFeedbackPostQuery(
       .forUpdate()
       .executeTakeFirstOrThrow();
     if (!admin && row.authorId !== input.userId)
-      throw new Error("UNAUTHORIZED");
+      throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
     return trx
       .deleteFrom("feedback")
       .where("id", "=", input.postId)

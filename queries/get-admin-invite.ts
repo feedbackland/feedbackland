@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 
 import { db } from "@/db/db";
 
@@ -15,7 +16,7 @@ export async function getAdminInviteQuery({
       .executeTakeFirst();
 
     if (!adminInvite) {
-      throw new Error("Admin invite not found");
+      throw new DomainError("NOT_FOUND", "Admin invite not found");
     }
 
     return adminInvite;

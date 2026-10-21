@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
@@ -23,7 +24,7 @@ export async function updateCommentQuery(
       .forUpdate()
       .executeTakeFirstOrThrow();
     if (!admin && row.authorId !== input.userId)
-      throw new Error("UNAUTHORIZED");
+      throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
     const result = await trx
       .updateTable("comment")
       .set({
@@ -39,7 +40,7 @@ export async function updateCommentQuery(
       .where("revision", "=", revision(input.expectedRevision))
       .returningAll()
       .executeTakeFirst();
-    if (!result) throw new Error("CONFLICT");
+    if (!result) throw new DomainError("CONFLICT", "CONFLICT");
     return result;
   });
 }
