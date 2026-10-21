@@ -48,6 +48,13 @@ export async function phaseOne(image: string, runId: string, check: Check) {
     "Use an isolated checkout without operator dotenv files",
   );
   assert.match(runId, /^p0[23]-[0-9]+-[a-f0-9]+$/);
+  await check("client/settings-drafts-and-revisions", () =>
+    command(process.execPath, [
+      "--import",
+      "tsx",
+      "scripts/e2e/settings-browser.ts",
+    ]),
+  );
   const project = `${runId}-db`,
     tlsProject = `${runId}-tls`,
     certificateVolume = `${runId}-certs`;

@@ -5,7 +5,7 @@ import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { canAdminister, type Actor } from "@/lib/auth/authorization";
 import { revision } from "@/lib/revision";
-import { textContent } from "@/lib/utils-server";
+import { feedbackPostHtmlContent } from "@/lib/utils-server";
 export async function updateFeedbackPostQuery(
   input: Actor & {
     postId: string;
@@ -14,7 +14,7 @@ export async function updateFeedbackPostQuery(
     expectedRevision: string;
   },
 ) {
-  const text = textContent(input.description);
+  const text = feedbackPostHtmlContent(input.description);
   return db.transaction().execute(async (trx) => {
     await lock(trx, locks.membership);
     const admin = await canAdminister(trx, input);

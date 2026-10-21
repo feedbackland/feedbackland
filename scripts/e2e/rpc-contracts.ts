@@ -7,10 +7,17 @@ import { publicProcedure, router, type RequestContext } from "../../lib/trpc";
 import { appRouter } from "../../trpc";
 import { createFeedbackPostQuery } from "../../queries/create-feedback-post";
 import { createCommentQuery } from "../../queries/create-comment";
+import { getSettingsQuery } from "../../queries/get-settings";
+import {
+  feedbackPostHtmlContent,
+  plainTextContent,
+  textContent,
+} from "../../lib/utils-server";
 import { seedUser } from "./v19-auth-invariants";
 import {
   escapeFeedbackText,
   MAX_FEEDBACK_TEXT_LENGTH,
+  MAX_FEEDBACK_HTML_BYTES,
 } from "../../lib/feedback-text";
 
 export async function rpcContracts(actor: Actor) {
@@ -50,9 +57,19 @@ export async function rpcContracts(actor: Actor) {
     .executeTakeFirstOrThrow();
   const save = {
     expectedRevision: settings.revision,
-    platformTitle: "RPC settings",
+    platformTitle: "  RPC settings  ",
   };
   const first = await call("updateSettings", save, 200);
+  assert.equal(first.platformTitle, "RPC settings");
+  assert.deepEqual(first, await getSettingsQuery());
+  assert.deepEqual(Object.keys(first).sort(), [
+    "allowIndexing",
+    "logoImageId",
+    "platformDescription",
+    "platformTitle",
+    "revision",
+    "setupCompletedAt",
+  ]);
   await call("updateSettings", save, 409, "CONFLICT");
   const second = await call(
     "updateSettings",
@@ -163,6 +180,25 @@ export async function rpcContracts(actor: Actor) {
       .executeTakeFirstOrThrow();
     assert.equal(stored.description, created.description);
     assert.equal(stored.plainText, created.plainText);
+    // Both title-only edits and editor paragraph wrapping must round trip the
+    // maximum accepted raw text, including entities, newlines and surrogate pairs.
+    for (const [index, html] of [
+      created.description,
+      `<p>${created.description}</p>`,
+    ].entries()) {
+      const edited = await call(
+        "updateFeedbackPost",
+        {
+          postId: created.id,
+          title: "Edited title",
+          description: html,
+          expectedRevision: String(index + 1),
+        },
+        200,
+      );
+      assert.equal(edited.plainText, created.plainText);
+      assert.equal(edited.revision, String(index + 2));
+    }
   }
   await call(
     "createFeedbackPost",
@@ -170,6 +206,54 @@ export async function rpcContracts(actor: Actor) {
     400,
     "BAD_REQUEST",
     anonymous,
+  );
+  const countBeforeEmpty = await db
+    .selectFrom("feedback")
+    .select(({ fn }) => fn.countAll<string>().as("count"))
+    .executeTakeFirstOrThrow();
+  for (const description of ["\u200b", " \u200b\n\u200b "]) {
+    assert.throws(() => plainTextContent(description), /Content is empty/);
+    await call(
+      "createFeedbackPost",
+      { description },
+      400,
+      "BAD_REQUEST",
+      anonymous,
+    );
+  }
+  assert.deepEqual(
+    await db
+      .selectFrom("feedback")
+      .select(({ fn }) => fn.countAll<string>().as("count"))
+      .executeTakeFirstOrThrow(),
+    countBeforeEmpty,
+  );
+  for (const description of [
+    "x".repeat(MAX_FEEDBACK_TEXT_LENGTH + 1),
+    "&amp;".repeat(MAX_FEEDBACK_TEXT_LENGTH + 1),
+    "x" + "<br>".repeat(MAX_FEEDBACK_TEXT_LENGTH),
+    "😀".repeat(MAX_FEEDBACK_TEXT_LENGTH / 2) + "x",
+    `<p>${" ".repeat(MAX_FEEDBACK_HTML_BYTES)}x</p>`,
+    `<p title="${"😀".repeat(32_000)}">x</p>`,
+    "<div>".repeat(10_000) + "x" + "</div>".repeat(10_000),
+  ]) {
+    await call(
+      "updateFeedbackPost",
+      { ...edit, expectedRevision: "2", description },
+      400,
+      "BAD_REQUEST",
+    );
+  }
+  assert.throws(
+    () =>
+      feedbackPostHtmlContent(
+        "<div>".repeat(10_000) + "x" + "</div>".repeat(10_000),
+      ),
+    /Content nesting/,
+  );
+  assert.throws(
+    () => textContent("&amp;".repeat(MAX_FEEDBACK_TEXT_LENGTH)),
+    /48000 bytes/,
   );
   await call(
     "createFeedbackPost",

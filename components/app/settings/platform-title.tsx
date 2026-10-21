@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 import { useAdminSettings } from "@/hooks/use-admin-settings";
 import { useUpdateSettings } from "@/hooks/use-update-settings";
 import { PenIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { TRPCClientError } from "@trpc/client";
 
 const FormSchema = z.object({
   platformTitle: z.string().min(1),
@@ -36,6 +37,7 @@ export function PlatformTitle({
   const updateSettings = useUpdateSettings();
 
   const [isEditing, setIsEditing] = useState(false);
+  const draftBase = useRef<{ value: string; revision: string } | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -43,30 +45,42 @@ export function PlatformTitle({
       platformTitle: "",
     },
   });
+  const isDirty = form.formState.isDirty;
 
   useEffect(() => {
-    form.setValue("platformTitle", data?.platformTitle || "");
-  }, [form, data]);
+    if (!data) return;
+    const value = data.platformTitle;
+    if (!isEditing || !isDirty) {
+      form.reset({ platformTitle: value });
+      draftBase.current = { value, revision: data.revision };
+    } else if (draftBase.current?.value === value) {
+      // Another field changed: retain this draft and advance its CAS base.
+      draftBase.current = { value, revision: data.revision };
+    }
+    // A change to this field keeps its original revision, so saving conflicts.
+  }, [form, data, isEditing, isDirty]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
-      if (!data) throw new Error("Settings unavailable");
+      if (!data || !draftBase.current) throw new Error("Settings unavailable");
       await updateSettings.mutateAsync({
-        expectedRevision: data.revision,
+        expectedRevision: draftBase.current.revision,
         platformTitle: formData.platformTitle,
       });
       setIsEditing(false);
-    } catch {
+    } catch (error) {
       form.setError("platformTitle", {
-        message: "An error occured. Please try again.",
+        message:
+          error instanceof TRPCClientError && error.data?.code === "CONFLICT"
+            ? "This setting changed elsewhere. Cancel and reopen to load the current value."
+            : "An error occured. Please try again.",
       });
     }
   }
 
   const handleOnCancel = () => {
     setIsEditing(false);
-    form.setValue("platformTitle", data?.platformTitle || "");
-    form.clearErrors();
+    form.reset({ platformTitle: data?.platformTitle || "" });
   };
 
   return (
@@ -74,7 +88,10 @@ export function PlatformTitle({
       <div className="flex items-start gap-6">
         <div className="flex flex-1 flex-col items-stretch space-y-3">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="">
+            <form
+              onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}
+              className=""
+            >
               <FormField
                 control={form.control}
                 name="platformTitle"
@@ -88,6 +105,7 @@ export function PlatformTitle({
                     <FormControl>
                       {isEditing ? (
                         <Input
+                          disabled={updateSettings.isPending}
                           autoFocus={true}
                           className="w-full max-w-[450px] text-sm"
                           placeholder="Title of your feedback platform"
@@ -113,6 +131,8 @@ export function PlatformTitle({
                     Save
                   </Button>
                   <Button
+                    type="button"
+                    disabled={updateSettings.isPending}
                     size="sm"
                     variant="secondary"
                     onClick={handleOnCancel}
@@ -127,6 +147,7 @@ export function PlatformTitle({
         <div className="-mt-2.5">
           {isEditing ? (
             <Button
+              disabled={updateSettings.isPending}
               className=""
               size="sm"
               variant="outline"
@@ -137,6 +158,7 @@ export function PlatformTitle({
             </Button>
           ) : (
             <Button
+              disabled={!data}
               className=""
               size="sm"
               variant="outline"
