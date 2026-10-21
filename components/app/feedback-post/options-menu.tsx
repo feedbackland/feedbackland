@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FeedbackStatus } from "@/lib/typings";
@@ -58,7 +58,8 @@ export function FeedbackPostOptionsMenu({
 
   const updateStatus = useUpdateStatus({ postId });
 
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
+  const boardRoot = href("/");
   const router = useRouter();
   const { session, isAdmin } = useAuth();
 
@@ -85,8 +86,8 @@ export function FeedbackPostOptionsMenu({
             position: "top-right",
           });
 
-          if (platformUrl && isFeedbackPage) {
-            router.push(platformUrl);
+          if (boardRoot && isFeedbackPage) {
+            router.push(boardRoot);
           }
         },
         onSettled: () => {
@@ -135,9 +136,7 @@ export function FeedbackPostOptionsMenu({
                         updateStatus.mutate({
                           postId,
                           status:
-                            value === "none"
-                              ? null
-                              : (value as FeedbackStatus),
+                            value === "none" ? null : (value as FeedbackStatus),
                         })
                       }
                     >
@@ -162,7 +161,10 @@ export function FeedbackPostOptionsMenu({
                       >
                         In progress
                       </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="done" className="text-done!">
+                      <DropdownMenuRadioItem
+                        value="done"
+                        className="text-done!"
+                      >
                         Done
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem

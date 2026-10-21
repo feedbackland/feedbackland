@@ -21,11 +21,11 @@ const HARD_FALLBACK_MS = 8000;
  *
  * It waits on three independent signals:
  *   - Auth resolved (`useAuth().isLoaded`): the session is set only after a raw
- *     `upsertUser()` fetch that `useIsFetching` cannot see, yet it drives the
+ *     `session lookup` fetch that `useIsFetching` cannot see, yet it drives the
  *     header (sign-in vs. avatar vs. admin controls). Gating on it prevents
  *     revealing a logged-out header that then pops to the logged-in one.
  *   - No queries fetching (`useIsFetching`): decoupled from any specific query,
- *     this implicitly waits for the org + feedback-post data and the post-auth
+ *     this implicitly waits for the board + feedback-post data and the post-auth
  *     `invalidateQueries()` refetch wave (the tRPC links also block on
  *     `authStateReady()`, so queries stay in-flight until auth resolves).
  *   - Fonts ready: guards against a post-reveal text reflow if/when the

@@ -1,10 +1,11 @@
+import "server-only";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedMetaDataQuery } from "@/queries/get-activity-feed-meta-data";
 import { z } from "zod/v4";
 
 export const getActivityFeedMetaData = adminProcedure
   .input(z.object({}))
-  .query(async ({ ctx: { orgId, userId } }) => {
+  .query(async ({ ctx: { userId } }) => {
     try {
       const {
         totalUnseenCount,
@@ -13,7 +14,6 @@ export const getActivityFeedMetaData = adminProcedure
         unseenGeneralFeedbackPostCount,
         unseenCommentCount,
       } = await getActivityFeedMetaDataQuery({
-        orgId,
         userId,
       });
 

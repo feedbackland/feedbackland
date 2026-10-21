@@ -1,3 +1,6 @@
+import "server-only";
+import { enforceContentLimit } from "@/lib/rate-limit";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { createCommentQuery } from "@/queries/create-comment";
@@ -13,11 +16,12 @@ export const createComment = userProcedure
   .mutation(
     async ({
       input: { postId, parentCommentId, content },
-      ctx: { userId, orgId },
+      ctx: { userId },
     }) => {
       try {
+        if (!(await enforceContentLimit("commentCreate", userId)).allowed)
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
         return await createCommentQuery({
-          orgId,
           content,
           authorId: userId,
           postId,

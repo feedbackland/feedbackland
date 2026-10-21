@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-status";
@@ -10,17 +11,20 @@ export const updateFeedbackPostStatus = adminProcedure
       status: feedbackStatusSchema,
     }),
   )
-  .mutation(async ({ input: { postId, status }, ctx: { orgId, userId } }) => {
-    try {
-      const updatedPost = await updateFeedbackPostStatusQuery({
-        postId,
-        userId,
-        status,
-        orgId,
-      });
+  .mutation(
+    async ({ input: { postId, status }, ctx: { userId, sessionId } }) => {
+      try {
+        const updatedPost = await updateFeedbackPostStatusQuery({
+          postId,
+          userId,
 
-      return updatedPost;
-    } catch (error) {
-      throw error;
-    }
-  });
+          sessionId,
+          status,
+        });
+
+        return updatedPost;
+      } catch (error) {
+        throw error;
+      }
+    },
+  );

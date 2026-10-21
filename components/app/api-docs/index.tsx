@@ -1,37 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSettings } from "@/hooks/use-settings";
 import { Code } from "@/components/ui/code";
-import { CopyButton } from "@/components/ui/copy-button";
-import { EXAMPLE_DESCRIPTION } from "@/lib/api-snippets";
 import { CodeExamples } from "./code-examples";
 import { EndpointCard } from "./endpoint-card";
 
-const EXAMPLE_RESPONSE = `{
-  "id": "8c2e0c4a-3d8e-4f5a-bdc1-2f6a9e10c4e2",
-  "title": "Add a dark-mode option to settings",
-  "category": "idea",
-  "description": ${JSON.stringify(EXAMPLE_DESCRIPTION)},
-  "authorId": null,
-  "orgId": "<your-org-id>",
-  "upvotes": 0,
-  "status": null,
-  "createdAt": "2026-05-25T14:30:00.000Z",
-  "updatedAt": "2026-05-25T14:30:00.000Z"
-}`;
+const EXAMPLE_RESPONSE = `{ "id": "8c2e0c4a-3d8e-4f5a-bdc1-2f6a9e10c4e2" }`;
 
 const ERROR_RESPONSE = `{
   "error": "..."
 }`;
 
-export function ApiDocs({ orgId }: { orgId: string }) {
-  const [endpointUrl, setEndpointUrl] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setEndpointUrl(window.location.origin);
-    }
-  }, []);
+export function ApiDocs() {
+  const { appUrl: endpointUrl } = useSettings();
 
   return (
     <div className="space-y-8">
@@ -44,31 +25,13 @@ export function ApiDocs({ orgId }: { orgId: string }) {
         <EndpointCard url={endpointUrl} />
       </Section>
 
-      <Section title="Your organization ID">
-        <p className="text-muted-foreground max-w-prose text-sm">
-          Pass this value as <Mono>orgId</Mono> in the request body.
-        </p>
-        <div className="bg-background border-border flex items-center gap-2 rounded-lg border px-3 py-2 shadow-xs">
-          <code className="text-foreground flex-1 truncate font-mono text-sm">
-            {orgId}
-          </code>
-          <CopyButton text={orgId} />
-        </div>
-      </Section>
-
       <Section title="Example request">
-        <CodeExamples url={endpointUrl} orgId={orgId} />
+        <CodeExamples url={endpointUrl} />
       </Section>
 
       <Section title="Request body">
         <ParamTable
           rows={[
-            {
-              field: "orgId",
-              type: "string (uuid)",
-              description: "Your organization ID, shown above.",
-              required: true,
-            },
             {
               field: "description",
               type: "string",
@@ -82,15 +45,14 @@ export function ApiDocs({ orgId }: { orgId: string }) {
 
       <Section title="Response">
         <p className="text-muted-foreground max-w-prose text-sm">
-          A <Mono>200</Mono> response returns the created feedback post.
+          A <Mono>201</Mono> response returns the new feedback ID.
         </p>
         <Code code={EXAMPLE_RESPONSE} lang="json" />
       </Section>
 
       <Section title="Errors">
         <p className="text-muted-foreground max-w-prose text-sm">
-          Validation failures and server errors return <Mono>500</Mono> with a
-          JSON body:
+          Validation failures return <Mono>400</Mono> with a JSON body:
         </p>
         <Code code={ERROR_RESPONSE} lang="json" />
       </Section>

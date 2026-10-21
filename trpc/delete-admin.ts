@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { deleteAdminQuery } from "@/queries/delete-admin";
@@ -8,11 +9,12 @@ export const deleteAdmin = adminProcedure
       adminId: z.string(),
     }),
   )
-  .mutation(async ({ input: { adminId }, ctx: { userId, orgId } }) => {
+  .mutation(async ({ input: { adminId }, ctx: { userId, sessionId } }) => {
     try {
       return await deleteAdminQuery({
         userId,
-        orgId,
+
+        sessionId,
         adminId,
       });
     } catch (error) {

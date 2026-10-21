@@ -1,63 +1,27 @@
+import "server-only";
 import superjson from "superjson";
-import { adminAuth } from "@/lib/firebase/admin";
 import { initTRPC, TRPCError } from "@trpc/server";
 import z, { ZodError } from "zod/v4";
-import { getUserWithRoleAndOrgQuery } from "@/queries/get-user-with-role-and-org";
-import { getOrgQuery } from "@/queries/get-org";
-import { UserRole } from "@/lib/typings";
-import { getClientIp } from "@/lib/rate-limit";
-
-const getFirebaseUser = async (req: Request) => {
-  const authorization = req.headers.get("authorization");
-  const idToken = authorization?.split(" ")?.[1];
-  const user = idToken ? await adminAuth.verifyIdToken(idToken) : null;
-  return user;
+import { getClientIp } from "./client-ip";
+export type RequestContext = {
+  userId: string | null;
+  userEmail: string | null;
+  sessionId: string | null;
+  canAdminister: boolean;
+  ip: string;
 };
-
-export const createContext = async ({ req }: { req: Request }) => {
-  const orgSubdomain = req?.headers?.get("subdomain");
-  const ip = getClientIp(req.headers);
-  const firebaseUser = await getFirebaseUser(req);
-  const userId = firebaseUser?.uid || null;
-  const userEmail = firebaseUser?.email || null;
-  let orgId: string | null | undefined;
-  let orgIsClaimed: boolean | null | undefined;
-  let userRole: UserRole | null | undefined;
-
-  if (orgSubdomain) {
-    // not signed in
-    if (!userId) {
-      const org = await getOrgQuery({ orgSubdomain });
-      orgId = org?.id;
-      orgIsClaimed = org?.isClaimed;
-    }
-    // signed in
-    else {
-      const userWithRoleAndOrg = await getUserWithRoleAndOrgQuery({
-        userId,
-        orgSubdomain,
-      });
-
-      orgId = userWithRoleAndOrg?.orgId;
-      orgIsClaimed = userWithRoleAndOrg?.orgIsClaimed;
-      userRole = userWithRoleAndOrg?.userRole;
-    }
-  }
-
-  return {
-    orgId,
-    orgSubdomain,
-    orgIsClaimed,
-    userId,
-    userEmail,
-    userRole,
-    ip,
-  };
-};
-
-export type Context = typeof createContext;
-
-const t = initTRPC.context<Context>().create({
+export const createContext = async ({
+  req,
+}: {
+  req: Request;
+}): Promise<RequestContext> => ({
+  userId: null,
+  userEmail: null,
+  sessionId: null,
+  canAdminister: false,
+  ip: getClientIp(req.headers),
+});
+const t = initTRPC.context<RequestContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -70,69 +34,18 @@ const t = initTRPC.context<Context>().create({
     };
   },
 });
-
-const publicProcedureMiddleware = t.middleware((opts) => {
-  const { ctx } = opts;
-
-  if (!ctx?.orgId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No orgId was found",
-    });
-  }
-
-  return opts.next({
-    ...opts,
-    ctx: {
-      ...ctx,
-      orgId: ctx.orgId,
-    },
-  });
-});
-
-const userProcedureMiddleware = publicProcedureMiddleware.unstable_pipe(
-  (opts) => {
-    const { ctx } = opts;
-
-    if (!ctx.userId) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "No userId was found",
-      });
-    }
-
-    return opts.next({
-      ...opts,
-      ctx: {
-        ...ctx,
-        userId: ctx.userId,
-      },
-    });
-  },
-);
-
-const adminProcedureMiddleware = userProcedureMiddleware.unstable_pipe(
-  (opts) => {
-    const { ctx } = opts;
-
-    if (ctx.userRole !== "admin") {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User does not have admin role",
-      });
-    }
-
-    return opts.next({
-      ...opts,
-      ctx: {
-        ...ctx,
-        userRole: ctx.userRole,
-      },
-    });
-  },
-);
-
 export const router = t.router;
-export const publicProcedure = t.procedure.use(publicProcedureMiddleware);
-export const userProcedure = t.procedure.use(userProcedureMiddleware);
-export const adminProcedure = t.procedure.use(adminProcedureMiddleware);
+export const publicProcedure = t.procedure;
+export const userProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.userId)
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Sign-in is unavailable until the authentication milestone",
+    });
+  return next({ ctx: { ...ctx, userId: ctx.userId } });
+});
+export const adminProcedure = userProcedure.use(({ ctx, next }) => {
+  if (!ctx.canAdminister || !ctx.sessionId)
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  return next({ ctx: { ...ctx, sessionId: ctx.sessionId } });
+});

@@ -17,9 +17,6 @@
 /.next/
 /out/
 
-# supabase
-/supabase
-
 # production
 /build
 

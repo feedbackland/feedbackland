@@ -19,7 +19,7 @@ import {
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { AccountSettings } from "@/components/app/account-settings";
@@ -37,9 +37,10 @@ export function PlatformHeaderButtons() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const [isAccountSettingsDialogOpen, setIsAccountSettingsDialogOpen] =
     useState(false);
-  const { session, signOut, isAdmin } = useAuth();
+  const { session, signOut, isAdmin, authAvailable } = useAuth();
   const isAdminPage = pathname.includes("/admin");
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
+  const boardRoot = href("/");
 
   const handleSignOut = async () => {
     await signOut();
@@ -59,10 +60,10 @@ export function PlatformHeaderButtons() {
       />
 
       <div className="flex items-center gap-1">
-        {isAdmin && platformUrl && (
+        {isAdmin && boardRoot && (
           <Link
             className="xs:block hidden"
-            href={isAdminPage ? platformUrl : `${platformUrl}/admin`}
+            href={isAdminPage ? boardRoot : href(`/admin`)}
             target={isDrawerEmbed ? "_blank" : "_self"}
           >
             <Button variant="ghost" size="sm">
@@ -76,7 +77,7 @@ export function PlatformHeaderButtons() {
           </Link>
         )}
 
-        {!session && (
+        {authAvailable && !session && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -104,7 +105,7 @@ export function PlatformHeaderButtons() {
                   >
                     <Avatar className="size-6!">
                       <AvatarImage
-                        src={session?.user?.photoURL || undefined}
+                        src={session?.user?.image || undefined}
                         alt="User avatar image"
                       />
                       <AvatarFallback className="text-xs">
@@ -138,10 +139,10 @@ export function PlatformHeaderButtons() {
                 )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {session?.userOrg?.role === "admin" && (
+              {isAdmin && (
                 <DropdownMenuItem asChild>
                   <Link
-                    href={`${platformUrl}/admin`}
+                    href={href(`/admin`)}
                     className="flex items-center gap-2"
                   >
                     <ShieldIcon className="size-3.5!" />

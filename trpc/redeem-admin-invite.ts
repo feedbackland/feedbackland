@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { redeemAdminInviteQuery } from "@/queries/redeem-admin-invite";
@@ -8,14 +9,17 @@ export const redeemAdminInvite = userProcedure
       adminInviteToken: z.uuid(),
     }),
   )
-  .mutation(async ({ input: { adminInviteToken }, ctx: { userId, orgId } }) => {
-    try {
-      return await redeemAdminInviteQuery({
-        adminInviteToken,
-        userId,
-        orgId,
-      });
-    } catch (error) {
-      throw error;
-    }
-  });
+  .mutation(
+    async ({ input: { adminInviteToken }, ctx: { userId, sessionId } }) => {
+      try {
+        return await redeemAdminInviteQuery({
+          adminInviteToken,
+          userId,
+
+          sessionId,
+        });
+      } catch (error) {
+        throw error;
+      }
+    },
+  );

@@ -22,7 +22,7 @@ async function health(url: string) {
 
 export async function foundations(image: string, runId: string, check: Check) {
   const project = runId.toLowerCase();
-  assert.match(project, /^p01-[0-9]+-[a-f0-9]+$/);
+  assert.match(project, /^p0[12]-[0-9]+-[a-f0-9]+$/);
   const directory = await mkdtemp(join(tmpdir(), `${project}-`));
   const direct = `${project}-direct`;
   const bad = `${project}-bad-host`;
@@ -205,11 +205,11 @@ export async function foundations(image: string, runId: string, check: Check) {
           "-d",
           "feedbackland",
           "-Atc",
-          "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'",
+          "SELECT count(*) FROM settings",
         ),
-        "0",
+        "1",
       );
-      assert.equal((await fetch(`${url}/get-started`)).status, 200);
+      assert.equal((await fetch(url)).status, 200);
       const writable = await compose(
         "exec",
         "-T",
@@ -222,8 +222,8 @@ export async function foundations(image: string, runId: string, check: Check) {
       return {
         constants: "passed",
         readOnly: true,
-        emptyDatabase: result,
-        staticPage: "/get-started",
+        bootedDatabase: result,
+        boardPage: "/",
         writes: "only declared tmpfs",
       };
     });

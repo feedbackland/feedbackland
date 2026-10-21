@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { feedbackStatusSchema } from "@/lib/schemas";
@@ -10,6 +11,6 @@ export const setInsightStatus = adminProcedure
       status: feedbackStatusSchema,
     }),
   )
-  .mutation(async ({ input: { insightId, status }, ctx: { orgId } }) => {
-    return await setInsightStatusQuery({ orgId, insightId, status });
+  .mutation(async ({ input: { insightId, status }, ctx: {} }) => {
+    return await setInsightStatusQuery({ insightId, status });
   });

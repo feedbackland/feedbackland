@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
@@ -6,16 +6,13 @@ import { FeedbackCategory } from "@/lib/typings";
 
 export const getActivityFeedMetaDataQuery = async ({
   userId,
-  orgId,
 }: {
   userId: string;
-  orgId: string;
 }) => {
   try {
     const feedbackCTE = db
       .selectFrom("feedback")
       .leftJoin("user", "feedback.authorId", "user.id")
-      .where("feedback.orgId", "=", orgId)
       .select([
         "feedback.id",
         "feedback.category",
@@ -26,7 +23,6 @@ export const getActivityFeedMetaDataQuery = async ({
       .selectFrom("comment")
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
-      .where("feedback.orgId", "=", orgId)
       .where("comment.content", "not like", "Updated status to%")
       .select([
         "comment.id",
@@ -68,7 +64,8 @@ export const getActivityFeedMetaDataQuery = async ({
       totalUnseenCount: counts?.totalUnseenCount ?? 0,
       unseenIdeasPostCount: counts?.unseenIdeasPostCount ?? 0,
       unseenIssuesPostCount: counts?.unseenIssuesPostCount ?? 0,
-      unseenGeneralFeedbackPostCount: counts?.unseenGeneralFeedbackPostCount ?? 0,
+      unseenGeneralFeedbackPostCount:
+        counts?.unseenGeneralFeedbackPostCount ?? 0,
       unseenCommentCount: counts?.unseenCommentCount ?? 0,
     };
   } catch (error) {

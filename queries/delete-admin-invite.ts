@@ -1,37 +1,17 @@
-"server-only";
-
+import "server-only";
 import { db } from "@/db/db";
-
-export async function deleteAdminInviteQuery({
-  adminInviteId,
-  userId,
-  orgId,
-}: {
-  adminInviteId: string;
-  userId: string;
-  orgId: string;
-}) {
-  try {
-    return await db.transaction().execute(async (trx) => {
-      const { role } = await trx
-        .selectFrom("user_org")
-        .select("role")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .executeTakeFirstOrThrow();
-
-      if (role !== "admin") {
-        throw new Error("Not authorized to delete admin invite");
-      }
-
-      return await trx
-        .deleteFrom("admin_invites")
-        .where("id", "=", adminInviteId)
-        .where("orgId", "=", orgId)
-        .returningAll()
-        .executeTakeFirstOrThrow();
-    });
-  } catch (error) {
-    throw error;
-  }
+import { lock, locks } from "@/db/locks";
+import { requireAdmin, type Actor } from "@/lib/auth/authorization";
+export async function deleteAdminInviteQuery(
+  input: Actor & { adminInviteId: string },
+) {
+  return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.membership);
+    await requireAdmin(trx, input);
+    return trx
+      .deleteFrom("admin_invites")
+      .where("id", "=", input.adminInviteId)
+      .returning("id")
+      .executeTakeFirstOrThrow();
+  });
 }

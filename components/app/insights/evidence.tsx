@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowBigUp, MessageSquareIcon } from "lucide-react";
 import { useFeedbackPostsByIds } from "@/hooks/use-feedback-posts-by-ids";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { timeAgo } from "@/lib/time-ago";
 import { cn } from "@/lib/utils";
 import { STATUS_TEXT_CLASS } from "@/lib/insights";
@@ -34,7 +34,7 @@ function EvidenceLoading() {
  * it is worth spending a line to say it out loud.
  */
 export function InsightEvidence({ insight }: { insight: Insight }) {
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
   const {
     query: { data: posts, isPending },
   } = useFeedbackPostsByIds({ ids: insight.postIds, enabled: true });
@@ -65,7 +65,7 @@ export function InsightEvidence({ insight }: { insight: Insight }) {
             <div key={post.id} className="py-2.5 first:pt-0 last:pb-0">
               <div className="flex items-start justify-between gap-3">
                 <Link
-                  href={`${platformUrl}/${post.id}`}
+                  href={href(`/${post.id}`)}
                   className="text-sm leading-snug font-medium hover:underline"
                 >
                   {post.title}

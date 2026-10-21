@@ -14,8 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { useOrg } from "@/hooks/use-org";
-import { useUpdateOrg } from "@/hooks/use-update-org";
+import { useAdminSettings } from "@/hooks/use-admin-settings";
+import { useUpdateSettings } from "@/hooks/use-update-settings";
 import { PenIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,9 +31,9 @@ export function PlatformDescription({
 }) {
   const {
     query: { data },
-  } = useOrg();
+  } = useAdminSettings();
 
-  const updateOrg = useUpdateOrg();
+  const updateSettings = useUpdateSettings();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -50,7 +50,9 @@ export function PlatformDescription({
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
-      await updateOrg.mutateAsync({
+      if (!data) throw new Error("Settings unavailable");
+      await updateSettings.mutateAsync({
+        expectedRevision: data.revision,
         platformDescription:
           formData?.platformDescription &&
           formData?.platformDescription?.length > 0
@@ -111,7 +113,11 @@ export function PlatformDescription({
               />
               {isEditing && (
                 <div className="mt-3 flex items-center gap-2">
-                  <Button type="submit" size="sm" loading={updateOrg.isPending}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    loading={updateSettings.isPending}
+                  >
                     Save
                   </Button>
                   <Button

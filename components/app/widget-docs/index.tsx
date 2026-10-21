@@ -1,4 +1,5 @@
 "use client";
+import { useSettings } from "@/hooks/use-settings";
 
 import { useMemo, useState } from "react";
 import { FeedbackButton } from "feedbackland-react";
@@ -21,9 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsSelfHosted } from "@/hooks/use-is-self-hosted";
-import { useVercelUrl } from "@/hooks/use-vercel-url";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
 import {
   buildPlaygroundSnippet,
   type Variant,
@@ -50,56 +48,19 @@ const SIZE_OPTIONS: { value: Size; label: string }[] = [
   { value: "icon-lg", label: "Icon (large)" },
 ];
 
-export function WidgetDocs({
-  orgId,
-  orgSubdomain,
-}: {
-  orgId: string;
-  orgSubdomain: string;
-}) {
-  const isSelfHosted = useIsSelfHosted();
-  const vercelUrl = useVercelUrl();
-  const platformUrl = usePlatformUrl();
-
+export function WidgetDocs() {
+  const { appUrl, appUrlInferred } = useSettings();
   const [widget, setWidget] = useState<Widget>("drawer");
   const [text, setText] = useState("Feedback");
   const [variant, setVariant] = useState<Variant>("default");
   const [size, setSize] = useState<Size>("default");
   const [className, setClassName] = useState("");
 
-  // URL baked into the copyable snippet. Hosted customers omit it (the widget
-  // resolves the board from `platformId`); self-hosted instances need it
-  // explicit so the widget knows where to load the board iframe from.
-  const snippetUrl = useMemo(() => {
-    if (!isSelfHosted || !vercelUrl) return undefined;
-    return `${vercelUrl}/${orgSubdomain}`;
-  }, [isSelfHosted, vercelUrl, orgSubdomain]);
-
-  // URL the live preview actually embeds: always the board at the current
-  // origin — the admin's own board, whether that's the local dev server, a
-  // self-hosted instance, or their hosted subdomain. Without this the preview
-  // falls back to the production `<orgId>.feedbackland.com` board that
-  // `platformId` alone resolves to, so a local/self-hosted admin would preview
-  // (and submit feedback to) the wrong board entirely. Guarded to a valid
-  // absolute http(s) URL so a transient null/relative value (e.g. mid HMR
-  // reload) is never forwarded to the widget as a malformed `url` prop.
-  const previewUrl = useMemo(() => {
-    const candidate = platformUrl ?? snippetUrl;
-    if (!candidate) return undefined;
-    try {
-      const { protocol } = new URL(candidate);
-      return protocol === "http:" || protocol === "https:"
-        ? candidate
-        : undefined;
-    } catch {
-      return undefined;
-    }
-  }, [platformUrl, snippetUrl]);
-
+  const snippetUrl = appUrl,
+    previewUrl = appUrl;
   const snippet = useMemo(
     () =>
       buildPlaygroundSnippet({
-        orgId,
         url: snippetUrl,
         widget,
         text,
@@ -107,11 +68,16 @@ export function WidgetDocs({
         size,
         className,
       }),
-    [orgId, snippetUrl, widget, text, variant, size, className],
+    [snippetUrl, widget, text, variant, size, className],
   );
 
   return (
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+      {appUrlInferred && (
+        <p>
+          Set APP_URL to your public origin before copying a widget snippet.
+        </p>
+      )}
       {/* Configuration — sticky on wide viewports */}
       <div className="lg:sticky lg:top-8 lg:col-span-4">
         <Card className="bg-background">
@@ -135,7 +101,10 @@ export function WidgetDocs({
                 value={widget}
                 onValueChange={(v) => setWidget(v as Widget)}
               >
-                <TabsList id="widget-flavor" className="grid w-full grid-cols-2">
+                <TabsList
+                  id="widget-flavor"
+                  className="grid w-full grid-cols-2"
+                >
                   <TabsTrigger value="drawer">Drawer</TabsTrigger>
                   <TabsTrigger value="popover">Popover</TabsTrigger>
                 </TabsList>
@@ -178,10 +147,7 @@ export function WidgetDocs({
             </Field>
 
             <Field label="Size" hint="Size preset" htmlFor="widget-size">
-              <Select
-                value={size}
-                onValueChange={(v) => setSize(v as Size)}
-              >
+              <Select value={size} onValueChange={(v) => setSize(v as Size)}>
                 <SelectTrigger id="widget-size">
                   <SelectValue />
                 </SelectTrigger>
@@ -239,7 +205,7 @@ export function WidgetDocs({
           </div>
           <div className="relative flex min-h-[140px] w-full items-center justify-center px-4 py-8">
             <FeedbackButton
-              platformId={orgId}
+              platformId=""
               url={previewUrl}
               widget={widget}
               text={text || "Feedback"}
@@ -265,11 +231,7 @@ export function WidgetDocs({
               Usage
             </span>
           </div>
-          <Code
-            code={snippet}
-            lang="tsx"
-            className="rounded-none! border-0"
-          />
+          <Code code={snippet} lang="tsx" className="rounded-none! border-0" />
         </div>
       </div>
     </div>

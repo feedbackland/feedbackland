@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
@@ -20,14 +20,13 @@ const STATUS_COMMENT_PREFIX = "Updated status to%";
  * open, and excluding them is also what lets a finished insight drop off the
  * board on the next run.
  */
-export const getInsightsInputs = async ({ orgId }: { orgId: string }) => {
+export const getInsightsInputs = async ({}: Record<string, never>) => {
   const windowStart = sql<Date>`now() - ${sql.raw(
     `interval '${MOMENTUM_WINDOW_DAYS} days'`,
   )}`;
 
   const postsPromise = db
     .selectFrom("feedback")
-    .where("feedback.orgId", "=", orgId)
     .where((eb) =>
       eb.or([
         eb("feedback.status", "is", null),
@@ -67,7 +66,6 @@ export const getInsightsInputs = async ({ orgId }: { orgId: string }) => {
   const upvotesPromise = db
     .selectFrom("user_upvote")
     .innerJoin("feedback", "feedback.id", "user_upvote.contentId")
-    .where("feedback.orgId", "=", orgId)
     .select([
       "user_upvote.contentId",
       "user_upvote.userId",
@@ -77,7 +75,6 @@ export const getInsightsInputs = async ({ orgId }: { orgId: string }) => {
 
   const totalPromise = db
     .selectFrom("feedback")
-    .where("feedback.orgId", "=", orgId)
     .select((eb) => eb.fn.countAll<string>().as("count"))
     .executeTakeFirst();
 
@@ -94,8 +91,7 @@ export const getInsightsInputs = async ({ orgId }: { orgId: string }) => {
       postsTotal: Number(total?.count ?? 0),
     };
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Could not read feedback for the insights: ${reason}`);
+    throw new Error("Feedback query failed");
   }
 };
 

@@ -1,4 +1,5 @@
-"server-only";
+import "server-only";
+import { log, sqlstate } from "@/lib/log";
 
 import { sql } from "kysely";
 import { db } from "@/db/db";
@@ -17,10 +18,12 @@ export async function checkRateLimit({
   key,
   limit,
   windowSeconds,
+  failClosed = false,
 }: {
   key: string;
   limit: number;
   windowSeconds: number;
+  failClosed?: boolean;
 }): Promise<{ allowed: boolean }> {
   try {
     const result = await sql<{ count: number }>`
@@ -30,7 +33,7 @@ export async function checkRateLimit({
         "count" = CASE
           WHEN "rate_limit"."windowStart" < now() - make_interval(secs => ${windowSeconds})
           THEN 1
-          ELSE "rate_limit"."count" + 1
+          ELSE LEAST("rate_limit"."count" + 1, ${limit + 1})
         END,
         "windowStart" = CASE
           WHEN "rate_limit"."windowStart" < now() - make_interval(secs => ${windowSeconds})
@@ -44,7 +47,7 @@ export async function checkRateLimit({
 
     return { allowed: count <= limit };
   } catch (error) {
-    console.error("Rate limit check failed; allowing request", error);
-    return { allowed: true };
+    log("rate-limit.unavailable", { sqlstate: sqlstate(error) }, "warn");
+    return { allowed: !failClosed };
   }
 }

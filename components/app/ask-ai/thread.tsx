@@ -25,7 +25,7 @@ import {
 import { useMemo, useState, type FC } from "react";
 import { TooltipIconButton } from "@/components/ui/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useSettings } from "@/hooks/use-settings";
 import {
   AskAiNoFeedback,
   AskAiSuggestions,
@@ -294,12 +294,12 @@ const AssistantMessage: FC = () => {
  */
 const CopyAnswer: FC = () => {
   const text = useAuiState(messageText);
-  const platformUrl = usePlatformUrl();
+  const { appUrl } = useSettings();
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
     navigator.clipboard
-      .writeText(rewriteCitationsForCopy(text, platformUrl))
+      .writeText(rewriteCitationsForCopy(text, appUrl))
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);

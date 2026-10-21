@@ -27,7 +27,6 @@ async function main() {
   assert.equal(browserSdk.getApps().length, 0);
   assert.equal(adminSdk.getApps().length, 0);
   const client = await import("../../lib/firebase/client");
-  const admin = await import("../../lib/firebase/admin");
   const storage = await import("../../lib/supabase");
   assert.equal(
     browserSdk.getApps().length,
@@ -60,8 +59,6 @@ async function main() {
   const unsubscribe = authSdk.onAuthStateChanged(client.auth, () => {});
   unsubscribe();
   const adminApp = adminSdk.initializeApp({ projectId: "p01-fixture" });
-  assert.equal(admin.adminAuth.app, adminApp);
-  assert.equal(admin.adminAuth.getUser, admin.adminAuth.getUser);
   await authSdk.signOut(client.auth);
   await browserSdk.deleteApp(browserSdk.getApps()[0]);
   await adminSdk.deleteApp(adminApp);

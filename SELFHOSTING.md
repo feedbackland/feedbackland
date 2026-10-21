@@ -2,12 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P01 supplies a development container and database
-> readiness only. It does not yet supply the single-tenant board, setup flow,
-> replacement authentication, image storage or AI. One-click deployments,
-> backups and release instructions in this document describe later milestones.
-> No stable self-hosted image is published by P01. Do not use this branch with
-> hosted credentials or an existing database.
+> **Implementation status:** P02 boots/migrates a fresh database and serves an
+> anonymous text board at `/`, with persisted posts and singleton settings.
+> Setup/sign-in, comments/voting that need a session, uploads, AI and exact/semantic
+> search are unavailable. P03 framing/header checks and later release gates remain
+> outstanding. The one-click, backup and product instructions below describe later
+> milestones. No stable image is published. Use a new disposable database and an
+> isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
 
@@ -92,7 +93,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P01 contributor verification (development only)**
+**P02 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -106,26 +107,48 @@ npm run build -w feedbackland-react
 npm run typecheck
 npm run build
 docker build --tag feedbackland:ci .
-npm run verify -- --phase 0 --image feedbackland:ci --artifacts artifacts/self-hosting
+npm run verify -- --phase 1 --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
 The verification runner uses only its own temporary Compose project, database,
 ports and volumes, and removes them afterward. It does not read your `.env`.
-It tests readiness with an empty database, outages and recovery, immutable
-application files, runtime configuration and legacy import boundaries. The
-server is transitional: `/api/health` can be healthy while board/setup features
-remain unimplemented.
+It migrates fresh databases and checks the root board, public API/CORS,
+restart persistence, rollback/retry, simultaneous boots, schema/revisions,
+serialized admin query invariants, TLS and source/import boundaries. Its PG15/18,
+vector/halfvec, extension-schema and transaction-pooler fixtures are pinned.
+The injected-secret logging check includes removing the injection on restart.
+No later authentication, image, AI or search gate is counted as a pass.
+
+The separate development smoke check also owns its database and chooses free
+ports; it never stops an existing Postgres service:
+
+```bash
+node --import tsx scripts/e2e/dev-smoke.ts
+```
+
+Boot runs in Next instrumentation in both modes. Do not run a separate migration
+command. For schema development, `npm run db:auth-ddl` needs its **own empty
+database**, and `npm run db:codegen` needs the migrated application database;
+both accept `DATABASE_URL` or the isolated checkout's `.env.local`. Their
+`-- --verify` mode compares output and fails on drift. Never run the auth-DDL
+command against the application database. The single pre-RC migration is edited
+in place, so recreate only the disposable development database after changing it.
 
 For manual inspection, build the same local image and select it explicitly:
 
 ```bash
 docker build --tag feedbackland:dev .
-FEEDBACKLAND_IMAGE=feedbackland:dev docker compose up
+FEEDBACKLAND_IMAGE=feedbackland:dev docker compose -p feedbackland-p02-demo up
 ```
 
+Choose an unused project name in place of `feedbackland-p02-demo`. Ensure your
+shell has no inherited `DATABASE_URL` or hosted credentials before starting.
 PowerShell uses `$env:FEEDBACKLAND_IMAGE = 'feedbackland:dev'` followed by
-`docker compose up`. Stop that disposable project with `docker compose down`.
-Do not reuse a production volume or run schema migration commands from P01.
+`docker compose -p feedbackland-p02-demo up`. Open `http://localhost:3000`;
+there is no setup redirect in P02. Stop that project with
+`docker compose -p feedbackland-p02-demo down`. Its volume preserves posts
+across restarts. Never reuse a production volume. If boot reports missing settings
+on a populated database, restore rather than treating it as an unclaimed install.
 
 For a standalone copy of the committed Compose file (macOS/Linux):
 
@@ -136,7 +159,7 @@ curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbac
 On Windows use `curl.exe`. This download alone does not supply an application
 image: until a release is published, build from a checkout and set
 `FEEDBACKLAND_IMAGE` as above. The default `:1` reference is reserved for the
-future release and is not a P01 installation path.
+future release and is not a P02 installation path.
 
 The download is pinned to the initial P01 Compose revision and remains available
 after the feature branch is deleted. A checkout always contains its matching

@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
 import { getMentionableUsersQuery } from "@/queries/get-mentionable-users";
@@ -8,10 +9,9 @@ export const getMentionableUsers = publicProcedure
       searchValue: z.string(),
     }),
   )
-  .query(async ({ input: { searchValue }, ctx: { orgId } }) => {
+  .query(async ({ input: { searchValue }, ctx: {} }) => {
     try {
       const users = await getMentionableUsersQuery({
-        orgId,
         searchValue,
       });
 

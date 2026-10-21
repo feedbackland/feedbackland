@@ -395,10 +395,17 @@ test environment, not stop an existing Postgres service.
 | Secrets/pools | Settings HTML/API contain no secrets; injected secret never persists/logs; generated secret stable across restart; all bundle layers share configured pool total | V1; V7 |
 | Removal | AST exception only for exact neutralization literals; residue and actual deletion checks run together; no old upsert route/org schema; guarded imports remain correct | V6; V7 |
 
-- [ ] Every row is green; all P01 checks remain green.
-- [ ] The phase report lists auth/upload/search/AI limitations honestly.
-- [ ] PR includes generated DDL/types and a real caller-removal inventory.
-- [ ] No test or script touched an existing application database.
+- [x] Every row is green locally; all P01 checks remain green.
+- [x] The phase report lists auth/upload/search/AI limitations honestly.
+- [x] PR includes generated DDL/types and a real caller-removal inventory.
+- [x] No test or script touched an existing application database.
+
+The [P02 implementation evidence](../reviews/2026-10-18-p02-implementation-evidence.md)
+maps each row to the successful run and records the private setup-code origin
+flag discovered during implementation. The
+[caller inventory](../reviews/2026-10-18-p02-caller-inventory.md) records actual
+importers. These local checks do not replace green CI at the final PR revision
+or independent review before merge.
 
 **Rollback:** revert on the integration branch and recreate only its disposable
 DB when returning to the legacy schema. An operator DB unexpectedly containing

@@ -12,7 +12,7 @@ import { TiptapOutput } from "@/components/ui/tiptap-output";
 export type CommentReplyMeta = {
   commentId: string;
   parentCommentId: string | null;
-  authorId: string;
+  authorId: string | null;
   authorName: string | null;
 };
 
@@ -37,12 +37,13 @@ export function CommentInner({
     parentCommentId,
     postId,
     content,
+    revision,
     createdAt,
     upvotes,
     authorId,
     authorName,
     authorRole,
-    authorPhotoURL,
+    authorImage,
     hasUserUpvote,
   } = comment;
 
@@ -54,7 +55,7 @@ export function CommentInner({
         <CommentHeader
           authorName={authorName}
           authorRole={authorRole}
-          authorPhotoURL={authorPhotoURL}
+          authorImage={authorImage}
           createdAt={createdAt}
           isExpanded={isExpanded}
         />
@@ -88,6 +89,7 @@ export function CommentInner({
             </>
           ) : (
             <CommentEdit
+              expectedRevision={revision}
               postId={postId}
               commentId={id}
               content={content}

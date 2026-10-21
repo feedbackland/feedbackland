@@ -109,7 +109,7 @@ await writeFile(
       architecture,
       buildNonce,
       artifactId,
-      // Vercel accepts at most 32 URL-safe characters (128 bits of this hash).
+      // The deployment platform accepts at most 32 URL-safe characters (128 bits of this hash).
       deploymentId: artifactId.slice(0, 32),
       version: `${pkg.version}+${artifactId.slice(0, 12)}`,
     },

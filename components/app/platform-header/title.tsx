@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
-import { useOrg } from "@/hooks/use-org";
+import { useBoardHref } from "@/hooks/use-board-href";
+import { useSettings } from "@/hooks/use-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -12,11 +12,10 @@ export function PlatformHeaderTitle({
 }: {
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
 
-  const {
-    query: { data: orgData, isPending },
-  } = useOrg();
+  const settings = useSettings();
+  const isPending = false;
 
   return (
     <div className={cn("w-full", className)}>
@@ -25,19 +24,19 @@ export function PlatformHeaderTitle({
       ) : (
         <h1 className="text-xl font-bold tracking-tight">
           <Link
-            href={`${platformUrl}`}
+            href={href(`/`)}
             className="flex items-center gap-2 focus-visible:outline-none"
           >
-            {orgData?.logo && (
+            {settings?.logoUrl && (
               <Image
-                src={orgData.logo}
+                src={settings.logoUrl}
                 alt="logo"
                 width={30}
                 height={30}
                 className="size-[30px] rounded-sm object-contain"
               />
             )}
-            <span>{orgData?.platformTitle || "Feedback board"}</span>
+            <span>{settings?.platformTitle || "Feedback board"}</span>
           </Link>
         </h1>
       )}

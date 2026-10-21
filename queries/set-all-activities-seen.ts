@@ -1,13 +1,11 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 
 export const setAllActivitiesSeenQuery = async ({
   userId,
-  orgId,
 }: {
   userId: string;
-  orgId: string;
 }) => {
   try {
     await db
@@ -16,13 +14,11 @@ export const setAllActivitiesSeenQuery = async ({
       .expression((eb) =>
         eb
           .selectFrom("feedback")
-          .where("orgId", "=", orgId)
           .select([eb.val(userId).as("userId"), "feedback.id as itemId"])
           .union(
             eb
               .selectFrom("comment")
               .innerJoin("feedback", "comment.postId", "feedback.id")
-              .where("feedback.orgId", "=", orgId)
               .select([eb.val(userId).as("userId"), "comment.id as itemId"]),
           ),
       )
