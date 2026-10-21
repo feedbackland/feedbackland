@@ -35,20 +35,25 @@ eight PG15/PG18 × public/extensions × 768/3072 cases, generated DDL/type
 agreement, transaction-mode PgBouncer, rollback/concurrent boot, verified TLS,
 API/CORS/persistence/secrets/pools, fatal bounds and cleanup.
 
-The [last completed local run](2026-10-21-p02-review-verification.json),
-`p02-1792570563337-5a3b2632`, passed all thirteen groups, including cleanup.
+The [final local run](2026-10-21-p02-review-verification.json),
+`p02-1792576014416-a7c4e7b5`, passed all thirteen groups, including cleanup,
+on the submitted code revision `bd4f2f94e59e6b9d11eb4d97bf4ecfe8301ce12e`.
 The separate development smoke and browser checks also passed. Scoped lint
-covered 200 files; the structural scan covered 410 files. Local images are
-built from uncommitted files and correctly record `sourceCommit: null`; the
-verifier matched the source fingerprint against the working tree.
+covered 200 files; the structural scan covered 410 files. The final image
+records that explicit source commit; the verifier matched both its source
+fingerprint and commit against the checkout.
 
-That full run preceded a final import-order cleanup in `lib/revision.ts`.
-The final offline image build and TypeScript check passed afterward, but
-Docker Desktop then stopped and failed to restart because of its stale
-`dockerInference` runtime socket. A final local rerun and removal of the two
-browser fixture containers/network remain pending restoration of Docker.
-The completed verifier's own resources were removed successfully. No
-operator database or dotenv files were used.
+Docker Desktop stopped between the earlier run and final verification. After
+the operator repaired it, the submitted source was rebuilt and the complete
+verifier rerun successfully. The old browser containers were absent on the
+restored engine; their empty, identity-checked network was removed. The final
+verifier also removed all its owned resources. No operator database or dotenv
+files were used.
+
+[GitHub CI](https://github.com/feedbackland/feedbackland/actions/runs/39577866481)
+passed foundations and development boot at the submitted code revision;
+[Vercel](https://vercel.com/feedbackland-org/feedbackland/5Du7JafR7fVMSQb26R5hReghZ3sV)
+also succeeded. This evidence-only follow-up does not change application code.
 
 CI rebuilds the actual submitted checkout with an explicit commit identity
 and reruns every group. Require green checks on the follow-up PR's final
