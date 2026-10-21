@@ -1,6 +1,7 @@
 # P03 surface isolation, framing and navigation
 
-P03 builds on merged P02 and retains the six review fixes from PR #13. It
+P03 builds on merged P02 and retains the original six P02 review fixes and all
+four follow-up PR #13 corrections. It
 changes provider ownership, browser transports, framing, navigation, metadata
 and content/clipboard output. It does not change the database schema or enable
 authentication. Merge PR #13 before this milestone.
@@ -64,6 +65,12 @@ retains every phase-1 group and adds static SSR/content checks plus the
 Chromium drawer harness. CI installs the pinned Playwright Chromium and runs
 that cumulative entrypoint, alongside the separate development smoke.
 
+The PR #13 follow-up adds mandatory production settings form/hook browser
+regressions and adapter/SQL coverage for maximum-text post edits and empty
+normalized input. The combined branch preserves P03's status sanitization and
+phase-2 run guards, installs Chromium once, and retains all preceding gates.
+See the [four-finding resolution record](2026-10-21-p13-review-follow-up.md).
+
 The first cumulative attempt exposed a phase-1-only run-ID guard, which now
 accepts phase 2. A fresh Windows checkout also converted the generated schema
 to CRLF, failing the generator's exact comparison despite unchanged types.
@@ -99,27 +106,35 @@ not treated as test-owned.
 
 ## Validation record
 
-Final local run `p03-1792581110380-3de2f39d` passed all 15 cumulative groups,
-including the revised tmpfs/no-volume assertion and full browser matrix.
+Final local run `p03-1792591887959-c2708b0c` passed all **16** cumulative groups,
+including the four follow-up fixes, tmpfs/no-volume assertion and full browser matrix.
 The [machine-readable report](2026-10-21-p03-verification.json) records each
 group. The equivalent direct Node entrypoint was used to retain console output:
-`node --conditions=react-server --import tsx scripts/verify.ts --phase 2 --image feedbackland:ci --artifacts artifacts/self-hosting`.
+`node --conditions=react-server --import tsx scripts/verify.ts --phase 2 --image feedbackland:p03-review-fixes --artifacts artifacts/self-hosting`.
 CI continues to exercise the canonical npm entrypoint.
 
-- Local image: `sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae`.
-- Image artifact identity: `b3885472358ddd1e559f6081c20753adceb90bd7abb6a67cc77aae0374de5b80`.
-- Verified source tree: `c74dbe65a2235a231cad6efdd84b07295b37b7a5d6db43a1009181e205ad20a1`.
+- Local image: `sha256:9a13b8681ec06618a1baac1a8814653b16601ec6805d19a872288f151739df47`.
+- Image artifact identity: `842daa8af546e9037976ae5c7b95b8a660fc66ea087874ef5e27a59526eb794d`.
+- Verified source tree: `f93d9926ed39c0476524fa9ebb4171f75a65b970895a8a0be8df38426dda13b9`.
 - Offline production build, TypeScript, scoped lint and caller inventory passed.
 - Separate development boot, migration, singleton settings and root board passed.
 - No phase-2 containers or networks remained after the final run.
 
-This image was built from the P03 working tree before its commit, so its
-`sourceCommit` is explicitly null. The report's checkout is the parent commit;
+This local image was built without `SOURCE_COMMIT`, which is explicitly null.
+The report's checkout is merge commit `5d1ce52`, before this evidence update;
 the verified source-tree fingerprint identifies the tested production inputs.
 CI independently rebuilds the submitted merge checkout with `SOURCE_COMMIT`
 enforced; its final revision and results are visible on the implementation PR.
 
-One later npm/tsx invocation exited before writing a result; its exact Compose
+The preceding 15-group implementation run remains in commit `fe97be5`.
+The first cumulative follow-up attempt ended with the same native Windows
+Node worker exit (`3221226505`) noted in PR #13's local evidence. Its cleanup
+passed, as did the complete worker on a fresh PG15 fixture. The final full run
+above passed without skipping any gate. Worker stage diagnostics now identify
+the last completed assertion group if a native exit recurs. Its cause remains
+unestablished; this is not recorded as a repaired runtime defect.
+
+During the initial implementation, one npm/tsx invocation exited before writing a result; its exact Compose
 project and volumes were removed. Its empty temporary folder
 `p03-1792580979405-de9d7bb5-KhUezB` (only a zero-byte `.env`) remains locally:
 automatic approval review rejected its removal as "blocked by policy" without

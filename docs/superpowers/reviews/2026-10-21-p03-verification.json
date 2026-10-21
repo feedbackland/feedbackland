@@ -1,16 +1,16 @@
 {
-  "runId": "p03-1792581110380-3de2f39d",
+  "runId": "p03-1792591887959-c2708b0c",
   "phase": 2,
-  "image": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+  "image": "sha256:9a13b8681ec06618a1baac1a8814653b16601ec6805d19a872288f151739df47",
   "status": "passed",
   "checks": [
     {
       "check": "static/import-boundaries",
       "status": "passed",
       "evidence": {
-        "checkout": "da1ffbe532e3b0868a5cb048f5bdb50cc07e513f",
-        "sourceTreeHash": "c74dbe65a2235a231cad6efdd84b07295b37b7a5d6db43a1009181e205ad20a1",
-        "hostArtifactId": "cdb8a28a490cb87ac35402d938b195852de62802d30998901a9d9a5bcd448070",
+        "checkout": "5d1ce52925bdde04d9a462811c9ead429966a808",
+        "sourceTreeHash": "f93d9926ed39c0476524fa9ebb4171f75a65b970895a8a0be8df38426dda13b9",
+        "hostArtifactId": "b9d7d04da57969511b9fc60de50487c49420cd6a0af6fdaba91a04be47724bca",
         "importBoundaries": "passed",
         "readinessBounds": "passed",
         "changedCodeLint": "passed",
@@ -24,20 +24,20 @@
       "check": "static/removal-configuration",
       "status": "passed",
       "evidence": {
-        "scannedFiles": 422,
+        "scannedFiles": 423,
         "literalExceptions": 17,
         "computedOrExtraReferences": "rejected",
         "actualEnvironmentDeletion": "passed",
-        "lintedFiles": 170
+        "lintedFiles": 173
       }
     },
     {
       "check": "image/identity/filesystem",
       "status": "passed",
       "evidence": {
-        "imageId": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+        "imageId": "sha256:9a13b8681ec06618a1baac1a8814653b16601ec6805d19a872288f151739df47",
         "sourceCommit": null,
-        "artifactId": "b3885472358ddd1e559f6081c20753adceb90bd7abb6a67cc77aae0374de5b80",
+        "artifactId": "842daa8af546e9037976ae5c7b95b8a660fc66ea087874ef5e27a59526eb794d",
         "architecture": "amd64",
         "forbiddenFiles": 0,
         "prerenderedRoutes": [
@@ -57,9 +57,9 @@
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+b3885472358d"
+            "version": "0.1.0+842daa8af546"
           },
-          "elapsedMs": 33
+          "elapsedMs": 32
         },
         "boardPage": "/",
         "writes": "only declared tmpfs"
@@ -70,22 +70,22 @@
       "status": "passed",
       "evidence": {
         "concurrentRequests": 40,
-        "maximumMs": 1769,
+        "maximumMs": 1768,
         "stoppedDatabase": {
           "status": 503,
           "body": {
             "status": "down",
-            "version": "0.1.0+b3885472358d"
+            "version": "0.1.0+842daa8af546"
           },
-          "elapsedMs": 1906
+          "elapsedMs": 1907
         },
         "restoredDatabase": {
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+b3885472358d"
+            "version": "0.1.0+842daa8af546"
           },
-          "elapsedMs": 14
+          "elapsedMs": 15
         },
         "restarts": 0
       }
@@ -100,9 +100,9 @@
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+b3885472358d"
+            "version": "0.1.0+842daa8af546"
           },
-          "elapsedMs": 317
+          "elapsedMs": 315
         },
         "explicitBadHostnameExit": 1
       }
@@ -111,10 +111,15 @@
       "check": "cleanup",
       "status": "passed",
       "evidence": {
-        "project": "p03-1792581110380-3de2f39d",
+        "project": "p03-1792591887959-c2708b0c",
         "temporaryDirectoryRemoved": true,
         "resourceCleanup": "passed"
       }
+    },
+    {
+      "check": "client/settings-drafts-and-revisions",
+      "status": "passed",
+      "evidence": "settings browser: both dirty drafts, unrelated-field rebasing, same-field conflicts, cancel and failed refetch recovery passed"
     },
     {
       "check": "schema/pg15-pg18-dimensions-ddl-types",
@@ -288,17 +293,17 @@
         {
           "case": "missing",
           "exit": 1,
-          "elapsedMs": 910
+          "elapsedMs": 893
         },
         {
           "case": "unreachable",
           "exit": 1,
-          "elapsedMs": 90894
+          "elapsedMs": 90909
         },
         {
           "case": "invalid-tls",
           "exit": 1,
-          "elapsedMs": 894
+          "elapsedMs": 954
         }
       ]
     },
@@ -324,11 +329,11 @@
       "check": "surface/drawer-navigation-isolation-clipboard",
       "status": "passed",
       "evidence": {
-        "image": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae",
+        "image": "sha256:9a13b8681ec06618a1baac1a8814653b16601ec6805d19a872288f151739df47",
         "proxyBypassFixture": {
-          "image": "sha256:2fecfd40dbc90b1ca2689ee4558654df9749e84e02d7733eff2bae7a40e0402d",
+          "image": "sha256:115ef66b637879cb6c23f9967ff56444ebbcd5a3700380e1b6edc6c5aa5f1732",
           "change": "generated proxy registration removed",
-          "productionBase": "sha256:0d6f708d0eede1361c73101bc1f0294d09da5128caf820433880eb1dcff927ae"
+          "productionBase": "sha256:9a13b8681ec06618a1baac1a8814653b16601ec6805d19a872288f151739df47"
         },
         "engine": "chromium",
         "headers": "passed",

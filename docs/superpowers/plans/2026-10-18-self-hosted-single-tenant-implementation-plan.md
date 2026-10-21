@@ -1,7 +1,8 @@
 # Self-hosted single-tenant implementation PR sequence
 
 **Date:** 2026-10-18. **Execution update (2026-10-21):** P01/P02 merged;
-P02 review fixes submitted as PR #13; P03 implemented and all 15 cumulative
+P02 review fixes, including the four follow-up findings, submitted as PR #13;
+P03 retains those fixes and all 16 cumulative
 phase-2 groups passed locally; independent review is next.
 **Baseline:** `e159987a9d15d09c0b08c505cf644f34b8470f14`, branch
 `single-tenant-self-hosting`. **Integration PR:** [#10](https://github.com/feedbackland/feedbackland/pull/10).
@@ -424,7 +425,8 @@ summarized here.
 ### P03 — Surface isolation, framing and navigation (phase 2)
 
 Execution update (2026-10-21): P01 and P02 are merged into the integration
-branch. PR #13 resolves the six P02 review findings; retain those fixes while
+branch. PR #13 resolves the six P02 review findings and four follow-up review
+findings; retain all those fixes while
 developing P03 and merge that follow-up first. P03's internal edit order is:
 
 1. Resolve the board surface before mounting any credential/query provider;
@@ -459,7 +461,7 @@ post UUID route, global error page and Tiptap output/status/link handling.
 **Revert boundary:** UI/provider/header change; retain P02 schema. **Next:** P04.
 
 **Evidence (2026-10-21):** [implementation and limits](../reviews/2026-10-21-p03-implementation-evidence.md)
-and [15 passing cumulative groups](../reviews/2026-10-21-p03-verification.json).
+and [16 passing cumulative groups](../reviews/2026-10-21-p03-verification.json).
 Development boot/migration/settings smoke also passed. P04 remains unstarted
 until the review-fix follow-up and this milestone are reviewed and merged.
 

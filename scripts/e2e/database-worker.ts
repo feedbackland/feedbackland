@@ -201,10 +201,15 @@ async function main() {
     return;
   }
   await schemaAssertions();
+  console.error("database worker: schema assertions passed");
   const actor = await membershipAndReplies();
+  console.error("database worker: membership/replies passed");
   await revisions(actor);
+  console.error("database worker: revisions passed");
   await readSurfaces(actor);
+  console.error("database worker: read surfaces passed");
   await rpcContracts(actor);
+  console.error("database worker: RPC contracts passed");
   await sql`alter table rate_limit rename to rate_limit_fixture`.execute(db);
   try {
     assert.equal(
