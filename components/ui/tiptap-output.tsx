@@ -1,8 +1,13 @@
 "use client";
-
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { isStatusLabel, STATUS_LABELS } from "@/lib/feedback-status";
 import DOMPurify from "dompurify";
-import parse, { Element } from "html-react-parser";
+import parse, {
+  domToReact,
+  Element,
+  type DOMNode,
+  type HTMLReactParserOptions,
+} from "html-react-parser";
 import { memo } from "react";
 import Image from "next/image";
 
@@ -17,80 +22,71 @@ export const TiptapOutput = memo(function TiptapOutput({
   forbiddenAttr?: string[];
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const sanitizedHtml = DOMPurify.sanitize(content, {
+  const sanitized = DOMPurify.sanitize(content, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: forbiddenTags,
     FORBID_ATTR: forbiddenAttr,
   });
-
-  const parsedHtml = parse(sanitizedHtml, {
-    replace: (domNode) => {
-      if (domNode instanceof Element) {
-        if (
-          !forbiddenTags.includes("span") &&
-          domNode.name === "span" &&
-          domNode.attribs &&
-          domNode.attribs?.["data-type"] === "status" &&
-          domNode.attribs?.["data-label"]
-        ) {
-          const status = domNode.attribs?.["data-label"];
-          const statusLabel = capitalizeFirstLetter(
-            domNode.attribs?.["data-label"].replace("-", " "),
-          );
-
-          return <span className={`text-${status}`}>{statusLabel}</span>;
-        }
-
-        // if (
-        //   !forbiddenTags.includes("span") &&
-        //   domNode.name === "span" &&
-        //   domNode.attribs &&
-        //   domNode.attribs?.["data-type"] === "mention" &&
-        //   domNode.attribs?.["data-label"]
-        // ) {
-        //   const mentionName = domNode.attribs?.["data-label"];
-        //   return (
-        //     <span className="bg-primary/10 rounded-md box-decoration-clone px-1.5 py-1 font-semibold">
-        //       {`@${mentionName}`}
-        //     </span>
-        //   );
-        // }
-
-        if (
-          !forbiddenTags.includes("a") &&
-          domNode.name === "img" &&
-          domNode.attribs
-        ) {
-          const imageUrl = domNode.attribs.src;
-          const width = Number(domNode.attribs.width);
-          const height = Number(domNode.attribs.height);
-
-          return (
-            <a target="_blank" rel="noopener noreferrer" href={imageUrl}>
-              {/* <img
-                src={imageUrl}
-                alt="Uploaded user image"
-                width={width}
-                height={height}
-                alt="User-uploaded image"
-              /> */}
-
-              <Image
-                src={imageUrl}
-                alt="Uploaded user image"
-                width={width}
-                height={height}
-                // quality={10}
-                className="max-w-full"
-              />
-            </a>
-          );
-        }
+  const options: HTMLReactParserOptions = {
+    replace(node) {
+      if (!(node instanceof Element)) return;
+      if (node.name === "span" && node.attribs["data-type"] === "status") {
+        const status = node.attribs["data-label"];
+        if (!status)
+          return <>{domToReact(node.children as DOMNode[], options)}</>;
+        return isStatusLabel(status) ? (
+          <span className={`text-${status}`}>{STATUS_LABELS[status]}</span>
+        ) : (
+          <>{status}</>
+        );
       }
-
-      return undefined;
+      if (node.name === "a")
+        return (
+          <a
+            href={node.attribs.href}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            {domToReact(node.children as DOMNode[], options)}
+          </a>
+        );
+      if (node.name === "img") {
+        const src = node.attribs.src;
+        if (!src) return <></>;
+        const width = Number(node.attribs.width),
+          height = Number(node.attribs.height);
+        const image =
+          Number.isFinite(width) &&
+          width > 0 &&
+          Number.isFinite(height) &&
+          height > 0 ? (
+            <Image
+              src={src}
+              alt={node.attribs.alt ?? "Uploaded image"}
+              width={width}
+              height={height}
+              className="max-w-full"
+            />
+          ) : (
+            <img
+              src={src}
+              alt={node.attribs.alt ?? "Uploaded image"}
+              className="max-w-full"
+            />
+          );
+        return forbiddenTags.includes("a") ? (
+          image
+        ) : (
+          <a href={src} target="_blank" rel="noopener noreferrer nofollow">
+            {image}
+          </a>
+        );
+      }
     },
-  });
-
-  return <div className={cn("tiptap-output", className)}>{parsedHtml}</div>;
+  };
+  return (
+    <div className={cn("tiptap-output", className)}>
+      {parse(sanitized, options)}
+    </div>
+  );
 });

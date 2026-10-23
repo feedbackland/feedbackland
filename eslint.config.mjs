@@ -1,5 +1,6 @@
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import { fixupConfigRules } from "@eslint/compat";
 
 // Native flat config. `eslint-config-next` 16 ships its shareable configs as
 // flat-config arrays (`Linter.Config[]`), so they are spread in directly rather
@@ -54,4 +55,6 @@ const eslintConfig = [
   },
 ];
 
-export default eslintConfig;
+// Legacy React rules still call RuleContext methods removed by ESLint 10.
+// Restore those APIs without disabling rules or excluding application files.
+export default fixupConfigRules(eslintConfig);

@@ -1,0 +1,15 @@
+{"test":"embedded admin permission mapping","role":"admin","scope":"embedded","existingEditDeletePredicate":true,"scopedAdminPredicate":false}
+{"test":"name-only update with specified avatar hook","image":null}
+{"test":"status-and-message logging","privateMarkerInMessage":true}
+{"test":"TLS mapping","originalTls":true,"specifiedTls":false}
+{"test":"natural timestamp collisions","pairs":100,"collisions":74}
+{"test":"stale embedding with equal admitted timestamps","rows":[{"body":"new edit","embedding":"vector for old edit"}]}
+{"test":"later commit timestamp","wentBackwards":true}
+{"test":"mutual admin demotion","remainingAdmins":0}
+{"test":"sum-then-insert quota","cap":10,"actual":11}
+{"test":"unconstrained insights singleton","running":2}
+{"test":"cross-post parent cascade","commentsLeftOnUnrelatedPost":0}
+{"test":"last-four identity collision","sameLastFour":true,"sameSha256":false}
+{"test":"multilingual embedding token cap","characters":5999,"tokens":8999}
+{"test":"V6 versus required neutralisation","requiredLiteral":"VERCEL_URL","rejected":true}
+{"test":"retained proof schema","schema":"review_8070763499d8"}

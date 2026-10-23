@@ -3,7 +3,6 @@ import {
   feedbackOrderBySchema,
   feedbackStatusSchema,
   feedbackCategorySchema,
-  upsertUserSchema,
   userRoleSchema,
   feedbackPostsCursorSchema,
   feedbackCategoriesSchema,
@@ -17,8 +16,6 @@ export type FeedbackOrderBy = z.infer<typeof feedbackOrderBySchema>;
 export type FeedbackCategory = z.infer<typeof feedbackCategorySchema>;
 
 export type FeedbackCategories = z.infer<typeof feedbackCategoriesSchema>;
-
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 export type UserRole = z.infer<typeof userRoleSchema>;
 
@@ -36,7 +33,6 @@ export type Admin = {
 };
 
 export type ActivityFeedItem = {
-  orgId: string;
   id: string;
   postId: string;
   commentId: string | null;
@@ -50,7 +46,7 @@ export type ActivityFeedItem = {
   commentCount: string | null;
   authorId: string | null;
   authorName?: string | null;
-  authorPhotoURL?: string | null;
+  authorImage?: string | null;
   isSeen?: boolean;
 };
 
@@ -129,8 +125,4 @@ export type Insights = {
   run: InsightsRun | null;
   /** Open posts available to analyse right now, for the empty and first-run states. */
   openPostCount: number;
-};
-
-export type IframeParentAPI = {
-  close: () => void;
 };

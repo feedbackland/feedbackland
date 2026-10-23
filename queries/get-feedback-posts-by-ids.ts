@@ -1,20 +1,18 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 
 /**
- * Scoped to the org, not just to the ids. Both callers resolve ids that came
+ * Scoped to the board, not just to the ids. Both callers resolve ids that came
  * out of a model — the posts behind an insight, and the posts an Ask AI answer
  * cites — and an id is only ever meant to name a post on the board being looked
- * at. Filtering on `orgId` is what makes a made-up id resolve to nothing rather
- * than to some other org's post.
+ * at. Filtering on the primary key is what makes a made-up id resolve to nothing rather
+ * than to some other board's post.
  */
 export const getFeedbackPostsByIdsQuery = async ({
   ids,
-  orgId,
 }: {
   ids: string[];
-  orgId: string;
 }) => {
   if (!ids || ids.length === 0) {
     return [];
@@ -24,7 +22,6 @@ export const getFeedbackPostsByIdsQuery = async ({
     const feedbackPosts = await db
       .selectFrom("feedback")
       .where("id", "in", ids)
-      .where("feedback.orgId", "=", orgId)
       .select([
         "feedback.title",
         "feedback.id",
@@ -44,9 +41,6 @@ export const getFeedbackPostsByIdsQuery = async ({
 
     return feedbackPosts;
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `Failed to retrieve feedback posts by IDs. Reason: ${reason}`,
-    );
+    throw new Error("Feedback query failed");
   }
 };

@@ -1,12 +1,8 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/use-auth";
-import { TRPCClientProvider } from "@/providers/trpc-client";
-import { JotaiProvider } from "@/providers/jotai";
 import { ThemeProvider } from "@/providers/theme";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -37,21 +33,16 @@ import { Toaster } from "@/components/ui/sonner";
 //     Set here rather than from the layout because only the root layout owns
 //     <html>, and reading the proxy's header there would opt the last two
 //     statically-rendered routes into dynamic rendering.
-const bootScript = `(function(){try{var s=new URLSearchParams(window.location.search);var m=s.get('mode');if(m==='dark'||m==='light'){window.localStorage.setItem('feedbackland-embed-theme',m);var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(m);e.style.colorScheme=m;}if(s.get('embed')==='drawer'){document.documentElement.classList.add('fl-embed-drawer');}}catch(e){}try{if(window.parent!==window){window.parent.postMessage({type:'feedbackland:loading'},'*');}}catch(e){}})();`;
+const bootScript = `(function(){try{var s=new URLSearchParams(window.location.search);var d=s.getAll('embed').includes('drawer');var m=s.get('mode');if(d&&(m==='dark'||m==='light')){window.localStorage.setItem('feedbackland-embed-theme',m);var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(m);e.style.colorScheme=m;}if(d){document.documentElement.classList.add('fl-embed-drawer');}}catch(e){}try{if(window.parent!==window){window.parent.postMessage({type:'feedbackland:loading'},'*');}}catch(e){}})();`;
 
 export const metadata: Metadata = {
-  title: "Feedbackland",
-  description: "User Feedback Platform",
+  title: "Feedback",
   robots: {
     index: false,
     follow: false,
     googleBot: {
       index: false,
       follow: false,
-      noimageindex: true,
-      "max-video-preview": -1,
-      "max-image-preview": "none",
-      "max-snippet": -1,
     },
   },
 };
@@ -63,45 +54,23 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const roboto_mono = Roboto_Mono({
-  subsets: ["latin"],
-  variable: "--font-roboto-mono",
-  display: "swap",
-});
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${roboto_mono.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning>
       <body className="bg-muted/50 dark:bg-background">
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
         <Suspense>
           <ThemeProvider>
-            <TRPCClientProvider>
-              <AuthProvider>
-                <TooltipProvider delayDuration={0}>
-                  <JotaiProvider>
-                    <NuqsAdapter>
-                      {children}
-                      <Toaster />
-                    </NuqsAdapter>
-                  </JotaiProvider>
-                </TooltipProvider>
-              </AuthProvider>
-            </TRPCClientProvider>
+            <TooltipProvider delayDuration={0}>
+              <NuqsAdapter>
+                {children}
+                <Toaster />
+              </NuqsAdapter>
+            </TooltipProvider>
           </ThemeProvider>
         </Suspense>
       </body>

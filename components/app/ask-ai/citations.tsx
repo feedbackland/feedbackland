@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFeedbackPostsByIds } from "@/hooks/use-feedback-posts-by-ids";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useSettings } from "@/hooks/use-settings";
 
 /**
  * The posts an answer cites, numbered.
@@ -32,7 +32,7 @@ type Citations = {
   order: string[];
   resolved: boolean;
   /** Null only until the board's own URL is known, which needs the window. */
-  platformUrl: string | null;
+  appUrl: string | null;
 };
 
 /**
@@ -44,18 +44,18 @@ type Citations = {
  * will actually fix.
  */
 function PostLink({
-  platformUrl,
+  appUrl,
   postId,
   className,
   children,
   ...rest
 }: {
-  platformUrl: string | null;
+  appUrl: string | null;
   postId: string;
   className: string;
   children: ReactNode;
 } & Pick<React.ComponentProps<"a">, "aria-label">) {
-  if (!platformUrl) {
+  if (!appUrl) {
     return (
       <span className={className} {...rest}>
         {children}
@@ -65,7 +65,7 @@ function PostLink({
 
   return (
     <a
-      href={`${platformUrl}/${postId}`}
+      href={`${appUrl}/${postId}`}
       target="_blank"
       rel="noreferrer"
       className={className}
@@ -93,7 +93,7 @@ export function CitationsProvider({
   isComplete: boolean;
   children: ReactNode;
 }) {
-  const platformUrl = usePlatformUrl();
+  const { appUrl } = useSettings();
 
   const {
     query: { data: posts },
@@ -117,9 +117,9 @@ export function CitationsProvider({
       titles,
       order,
       resolved,
-      platformUrl,
+      appUrl,
     };
-  }, [posts, postIds, platformUrl]);
+  }, [posts, postIds, appUrl]);
 
   return (
     <CitationsContext.Provider value={value}>
@@ -143,7 +143,7 @@ export function Citation({ postId }: { postId: string }) {
 
   const link = (
     <PostLink
-      platformUrl={citations.platformUrl}
+      appUrl={citations.appUrl}
       postId={postId}
       aria-label={title ? `Source ${number}: ${title}` : `Source ${number}`}
       className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-sm px-1 align-super text-[10px] font-medium tabular-nums no-underline transition-colors"
@@ -186,7 +186,7 @@ export function CitationSources() {
               {index + 1}
             </span>
             <PostLink
-              platformUrl={citations.platformUrl}
+              appUrl={citations.appUrl}
               postId={id}
               className="min-w-0 truncate leading-snug hover:underline"
             >

@@ -39,6 +39,8 @@ export const Link = TiptapLink.extend({
       openOnClick: false,
       HTMLAttributes: {
         class: "link",
+        target: "_blank",
+        rel: "noopener noreferrer nofollow",
       },
     } as any;
   },

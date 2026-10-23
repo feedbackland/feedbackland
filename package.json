@@ -5,9 +5,6 @@
   "workspaces": [
     "feedbackland-react"
   ],
-  "overrides": {
-    "jose": "^5.10.0"
-  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "npm run build -w feedbackland-react && next build",
@@ -15,12 +12,14 @@
     "release:react": "npm version patch -w feedbackland-react && npm publish -w feedbackland-react",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
     "lint": "node --require ./scripts/eslint-ts6-resolver.cjs ./node_modules/eslint/bin/eslint.js .",
-    "migrate-make": "npx kysely migrate:make -x ts",
-    "migrate-up": "npx kysely migrate:up",
-    "migrate-down": "npx kysely migrate:down",
-    "kysely-codegen": "npx kysely-codegen --dialect postgres --out-file db/schema.ts",
-    "schema-dump": "npx supabase db dump -f db/schema.sql",
-    "widget-dev": "concurrently -k -n vite,next \"npm run build:watch -w feedbackland-react\" \"next dev --turbopack\""
+    "widget-dev": "concurrently -k -n vite,next \"npm run build:watch -w feedbackland-react\" \"next dev --turbopack\"",
+    "identity": "node scripts/build-identity.mjs",
+    "prebuild": "npm run identity -- --fresh",
+    "pretypecheck": "npm run identity",
+    "predev": "npm run identity",
+    "verify": "tsx --conditions=react-server scripts/verify.ts",
+    "db:auth-ddl": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/print-auth-ddl.ts",
+    "db:codegen": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/codegen.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.69",
@@ -83,6 +82,7 @@
     "@types/html-to-text": "^9.0.4",
     "@types/pg": "^8.23.1",
     "ai": "^7.0.99",
+    "better-auth": "1.7.6",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -104,12 +104,10 @@
     "kysely": "^0.29.5",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.45.0",
-    "next": "^16.3.5",
-    "next-safe-action": "^8.7.3",
+    "next": "^16.4.2",
     "next-themes": "^0.4.6",
     "node-html-parser": "^9.0.4",
     "nuqs": "^2.10.1",
-    "penpal": "^8.0.1",
     "pg": "^8.23.0",
     "pgvector": "^0.3.0",
     "radix-ui": "^1.6.7",
@@ -147,6 +145,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@eslint/compat": "2.1.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/he": "^1.2.3",
     "@types/node": "^26.5.1",
@@ -159,11 +158,16 @@
     "eslint": "^10.10.0",
     "eslint-config-next": "^16.3.5",
     "kysely-codegen": "^0.20.0",
-    "kysely-ctl": "^0.21.0",
+    "playwright": "1.64.1",
     "postcss": "^8.5.28",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "4.23.15",
     "typescript": "7.0.2"
-  }
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "license": "MIT"
 }

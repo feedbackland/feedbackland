@@ -1,16 +1,14 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
 
 export const getCommentsQuery = async ({
-  orgId,
   postId,
   userId,
   limit,
   cursor,
 }: {
-  orgId: string;
   postId: string;
   userId?: string | null;
   limit: number;
@@ -21,11 +19,6 @@ export const getCommentsQuery = async ({
       .selectFrom("comment")
       .leftJoin("user", (join) =>
         join.onRef("comment.authorId", "=", "user.id"),
-      )
-      .leftJoin("user_org", (join) =>
-        join
-          .onRef("comment.authorId", "=", "user_org.userId")
-          .on("user_org.orgId", "=", orgId),
       )
       .leftJoin("user_upvote", (join) =>
         join
@@ -38,12 +31,15 @@ export const getCommentsQuery = async ({
         "comment.postId",
         "comment.createdAt",
         "comment.updatedAt",
+        "comment.revision",
+        "comment.moderationState",
         "comment.authorId",
         "comment.content",
         "comment.upvotes",
         "user.name as authorName",
-        "user.photoURL as authorPhotoURL",
-        "user_org.role as authorRole",
+        sql<"admin" | "user" | null>`"user".role`.as("authorRole"),
+        "user.image as authorImage",
+
         (eb) =>
           eb
             .case()

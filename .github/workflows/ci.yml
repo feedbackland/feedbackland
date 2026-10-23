@@ -1,0 +1,69 @@
+name: Self-hosting phase 2
+on:
+  push:
+    branches: [main, single-tenant-self-hosting]
+  pull_request:
+    branches: [main, single-tenant-self-hosting]
+permissions:
+  contents: read
+jobs:
+  foundations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      SOURCE_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build -w feedbackland-react
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Build exact checkout with dotenv decoys
+        run: |
+          printf 'P01_BUILD_DECOY=must-never-ship\n' > .env
+          printf 'P01_BUILD_DECOY=must-never-ship\n' > .env.production
+          docker build --build-arg SOURCE_COMMIT="$SOURCE_COMMIT" --tag feedbackland:ci .
+          rm .env .env.production
+      - name: Install Chromium for the phase-2 drawer gates
+        run: npx playwright install --with-deps chromium
+      - run: npm run verify -- --phase 2 --image feedbackland:ci --artifacts artifacts/self-hosting
+      - name: Inspect evidence for fixture-only output
+        id: evidence
+        if: always()
+        run: |
+          node --input-type=module -e "import{existsSync,readdirSync,readFileSync,appendFileSync}from'node:fs';const p='artifacts/self-hosting';if(existsSync(p)){for(const d of readdirSync(p,{withFileTypes:true,recursive:true})){if(d.isFile()){const s=readFileSync(d.parentPath+'/'+d.name,'utf8');if(/PRIVATE KEY|AIza[0-9A-Za-z_-]{30,}|sk-or-v1-/.test(s))throw Error('evidence requires private review')}}appendFileSync(process.env.GITHUB_OUTPUT,'present=true\n')}else{console.log('No verification evidence was produced; inspect the earlier failing step.')}"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
+        with:
+          name: self-hosting-phase-2
+          path: artifacts/self-hosting/
+          retention-days: 14
+  development-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build -w feedbackland-react
+      - run: npm run identity
+      - name: Verify development boot on a disposable database and free ports
+        run: node --import tsx scripts/e2e/dev-smoke.ts
+      - name: Remove only this job's remaining development resources
+        if: always()
+        run: |
+          # The harness normally cleans up in finally; cancellation cleanup is
+          # restricted to this runner's generated phase-1 development projects.
+          for project in $(docker compose ls --all --format json | node -e "let s='';process.stdin.on('data',b=>s+=b).on('end',()=>console.log(JSON.parse(s).map(x=>x.Name).filter(x=>/^p02-dev-[a-f0-9]{8}$/.test(x)).join(' ')))"); do
+            docker compose -p "$project" -f compose.dev.yml down --volumes
+          done

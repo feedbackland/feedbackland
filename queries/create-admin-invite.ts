@@ -1,64 +1,24 @@
-"server-only";
-
+import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { db } from "@/db/db";
-
-export async function createAdminInviteQuery(args: {
-  email: string;
-  orgId: string;
-  userId: string;
-}) {
-  try {
-    return await db.transaction().execute(async (trx) => {
-      const { userId, orgId } = args;
-      const email = args.email.toLowerCase();
-
-      const { role } = await trx
-        .selectFrom("user_org")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .selectAll()
-        .executeTakeFirstOrThrow();
-
-      if (role !== "admin") {
-        throw new Error("Not allowed to create admin invite");
-      }
-
-      const existingInvite = await trx
-        .selectFrom("admin_invites")
-        .where("email", "=", email)
-        .where("orgId", "=", orgId)
-        .selectAll()
-        .executeTakeFirst();
-
-      if (existingInvite) {
-        throw new Error("invite-email-exists");
-      }
-
-      const existingAdminUser = await trx
-        .selectFrom("user")
-        .innerJoin("user_org", "user.id", "user_org.userId")
-        .selectAll()
-        .where("user.email", "=", email)
-        .where("user_org.orgId", "=", orgId)
-        .where("user_org.role", "=", "admin")
-        .executeTakeFirst();
-
-      if (existingAdminUser) {
-        throw new Error("admin-email-exists");
-      }
-
-      const adminInvite = await trx
-        .insertInto("admin_invites")
-        .values({
-          email,
-          orgId,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
-
-      return adminInvite;
-    });
-  } catch (error) {
-    throw error;
-  }
+import { lock, locks } from "@/db/locks";
+import { requireAdmin, type Actor } from "@/lib/auth/authorization";
+export async function createAdminInviteQuery(input: Actor & { email: string }) {
+  return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.membership);
+    await requireAdmin(trx, input);
+    const email = input.email.trim().toLowerCase();
+    const existing = await trx
+      .selectFrom("admin_invites")
+      .select("id")
+      .where("email", "=", email)
+      .where("expiresAt", ">", new Date())
+      .executeTakeFirst();
+    if (existing) throw new DomainError("CONFLICT", "INVITE_EXISTS");
+    return trx
+      .insertInto("admin_invites")
+      .values({ email })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  });
 }

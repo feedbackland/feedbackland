@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { previousPathnameAtom } from "@/lib/atoms";
 import { useAtomValue } from "jotai";
 import {
@@ -26,19 +26,21 @@ export const GoBackButton = ({
   label?: string;
 }) => {
   const router = useRouter();
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
+  const boardRoot = href("/");
   const previousPathname = useAtomValue(previousPathnameAtom);
 
   const handleGoBack = () => {
     if (previousPathname && window.history.length > 1) {
       window.history.go(-1);
-    } else if (platformUrl) {
-      router.push(platformUrl);
+    } else if (boardRoot) {
+      router.push(boardRoot);
     }
   };
 
   const button = (
     <Button
+      aria-label={label ?? "Go back"}
       size={label ? "sm" : "icon"}
       onClick={handleGoBack}
       variant="link"

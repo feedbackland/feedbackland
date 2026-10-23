@@ -1,4 +1,4 @@
-"server-only";
+import "server-only";
 
 import { db } from "@/db/db";
 
@@ -15,17 +15,10 @@ import { db } from "@/db/db";
  * so a board larger than the cap does not pay to strip markup from posts that
  * are about to be dropped.
  */
-export const getFeedbackCorpusQuery = async ({
-  orgId,
-  limit,
-}: {
-  orgId: string;
-  limit: number;
-}) => {
+export const getFeedbackCorpusQuery = async ({ limit }: { limit: number }) => {
   try {
     return await db
       .selectFrom("feedback")
-      .where("feedback.orgId", "=", orgId)
       .select([
         "feedback.id",
         "feedback.title",
@@ -45,7 +38,6 @@ export const getFeedbackCorpusQuery = async ({
       .limit(limit)
       .execute();
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to read the feedback posts. Reason: ${reason}`);
+    throw new Error("Feedback query failed");
   }
 };

@@ -1,6 +1,9 @@
+import "server-only";
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedQuery } from "@/queries/get-activity-feed";
+import { enforceSearchLimit } from "@/lib/rate-limit";
+import { TRPCError } from "@trpc/server";
 import {
   feedbackCategoriesSchema,
   feedbackOrderBySchema,
@@ -34,13 +37,14 @@ export const getActivityFeed = adminProcedure
         searchValue,
         unseenOnly,
       },
-      ctx: { orgId, userId },
+      ctx: { userId, ip },
     }) => {
       const page = cursor ?? 1;
+      if (searchValue && !(await enforceSearchLimit(ip)).allowed)
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
 
       const { items, totalItemsCount, totalPages, currentPage } =
         await getActivityFeedQuery({
-          orgId,
           userId,
           page,
           pageSize,

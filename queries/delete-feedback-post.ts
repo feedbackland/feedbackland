@@ -1,42 +1,26 @@
-"server-only";
-
+import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { db } from "@/db/db";
-
-export async function deleteFeedbackPostQuery({
-  postId,
-  userId,
-  orgId,
-}: {
-  postId: string;
-  userId: string;
-  orgId: string;
-}) {
-  try {
-    return await db.transaction().execute(async (trx) => {
-      const { role } = await trx
-        .selectFrom("user_org")
-        .select("role")
-        .where("userId", "=", userId)
-        .where("orgId", "=", orgId)
-        .executeTakeFirstOrThrow();
-
-      const { authorId } = await trx
-        .selectFrom("feedback")
-        .where("id", "=", postId)
-        .select(["authorId"])
-        .executeTakeFirstOrThrow();
-
-      if (role === "admin" || authorId === userId) {
-        return await trx
-          .deleteFrom("feedback")
-          .where("id", "=", postId)
-          .returningAll()
-          .executeTakeFirstOrThrow();
-      } else {
-        throw new Error("Not authorized to delete this post");
-      }
-    });
-  } catch (error) {
-    throw error;
-  }
+import { lock, locks } from "@/db/locks";
+import { canAdminister, type Actor } from "@/lib/auth/authorization";
+export async function deleteFeedbackPostQuery(
+  input: Actor & { postId: string },
+) {
+  return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.membership);
+    const admin = await canAdminister(trx, input);
+    const row = await trx
+      .selectFrom("feedback")
+      .select("authorId")
+      .where("id", "=", input.postId)
+      .forUpdate()
+      .executeTakeFirstOrThrow();
+    if (!admin && row.authorId !== input.userId)
+      throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
+    return trx
+      .deleteFrom("feedback")
+      .where("id", "=", input.postId)
+      .returning("id")
+      .executeTakeFirstOrThrow();
+  });
 }

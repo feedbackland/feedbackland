@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Mirrors <ApiDocs />: an intro paragraph then 6 sections (space-y-8), each a
 // text-base h3 heading (space-y-3) over its body — single-row bordered cards for
-// the endpoint and org-id, a tabs + code block for the example, a bordered table
+// the endpoint and board-id, a tabs + code block for the example, a bordered table
 // for the request body, and code blocks for the response/errors.
 export function ApiDocsLoading() {
   return (
@@ -21,7 +21,7 @@ export function ApiDocsLoading() {
         <Skeleton className="h-11 w-full rounded-lg" />
       </section>
 
-      {/* 2. Organization ID */}
+      {/* 2. Instance information */}
       <section className="space-y-3">
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-3.5 w-3/4" />

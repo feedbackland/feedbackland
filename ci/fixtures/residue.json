@@ -1,0 +1,8 @@
+{
+  "pattern": "(?<![\\w./-])orgs?\\b|orgid|orgname|orgurl|orgsubdomain|isclaimed|user_org|userorg|platform-?urls?|subdomain|maindomain|claimorg|createorg|getorg|updateorg|useorg|globalorgstate|organi[sz]ation|(?<!microsoft_)tenant(?!_?id)|isselfhosted|self_hosted|vercel|feedbackland\\.com",
+  "maliciousReference": "\nconst bypass = process.env.VERCEL_URL;\n",
+  "maliciousComputed": "\nconst bypass = process.env[['VER', 'CEL_URL'].join('')];\n",
+  "maliciousLiteral": "\nconst bypass = 'VERCEL_URL';\n",
+  "removedRoute": "/api/user/upsert-user",
+  "reviewBase": "origin/single-tenant-self-hosting"
+}

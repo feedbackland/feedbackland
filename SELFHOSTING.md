@@ -1,553 +1,366 @@
-# Self-Hosting Feedbackland
+# Self-hosting Feedbackland
 
-Deploy your own instance — your data, your domain, your costs.
+Run your own feedback board. Your data, your domain, your costs.
 
-This guide is a sequence of small, verifiable steps. Follow them in order
-and you will end up with a running Feedbackland on your own Vercel project,
-backed by your own Supabase database and Firebase auth. **Allow ~15 minutes.**
+> **Implementation status:** P02 boots/migrates a fresh database and serves an
+> anonymous text board at `/`, with persisted posts and singleton settings.
+> Setup/sign-in, comments/voting that need a session, uploads, AI and exact/semantic
+> search are unavailable. P03 framing/header checks and later release gates remain
+> outstanding. The one-click, backup and product instructions below describe later
+> milestones. No stable image is published. Use a new disposable database and an
+> isolated checkout without hosted credentials.
 
-## What you're building
+**Pick the path that sounds like you:**
 
-```
-                  ┌───────────────────────────┐
-                  │   Vercel (Next.js host)   │
-                  └─────────────┬─────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-        ▼                       ▼                       ▼
-  ┌───────────┐         ┌───────────────┐       ┌──────────────┐
-  │ Supabase  │         │   Firebase    │       │  OpenRouter  │
-  │ Postgres  │         │     Auth      │       │     LLM      │
-  │ + Storage │         │ (Google/email)│       │   provider   │
-  └───────────┘         └───────────────┘       └──────────────┘
-```
+| | |
+|---|---|
+| **[Deploy it online in one click](#deploy-it-online-in-one-click)** | No terminal, no Docker, nothing to install. Click a button, answer two questions, wait a few minutes. **Start here if you're not sure.** |
+| **[Run it with Docker](#run-it-with-docker)** | You're comfortable with a terminal and want it on your own machine or server. |
 
-Four services, all free to start. You'll gather **10 environment values**
-across them, paste them into Vercel, and ship.
+---
 
-## Before you start
+## Deploy it online in one click
 
-**On your machine:**
+This gives you a real, public feedback board on an `https://` address, with a
+database and backups. You don't install anything.
 
-- A [GitHub](https://github.com) account
-- [Git](https://git-scm.com) installed
-- *(Optional, for local testing only)* [Node.js 20+](https://nodejs.org) and `npm`
+### What you'll need
 
-**Accounts you'll create (all free):**
+- A **GitHub account** (free — the deploy platform signs you in with it)
+- About **five minutes**
+- Roughly **$7/month**. See [what it costs](#what-it-costs) before you start —
+  there is a free option, but it deletes your database after 30 days.
 
-| Service                                 | What it does                | Free tier                                                      |
-| --------------------------------------- | --------------------------- | -------------------------------------------------------------- |
-| [Supabase](https://supabase.com)        | Postgres database + image storage | 2 projects · 500 MB DB · 1 GB storage |
-| [Firebase](https://firebase.google.com) | User authentication         | Generous Spark plan, no credit card required                   |
-| [OpenRouter](https://openrouter.ai)     | LLM for insights, search, rewrite | Pay-as-you-go · free models available                    |
-| [Vercel](https://vercel.com)            | Hosts the Next.js app       | Hobby plan is free for non-commercial use                      |
+That's the whole list. No API keys, no configuration files, no Docker.
 
-> [!IMPORTANT]
-> **Supabase free-tier projects pause after 7 days of inactivity.** Paused
-> projects don't auto-wake — you have to click **Restore project** in the
-> Supabase dashboard before they accept requests again. For a board that
-> sees regular use this won't trigger. If you expect long quiet stretches,
-> consider upgrading the project to Pro or pinging the database on a
-> schedule.
+### Steps
+
+**1. Click the button:**
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/feedbackland/feedbackland)
+
+**2. Sign in** with GitHub and let it create the project. You don't need to
+fork or copy anything — it reads this repository directly.
+
+**3. When it asks for a Setup code, type anything you'll remember.**
+
+This is the one thing you'll be asked for. It's a one-time password that stops
+a stranger claiming your board before you do. Write it down — you'll need it in
+about three minutes, and never again.
+
+**4. Wait for it to finish**, then open the address it gives you. It looks like
+`https://feedbackland-something.onrender.com`.
+
+**5. Fill in the form**: your setup code, your product's name, your name, your
+email, and a password.
 
 > [!TIP]
-> Keep a scratch text editor open as you go. You'll collect **10 values**
-> across the next steps and paste them all into a single `.env` file before
-> deploying.
+> If the deploy fails or the page won't load, the platform's own logs say why —
+> and [Troubleshooting](#troubleshooting) covers the usual causes. You can
+> delete the project and click the button again as many times as you like;
+> nothing is left behind.
+
+Your board is live. You're signed in as its admin, and because the address is
+already `https://`, you can put the feedback widget on your own site straight
+away.
+
+> [!TIP]
+> You can point your own domain (like `feedback.yourcompany.com`) at it later
+> from the platform's dashboard. Nothing in Feedbackland needs to change.
+
+### What it costs
+
+Render will offer you free options during setup. They're genuinely useful for
+having a look, and genuinely unsuitable for keeping:
+
+| | Free | Paid |
+|---|---|---|
+| **Database** | **Deleted after 30 days.** Your board disappears with it. | ~$7/month, kept indefinitely |
+| **App** | Sleeps when idle; the first visit after that takes around a minute to load | ~$7/month, always awake |
+
+If this is a real feedback board, choose the paid database. The sleeping app is
+more tolerable — but it's worth knowing that a sleeping board also means the
+feedback widget on your site takes that minute to open the first time.
+
+> [!NOTE]
+> Feedbackland doesn't charge anything and never sees your data. This is what
+> the hosting provider charges to run it for you.
 
 ---
 
-## Step 1 — Fork the repository
+## Run it with Docker
 
-Forking gives you your own copy and a one-click path to redeploy when
-Feedbackland ships updates.
+For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
+Compose plugin) and a terminal.
 
-1. Go to the [Feedbackland repository](https://github.com/feedbackland/feedbackland).
-2. Click **Fork** (top-right). Use the defaults.
-3. Clone your fork locally and create an empty `.env`:
+**P02 contributor verification (development only)**
 
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/feedbackland.git
-   cd feedbackland
-   cp .env.example .env
-   ```
+Use an isolated checkout without hosted dotenv files or credentials. The
+committed Compose file mounts the Postgres 18 parent data directory correctly
+and owns its database volume. Use only a new disposable database at this stage.
 
-Open the new `.env` file. It should look like this:
+From that checkout, with Node 24 and a Linux Docker engine:
 
-```env
-SELF_HOSTED=true
-NEXT_PUBLIC_SELF_HOSTED=true
-DATABASE_URL=
-NEXT_PUBLIC_SUPABASE_PROJECT_ID=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-OPENROUTER_API_KEY=
-FIREBASE_PROJECT_ID=
-FIREBASE_CLIENT_EMAIL=
-FIREBASE_PRIVATE_KEY=""
-FIREBASE_DATABASE_URL=
+```bash
+npm ci
+npm run build -w feedbackland-react
+npm run typecheck
+npm run build
+docker build --tag feedbackland:ci .
+npm run verify -- --phase 1 --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
-Leave the two `SELF_HOSTED` lines as `true`. You'll fill the other 8 values
-in the steps below.
+The verification runner uses only its own temporary Compose project, database,
+ports and volumes, and removes them afterward. It does not read your `.env`.
+It migrates fresh databases and checks the root board, public API/CORS,
+restart persistence, rollback/retry, simultaneous boots, schema/revisions,
+serialized admin query invariants, TLS and source/import boundaries. Its PG15/18,
+vector/halfvec, extension-schema and transaction-pooler fixtures are pinned.
+The injected-secret logging check includes removing the injection on restart.
+No later authentication, image, AI or search gate is counted as a pass.
 
----
+The separate development smoke check also owns its database and chooses free
+ports; it never stops an existing Postgres service:
 
-## Step 2 — Set up Supabase (Postgres + storage)
-
-### 2.1 — Create a project
-
-1. Go to [supabase.com](https://supabase.com) and sign in.
-2. Click **New project**.
-3. Fill in:
-   - **Name:** anything (e.g. `feedbackland`)
-   - **Database Password:** click **Generate a password** and **save it
-     somewhere safe right now** — you'll need it in step 2.5.
-   - **Region:** the one closest to your users.
-4. Click **Create new project**. Provisioning takes ~30 seconds.
-
-### 2.2 — Enable the `vector` extension (do this first!)
-
-> [!WARNING]
-> **Do this before running the schema.** The schema uses Postgres'
-> `halfvec` type (for semantic search). If the `vector` extension isn't
-> enabled first, the schema will fail.
-
-1. In the Supabase sidebar, click **Database** → **Extensions**.
-2. Search for **`vector`**.
-3. Click the toggle to enable it. Keep the schema set to the default
-   (`extensions`).
-
-### 2.3 — Run the database schema
-
-1. Open `db/schema.sql` from your local clone in any text editor. Select
-   everything and copy.
-2. Back in Supabase, click the **SQL Editor** in the sidebar (the `>_` icon).
-3. Paste the SQL into the editor.
-4. Click **Run** (bottom-right, or `Ctrl/Cmd+Enter`).
-
-You should see **"Success. No rows returned"** — that's the all-clear.
-
-> **What this script does for you:**
->
-> - Creates every table, index, foreign key, and enum the app needs.
-> - Creates a public `images` storage bucket so uploaded screenshots are
->   reachable from a browser.
-> - Adds one policy on that bucket allowing image uploads.
->
-> You don't need to touch Supabase Storage manually — the script handles it.
-
-**If you see `type "extensions.halfvec" does not exist`**, the vector
-extension isn't on. Go back to step 2.2, then re-run the SQL.
-
-### 2.4 — Disable the Data API (recommended)
-
-Feedbackland talks to Postgres directly and uses Supabase Storage for
-images. It does **not** use Supabase's REST Data API (PostgREST), so you
-can switch it off to shrink your attack surface.
-
-1. **Project Settings** (gear icon) → **Data API**.
-2. Toggle **Enable Data API** to **off** and confirm.
-
-### 2.5 — Collect three Supabase values
-
-You need three things from Supabase. Add each one to your `.env` as you go.
-
-| Value                                | Where to find it                                                       |
-| ------------------------------------ | ---------------------------------------------------------------------- |
-| **Project Reference ID**             | Project Settings → General → **Reference ID** (short alphanumeric)     |
-| **`anon` / `public` API key**        | Project Settings → API → **`anon` `public`** under Project API keys    |
-| **Transaction-pooler connection string** | Click **Connect** at the top of any project page → **Transaction** tab |
-
-The connection string looks like:
-
-```
-postgresql://postgres.abcdefghijkl:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+```bash
+node --import tsx scripts/e2e/dev-smoke.ts
 ```
 
-Replace `[YOUR-PASSWORD]` with the database password from step 2.1.
+Boot runs in Next instrumentation in both modes. Do not run a separate migration
+command. For schema development, `npm run db:auth-ddl` needs its **own empty
+database**, and `npm run db:codegen` needs the migrated application database;
+both accept `DATABASE_URL` or the isolated checkout's `.env.local`. Their
+`-- --verify` mode compares output and fails on drift. Never run the auth-DDL
+command against the application database. The single pre-RC migration is edited
+in place, so recreate only the disposable development database after changing it.
 
-**Paste into `.env`:**
+For manual inspection, build the same local image and select it explicitly:
 
-```env
-DATABASE_URL=postgresql://postgres.abcdefghijkl:your-password@aws-0-us-east-1.pooler.supabase.com:6543/postgres
-NEXT_PUBLIC_SUPABASE_PROJECT_ID=abcdefghijkl
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+```bash
+docker build --tag feedbackland:dev .
+FEEDBACKLAND_IMAGE=feedbackland:dev docker compose -p feedbackland-p02-demo up
+```
+
+Choose an unused project name in place of `feedbackland-p02-demo`. Ensure your
+shell has no inherited `DATABASE_URL` or hosted credentials before starting.
+PowerShell uses `$env:FEEDBACKLAND_IMAGE = 'feedbackland:dev'` followed by
+`docker compose -p feedbackland-p02-demo up`. Open `http://localhost:3000`;
+there is no setup redirect in P02. Stop that project with
+`docker compose -p feedbackland-p02-demo down`. Its volume preserves posts
+across restarts. Never reuse a production volume. If boot reports missing settings
+on a populated database, restore rather than treating it as an unclaimed install.
+
+For a standalone copy of the committed Compose file (macOS/Linux):
+
+```bash
+curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbackland/694c5437976c498c123506b9a88953ae4cf999d2/compose.yml
+```
+
+On Windows use `curl.exe`. This download alone does not supply an application
+image: until a release is published, build from a checkout and set
+`FEEDBACKLAND_IMAGE` as above. The default `:1` reference is reserved for the
+future release and is not a P02 installation path.
+
+The download is pinned to the initial P01 Compose revision and remains available
+after the feature branch is deleted. A checkout always contains its matching
+Compose revision. If you customize `POSTGRES_PASSWORD`, use URL-unreserved
+characters (`A-Z`, `a-z`, digits, `-._~`) or also set `DATABASE_URL` with the password
+percent-encoded. Keep the password in the URL and the database service consistent.
+
+### Everyday commands
+
+```bash
+docker compose up -d      # start in the background
+docker compose logs -f    # watch the logs
+docker compose down       # stop (your data is kept)
+docker compose pull       # fetch the latest version
 ```
 
 ---
 
-## Step 3 — Set up Firebase (authentication)
+## Backups
 
-### 3.1 — Create a project
+Your data lives in the `db` Docker volume.
 
-1. Go to [console.firebase.google.com](https://console.firebase.google.com).
-2. Click **Create a project** (or **Add project**).
-3. Name it (e.g. `feedbackland`).
-4. **Disable Google Analytics** when prompted — it simplifies setup and
-   Feedbackland doesn't use it.
-5. Click **Create project**, then **Continue** when it finishes.
+**Back up:**
 
-### 3.2 — Register a web app and wire in its config
-
-1. On the project overview, click the **Web** icon (`</>`).
-2. Give it a nickname (e.g. `feedbackland-web`). **Do not** check
-   "Also set up Firebase Hosting."
-3. Click **Register app**. Firebase shows a snippet like:
-
-   ```js
-   const firebaseConfig = {
-     apiKey: "AIzaSy...",
-     authDomain: "your-project.firebaseapp.com",
-     projectId: "your-project",
-     storageBucket: "your-project.firebasestorage.app",
-     messagingSenderId: "123456789",
-     appId: "1:123456789:web:abc123",
-   };
-   ```
-
-4. Open `firebaseConfig.ts` at the **root of your local repo** and replace
-   the existing values with your own:
-
-   ```ts
-   export const firebaseConfig = {
-     apiKey: "YOUR_API_KEY",
-     authDomain: "YOUR_PROJECT.firebaseapp.com",
-     projectId: "YOUR_PROJECT",
-     storageBucket: "YOUR_PROJECT.firebasestorage.app",
-     messagingSenderId: "YOUR_SENDER_ID",
-     appId: "YOUR_APP_ID",
-   };
-   ```
-
-5. Save. **Keep the `export const firebaseConfig` line intact** — only the
-   values change.
-
-> **Is it safe to commit this file?** Yes. Firebase web API keys are
-> intentionally public — they're client-side identifiers, not secrets.
-> Firebase protects your project by restricting which domains may use them
-> (you'll lock that down in step 7). The **real secrets** (private key,
-> client email) go into your `.env` and are never committed.
-
-### 3.3 — Enable sign-in methods
-
-1. Sidebar → **Build** → **Authentication** → **Get started**.
-2. Open the **Sign-in method** tab.
-3. Enable each provider you want:
-   - **Email/Password** — click it, toggle **Enable**, **Save**.
-   - **Google** — click it, toggle **Enable**, pick a support email, **Save**.
-   - *(Optional)* **Microsoft** — supported by the app, but enabling it
-     in Firebase requires registering an OAuth application in **Microsoft
-     Entra** (Azure AD) and pasting its client ID + secret back here.
-     Skip unless you need Microsoft SSO; see Firebase's
-     [Microsoft provider docs](https://firebase.google.com/docs/auth/web/microsoft-oauth)
-     if you do.
-
-### 3.4 — Generate Admin SDK credentials
-
-1. Sidebar **gear icon** → **Project settings** → **Service accounts** tab.
-2. Click **Generate new private key**, confirm. A JSON file downloads.
-3. Open the downloaded JSON. Find `project_id`, `client_email`, and
-   `private_key`.
-
-**Paste into `.env`:**
-
-```env
-FIREBASE_PROJECT_ID=your-project
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEv...your full key here...\n-----END PRIVATE KEY-----\n"
-FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+```bash
+docker compose exec -T db pg_dump -U postgres feedbackland > backup.sql
 ```
+
+**Restore** (into an empty database):
+
+```bash
+docker compose exec -T db psql -U postgres -d feedbackland < backup.sql
+```
+
+That single file contains everything — posts, comments, accounts and uploaded
+images. Restoring it anywhere gives you your board back, whole, which is also
+how you move between any of the options on this page.
 
 > [!IMPORTANT]
-> - **`FIREBASE_PRIVATE_KEY` must be wrapped in double quotes.** The
->   literal `\n` characters inside (two-character escapes, not actual
->   newlines) are handled by the app at runtime.
-> - **`FIREBASE_DATABASE_URL` is required by the config but unused in
->   self-hosted mode.** Substitute your Firebase project ID into the URL
->   shown above — any valid-looking value works because Feedbackland skips
->   the Realtime Database when `SELF_HOSTED=true`.
+> The `-T` matters. Without it Docker attaches a terminal to the command, which
+> rewrites line endings on the way out and leaves you with a backup that looks
+> fine and will not restore.
+
+> [!WARNING]
+> `docker compose down -v` deletes the volume, and with it all your data. Take
+> a backup first.
+
+If you deployed online, the platform takes care of database backups for you —
+but it's worth keeping your own copy too.
 
 ---
 
-## Step 4 — Get an OpenRouter API key
+## Turn on AI
 
-1. Go to [openrouter.ai](https://openrouter.ai) and sign up.
-2. Open **Keys** in your dashboard → **Create key** → copy it.
+Feedbackland works completely without this. Posting, commenting, voting,
+searching, the widget — all of it runs with nothing configured, and it always
+will.
 
-**Paste into `.env`:**
+But AI is where this stops being a list of feedback and starts telling you
+things. With a model configured you get:
 
-```env
+- **Insights** — your whole board condensed into a ranked list of what people
+  actually need, scored by how many asked and how badly.
+- **Ask AI** — "what are people saying about pricing?", answered from your
+  feedback.
+- **Better search** — finds "can't log in" when someone wrote "authentication
+  broken".
+- **Automatic titles and categories** on every post.
+
+It is genuinely optional and honestly recommended — it's the difference between
+a feedback board and knowing what to build next.
+
+### First, the part that matters
+
+You're about to be asked to paste a key and to send your users' feedback
+somewhere. Here's exactly where you stand:
+
+- **The key stays on your server.** It's only ever used in server-side code,
+  never sent to a browser, and never written to logs.
+- **We never see any of it.** There is no Feedbackland server involved in your
+  installation. Requests go from your machine directly to whichever provider
+  you pick. We couldn't see your key or your feedback if we wanted to.
+- **Nothing phones home.** Feedbackland contains no analytics, no telemetry, no
+  error reporting. You can search the source for it.
+- **It's your account.** Your key, your spending limit, your usage dashboard.
+  Revoke it whenever you like.
+- **Turning it off costs you nothing.** Remove the setting and the AI features
+  disappear. Every post, comment and vote stays exactly where it was.
+
+**What actually gets sent, if you turn it on:**
+
+| Feature | What leaves your server |
+|---|---|
+| Moderation | the post or comment, and its images |
+| Titles and categories | the post text |
+| Search | your posts (to index them) and your search terms |
+| Insights | every post on the board |
+| Ask AI | your posts, plus your question |
+| Improve draft | the draft, only when the author clicks the button |
+
+With nothing configured, none of these requests happen at all.
+
+### Pick how you want to run it
+
+**Option 1 — a model on your own machine. Free, and nothing leaves it.**
+
+Install [Ollama](https://ollama.com), pull a model, and point Feedbackland at
+it:
+
+```
+LLM_BASE_URL=http://host.docker.internal:11434/v1
+LLM_MODEL=llama3.1
+```
+
+No account, no key, no data leaving your network. It's open source, it's free,
+and it's the right answer if your feedback is sensitive. The trade-off is
+honest: you need a reasonably capable machine, and a small local model won't
+match a large hosted one.
+
+**Option 2 — a hosted key. Cents a month, best results.**
+
+Create a key at [OpenRouter](https://openrouter.ai) — or any OpenAI-compatible
+provider — and set:
+
+```
 OPENROUTER_API_KEY=sk-or-v1-...
 ```
 
-> OpenRouter is pay-as-you-go with several free-tier models. Feedbackland's
-> defaults are cheap; expect single-digit cents for a typical small board.
+Set a spending limit on the provider's side while you're there. For a board
+getting a few posts a day this costs small change.
 
----
+**Option 3 — free hosted models. Read this bit first.**
 
-## Step 5 — Verify your `.env` is complete
+Some providers offer models at no cost, and they're a reasonable way to try
+this out. Two things to know before you rely on them:
 
-Before deploying, your `.env` should have **all 10 lines filled**:
+- They're **heavily rate-limited** — OpenRouter allows roughly 50 requests a
+  day until you've bought $10 of credit, and a single post uses three.
+- On some free endpoints, **your prompts are the payment**: the text you send
+  may be used to train models. For feedback your users wrote in confidence,
+  that may not be a trade you want to make.
 
-```env
-SELF_HOSTED=true                       # left as-is
-NEXT_PUBLIC_SELF_HOSTED=true           # left as-is
-DATABASE_URL=postgresql://...          # step 2.5
-NEXT_PUBLIC_SUPABASE_PROJECT_ID=...    # step 2.5
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...      # step 2.5
-OPENROUTER_API_KEY=sk-or-v1-...        # step 4
-FIREBASE_PROJECT_ID=...                # step 3.4
-FIREBASE_CLIENT_EMAIL=...              # step 3.4
-FIREBASE_PRIVATE_KEY="-----BEGIN..."   # step 3.4 — quoted, with literal \n's
-FIREBASE_DATABASE_URL=https://...      # step 3.4
-```
+If privacy matters more than convenience, Option 1 is free too — and nothing
+leaves your server.
 
-Any empty line means you missed a step — go back and finish it before
-proceeding.
-
----
-
-## Step 6 — Deploy to Vercel
-
-### 6.1 — Commit your Firebase config
-
-You edited `firebaseConfig.ts` in step 3.2. Vercel deploys from GitHub, so
-that change has to be pushed before deploying:
-
-```bash
-git add firebaseConfig.ts
-git commit -m "Configure Firebase web app"
-git push
-```
-
-### 6.2 — Import the project
-
-1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
-2. **Add New** → **Project**.
-3. Find and **Import** your forked repository.
-4. Leave the Framework Preset on **Next.js**. No build settings need to
-   change.
-
-### 6.3 — Paste your env vars in one shot
-
-Vercel auto-parses `.env`-formatted text pasted into its environment
-variable form.
-
-1. Scroll to **Environment Variables**.
-2. Click inside the **Name** field of the first empty row.
-3. **Paste the entire contents of your `.env` file.** Vercel detects all
-   10 key-value pairs in one go — the long quoted `FIREBASE_PRIVATE_KEY`
-   stays as a single value with its `\n` escapes intact.
-4. Confirm all 10 variables are listed correctly.
-5. Click **Deploy**.
-
-The build typically takes 2–4 minutes (the embeddable widget workspace
-builds first, then Next.js). You'll see a "Congratulations" screen with
-your deployment URL when it's done.
-
----
-
-## Step 7 — Authorize your domain in Firebase
-
-After Vercel deploys, your app lives at something like
-`your-app.vercel.app`. Firebase blocks sign-in attempts from any domain
-that isn't on its allowlist, so you need to add the Vercel domain now.
-
-1. Copy your Vercel deployment URL.
-2. Back in the [Firebase Console](https://console.firebase.google.com),
-   open your project.
-3. **Build** → **Authentication** → **Settings** tab → **Authorized
-   domains**.
-4. **Add domain**. Paste your URL **without** `https://` (e.g.
-   `your-app.vercel.app`). Click **Add**.
-
-If you add a custom domain to Vercel later, repeat this step for it too.
-
----
-
-## Step 8 — Create your first organization
-
-The onboarding lives at a fixed path; the root URL isn't mapped to
-anything in self-hosted mode.
-
-1. **Go to `<your-vercel-url>/get-started`** (e.g.
-   `https://your-app.vercel.app/get-started`).
-2. Enter your **product/organization name**. The form auto-fills a URL
-   slug from it — this becomes the path segment your board lives at
-   (e.g. `your-app.vercel.app/my-org`). Edit it if you prefer something
-   else; lowercase letters / digits / hyphens only.
-3. Click **Create platform**. The app creates an *unclaimed* organization
-   and redirects you to `<your-vercel-url>/<your-org>/claim`.
-4. On the claim screen, **sign up with the provider** you enabled in
-   step 3.3 (Google, Email/Password, or Microsoft). The account you sign
-   in with becomes the org's first admin.
-5. You'll see a short widget-integration step (optional — you can wire
-   up the embeddable widget later). Click **Proceed to your platform**.
-6. Land on your new feedback board, signed in as admin.
-
-🎉 That's it — your instance is live. Bookmark the board URL; from now
-on open it directly. `/get-started` is one-time only.
-
----
-
-## Optional — Use a custom domain
-
-1. In Vercel, open the project's **Domains** tab.
-2. Add your domain and follow Vercel's DNS instructions.
-3. Once it resolves, repeat **Step 7** to add the new domain to Firebase's
-   authorized list. Otherwise sign-in will fail on the new domain.
-
-## Optional — Local development
-
-If you want to run Feedbackland locally to test changes:
-
-```bash
-npm install
-npm run widget-dev
-```
-
-Then open <http://localhost:3000>. `localhost` is automatically authorized
-by Firebase, so sign-in works immediately without any extra config.
-
-> [!NOTE]
-> Use `npm run widget-dev` (not `npm run dev`) the first time. The repo
-> ships the embeddable React widget as a workspace at `feedbackland-react/`,
-> and Next.js imports its built output from `feedbackland-react/dist/`.
-> That `dist/` is gitignored, so on a fresh clone it doesn't exist yet —
-> `npm run dev` alone will fail with a `feedbackland-react` import error.
-> `npm run widget-dev` builds the widget in watch mode alongside the Next
-> dev server, so everything works from a clean checkout. After the first
-> build you can switch to plain `npm run dev` until you next change the
-> widget.
-
-> Local dev shares the same Supabase / Firebase / OpenRouter setup as your
-> deployed instance — so changes you make through the local UI hit the
-> production database. If that's not what you want, create a second
-> Supabase project for development and swap the credentials.
-
-## Staying up to date
-
-When Feedbackland ships new releases, pull them into your fork:
-
-1. On your GitHub fork page, click **Sync fork** → **Update branch**.
-2. Vercel detects the new commit and rebuilds automatically.
-3. Check `db/migrations/` for any `.sql` file newer than your last update. Run
-   each one in order in the Supabase **SQL Editor**, the same way you ran
-   `db/schema.sql` during setup. Every migration is idempotent, so running one
-   twice is harmless.
-
-For breaking changes, check the
-[Releases](https://github.com/feedbackland/feedbackland/releases) page for
-migration notes.
-
-### Insights on the Vercel Hobby plan
-
-Generating insights reads your whole board and calls the model several times,
-so it asks Vercel for up to 300 seconds. The Hobby plan caps functions at 60
-seconds, which is plenty for a few hundred posts but can time out on a large
-board. If **Generate** fails with a timeout, upgrade the project to Pro (or
-self-host the app somewhere without a function ceiling).
+> [!TIP]
+> Already have posts from before you turned AI on? They won't appear in
+> semantic search until they're indexed. Run
+> `docker compose exec app node scripts/backfill-embeddings.mjs` once, and
+> they will.
 
 ---
 
 ## Troubleshooting
 
-### Build fails on Vercel
+**The deploy failed, or the page won't load.**
+Open the service's logs in your hosting dashboard — the reason is almost always
+in the last few lines. You can delete the whole project and click the deploy
+button again; nothing is left behind, and a second attempt costs you nothing.
 
-- **`Missing environment variable: ...`** — Project dashboard →
-  **Settings** → **Environment Variables**. All 10 must be present. The
-  most-missed ones are `SELF_HOSTED` and `NEXT_PUBLIC_SELF_HOSTED`.
-- **`Firebase: Error (auth/invalid-credential)` during build** —
-  `FIREBASE_PRIVATE_KEY` is malformed. It must include the full value from
-  `-----BEGIN PRIVATE KEY-----` to `-----END PRIVATE KEY-----` and remain
-  wrapped in double quotes. Don't strip or alter the `\n` sequences.
+**I've lost my setup code.**
+If you haven't finished setup yet, change the `SETUP_CODE` setting in your
+hosting dashboard to something new and restart. If you *have* finished setup,
+you don't need it again — sign in with the email and password you chose.
 
-### SQL schema fails in Supabase
+**My board disappeared after about a month.**
+That's the free database being deleted — see [what it costs](#what-it-costs).
+Move to a paid database before this happens; there's no recovery afterwards.
 
-- **`type "extensions.halfvec" does not exist`** — The `vector` extension
-  isn't enabled. Repeat step 2.2 exactly, then **reset the database**
-  (see next bullet) and re-run the SQL.
-- **`type "..." already exists` / `relation "..." already exists`** on a
-  re-run — The schema's `CREATE TYPE` / `CREATE INDEX` / `CREATE POLICY`
-  statements aren't idempotent. If your first run failed partway through,
-  you can't just run it again. Easiest reset: in the Supabase SQL Editor,
-  run this once, then paste in the schema again:
-  ```sql
-  DROP SCHEMA IF EXISTS public CASCADE;
-  CREATE SCHEMA public;
-  DELETE FROM storage.buckets WHERE id = 'images';
-  DROP POLICY IF EXISTS "Allow anon uploads"  ON storage.objects;
-  DROP POLICY IF EXISTS "Allow anon updates"  ON storage.objects;
-  DROP POLICY IF EXISTS "Allow anon deletes"  ON storage.objects;
-  ```
-  Alternatively, delete the Supabase project from its dashboard and
-  start a new one (free-tier projects are fast to recreate).
-- **Permission errors** — Always run the SQL from Supabase's built-in
-  **SQL Editor**, not from an external client. The web editor runs as
-  superuser; external clients usually don't.
+**Port 3000 is already in use** *(Docker)*.
+Something else on your machine is using it. Change the first number in
+`compose.yml`, for example `"3001:3000"`, then open
+[http://localhost:3001](http://localhost:3001) instead.
 
-### Sign-in doesn't work in production
+**The widget won't open on my website.**
+Browsers refuse to embed an insecure page inside a secure one, so a board on
+`http://localhost` can't be embedded on an `https://` site. Deploy it online —
+that address is `https://` from the start.
 
-- **`auth/unauthorized-domain` error** — You skipped or forgot step 7.
-  Add your exact Vercel domain (no `https://` prefix) under Firebase
-  → Authentication → Settings → Authorized domains.
-- **Google popup closes without signing in** — Same fix: missing
-  authorized domain.
-- **Sign-in tries to authenticate against the wrong Firebase project**
-  (e.g. you see Feedbackland's demo account picker, or `auth/api-key-not-valid`)
-  — You forgot to commit your edited `firebaseConfig.ts` (step 6.1).
-  Vercel built the app with the repo's default config. Push the file:
-  ```bash
-  git add firebaseConfig.ts
-  git commit -m "Configure Firebase web app"
-  git push
-  ```
-  Vercel will redeploy automatically.
+**I want to use my own database.**
+Remove the `db` service from `compose.yml` and point `DATABASE_URL` at your
+own Postgres. Two things it needs:
 
-### "Supabase project is paused"
+- **The `pgvector` extension.** Available on RDS, Cloud SQL, Neon, Supabase and
+  most managed Postgres. Without it the first startup stops and tells you so.
+- **`?sslmode=require` on the end of the URL** if your provider requires an
+  encrypted connection — most managed ones do.
 
-Free-tier projects pause after 7 days with no requests, and the app will
-fail to reach the database while a project is paused. Open the Supabase
-dashboard, click your project, and use the **Restore project** button.
-After a minute it'll accept requests again.
+---
 
-### Image uploads fail
+## Next steps
 
-Re-run the SQL from step 2.3 — the storage bucket and its policies are
-created at the bottom of that script. If you ran a partial schema or
-copied only the table definitions, the bucket may be missing.
+Everything here is optional — your board already works without any of it —
+and each is covered in the sections that follow this guide as they land.
+[Turning on AI](#turn-on-ai) is written up above.
 
-### Visiting the root URL shows a 404
-
-This is expected on a fresh self-hosted deploy. The root path is not
-mapped to anything in the app — the homepage lives at
-`/<your-org-subdomain>` (created in step 8), and the onboarding page
-lives at `/get-started`. After you create your first organization, you'll
-access the board at `<your-vercel-url>/<your-org-subdomain>`.
-
-### Local `npm run dev` fails with `Cannot find module 'feedbackland-react/dist/...'`
-
-On a first run, use `npm run widget-dev` instead — it builds the
-embeddable widget workspace (whose `dist/` is gitignored) alongside the
-Next dev server. See the **Optional — Local development** section above.
-
-### Postgres connection fails with an SSL or TLS error
-
-Some networks reject unencrypted Postgres connections. If you see
-`The server does not support SSL` or similar at deploy time, append
-`?sslmode=require` to the end of your `DATABASE_URL` and redeploy:
-
-```
-postgresql://postgres.ref:pwd@aws-0-region.pooler.supabase.com:6543/postgres?sslmode=require
-```
-
-This is rarely needed — Supabase's Transaction Pooler accepts the
-default unsecured handshake from most providers including Vercel — but
-it's the first thing to try if you hit a TLS-related connection error.
-
-### Anything else
-
-Open a [Discussion](https://github.com/feedbackland/feedbackland/discussions)
-or [Issue](https://github.com/feedbackland/feedbackland/issues) — happy to
-help.
+- **Add the widget** — drop a feedback button into your own app.
+- **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.
+- **Sign in with Google**, alongside email and password.
+- **Password resets by email** — optional; without it you can still generate
+  reset links from the admin area.
+- **Upgrading** — the database updates itself; you just take the new version.
+- **Settings reference** — everything configurable. All optional except the
+  database.

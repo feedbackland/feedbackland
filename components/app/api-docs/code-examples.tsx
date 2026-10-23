@@ -1,20 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Code } from "@/components/ui/code";
 import { buildCurl, buildJs, buildPython } from "@/lib/api-snippets";
 
 type Language = "curl" | "js" | "python";
 
-export function CodeExamples({ url, orgId }: { url: string; orgId: string }) {
+export function CodeExamples({ url }: { url: string }) {
   const [language, setLanguage] = useState<Language>("curl");
-  const params = { url, orgId };
+  const params = { url };
 
   return (
     <Tabs

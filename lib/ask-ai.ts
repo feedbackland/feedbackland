@@ -113,12 +113,12 @@ export const extractCitedPostIds = (text: string): string[] => {
  */
 export const rewriteCitationsForCopy = (
   text: string,
-  platformUrl: string | null,
+  appUrl: string | null,
 ): string => {
-  if (!platformUrl) return text;
+  if (!appUrl) return text;
 
   return normaliseCitations(text).replace(
     new RegExp(`\\]\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`, "gi"),
-    (_match, postId: string) => `](${platformUrl}/${postId})`,
+    (_match, postId: string) => `](${appUrl}/${postId})`,
   );
 };

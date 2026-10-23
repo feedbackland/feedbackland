@@ -1,4 +1,5 @@
 "use client";
+import { copyText } from "@/lib/copy-text";
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ export const CopyButton = ({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (!(await copyText(text))) return;
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 3000);
     } catch (error) {

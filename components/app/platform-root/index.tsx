@@ -12,14 +12,14 @@ export default function PlatformRoot({
   children: React.ReactNode;
 }) {
   // Inside the slide-in drawer widget the panel is dedicated to giving feedback:
-  // it uses tighter padding and replaces the board's full page header (org
+  // it uses tighter padding and replaces the board's full page header (board
   // title, navigation, account/theme controls) with a minimal "Share your
   // feedback" title. Both behaviours key off the explicit `embed=drawer` signal
   // (not merely being in an iframe) so the standalone board is unaffected if it
   // is ever embedded some other way.
   const isDrawerEmbed = useIsDrawerEmbed();
 
-  // The single post route (`/[orgSubdomain]/[postId]`) is the only board route
+  // The single post route (`/[postId]`) is the only board route
   // with a `postId` param — admin pages live under a static `admin` segment and
   // the board index has none. On that page the post's own title heads the
   // panel, so the drawer's "Share your feedback" title is suppressed there to

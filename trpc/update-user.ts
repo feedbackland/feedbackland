@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { userProcedure } from "@/lib/trpc";
 import { updateUserQuery } from "@/queries/update-user";

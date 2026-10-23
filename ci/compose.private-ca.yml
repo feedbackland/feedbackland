@@ -1,0 +1,29 @@
+# The runner generates a short-lived fixture CA/server key in its own volume.
+services:
+  tls-db:
+    image: pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+    environment:
+      POSTGRES_PASSWORD: fixture-only
+      POSTGRES_DB: feedbackland
+    command:
+      [
+        "postgres",
+        "-c",
+        "ssl=on",
+        "-c",
+        "ssl_cert_file=/certs/server.crt",
+        "-c",
+        "ssl_key_file=/certs/server.key",
+      ]
+    volumes: ["certs:/certs:ro"]
+    tmpfs: ["/var/lib/postgresql"]
+    ports: ["127.0.0.1::5432"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "feedbackland"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+volumes:
+  certs:
+    external: true
+    name: ${FIXTURE_CERT_VOLUME:?runner-owned certificate volume required}

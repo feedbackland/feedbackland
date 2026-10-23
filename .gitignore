@@ -17,9 +17,6 @@
 /.next/
 /out/
 
-# supabase
-/supabase
-
 # production
 /build
 
@@ -52,6 +49,10 @@ tmpclaude-*
 
 nul
 NUL
+
+# Generated artifact identity and private verification evidence
+/lib/build-identity.json
+/artifacts/self-hosting/
 
 # workspace package: build output and lockfile/.env safety
 feedbackland-react/dist/

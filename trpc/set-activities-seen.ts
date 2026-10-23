@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { adminProcedure } from "@/lib/trpc";
 import { setActivitiesSeenQuery } from "@/queries/set-activities-seen";

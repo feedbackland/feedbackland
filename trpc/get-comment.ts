@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod/v4";
 import { publicProcedure } from "@/lib/trpc";
 import { getCommentQuery } from "@/queries/get-comment";

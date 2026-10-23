@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FeedbackStatus } from "@/lib/typings";
@@ -37,6 +37,7 @@ import { useUpdateStatus } from "@/hooks/use-update-status";
 import { cn } from "@/lib/utils";
 import { isUuidV4 } from "@/lib/utils";
 import { useDeleteFeedbackPost } from "@/hooks/use-delete-feedback-post";
+import { useIsDrawerEmbed } from "@/providers/embed";
 
 export function FeedbackPostOptionsMenu({
   postId,
@@ -58,9 +59,11 @@ export function FeedbackPostOptionsMenu({
 
   const updateStatus = useUpdateStatus({ postId });
 
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
+  const boardRoot = href("/");
   const router = useRouter();
   const { session, isAdmin } = useAuth();
+  const embedded = useIsDrawerEmbed();
 
   const {
     query: { data },
@@ -85,8 +88,8 @@ export function FeedbackPostOptionsMenu({
             position: "top-right",
           });
 
-          if (platformUrl && isFeedbackPage) {
-            router.push(platformUrl);
+          if (boardRoot && isFeedbackPage) {
+            router.push(boardRoot);
           }
         },
         onSettled: () => {
@@ -97,7 +100,7 @@ export function FeedbackPostOptionsMenu({
   };
 
   const isAuthor = session?.user?.id === authorId;
-  const isVisible = !!(isAuthor || isAdmin);
+  const isVisible = !!(isAuthor || (isAdmin && !embedded));
   const status = data?.status;
 
   if (isVisible) {
@@ -125,56 +128,61 @@ export function FeedbackPostOptionsMenu({
                   Edit post
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent className="w-48">
-                    <DropdownMenuRadioGroup
-                      value={status ?? "none"}
-                      onValueChange={(value) =>
-                        updateStatus.mutate({
-                          postId,
-                          status:
-                            value === "none"
-                              ? null
-                              : (value as FeedbackStatus),
-                        })
-                      }
-                    >
-                      <DropdownMenuRadioItem value="none">
-                        No status
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="under consideration"
-                        className="text-under-consideration!"
+              {isAdmin && !embedded && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Set status</DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="w-48">
+                      <DropdownMenuRadioGroup
+                        value={status ?? "none"}
+                        onValueChange={(value) =>
+                          updateStatus.mutate({
+                            postId,
+                            status:
+                              value === "none"
+                                ? null
+                                : (value as FeedbackStatus),
+                          })
+                        }
                       >
-                        Under consideration
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="planned"
-                        className="text-planned!"
-                      >
-                        Planned
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="in progress"
-                        className="text-in-progress!"
-                      >
-                        In progress
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="done" className="text-done!">
-                        Done
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem
-                        value="declined"
-                        className="text-declined!"
-                      >
-                        Declined
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
+                        <DropdownMenuRadioItem value="none">
+                          No status
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem
+                          value="under consideration"
+                          className="text-under-consideration!"
+                        >
+                          Under consideration
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem
+                          value="planned"
+                          className="text-planned!"
+                        >
+                          Planned
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem
+                          value="in progress"
+                          className="text-in-progress!"
+                        >
+                          In progress
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem
+                          value="done"
+                          className="text-done!"
+                        >
+                          Done
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem
+                          value="declined"
+                          className="text-declined!"
+                        >
+                          Declined
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>

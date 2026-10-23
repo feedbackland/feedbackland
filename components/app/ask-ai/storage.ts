@@ -1,5 +1,4 @@
 import type { UIMessage } from "ai";
-import { getSubdomain } from "@/lib/utils";
 
 /**
  * The thread survives leaving the page.
@@ -19,11 +18,8 @@ const PREFIX = "feedbackland-ask-ai:";
 /** Past this, the thread is not worth the shared 5MB budget. */
 const MAX_STORED_CHARS = 400_000;
 
-const storageKey = () => {
-  const subdomain = getSubdomain();
-  if (typeof window === "undefined" || subdomain === null) return null;
-  return `${PREFIX}${subdomain}`;
-};
+const storageKey = () =>
+  typeof window === "undefined" ? null : PREFIX + "board";
 
 /**
  * Enough of a shape check that a stale or hand-edited entry is dropped instead

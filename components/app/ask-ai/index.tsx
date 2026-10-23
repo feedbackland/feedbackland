@@ -5,10 +5,8 @@ import {
   AssistantChatTransport,
   useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
-import { getIdToken } from "firebase/auth";
-import { useCallback, useEffect, useState } from "react";
-import { auth } from "@/lib/firebase/client";
-import { cn, getSubdomain } from "@/lib/utils";
+import { useCallback, useState, useSyncExternalStore } from "react";
+import { cn } from "@/lib/utils";
 import { useFeedbackPostCount } from "@/hooks/use-feedback-post-count";
 import { AskAiHeader } from "@/components/app/ask-ai/header";
 import {
@@ -21,23 +19,7 @@ import {
   saveStoredThread,
 } from "@/components/app/ask-ai/storage";
 
-/**
- * `/api/chat` reads a whole board and spends the deployment's model budget, so
- * it authenticates exactly as every tRPC procedure does — the caller's own token
- * plus the subdomain they are on. The org is never sent in the body: whoever is
- * asking has to be an admin of the board they are asking about.
- */
-const authHeaders = async (): Promise<Record<string, string>> => {
-  await auth.authStateReady();
-
-  const idToken = auth.currentUser ? await getIdToken(auth.currentUser) : null;
-  const subdomain = getSubdomain();
-
-  return {
-    ...(!!idToken && { Authorization: `Bearer ${idToken}` }),
-    ...(!!subdomain && { subdomain }),
-  };
-};
+const authHeaders = async () => ({});
 
 /**
  * The admin's own time zone, so "what came in today" means their day and not
@@ -102,8 +84,11 @@ function AskAiSession({
   // the client's disagree, and React does not repair that. Waiting a tick keeps
   // this component correct on its own, rather than relying on the page above it
   // happening to hold it back until auth resolves.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>

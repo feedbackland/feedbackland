@@ -14,10 +14,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { useOrg } from "@/hooks/use-org";
-import { useUpdateOrg } from "@/hooks/use-update-org";
+import { useAdminSettings } from "@/hooks/use-admin-settings";
+import { useUpdateSettings } from "@/hooks/use-update-settings";
 import { PenIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { TRPCClientError } from "@trpc/client";
 import { Textarea } from "@/components/ui/textarea";
 
 const FormSchema = z.object({
@@ -31,11 +32,12 @@ export function PlatformDescription({
 }) {
   const {
     query: { data },
-  } = useOrg();
+  } = useAdminSettings();
 
-  const updateOrg = useUpdateOrg();
+  const updateSettings = useUpdateSettings();
 
   const [isEditing, setIsEditing] = useState(false);
+  const draftBase = useRef<{ value: string; revision: string } | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -43,14 +45,24 @@ export function PlatformDescription({
       platformDescription: "",
     },
   });
+  const isDirty = form.formState.isDirty;
 
   useEffect(() => {
-    form.setValue("platformDescription", data?.platformDescription || "");
-  }, [form, data]);
+    if (!data) return;
+    const value = data.platformDescription ?? "";
+    if (!isEditing || !isDirty) {
+      form.reset({ platformDescription: value });
+      draftBase.current = { value, revision: data.revision };
+    } else if (draftBase.current?.value === value) {
+      draftBase.current = { value, revision: data.revision };
+    }
+  }, [form, data, isEditing, isDirty]);
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
-      await updateOrg.mutateAsync({
+      if (!data || !draftBase.current) throw new Error("Settings unavailable");
+      await updateSettings.mutateAsync({
+        expectedRevision: draftBase.current.revision,
         platformDescription:
           formData?.platformDescription &&
           formData?.platformDescription?.length > 0
@@ -58,17 +70,19 @@ export function PlatformDescription({
             : null,
       });
       setIsEditing(false);
-    } catch {
+    } catch (error) {
       form.setError("platformDescription", {
-        message: "An error occured. Please try again.",
+        message:
+          error instanceof TRPCClientError && error.data?.code === "CONFLICT"
+            ? "This setting changed elsewhere. Cancel and reopen to load the current value."
+            : "An error occured. Please try again.",
       });
     }
   }
 
   const handleOnCancel = () => {
     setIsEditing(false);
-    form.setValue("platformDescription", data?.platformDescription || "");
-    form.clearErrors();
+    form.reset({ platformDescription: data?.platformDescription || "" });
   };
 
   return (
@@ -76,7 +90,10 @@ export function PlatformDescription({
       <div className="flex items-start gap-6">
         <div className="flex flex-1 flex-col items-stretch space-y-3">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="">
+            <form
+              onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}
+              className=""
+            >
               <FormField
                 control={form.control}
                 name="platformDescription"
@@ -90,6 +107,7 @@ export function PlatformDescription({
                     <FormControl>
                       {isEditing ? (
                         <Textarea
+                          disabled={updateSettings.isPending}
                           autoFocus={true}
                           className="w-full max-w-[450px] text-sm"
                           placeholder="Description of your feedback platform"
@@ -111,10 +129,16 @@ export function PlatformDescription({
               />
               {isEditing && (
                 <div className="mt-3 flex items-center gap-2">
-                  <Button type="submit" size="sm" loading={updateOrg.isPending}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    loading={updateSettings.isPending}
+                  >
                     Save
                   </Button>
                   <Button
+                    type="button"
+                    disabled={updateSettings.isPending}
                     size="sm"
                     variant="secondary"
                     onClick={handleOnCancel}
@@ -129,6 +153,7 @@ export function PlatformDescription({
         <div className="-mt-2.5">
           {isEditing ? (
             <Button
+              disabled={updateSettings.isPending}
               className=""
               size="sm"
               variant="outline"
@@ -139,6 +164,7 @@ export function PlatformDescription({
             </Button>
           ) : (
             <Button
+              disabled={!data}
               className=""
               size="sm"
               variant="outline"

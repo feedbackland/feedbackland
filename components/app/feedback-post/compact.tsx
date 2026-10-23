@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { UpvoteButton } from "@/components/app/upvote-button";
 import { cn } from "@/lib/utils";
-import { usePlatformUrl } from "@/hooks/use-platform-url";
+import { useBoardHref } from "@/hooks/use-board-href";
 import Link from "next/link";
 import { TiptapOutput } from "@/components/ui/tiptap-output";
 import { timeAgo } from "@/lib/time-ago";
@@ -12,6 +12,7 @@ import { CommentsButton } from "@/components/app/comments-button.tsx";
 import { useRouter } from "next/navigation";
 import { FeedbackPostOptionsMenu } from "./options-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsDrawerEmbed } from "@/providers/embed";
 
 function Inner({
   postId,
@@ -38,9 +39,10 @@ function Inner({
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const platformUrl = usePlatformUrl();
+  const href = useBoardHref();
   const router = useRouter();
   const { isAdmin } = useAuth();
+  const embedded = useIsDrawerEmbed();
 
   return (
     <div
@@ -50,7 +52,7 @@ function Inner({
       )}
       data-post-id={postId}
     >
-      {isAdmin && (
+      {isAdmin && !embedded && (
         <FeedbackPostOptionsMenu
           postId={postId}
           authorId={authorId}
@@ -58,7 +60,7 @@ function Inner({
         />
       )}
       <Link
-        href={`${platformUrl}/${postId}`}
+        href={href(`/${postId}`)}
         className="flex flex-col items-stretch gap-3.5"
       >
         <div className="group flex flex-col items-stretch gap-3.5">
@@ -104,7 +106,7 @@ function Inner({
           <CommentsButton
             commentCount={commentCount}
             onClick={() => {
-              router.push(`${platformUrl}/${postId}`);
+              router.push(href(`/${postId}`));
             }}
           />
         </div>
