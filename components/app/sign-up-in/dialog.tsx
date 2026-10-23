@@ -9,7 +9,7 @@ import {
 import { SignUpIn } from ".";
 import { useState } from "react";
 import { Method } from ".";
-import { Session } from "@/hooks/use-auth";
+import { type Session, useAuth } from "@/hooks/use-auth";
 
 export function SignUpInDialog({
   open,
@@ -27,6 +27,8 @@ export function SignUpInDialog({
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
+  const { authAvailable } = useAuth();
+  if (!authAvailable) return null;
 
   const handleOnSuccess = (session: Session | null) => {
     onSuccess?.(session);

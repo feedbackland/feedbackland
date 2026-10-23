@@ -66,6 +66,19 @@ export async function staticFoundations() {
     "tsx",
     "scripts/e2e/build-identity.ts",
   ]);
+  for (const script of ["client-contracts.tsx", "caller-inventory.ts"])
+    await command(process.execPath, [
+      "--import",
+      "tsx",
+      `scripts/e2e/${script}`,
+    ]);
+  await command(process.execPath, [
+    "--import",
+    "tsx",
+    "scripts/caller-inventory.ts",
+    "docs/superpowers/reviews/2026-10-18-p02-caller-inventory.md",
+    "--verify",
+  ]);
   await command(process.execPath, [
     "--require",
     "./scripts/eslint-ts6-resolver.cjs",
@@ -97,5 +110,7 @@ export async function staticFoundations() {
     changedCodeLint: "passed",
     runnerFailures: "passed",
     buildIdentity: "passed",
+    clientContracts: "passed",
+    callerInventory: "passed",
   };
 }

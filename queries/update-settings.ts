@@ -1,9 +1,11 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
 import { db } from "../db/db";
 import { lock, locks } from "../db/locks";
 import { requireAdmin, type Actor } from "../lib/auth/authorization";
 import { revision } from "../lib/revision";
+import { SETTINGS_FIELDS } from "./get-settings";
 export async function updateSettingsQuery(
   input: Actor & {
     expectedRevision: string;
@@ -32,9 +34,9 @@ export async function updateSettingsQuery(
       })
       .where("id", "=", 1)
       .where("revision", "=", revision(input.expectedRevision))
-      .returning("revision")
+      .returning(SETTINGS_FIELDS)
       .executeTakeFirst();
-    if (!result) throw new Error("CONFLICT");
+    if (!result) throw new DomainError("CONFLICT", "CONFLICT");
     return result;
   });
 }

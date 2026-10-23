@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { rootCertificates } from "node:tls";
+import { Client, type PoolConfig } from "pg";
 import { db } from "../../db/db";
 import { runtimeState } from "../../lib/runtime-state";
 import {
@@ -59,6 +61,14 @@ for (const selector of [
   "sslpassword=x",
   "uselibpqcompat=true",
   "SSL=true",
+  "sslnegotiation=direct",
+  "sslnegotiation=postgres",
+  "sslnegotiation=",
+  "sslnegotiation=unknown",
+  "SSLNEGOTIATION=direct",
+  "sslmode=disable&sslnegotiation=direct",
+  "sslmode=verify-full&sslnegotiation=direct",
+  "sslnegotiation=direct&sslnegotiation=postgres",
 ])
   assert.throws(() => parseDatabaseOptions(`${base}?${selector}`), selector);
 assert.throws(() => parseDatabaseOptions(undefined), /DATABASE_URL is not set/);
@@ -67,6 +77,24 @@ assert.throws(
   /DATABASE_SSL_CA/,
 );
 assert.throws(() => parseDatabaseOptions(base, "not a PEM"), /DATABASE_SSL_CA/);
+// pg reparses the connection string and can override the supplied SSL object.
+// Assert the effective driver settings as well as our parser's return value.
+for (const ca of [undefined, rootCertificates[0]])
+  for (const mode of [
+    "disable",
+    "prefer",
+    "require",
+    "verify-ca",
+    "verify-full",
+  ]) {
+    if (mode === "verify-ca" && !ca) continue;
+    if (ca && !["verify-ca", "verify-full"].includes(mode)) continue;
+    const options = parseDatabaseOptions(`${base}?sslmode=${mode}`, ca);
+    const client = new Client(options) as unknown as {
+      connectionParameters: { ssl: PoolConfig["ssl"] };
+    };
+    assert.deepEqual(client.connectionParameters.ssl, options.ssl, mode);
+  }
 for (const selector of [
   "ssl=false",
   "sslmode=disable",

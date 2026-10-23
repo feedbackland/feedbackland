@@ -19,6 +19,7 @@ import { Success } from "@/components/ui/success";
 import { Error } from "@/components/ui/error";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/firebase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 const formSchema = z.object({
   email: z.email(),
@@ -27,6 +28,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
+  const { authAvailable } = useAuth();
   const [formState, setFormState] = useState<{
     type: "idle" | "pending" | "success" | "error";
     message?: string;
@@ -47,27 +49,33 @@ export function ForgotPasswordForm({ onGoBack }: { onGoBack: () => void }) {
   } = form;
 
   const onSubmit: SubmitHandler<FormData> = async ({ email }) => {
+    if (!authAvailable) return;
     setFormState({ type: "pending" });
 
     try {
       await sendPasswordResetEmail(auth, email);
       setFormState({ type: "success" });
       reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const code =
+        error instanceof Object && "code" in error ? error.code : null;
       let errorMessage = "An error occurred. Please try again.";
 
       // Handle common Firebase auth errors
-      if (error.code === "auth/user-not-found") {
+      if (code === "auth/user-not-found") {
         errorMessage = "No user found with this email address.";
-      } else if (error.code === "auth/invalid-email") {
+      } else if (code === "auth/invalid-email") {
         errorMessage = "Invalid email address format.";
-      } else if (error.code === "auth/too-many-requests") {
+      } else if (code === "auth/too-many-requests") {
         errorMessage = "Too many attempts. Please try again later.";
       }
 
       setFormState({ type: "error", message: errorMessage });
     }
   };
+
+  if (!authAvailable)
+    return <p role="status">Sign-in is available in a later milestone.</p>;
 
   return (
     <div>

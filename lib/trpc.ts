@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { initTRPC, TRPCError } from "@trpc/server";
 import z, { ZodError } from "zod/v4";
 import { getClientIp } from "./client-ip";
+import { DomainError } from "./domain-error";
 export type RequestContext = {
   userId: string | null;
   userEmail: string | null;
@@ -35,8 +36,16 @@ const t = initTRPC.context<RequestContext>().create({
   },
 });
 export const router = t.router;
-export const publicProcedure = t.procedure;
-export const userProcedure = t.procedure.use(({ ctx, next }) => {
+const mapDomainErrors = t.middleware(async ({ next }) => {
+  const result = await next();
+  if (!result.ok && result.error.cause instanceof DomainError) {
+    const cause = result.error.cause;
+    throw new TRPCError({ code: cause.code, message: cause.message, cause });
+  }
+  return result;
+});
+export const publicProcedure = t.procedure.use(mapDomainErrors);
+export const userProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.userId)
     throw new TRPCError({
       code: "UNAUTHORIZED",

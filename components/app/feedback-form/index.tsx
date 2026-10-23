@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { MAX_FEEDBACK_TEXT_LENGTH } from "@/lib/feedback-text";
 export function FeedbackForm() {
   const [description, setDescription] = useState("");
   const trpc = useTRPC(),
@@ -20,12 +21,7 @@ export function FeedbackForm() {
   );
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    const escaped = description
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll("\n", "<br>");
-    mutation.mutate({ description: escaped });
+    mutation.mutate({ description });
   };
   return (
     <form onSubmit={submit} className="space-y-3">
@@ -35,7 +31,7 @@ export function FeedbackForm() {
       <Textarea
         id="feedback-description"
         placeholder="Share your feedback…"
-        maxLength={10000}
+        maxLength={MAX_FEEDBACK_TEXT_LENGTH}
         value={description}
         onChange={(event) => setDescription(event.target.value)}
         required

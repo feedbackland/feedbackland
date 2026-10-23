@@ -22,7 +22,7 @@ export function UpvoteButton({
   hasUserUpvote: boolean;
   className?: React.ComponentProps<"div">["className"];
 }) {
-  const { session } = useAuth();
+  const { session, authAvailable } = useAuth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const {
@@ -63,7 +63,7 @@ export function UpvoteButton({
     session: Session;
     allowUndo?: boolean;
   }) => {
-    if (isUpvotePending) {
+    if (!authAvailable || isUpvotePending) {
       return;
     }
 
@@ -80,6 +80,17 @@ export function UpvoteButton({
   return (
     <>
       <Button
+        disabled={!authAvailable}
+        aria-label={
+          authAvailable
+            ? "Upvote feedback"
+            : "Voting requires sign-in, available in a later milestone"
+        }
+        title={
+          authAvailable
+            ? undefined
+            : "Voting requires sign-in, available in a later milestone"
+        }
         variant={hasUserUpvote ? "default" : "outline"}
         size="sm"
         className={cn(

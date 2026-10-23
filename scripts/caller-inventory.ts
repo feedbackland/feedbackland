@@ -1,5 +1,5 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import ts from "@typescript/typescript6";
 async function files(directory: string): Promise<string[]> {
   return (
@@ -15,6 +15,28 @@ async function files(directory: string): Promise<string[]> {
   ).flat();
 }
 async function main() {
+  const base = resolve(".");
+  const canonical = (file: string) => {
+    const absolute = resolve(file).replaceAll("\\", "/");
+    return ts.sys.useCaseSensitiveFileNames ? absolute : absolute.toLowerCase();
+  };
+  const configFile = ts.readConfigFile(
+    join(base, "tsconfig.json"),
+    ts.sys.readFile,
+  );
+  if (configFile.error)
+    throw new Error(
+      ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n"),
+    );
+  const config = ts.parseJsonConfigFileContent(configFile.config, ts.sys, base);
+  if (config.errors.length)
+    throw new Error(
+      config.errors
+        .map((error) =>
+          ts.flattenDiagnosticMessageText(error.messageText, "\n"),
+        )
+        .join("\n"),
+    );
   const all = (
     await Promise.all(
       [
@@ -31,7 +53,10 @@ async function main() {
   ).flat();
   const modules = new Map<string, Set<string>>();
   for (const file of all.filter((file) => /^(queries|trpc)\//.test(file)))
-    modules.set(file.replace(/\.ts$/, ""), new Set());
+    modules.set(file, new Set());
+  const modulePaths = new Map(
+    [...modules.keys()].map((file) => [canonical(file), file]),
+  );
   for (const file of all) {
     const ast = ts.createSourceFile(
       file,
@@ -39,25 +64,32 @@ async function main() {
       ts.ScriptTarget.Latest,
       true,
     );
-    for (const statement of ast.statements.filter(ts.isImportDeclaration)) {
-      if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    for (const statement of ast.statements) {
+      if (
+        !(
+          ts.isImportDeclaration(statement) || ts.isExportDeclaration(statement)
+        ) ||
+        !statement.moduleSpecifier ||
+        !ts.isStringLiteral(statement.moduleSpecifier)
+      )
+        continue;
       const specifier = statement.moduleSpecifier.text;
-      const resolved = specifier.startsWith("@/")
-        ? specifier.slice(2)
-        : specifier.startsWith("./")
-          ? join(file.slice(0, file.lastIndexOf("/")), specifier).replaceAll(
-              "\\",
-              "/",
-            )
-          : null;
-      if (resolved) modules.get(resolved)?.add(file);
+      const resolved = ts.resolveModuleName(
+        specifier,
+        resolve(file),
+        config.options,
+        ts.sys,
+      ).resolvedModule;
+      const target =
+        resolved && modulePaths.get(canonical(resolved.resolvedFileName));
+      if (target) modules.get(target)?.add(file);
     }
   }
   const rows = [...modules]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(
       ([file, callers]) =>
-        `| \x60${file}.ts\x60 | ${
+        `| \x60${file}\x60 | ${
           callers.size
             ? [...callers]
                 .sort()
@@ -67,12 +99,17 @@ async function main() {
         } |`,
     );
   const output =
-    "# P02 query and procedure caller inventory\n\nGenerated from actual TypeScript import declarations by `scripts/caller-inventory.ts`. This records static importers, including the router index; it does not claim dynamic execution or authorization coverage. HTTP authorization and database invariants are exercised by phase-1 verification.\n\n| Module | Importers |\n|---|---|\n" +
+    "# P02 query and procedure caller inventory\n\nGenerated from TypeScript import and re-export declarations using tsconfig module resolution by `scripts/caller-inventory.ts`. This records static importers, including the router index; it does not claim dynamic execution or authorization coverage. HTTP authorization and database invariants are exercised by phase-1 verification.\n\n| Module | Importers |\n|---|---|\n" +
     rows.join("\n") +
     "\n";
   const target = process.argv[2];
   if (!target) throw new Error("Supply an output Markdown path");
-  await writeFile(target, output);
+  if (process.argv.includes("--verify")) {
+    if ((await readFile(target, "utf8")).replaceAll("\r\n", "\n") !== output)
+      throw new Error(
+        "Caller inventory is stale; regenerate it with scripts/caller-inventory.ts",
+      );
+  } else await writeFile(target, output);
   console.log(
     `Inventoried ${modules.size} modules across ${all.length} application files`,
   );

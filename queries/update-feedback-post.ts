@@ -1,10 +1,11 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { canAdminister, type Actor } from "@/lib/auth/authorization";
 import { revision } from "@/lib/revision";
-import { textContent } from "@/lib/utils-server";
+import { feedbackPostHtmlContent } from "@/lib/utils-server";
 export async function updateFeedbackPostQuery(
   input: Actor & {
     postId: string;
@@ -13,7 +14,7 @@ export async function updateFeedbackPostQuery(
     expectedRevision: string;
   },
 ) {
-  const text = textContent(input.description);
+  const text = feedbackPostHtmlContent(input.description);
   return db.transaction().execute(async (trx) => {
     await lock(trx, locks.membership);
     const admin = await canAdminister(trx, input);
@@ -24,7 +25,7 @@ export async function updateFeedbackPostQuery(
       .forUpdate()
       .executeTakeFirstOrThrow();
     if (!admin && row.authorId !== input.userId)
-      throw new Error("UNAUTHORIZED");
+      throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
     const result = await trx
       .updateTable("feedback")
       .set({
@@ -41,7 +42,7 @@ export async function updateFeedbackPostQuery(
       .where("revision", "=", revision(input.expectedRevision))
       .returningAll()
       .executeTakeFirst();
-    if (!result) throw new Error("CONFLICT");
+    if (!result) throw new DomainError("CONFLICT", "CONFLICT");
     return result;
   });
 }

@@ -1,0 +1,321 @@
+{
+  "runId": "p02-1792591254917-a06c32e5",
+  "phase": 1,
+  "image": "sha256:fd72458c4ae5b1674be5ad0a7b27121b7fa31c35026c000937b40a6a730e74d0",
+  "status": "passed",
+  "checks": [
+    {
+      "check": "static/import-boundaries",
+      "status": "passed",
+      "evidence": {
+        "checkout": "da1ffbe532e3b0868a5cb048f5bdb50cc07e513f",
+        "sourceTreeHash": "5090c510357f9b2f6f2b9af8ef7847a9d1d0c860f427b93be4593b20079fa851",
+        "hostArtifactId": "ee9e090a1fdc2b4580b5c4f3876da6cb2fc22381edd2ac60853145f5ceb31cb9",
+        "importBoundaries": "passed",
+        "readinessBounds": "passed",
+        "changedCodeLint": "passed",
+        "runnerFailures": "passed",
+        "buildIdentity": "passed",
+        "clientContracts": "passed",
+        "callerInventory": "passed"
+      }
+    },
+    {
+      "check": "static/removal-configuration",
+      "status": "passed",
+      "evidence": {
+        "scannedFiles": 411,
+        "literalExceptions": 17,
+        "computedOrExtraReferences": "rejected",
+        "actualEnvironmentDeletion": "passed",
+        "lintedFiles": 123
+      }
+    },
+    {
+      "check": "image/identity/filesystem",
+      "status": "passed",
+      "evidence": {
+        "imageId": "sha256:fd72458c4ae5b1674be5ad0a7b27121b7fa31c35026c000937b40a6a730e74d0",
+        "sourceCommit": null,
+        "artifactId": "bccd48810c250253c2dfd4fee2c026e0fbab660fd44cfc6dbd9b225a9932d16a",
+        "architecture": "amd64",
+        "forbiddenFiles": 0,
+        "prerenderedRoutes": [
+          "/_global-error",
+          "/_not-found",
+          "/favicon.ico"
+        ]
+      }
+    },
+    {
+      "check": "compose/runtime-invariants",
+      "status": "passed",
+      "evidence": {
+        "constants": "passed",
+        "readOnly": true,
+        "bootedDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+bccd48810c25"
+          },
+          "elapsedMs": 32
+        },
+        "boardPage": "/",
+        "writes": "only declared tmpfs"
+      }
+    },
+    {
+      "check": "readiness/outage-concurrency-recovery",
+      "status": "passed",
+      "evidence": {
+        "concurrentRequests": 40,
+        "maximumMs": 1768,
+        "stoppedDatabase": {
+          "status": 503,
+          "body": {
+            "status": "down",
+            "version": "0.1.0+bccd48810c25"
+          },
+          "elapsedMs": 1906
+        },
+        "restoredDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+bccd48810c25"
+          },
+          "elapsedMs": 15
+        },
+        "restarts": 0
+      }
+    },
+    {
+      "check": "direct-image/port-hostname",
+      "status": "passed",
+      "evidence": {
+        "port": 8080,
+        "dockerHostnameOverridden": true,
+        "readiness": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+bccd48810c25"
+          },
+          "elapsedMs": 307
+        },
+        "explicitBadHostnameExit": 1
+      }
+    },
+    {
+      "check": "cleanup",
+      "status": "passed",
+      "evidence": {
+        "project": "p02-1792591254917-a06c32e5",
+        "temporaryDirectoryRemoved": true,
+        "resourceCleanup": "passed"
+      }
+    },
+    {
+      "check": "client/settings-drafts-and-revisions",
+      "status": "passed",
+      "evidence": "settings browser: both dirty drafts, unrelated-field rebasing, same-field conflicts, cancel and failed refetch recovery passed"
+    },
+    {
+      "check": "schema/pg15-pg18-dimensions-ddl-types",
+      "status": "passed",
+      "evidence": {
+        "databases": [
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          }
+        ],
+        "authDdl": "exact match",
+        "generatedTypes": "all eight combinations match",
+        "invalidWidth4096": "refused before migration",
+        "existingSchema": "Existing schema refused and preserved"
+      }
+    },
+    {
+      "check": "boot/failure-pooler-concurrency",
+      "status": "passed",
+      "evidence": {
+        "concurrentBlockedBoots": 2,
+        "committedMigrations": 1,
+        "originalFailure": "42P01",
+        "rollbackAndRetry": "passed through transaction-mode PgBouncer",
+        "sessionLocksRemaining": 0
+      }
+    },
+    {
+      "check": "tls/policies-chain-hostname-expiry",
+      "status": "passed",
+      "evidence": {
+        "plaintextPolicies": 3,
+        "encryptedUnverifiedPolicies": 2,
+        "verifiedPolicies": 4,
+        "pgStatSsl": "checked on every accepted connection",
+        "untrustedChain": "refused",
+        "wrongHostnameAndIp": "refused",
+        "expiredCertificate": "refused",
+        "malformedAndConflictingSelectors": "parser gate"
+      }
+    },
+    {
+      "check": "standalone/public-persistence-secrets-pools",
+      "status": "passed",
+      "evidence": {
+        "root": 200,
+        "anonymousCreate": 201,
+        "restartPersistence": "passed",
+        "corsOnSuccessAndValidation": "passed",
+        "protectedRoutes": "unauthorized",
+        "publicAi": "AI_NOT_CONFIGURED",
+        "publicSettingsSecrets": "absent",
+        "injectedSecretsInDatabaseAndLogs": "absent",
+        "sharedAppConnectionsAcrossLayers": 1,
+        "configuredTotal": 2
+      }
+    },
+    {
+      "check": "boot/runtime-fatal-bounds",
+      "status": "passed",
+      "evidence": [
+        {
+          "case": "missing",
+          "exit": 1,
+          "elapsedMs": 979
+        },
+        {
+          "case": "unreachable",
+          "exit": 1,
+          "elapsedMs": 90904
+        },
+        {
+          "case": "invalid-tls",
+          "exit": 1,
+          "elapsedMs": 899
+        }
+      ]
+    },
+    {
+      "check": "phase1/cleanup",
+      "status": "passed",
+      "evidence": {
+        "ownedProjectsRemoved": 2,
+        "ownedContainersRemoved": 4,
+        "ownedCertificateVolumeRemoved": true
+      }
+    }
+  ],
+  "futurePhases": "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed."
+}

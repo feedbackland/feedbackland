@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { sql, type Kysely } from "kysely";
 import type { DB } from "../db/schema";
 export async function validateReplyParent(
@@ -24,5 +25,5 @@ export async function validateReplyParent(
     rows.some((row) => row.cycle) ||
     rows.at(-1)?.parent !== null
   )
-    throw new Error("INVALID_REPLY_PARENT");
+    throw new DomainError("BAD_REQUEST", "INVALID_REPLY_PARENT");
 }

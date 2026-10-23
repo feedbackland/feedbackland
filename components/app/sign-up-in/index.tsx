@@ -2,7 +2,7 @@
 
 import { SignUp } from "@/components/app/sign-up";
 import { SignIn } from "@/components/app/sign-in";
-import { Session } from "@/hooks/use-auth";
+import { type Session, useAuth } from "@/hooks/use-auth";
 import { ForgotPasswordForm } from "@/components/app/forgot-password/form";
 
 export type Method = "sign-up" | "sign-in" | "forgot-password";
@@ -18,6 +18,10 @@ export function SignUpIn({
   onSuccess: (session: Session | null) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
+  const { authAvailable } = useAuth();
+  if (!authAvailable)
+    return <p role="status">Sign-in is available in a later milestone.</p>;
+
   const handleOnSuccess = async (session: Session | null) => {
     onSuccess(session);
   };

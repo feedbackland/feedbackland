@@ -1,4 +1,5 @@
 import "server-only";
+import { DomainError } from "@/lib/domain-error";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { requireAdmin, type Actor } from "@/lib/auth/authorization";
@@ -17,7 +18,7 @@ export async function deleteAdminQuery(input: Actor & { adminId: string }) {
       input.adminId === input.userId ||
       (admins.some((u) => u.id === input.adminId) && admins.length <= 1)
     )
-      throw new Error("LAST_ADMIN");
+      throw new DomainError("BAD_REQUEST", "LAST_ADMIN");
     return trx
       .updateTable("user")
       .set({ role: "user" })
