@@ -60,7 +60,7 @@ export function PlatformHeaderButtons() {
       />
 
       <div className="flex items-center gap-1">
-        {isAdmin && boardRoot && (
+        {!isDrawerEmbed && isAdmin && boardRoot && (
           <Link
             className="xs:block hidden"
             href={isAdminPage ? boardRoot : href(`/admin`)}
@@ -93,7 +93,7 @@ export function PlatformHeaderButtons() {
           </Tooltip>
         )}
 
-        {session && (
+        {!isDrawerEmbed && session && (
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>

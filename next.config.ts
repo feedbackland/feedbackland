@@ -8,12 +8,36 @@ const nextConfig: NextConfig = {
   experimental: { isrFlushToDisk: false },
   images: {
     unoptimized: true,
-    remotePatterns: [
+  },
+  async headers() {
+    // Last matching values win. Keep default → sandboxed images → board
+    // exceptions in this order: reordering loses the sandbox or blocks drawers.
+    return [
       {
-        protocol: "https",
-        hostname: `${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co`,
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        ],
       },
-    ],
+      {
+        source: "/api/images/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'none'; sandbox; frame-ancestors 'none'",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Content-Disposition", value: "inline" },
+        ],
+      },
+      ...["/", "/:postId([0-9a-fA-F-]{36})"].map((source) => ({
+        source,
+        has: [{ type: "query" as const, key: "embed", value: "drawer" }],
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
+        ],
+      })),
+    ];
   },
 };
 

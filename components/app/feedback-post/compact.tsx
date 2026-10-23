@@ -12,6 +12,7 @@ import { CommentsButton } from "@/components/app/comments-button.tsx";
 import { useRouter } from "next/navigation";
 import { FeedbackPostOptionsMenu } from "./options-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsDrawerEmbed } from "@/providers/embed";
 
 function Inner({
   postId,
@@ -41,6 +42,7 @@ function Inner({
   const href = useBoardHref();
   const router = useRouter();
   const { isAdmin } = useAuth();
+  const embedded = useIsDrawerEmbed();
 
   return (
     <div
@@ -50,7 +52,7 @@ function Inner({
       )}
       data-post-id={postId}
     >
-      {isAdmin && (
+      {isAdmin && !embedded && (
         <FeedbackPostOptionsMenu
           postId={postId}
           authorId={authorId}

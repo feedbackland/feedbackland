@@ -1,4 +1,5 @@
 "use client";
+import { copyText } from "@/lib/copy-text";
 
 import {
   ActionBarPrimitive,
@@ -298,9 +299,9 @@ const CopyAnswer: FC = () => {
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    navigator.clipboard
-      .writeText(rewriteCitationsForCopy(text, appUrl))
-      .then(() => {
+    copyText(rewriteCitationsForCopy(text, appUrl))
+      .then((success) => {
+        if (!success) return;
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       })

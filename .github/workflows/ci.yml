@@ -1,4 +1,4 @@
-name: Self-hosting phase 1
+name: Self-hosting phase 2
 on:
   push:
     branches: [main, single-tenant-self-hosting]
@@ -22,7 +22,6 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
       - run: npm run build -w feedbackland-react
       - run: npm run typecheck
       - run: npm run build
@@ -32,7 +31,9 @@ jobs:
           printf 'P01_BUILD_DECOY=must-never-ship\n' > .env.production
           docker build --build-arg SOURCE_COMMIT="$SOURCE_COMMIT" --tag feedbackland:ci .
           rm .env .env.production
-      - run: npm run verify -- --phase 1 --image feedbackland:ci --artifacts artifacts/self-hosting
+      - name: Install Chromium for the phase-2 drawer gates
+        run: npx playwright install --with-deps chromium
+      - run: npm run verify -- --phase 2 --image feedbackland:ci --artifacts artifacts/self-hosting
       - name: Inspect evidence for fixture-only output
         id: evidence
         if: always()
@@ -41,7 +42,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
         with:
-          name: self-hosting-phase-1
+          name: self-hosting-phase-2
           path: artifacts/self-hosting/
           retention-days: 14
   development-boot:

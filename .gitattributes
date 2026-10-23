@@ -1,0 +1,2 @@
+# kysely-codegen verifies the generated file byte for byte, including newlines.
+db/schema.ts text eol=lf

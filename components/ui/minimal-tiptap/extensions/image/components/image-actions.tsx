@@ -29,8 +29,7 @@ interface ImageActionsProps {
   onCopyLink?: () => void;
 }
 
-interface ActionButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   tooltip: string;
 }
@@ -57,6 +56,7 @@ export const ActionButton = React.memo(
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          aria-label={tooltip}
           variant="ghost"
           className={cn(
             "text-muted-foreground hover:text-foreground relative flex h-7 w-7 flex-row rounded-none p-0",
@@ -109,6 +109,11 @@ const ActionItems: Array<{
 export const ImageActions: React.FC<ImageActionsProps> = React.memo(
   ({ shouldMerge = false, isLink = false, ...actions }) => {
     const [isOpen, setIsOpen] = React.useState(false);
+    const secure = React.useSyncExternalStore(
+      () => () => {},
+      () => window.isSecureContext,
+      () => false,
+    );
 
     const handleAction = React.useCallback(
       (e: React.MouseEvent, action: (() => void) | undefined) => {
@@ -120,8 +125,12 @@ export const ImageActions: React.FC<ImageActionsProps> = React.memo(
     );
 
     const filteredActions = React.useMemo(
-      () => ActionItems.filter((item) => isLink || !item.isLink),
-      [isLink],
+      () =>
+        ActionItems.filter(
+          (item) =>
+            (isLink || !item.isLink) && (item.key !== "onCopy" || secure),
+        ),
+      [isLink, secure],
     );
 
     return (

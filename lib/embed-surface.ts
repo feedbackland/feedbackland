@@ -4,6 +4,8 @@
  * widget). Today the only surface is the slide-in drawer widget.
  */
 export type EmbedSurface = "drawer" | null;
+export type ResolvedSurface = "drawer" | "first-party";
+export type SurfaceState = ResolvedSurface | "unresolved";
 
 // Query-param contract with the embedding widget. The slide-in drawer widget
 // (feedbackland-react's <OverlayWidget>) appends `?embed=drawer` to the board's
@@ -30,8 +32,6 @@ export const DRAWER_SURFACE = "drawer";
 export const EMBED_HEADER = "x-feedbackland-embed";
 
 /** Narrows an untrusted header/param value to a known surface. */
-export function parseEmbedSurface(
-  value: string | null | undefined,
-): EmbedSurface {
-  return value === DRAWER_SURFACE ? DRAWER_SURFACE : null;
+export function parseEmbedSurface(values: readonly string[]): EmbedSurface {
+  return values.includes(DRAWER_SURFACE) ? DRAWER_SURFACE : null;
 }

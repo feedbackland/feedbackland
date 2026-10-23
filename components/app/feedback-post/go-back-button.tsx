@@ -40,6 +40,7 @@ export const GoBackButton = ({
 
   const button = (
     <Button
+      aria-label={label ?? "Go back"}
       size={label ? "sm" : "icon"}
       onClick={handleGoBack}
       variant="link"

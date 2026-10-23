@@ -1,6 +1,9 @@
 # Self-hosted single-tenant implementation PR sequence
 
-**Date:** 2026-10-18. **Status:** planning complete; implementation not started.
+**Date:** 2026-10-18. **Execution update (2026-10-21):** P01/P02 merged;
+P02 review fixes, including the four follow-up findings, submitted as PR #13;
+P03 retains those fixes and all 16 cumulative
+phase-2 groups passed locally; independent review is next.
 **Baseline:** `e159987a9d15d09c0b08c505cf644f34b8470f14`, branch
 `single-tenant-self-hosting`. **Integration PR:** [#10](https://github.com/feedbackland/feedbackland/pull/10).
 
@@ -11,9 +14,9 @@ defines F01–F29 and A01–A12; the design defines V0–V23. Those requirements
 authoritative. This document supplies sequencing, interfaces, work boundaries
 and completion criteria; it does not reopen the architecture.
 
-This planning pass writes this document only. It performs no implementation,
+The original planning pass wrote this document only. It performed no implementation,
 service retirement, database migration, deployment, commit, push or PR update.
-All execution checkboxes below are intentionally unchecked. Existing synthetic
+Execution updates and checkboxes below now record implementation progress. Existing synthetic
 review experiments are evidence about particular contracts, not passing
 application acceptance gates.
 
@@ -421,22 +424,46 @@ summarized here.
 
 ### P03 — Surface isolation, framing and navigation (phase 2)
 
+Execution update (2026-10-21): P01 and P02 are merged into the integration
+branch. PR #13 resolves the six P02 review findings and four follow-up review
+findings; retain all those fixes while
+developing P03 and merge that follow-up first. P03's internal edit order is:
+
+1. Resolve the board surface before mounting any credential/query provider;
+   isolate and dispose transport, query and board state per surface. Give admin
+   and later auth routes explicit first-party providers outside the board.
+2. Add the ordered framing rules and server-side public metadata/UUID checks;
+   retain unresolved SSR without a trusted proxy hint.
+3. Preserve embed/mode on navigation, reload and errors; close framed admin
+   rendering and embedded administrative controls. Harden content output and
+   consolidate clipboard fallbacks.
+4. Add phase-2 header/content checks and a real widget/Chromium harness with
+   sentinel-cookie and first-request observations, missing-hint hydration,
+   surface remount/cancellation, reload and RSC failure/identity changes.
+5. Run all preceding gates plus the phase-2 legs against the exact built image,
+   record evidence, and submit P03 independently for review. P04 is excluded.
+
 **Entry:** P02. **Files:** root/board/first-party layouts,
 `providers/{embed,surface}.tsx`, auth/tRPC provider placement, `proxy.ts`,
 `lib/{embed-surface,board-href,copy-text}.ts`, `next.config.ts`, metadata/icon,
 post UUID route, global error page and Tiptap output/status/link handling.
 
-- [ ] Establish the exact provider tree and unresolved state before auth work.
+- [x] Establish the exact provider tree and unresolved state before auth work.
       Cancel work/discard surface caches on remount; outside-board pages use
       explicit first-party providers. Public SSR ignores ambient navigation cookies.
-- [ ] Implement header ordering, any-match embed parsing, framed admin refusal,
+- [x] Implement header ordering, any-match embed parsing, framed admin refusal,
       preserved query/mode through navigation/reload/errors and clipboard fallback.
-- [ ] Add `scripts/drawer-auth-check.ts` and the phase-2 V19 harness. Before
+- [x] Add `scripts/drawer-auth-check.ts` and the phase-2 V19 harness. Before
       P04 use sentinel cookies and instrumented public/script requests; P04
       repeats these tests with actual first-party/embedded admin sessions.
 
 **Exit:** V5 navigation and V7/V19 phase-2 legs pass. No claim of working sign-in.
 **Revert boundary:** UI/provider/header change; retain P02 schema. **Next:** P04.
+
+**Evidence (2026-10-21):** [implementation and limits](../reviews/2026-10-21-p03-implementation-evidence.md)
+and [16 passing cumulative groups](../reviews/2026-10-21-p03-verification.json).
+Development boot/migration/settings smoke also passed. P04 remains unstarted
+until the review-fix follow-up and this milestone are reviewed and merged.
 
 ### P04 — Setup and complete credential authorization (phase 3)
 
