@@ -4,10 +4,11 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 
 | Module | Importers |
 |---|---|
-| `queries/check-rate-limit.ts` | `lib/auth/server.ts`, `lib/rate-limit.ts`, `lib/setup.ts` |
+| `queries/check-rate-limit.ts` | `lib/auth/handoff-store.ts`, `lib/auth/server.ts`, `lib/rate-limit.ts`, `lib/recovery.ts`, `lib/setup.ts` |
 | `queries/create-admin-invite.ts` | `trpc/create-admin-invite.ts` |
 | `queries/create-comment.ts` | `trpc/create-comment.ts` |
 | `queries/create-feedback-post.ts` | `app/api/feedback/create/route.ts`, `trpc/create-feedback-post.ts` |
+| `queries/create-password-reset-link.ts` | `trpc/create-password-reset-link.ts` |
 | `queries/delete-admin-invite.ts` | `trpc/delete-admin-invite.ts` |
 | `queries/delete-admin.ts` | `trpc/delete-admin.ts` |
 | `queries/delete-comment.ts` | `trpc/delete-comment.ts` |
@@ -43,6 +44,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/create-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/create-comment.ts` | `trpc/index.ts` |
 | `trpc/create-feedback-post.ts` | `trpc/index.ts` |
+| `trpc/create-password-reset-link.ts` | `trpc/index.ts` |
 | `trpc/delete-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/delete-admin.ts` | `trpc/index.ts` |
 | `trpc/delete-comment.ts` | `trpc/index.ts` |
@@ -52,6 +54,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-activity-feed.ts` | `trpc/index.ts` |
 | `trpc/get-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/get-admins.ts` | `trpc/index.ts` |
+| `trpc/get-auth-status.ts` | `trpc/index.ts` |
 | `trpc/get-comment.ts` | `trpc/index.ts` |
 | `trpc/get-comments.ts` | `trpc/index.ts` |
 | `trpc/get-feedback-post-count.ts` | `trpc/index.ts` |
@@ -64,6 +67,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-user-session.ts` | `trpc/index.ts` |
 | `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `providers/trpc-client.tsx` |
 | `trpc/redeem-admin-invite.ts` | `trpc/index.ts` |
+| `trpc/retry-oidc-discovery.ts` | `trpc/index.ts` |
 | `trpc/rewrite-feedback.ts` | `trpc/index.ts` |
 | `trpc/set-activities-seen.ts` | `trpc/index.ts` |
 | `trpc/set-all-activities-seen.ts` | `trpc/index.ts` |

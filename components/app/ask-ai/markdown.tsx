@@ -21,6 +21,8 @@ import {
   normaliseCitations,
 } from "@/lib/ask-ai";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/hooks/use-settings";
+import { isBlockedContentLink } from "@/lib/safe-content-link";
 
 /**
  * Answer text.
@@ -203,7 +205,8 @@ const defaultComponents = memoizeMarkdownComponents({
   ),
   // A citation is the only link the model is asked to write. Anything else is a
   // URL a user typed into their feedback, so it opens away from the thread too.
-  a: ({ className, href, children, ...props }) => {
+  a: function MarkdownLink({ className, href, children, ...props }) {
+    const { appUrl } = useSettings();
     const postId = href ? getCitedPostId(href) : null;
 
     if (postId) return <Citation postId={postId} />;
@@ -212,7 +215,7 @@ const defaultComponents = memoizeMarkdownComponents({
     // URL, or a citation whose id is malformed. Rendering those as text rather
     // than as an anchor keeps them from looking clickable and from navigating
     // the admin off the page when clicked.
-    if (!href) return <>{children}</>;
+    if (!href || isBlockedContentLink(href, appUrl)) return <>{children}</>;
 
     return (
       <a

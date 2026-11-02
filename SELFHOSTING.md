@@ -2,11 +2,11 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P04 provides transactional boot, one-time setup,
+> **Implementation status:** P05 provides transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
-> grants it administrative rights. Social sign-in, password/operator recovery,
-> uploads, AI and search remain unavailable. The one-click, backup and product
+> grants it administrative rights. Social sign-in, password reset and operator
+> recovery are available. Uploads, AI and search remain unavailable. The one-click, backup and product
 > instructions below describe later milestones. No stable image is published.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
@@ -94,7 +94,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P04 contributor verification (development only)**
+**P05 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -109,7 +109,7 @@ npm run typecheck
 npm run build
 docker build --tag feedbackland:ci .
 npx playwright install --with-deps chromium firefox webkit
-npm run verify -- --phase 3 --image feedbackland:ci --artifacts artifacts/self-hosting
+npm run verify -- --phase 4 --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
 Run the full browser matrix on Linux; CI uses Ubuntu 24.04. The Windows
@@ -125,11 +125,15 @@ restart persistence, rollback/retry, simultaneous boots, schema/revisions,
 serialized admin query invariants, TLS and source/import boundaries. Its PG15/18,
 vector/halfvec, extension-schema and transaction-pooler fixtures are pinned.
 The injected-secret logging check includes removing the injection on restart.
-The cumulative phase-3 run also checks real setup, email flows in Chromium,
+The cumulative phase-4 run also checks real setup, email flows in Chromium,
 Firefox and WebKit, cookie/bearer isolation, avatar preservation, immutable
 session scope, absolute admin age, final-write revalidation, invite consumption,
-CSRF, failed-password throttles and rollback compensation. Social/recovery,
-image, AI and search gates are not counted as passed.
+CSRF, failed-password throttles and rollback compensation. HTTPS mock OIDC,
+COOP and Helmet fixtures exercise real popup callbacks and polling in all three
+engines; Mailpit checks actual reset delivery. Two replicas exercise discovery
+retry/cancellation, and PostgreSQL faults exercise interrupted recovery. Image,
+AI and search gates are not counted as passed. Real Google/Microsoft and Safari
+device checks remain release work.
 
 The separate development smoke check also owns its database and chooses free
 ports; it never stops an existing Postgres service:
@@ -357,8 +361,62 @@ multi-hop forwarded chain; both limiters use the same resolver.
 
 Provider avatars remain remote URLs, so browsers contact that provider and a
 backup does not contain the image bytes. Email accounts cannot set arbitrary
-avatar URLs. Social sign-in and all password/operator recovery flows arrive in
-P05; retain the disposable installation's administrator credentials until then.
+avatar URLs. Provider sign-in refreshes name/avatar; name-only edits preserve
+the provider avatar. Provider access, refresh and ID tokens are not persisted.
+
+### Social sign-in
+
+Set a fixed HTTPS `APP_URL`, then configure a provider's credentials from
+`.env.example`. Register the exact callback shown in **Admin > System**:
+`APP_URL/api/auth/callback/google`, `/microsoft` or `/oidc`. A provider button
+appears only when configured and available. OIDC requires an HTTPS issuer and
+HTTPS endpoints in its discovery document. Generic OIDC discovery validates
+issuer/JWKS metadata within ten seconds; failed discovery retries automatically
+after a minute. **Retry discovery** on System advances a shared epoch so other
+replicas converge within five seconds plus the bounded construction time. A
+failed retry preserves the last working provider. Password sign-in stays usable.
+
+Each sign-in opens a confirmation page outside the widget. Allow that popup,
+confirm the board and choose your account. Keep the widget open until it reports
+success; polling also works when the provider severs the opener. Sign-out stays
+on the board and does not sign you out of your identity provider. Account linking
+is disabled: use the original method when an email is already registered.
+
+### Password reset
+
+For email delivery, set `APP_URL`, `SMTP_URL` (`smtp://` or `smtps://`) and
+`SMTP_FROM`, then restart every replica. The System page reports whether mail is
+enabled. Without mail, the reset dialog asks the user to contact an administrator.
+An administrator can generate a one-time reset link for an existing non-admin
+password account under **Admin > Admins**. This also works with an inferred app
+origin. Give the link privately to that account owner. Administrators and
+social-only accounts cannot receive an administrator-generated reset link.
+Successful password resets revoke that account's sessions; each link works once.
+
+### Recover administrator access
+
+Temporarily configure `RECOVERY_CODE` as 32 random bytes in hex or canonical
+padded base64, then restart all replicas. Keep it private. Visit `/recover`, enter
+the code, an existing administrator's password-account email and a new password,
+then review and confirm the displayed email. Recovery allows five attempts per
+client IP per fifteen minutes and refuses attempts when its limiter is unavailable.
+
+If no administrators remain, recovery can promote an existing password account.
+It cannot create an account or convert a social-only identity. If necessary,
+register a password account first. Recovery revokes the target account's sessions.
+An interrupted attempt may already have changed the password; no administrator
+access is reported until the final transaction commits. A live claim reserves
+that account for fifteen minutes. Retry with the same code after the claim
+expires. If its reset already committed, the earlier attempt's password remains.
+
+If a replica stalls inside password reset, stop/restart that replica before
+retrying; its database claim lock prevents overlapping password writes even
+after the nominal claim expiry.
+
+**After success, remove `RECOVERY_CODE` from every replica and restart them.**
+The recovery route then returns HTTP 404. To perform a new recovery after an
+already recovered account was subsequently demoted, rotate to a new random code.
+Do not reuse setup codes, put recovery codes in URLs or retain reset links in logs.
 
 ## Troubleshooting
 

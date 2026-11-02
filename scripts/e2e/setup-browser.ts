@@ -9,7 +9,7 @@ export async function submitSetup(
   email = "admin@fixture.invalid",
 ) {
   assert.equal(
-    (await fetch(base + "/api/auth/get-session")).status,
+    (await page.request.get(base + "/api/auth/get-session")).status(),
     200,
     "Auth HTTP route must respond before setup",
   );

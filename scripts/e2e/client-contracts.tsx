@@ -21,6 +21,8 @@ import { SignUpIn } from "../../components/app/sign-up-in";
 import { ForgotPasswordForm } from "../../components/app/forgot-password/form";
 import { UpvoteButton } from "../../components/app/upvote-button";
 import { CommentUpvoteButton } from "../../components/app/comment/upvote-button";
+import { SettingsProvider } from "../../providers/settings";
+import type { PublicSettings } from "../../lib/public-settings";
 
 function Probe({
   capture,
@@ -135,7 +137,32 @@ async function main() {
       <QueryClientProvider client={cache}>
         <TRPCProvider trpcClient={client} queryClient={cache}>
           <AppRouterContext.Provider value={router}>
-            <AuthProvider>{children}</AuthProvider>
+            <SettingsProvider
+              initial={
+                {
+                  platformTitle: "Fixture",
+                  platformDescription: null,
+                  logoUrl: null,
+                  allowIndexing: false,
+                  isSetupComplete: true,
+                  appUrl: "http://fixture.invalid",
+                  appUrlInferred: false,
+                  version: "fixture",
+                  buildIdentity: "fixture",
+                  publicVersion: "fixture",
+                  capabilities: {
+                    chat: false,
+                    embeddings: false,
+                    smtp: false,
+                    socialProviders: [],
+                    oidcLabel: null,
+                    maxImageBytes: 0,
+                  },
+                } satisfies PublicSettings
+              }
+            >
+              <AuthProvider>{children}</AuthProvider>
+            </SettingsProvider>
           </AppRouterContext.Provider>
         </TRPCProvider>
       </QueryClientProvider>,

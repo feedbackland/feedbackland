@@ -17,6 +17,16 @@ export type RuntimeState = {
   booted?: boolean;
   authSecret?: string;
   auth?: Auth;
+  authDiscovery?: {
+    epoch: string | null;
+    lastPoll: number;
+    lastAttempt: number;
+    failed: boolean;
+    pending?: Promise<void>;
+    poll?: Promise<void>;
+    controller?: AbortController;
+    timer?: ReturnType<typeof setTimeout>;
+  };
   setupComplete?: boolean;
   vector?: VectorMetadata;
   sweepTimer?: ReturnType<typeof setTimeout>;

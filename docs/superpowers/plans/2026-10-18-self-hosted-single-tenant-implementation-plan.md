@@ -4,7 +4,9 @@
 review fixes are merged into `single-tenant-self-hosting` (through PR #14).
 P04 is implemented in [PR #15](https://github.com/feedbackland/feedbackland/pull/15):
 all 21 cumulative phase-3 groups and the interactive keyless walkthrough pass
-locally. Independent P04 review and merge are next; P05 has not started.
+locally and on CI. P05 is in progress on `codex/social-recovery`, stacked on
+P04's reviewed/fixed tip `2014cc3`. The user explicitly requested P05 while
+PR #15 remained open; merge P04 before merging the P05 PR. P06 has not started.
 **Baseline:** `e159987a9d15d09c0b08c505cf644f34b8470f14`, branch
 `single-tenant-self-hosting`. **Integration PR:** [#10](https://github.com/feedbackland/feedbackland/pull/10).
 
@@ -492,7 +494,8 @@ covered in all three engines. The subsequent PR review added lost-transaction-
 acknowledgement reconciliation, atomic per-email sign-in admission, synchronous
 bearer selection and the complete real-widget V5 email matrix; their regressions
 and residual limits are recorded in the implementation evidence. See [PR #15 checks](https://github.com/feedbackland/feedbackland/pull/15/checks)
-for current-head CI. Do not begin P05 before independent P04 review and merge.
+for current-head CI. The user's subsequent instruction authorized P05 on this
+tip before P04 merge; the P05 branch remains stacked until that merge.
 
 ### P05 — Social auth and operator recovery (phase 4)
 
@@ -503,6 +506,13 @@ recover routes, admin reset links, claim persistence, HTTPS/COOP/IdP/Mailpit fix
       token removal, discovery convergence and configured provider visibility.
 - [ ] Implement admin reset and zero-admin recovery, owner-fenced claims,
       interrupted reset/promotion handling and session revocation.
+
+**Execution:** implementation is present; the cumulative phase-4 exit gate is
+being validated. The HTTPS harness owns pinned Caddy, Mailpit and PostgreSQL
+fixtures, ephemeral certificates and two app replicas. Mock OIDC supplies real
+PKCE, signed JWTs, nonce checks and enforcing COOP. No production identity-provider
+credentials or hosted data are used. Keep both boxes open until the complete
+gate passes on the final source/image.
 
 **Exit:** V5 social/COOP/Helmet; V7 phase 4; V19 two-replica discovery/avatar;
 V22 recovery and code removal. Real Google/Microsoft device checks remain due

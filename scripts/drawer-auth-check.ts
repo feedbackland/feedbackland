@@ -172,8 +172,15 @@ async function contracts(base: string, post: string) {
     ],
   ]) {
     const response = await fetch(base + path);
-    if (["/recover", "/reset-password", "/auth/popup"].includes(path))
+    if (["/recover", "/auth/popup"].includes(path))
       assert.equal(response.status, 404, path);
+    if (path === "/reset-password") {
+      assert.equal(response.status, 200);
+      assert.match(
+        await response.text(),
+        /reset link is invalid, expired or already used/,
+      );
+    }
     assert.equal(response.headers.get("content-security-policy"), policy, path);
     if (path.startsWith("/api/images/")) {
       assert.equal(response.headers.get("x-content-type-options"), "nosniff");
