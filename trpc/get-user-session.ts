@@ -1,16 +1,7 @@
 import "server-only";
-import { userProcedure } from "@/lib/trpc";
-import { getUserSessionQuery } from "@/queries/get-user-session";
+import { publicProcedure } from "@/lib/trpc";
 import z from "zod/v4";
 
-export const getUserSession = userProcedure
+export const getUserSession = publicProcedure
   .input(z.object({}))
-  .query(async () => {
-    try {
-      const session = await getUserSessionQuery();
-
-      return session;
-    } catch (error) {
-      throw error;
-    }
-  });
+  .query(({ ctx }) => ctx.session ?? null);

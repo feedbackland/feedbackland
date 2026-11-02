@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { getClientIp, enforceFeedbackCreateLimit } from "@/lib/rate-limit";
 import { ContentInputError } from "@/lib/utils-server";
+import { isSetupComplete } from "@/lib/setup-state";
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -14,6 +15,11 @@ export async function OPTIONS() {
 }
 const schema = z.object({ description: z.string().trim().min(1).max(10000) });
 export async function POST(request: Request) {
+  if (!(await isSetupComplete()))
+    return Response.json(
+      { error: "SETUP_REQUIRED" },
+      { status: 403, headers: cors },
+    );
   let input: z.infer<typeof schema>;
   try {
     input = schema.parse(await request.json());

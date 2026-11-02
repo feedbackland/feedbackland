@@ -1,5 +1,6 @@
 "use client";
 
+import { encode } from "he";
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
 import { cn, processImagesInHTML } from "@/lib/utils";
@@ -43,7 +44,7 @@ export function CommentForm({
 }) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const { session } = useAuth();
+  const { session, isLoaded } = useAuth();
   const elementRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false); // Ref to track if we've already scrolled once
 
@@ -68,7 +69,7 @@ export function CommentForm({
   }, [scrollIntoView]);
 
   const initialContent = !!(replyToAuthorId && replyToAuthorName)
-    ? `<span class="mention" data-type="mention" data-id="${replyToAuthorId}" data-label="${replyToAuthorName}">@${replyToAuthorName}</span>&nbsp;`
+    ? `<span class="mention" data-type="mention" data-id="${encode(replyToAuthorId)}" data-label="${encode(replyToAuthorName)}">@${encode(replyToAuthorName)}</span>&nbsp;`
     : "";
 
   const [value, setValue] = useState(initialContent);
@@ -137,12 +138,8 @@ export function CommentForm({
 
   useKey("Escape", handleOnClose);
 
-  if (!session)
-    return (
-      <p className="text-muted-foreground text-sm">
-        Comments require sign-in, available in a later milestone.
-      </p>
-    );
+  if (!isLoaded)
+    return <p className="text-muted-foreground text-sm">Loading sign-in…</p>;
 
   return (
     <>

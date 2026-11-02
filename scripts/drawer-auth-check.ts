@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import {
   mkdtemp,
   readFile,
@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { createServer, type Server } from "node:http";
 import {
   chromium,
   type Browser,
@@ -18,8 +19,9 @@ import {
   type Page,
   type Route,
 } from "playwright";
-import type { ViteDevServer } from "vite";
 import { command, eventually, toolEnvironment } from "./e2e/run";
+
+import { claimSetup, fixturePassword } from "./e2e/setup-browser";
 
 const sandbox =
   "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
@@ -170,7 +172,7 @@ async function contracts(base: string, post: string) {
     ],
   ]) {
     const response = await fetch(base + path);
-    if (["/setup", "/recover", "/reset-password", "/auth/popup"].includes(path))
+    if (["/recover", "/reset-password", "/auth/popup"].includes(path))
       assert.equal(response.status, 404, path);
     assert.equal(response.headers.get("content-security-policy"), policy, path);
     if (path.startsWith("/api/images/")) {
@@ -318,6 +320,15 @@ async function isolation(
   await context.addCookies([
     { name: "p03-sentinel", value: marker, url: base, sameSite: "Lax" },
   ]);
+  const login = await context.request.post(base + "/api/auth/sign-in/email", {
+    headers: { origin: base },
+    data: { email: "admin@fixture.invalid", password: fixturePassword },
+  });
+  assert.equal(login.status(), 200);
+  const actualCookie = (await context.cookies(base)).find((cookie) =>
+    cookie.name.endsWith("better-auth.session_token"),
+  );
+  assert(actualCookie?.httpOnly);
   await observe(context);
   const page = await context.newPage();
   const scriptRequests: Array<{ url: string; cookie: boolean }> = [];
@@ -347,10 +358,14 @@ async function isolation(
   try {
     const html = await (
       await fetch(`${base}/?embed=drawer`, {
-        headers: { cookie: `p03-sentinel=${marker}` },
+        headers: {
+          cookie: `p03-sentinel=${marker}; ${actualCookie.name}=${actualCookie.value}`,
+        },
       })
     ).text();
     assert.doesNotMatch(html, new RegExp(marker));
+    assert(!html.includes(actualCookie.value));
+    assert(!html.includes("admin@fixture.invalid"));
     if (bypass) assert.match(html, /data-surface="unresolved"/);
     const frame = await drawer(page, host, base);
     await frame
@@ -364,6 +379,18 @@ async function isolation(
         documentCookie.includes(marker),
         "No ambient-cookie challenge reached document navigation",
       );
+    assert.equal(
+      await frame
+        .getByText("Signed in as Fixture admin", { exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(
+      await frame
+        .getByRole("link", { name: "Admin Panel", exact: true })
+        .count(),
+      0,
+    );
     assert(scriptRequests.length > 0, "No API subrequests were observed");
     assert(
       scriptRequests.every((request) => !request.cookie),
@@ -623,7 +650,7 @@ async function main() {
     tags: string[] = [];
   let network = false,
     browser: Browser | undefined,
-    host: ViteDevServer | undefined;
+    host: Server | undefined;
   let primary: unknown;
   let output: Record<string, unknown> | undefined;
   await mkdir(values.artifacts, { recursive: true });
@@ -674,6 +701,7 @@ async function main() {
       "tmpfs",
     );
     assert(databaseMounts.every((mount) => mount.Type !== "volume"));
+    const setupCode = randomBytes(32).toString("hex");
     const start = async (name: string, target: string) => {
       containers.push(name);
       await docker(
@@ -696,6 +724,8 @@ async function main() {
         "no-new-privileges:true",
         "-e",
         "DATABASE_URL=postgres://postgres:fixture-only@db:5432/postgres",
+        "-e",
+        `SETUP_CODE=${setupCode}`,
         target,
       );
       const port = (await inspect(name)).NetworkSettings.Ports["3000/tcp"][0]
@@ -709,6 +739,7 @@ async function main() {
       return base;
     };
     const base = await start(`${project}-normal`, image);
+    await claimSetup(base, setupCode);
     const response = await fetch(`${base}/api/feedback/create`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -783,38 +814,78 @@ async function main() {
       join(directory, "entry.js"),
       await readFile("ci/fixtures/drawer-host.js", "utf8"),
     );
-    const { createServer } = await import("vite");
-    host = await createServer({
+    // Finish compiling before launching the browser. A Vite development host
+    // makes the fixture depend on a live optimizer/HMR module graph, unrelated
+    // to the production navigation and credential behavior under test.
+    const { build } = await import("vite");
+    const entries: Record<string, string> = {
+      "feedbackland-react": "feedbackland-react/dist/feedbackland-react.js",
+      "fixture-copy": "lib/copy-text.ts",
+      "fixture-error": "app/global-error.tsx",
+      "fixture-image-actions":
+        "components/ui/minimal-tiptap/extensions/image/components/image-actions.tsx",
+      "fixture-tooltip": "components/ui/tooltip.tsx",
+      react: "node_modules/react/index.js",
+      "react/jsx-runtime": "node_modules/react/jsx-runtime.js",
+      "react/jsx-dev-runtime": "node_modules/react/jsx-dev-runtime.js",
+      "react-dom": "node_modules/react-dom/index.js",
+      "react-dom/client": "node_modules/react-dom/client.js",
+    };
+    const bundle = await build({
       configFile: false,
+      envDir: false,
       root: directory,
       logLevel: "error",
-      resolve: {
-        alias: {
-          "feedbackland-react": resolve(
-            "feedbackland-react/dist/feedbackland-react.js",
-          ),
-          "fixture-copy": resolve("lib/copy-text.ts"),
-          "fixture-error": resolve("app/global-error.tsx"),
-          "fixture-image-actions": resolve(
-            "components/ui/minimal-tiptap/extensions/image/components/image-actions.tsx",
-          ),
-          "fixture-tooltip": resolve("components/ui/tooltip.tsx"),
-          "@": resolve("."),
-          react: resolve("node_modules/react"),
-          "react-dom": resolve("node_modules/react-dom"),
+      plugins: [
+        {
+          name: "fixture-browser-entries",
+          enforce: "pre",
+          resolveId(source) {
+            return entries[source] ? resolve(entries[source]) : undefined;
+          },
         },
+      ],
+      resolve: {
+        alias: { "@": resolve(".") },
         dedupe: ["react", "react-dom"],
       },
-      server: {
-        host: "127.0.0.1",
-        port: 0,
-        strictPort: true,
-        allowedHosts: ["p03-http.test"],
-        fs: { allow: [directory, resolve(".")] },
-      },
+      build: { write: false, modulePreload: false },
     });
-    await host.listen();
-    const address = host.httpServer?.address();
+    const assets = new Map<string, Uint8Array>();
+    for (const result of Array.isArray(bundle) ? bundle : [bundle]) {
+      assert("output" in result);
+      for (const entry of result.output)
+        assets.set(
+          "/" + entry.fileName,
+          Buffer.from(entry.type === "chunk" ? entry.code : entry.source),
+        );
+    }
+    assert(assets.has("/index.html"));
+    host = createServer((request, response) => {
+      const pathname = new URL(request.url!, "http://fixture.invalid").pathname;
+      const path = ["/", "/error-route"].includes(pathname)
+        ? "/index.html"
+        : pathname;
+      const bytes = assets.get(path);
+      if (!bytes) return void response.writeHead(404).end();
+      response
+        .writeHead(200, {
+          "content-type": path.endsWith(".html")
+            ? "text/html"
+            : path.endsWith(".js")
+              ? "application/javascript"
+              : path.endsWith(".css")
+                ? "text/css"
+                : "application/octet-stream",
+          "cache-control": "no-store",
+        })
+        .end(bytes);
+    });
+    await new Promise<void>((yes, no) => {
+      host!.once("error", no);
+      host!.listen(0, "127.0.0.1", yes);
+    });
+    const address = host.address();
     assert(address && typeof address !== "string");
     const sameSite = `http://localhost:${address.port}`,
       crossSite = `http://127.0.0.1:${address.port}`;
@@ -859,6 +930,7 @@ async function main() {
         productionBase: image,
       },
       engine: "chromium",
+      fixtureHost: "prebuilt static browser bundle",
       headers: "passed",
       metadata:
         "indexing setting, private/drawer noindex and neutral icon passed",
@@ -873,7 +945,11 @@ async function main() {
     const failures: unknown[] = [];
     for (const action of [
       () => browser?.close(),
-      () => host?.close(),
+      () =>
+        new Promise<void>((yes, no) => {
+          if (!host?.listening) return yes();
+          host.close((error) => (error ? no(error) : yes()));
+        }),
       ...containers
         .reverse()
         .map((name) => () => docker("rm", "--volumes", "-f", name)),

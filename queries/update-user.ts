@@ -1,22 +1,12 @@
 import "server-only";
 
-import { db } from "@/db/db";
-
-export const updateUserQuery = async ({
-  userId,
+import { getAuth } from "@/lib/auth/server";
+export function updateUserQuery({
   name,
+  headers,
 }: {
-  userId: string;
   name: string;
-}) => {
-  try {
-    return await db
-      .updateTable("user")
-      .set({ name })
-      .where("id", "=", userId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
-  } catch (error) {
-    throw error;
-  }
-};
+  headers: Headers;
+}) {
+  return getAuth().api.updateUser({ body: { name }, headers });
+}

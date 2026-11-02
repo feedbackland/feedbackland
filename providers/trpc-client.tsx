@@ -7,6 +7,7 @@ import type { AppRouter } from "@/trpc";
 import superjson from "superjson";
 import { clientRuntime } from "@/lib/client-runtime";
 import type { ResolvedSurface } from "@/lib/embed-surface";
+import { getEmbeddedToken } from "@/lib/auth/client";
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();
 export function TRPCClientProvider({
@@ -30,6 +31,15 @@ export function TRPCClientProvider({
         httpBatchLink({
           transformer: superjson,
           url: "/api/trpc",
+          headers: () => {
+            const token = surface === "drawer" ? getEmbeddedToken() : null;
+            return {
+              ...(surface === "drawer"
+                ? { "x-feedbackland-scope": "embedded" }
+                : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
+          },
           fetch: (url, options) => {
             if (
               options?.method?.toUpperCase() === "POST" &&

@@ -1,0 +1,546 @@
+{
+  "runId": "p04-1793617296339-c3ed2140",
+  "phase": 3,
+  "image": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
+  "status": "passed",
+  "checks": [
+    {
+      "check": "static/import-boundaries",
+      "status": "passed",
+      "evidence": {
+        "checkout": "e49002fff2122eeaf6c1f938f2571e88e80dca4f",
+        "sourceTreeHash": "2bebf35937dbd83fb4ae2d4f45eac3c9cc6bdee97dd090d8b6965fc5f010d43e",
+        "hostArtifactId": "0cafcdbaae93bdbb19c32e4ce3d88b0373016fc4de32d404784813c0ee953e28",
+        "importBoundaries": "passed",
+        "readinessBounds": "passed",
+        "changedCodeLint": "passed",
+        "runnerFailures": "passed",
+        "buildIdentity": "passed",
+        "clientContracts": "passed",
+        "callerInventory": "passed"
+      }
+    },
+    {
+      "check": "static/removal-configuration",
+      "status": "passed",
+      "evidence": {
+        "scannedFiles": 439,
+        "literalExceptions": 17,
+        "computedOrExtraReferences": "rejected",
+        "actualEnvironmentDeletion": "passed",
+        "lintedFiles": 161
+      }
+    },
+    {
+      "check": "image/identity/filesystem",
+      "status": "passed",
+      "evidence": {
+        "imageId": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
+        "sourceCommit": null,
+        "artifactId": "be17e99f9383273f8c6fa70ad0bd92aa67c44f3a2d8a1cdd846168e9b1b374be",
+        "architecture": "amd64",
+        "forbiddenFiles": 0,
+        "prerenderedRoutes": [
+          "/_global-error",
+          "/_not-found",
+          "/icon.svg"
+        ]
+      }
+    },
+    {
+      "check": "compose/runtime-invariants",
+      "status": "passed",
+      "evidence": {
+        "constants": "passed",
+        "readOnly": true,
+        "bootedDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+be17e99f9383"
+          },
+          "elapsedMs": 22
+        },
+        "boardPage": "/",
+        "writes": "only declared tmpfs"
+      }
+    },
+    {
+      "check": "readiness/outage-concurrency-recovery",
+      "status": "passed",
+      "evidence": {
+        "concurrentRequests": 40,
+        "maximumMs": 1781,
+        "stoppedDatabase": {
+          "status": 503,
+          "body": {
+            "status": "down",
+            "version": "0.1.0+be17e99f9383"
+          },
+          "elapsedMs": 1905
+        },
+        "restoredDatabase": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+be17e99f9383"
+          },
+          "elapsedMs": 15
+        },
+        "restarts": 0
+      }
+    },
+    {
+      "check": "direct-image/port-hostname",
+      "status": "passed",
+      "evidence": {
+        "port": 8080,
+        "dockerHostnameOverridden": true,
+        "readiness": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "version": "0.1.0+be17e99f9383"
+          },
+          "elapsedMs": 272
+        },
+        "explicitBadHostnameExit": 1
+      }
+    },
+    {
+      "check": "cleanup",
+      "status": "passed",
+      "evidence": {
+        "project": "p04-1793617296339-c3ed2140",
+        "temporaryDirectoryRemoved": true,
+        "resourceCleanup": "passed"
+      }
+    },
+    {
+      "check": "client/settings-drafts-and-revisions",
+      "status": "passed",
+      "evidence": "settings browser: both dirty drafts, unrelated-field rebasing, same-field conflicts, cancel and failed refetch recovery passed"
+    },
+    {
+      "check": "schema/pg15-pg18-dimensions-ddl-types",
+      "status": "passed",
+      "evidence": {
+        "databases": [
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 15,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "public",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 768,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          },
+          {
+            "major": 18,
+            "schema": "extensions",
+            "vectorVersion": "0.8.7",
+            "width": 3072,
+            "schemaConstraints": "passed",
+            "replies": "passed",
+            "membership": "passed",
+            "revisions": "passed",
+            "rpcContracts": "passed",
+            "secretPersistence": "passed",
+            "corruption": "refused",
+            "sweeps": "passed"
+          }
+        ],
+        "authDdl": "exact match",
+        "generatedTypes": "all eight combinations match",
+        "invalidWidth4096": "refused before migration",
+        "existingSchema": "Existing schema refused and preserved"
+      }
+    },
+    {
+      "check": "boot/failure-pooler-concurrency",
+      "status": "passed",
+      "evidence": {
+        "concurrentBlockedBoots": 2,
+        "committedMigrations": 1,
+        "originalFailure": "42P01",
+        "rollbackAndRetry": "passed through transaction-mode PgBouncer",
+        "sessionLocksRemaining": 0
+      }
+    },
+    {
+      "check": "tls/policies-chain-hostname-expiry",
+      "status": "passed",
+      "evidence": {
+        "plaintextPolicies": 3,
+        "encryptedUnverifiedPolicies": 2,
+        "verifiedPolicies": 4,
+        "pgStatSsl": "checked on every accepted connection",
+        "untrustedChain": "refused",
+        "wrongHostnameAndIp": "refused",
+        "expiredCertificate": "refused",
+        "malformedAndConflictingSelectors": "parser gate"
+      }
+    },
+    {
+      "check": "standalone/public-persistence-secrets-pools",
+      "status": "passed",
+      "evidence": {
+        "root": 200,
+        "anonymousCreate": 201,
+        "restartPersistence": "passed",
+        "corsOnSuccessAndValidation": "passed",
+        "protectedRoutes": "unauthorized",
+        "publicAi": "AI_NOT_CONFIGURED",
+        "publicSettingsSecrets": "absent",
+        "injectedSecretsInDatabaseAndLogs": "absent",
+        "sharedAppConnectionsAcrossLayers": 1,
+        "configuredTotal": 2
+      }
+    },
+    {
+      "check": "boot/runtime-fatal-bounds",
+      "status": "passed",
+      "evidence": [
+        {
+          "case": "missing",
+          "exit": 1,
+          "elapsedMs": 550
+        },
+        {
+          "case": "unreachable",
+          "exit": 1,
+          "elapsedMs": 90570
+        },
+        {
+          "case": "invalid-tls",
+          "exit": 1,
+          "elapsedMs": 586
+        }
+      ]
+    },
+    {
+      "check": "phase1/cleanup",
+      "status": "passed",
+      "evidence": {
+        "ownedProjectsRemoved": 2,
+        "ownedContainersRemoved": 4,
+        "ownedCertificateVolumeRemoved": true
+      }
+    },
+    {
+      "check": "surface/static-ssr-content",
+      "status": "passed",
+      "evidence": {
+        "unresolvedSsr": "passed",
+        "statusLabels": "passed",
+        "clipboardScope": "passed"
+      }
+    },
+    {
+      "check": "surface/drawer-navigation-isolation-clipboard",
+      "status": "passed",
+      "evidence": {
+        "image": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
+        "proxyBypassFixture": {
+          "image": "sha256:650b09e69e05bf107086a6bb3eaee787ae294c1d1f480fffbbb2d4914d0b6469",
+          "change": "generated proxy registration removed",
+          "productionBase": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3"
+        },
+        "engine": "chromium",
+        "headers": "passed",
+        "metadata": "indexing setting, private/drawer noindex and neutral icon passed",
+        "navigation": [
+          {
+            "mode": "reload",
+            "injected": 0,
+            "recoveredDocuments": 2
+          },
+          {
+            "mode": "mismatch",
+            "injected": 3,
+            "recoveredDocuments": 2
+          },
+          {
+            "mode": "502",
+            "injected": 3,
+            "recoveredDocuments": 2
+          }
+        ],
+        "isolation": [
+          {
+            "bypass": false,
+            "site": "same-site",
+            "ambientDocumentCookieObserved": true,
+            "firstApiRequests": 14,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": false,
+            "site": "cross-site",
+            "ambientDocumentCookieObserved": false,
+            "firstApiRequests": 14,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": true,
+            "site": "same-site",
+            "ambientDocumentCookieObserved": true,
+            "firstApiRequests": 11,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          },
+          {
+            "bypass": true,
+            "site": "cross-site",
+            "ambientDocumentCookieObserved": false,
+            "firstApiRequests": 11,
+            "cookieFree": true,
+            "freshCacheAfterRemount": true,
+            "pendingRequestAborted": true,
+            "framedAdmin": "refused"
+          }
+        ],
+        "clipboard": {
+          "plainHttp": "checked",
+          "manualFallback": "selected read-only field",
+          "errorQuery": "preserved"
+        },
+        "cleanup": "owned containers, network, fixture tags and temporary directory removed"
+      }
+    },
+    {
+      "check": "auth/setup-credentials-authorization-matrix",
+      "status": "passed",
+      "evidence": {
+        "setup": "serialized, fail-closed, code consumed; lost COMMIT/ROLLBACK acknowledgements reconciled",
+        "minimumPool": 2,
+        "cookieBearerSeparation": "passed",
+        "immutableScope": "passed",
+        "userInputs": "passed",
+        "csrf": "passed",
+        "finalWriteRevalidation": "four paths, role removal and session revocation",
+        "expiredAdmin": "ordinary author only",
+        "invites": "scope, email, expiry, reuse",
+        "rollingAndPasswordReplacement": "scope preserved",
+        "signInLimits": "atomic email reservations, successful refunds, fenced windows and trusted multi-hop IP"
+      }
+    },
+    {
+      "check": "auth/browser-chromium",
+      "status": "passed",
+      "evidence": {
+        "setup": "five-field rendered form and HttpOnly Lax session",
+        "email": "signup, signout, signin, own post/comment CRUD, voting, name update and failed signout",
+        "firstPartyTransport": "include, no bearer",
+        "reauthenticatedEmptyBoard": "new submission appears without navigation or reload",
+        "drawer": [
+          {
+            "host": "localhost",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          },
+          {
+            "host": "127.0.0.1",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          }
+        ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "signed in after host reload",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 47,
+          "webkitFrameDiagnostics": 0
+        },
+        "deniedStorage": "memory fallback passed"
+      }
+    },
+    {
+      "check": "auth/browser-firefox",
+      "status": "passed",
+      "evidence": {
+        "setup": "five-field rendered form and HttpOnly Lax session",
+        "email": "signup, signout, signin, own post/comment CRUD, voting, name update and failed signout",
+        "firstPartyTransport": "include, no bearer",
+        "reauthenticatedEmptyBoard": "new submission appears without navigation or reload",
+        "drawer": [
+          {
+            "host": "localhost",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          },
+          {
+            "host": "127.0.0.1",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          }
+        ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "signed in after host reload",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 42,
+          "webkitFrameDiagnostics": 0
+        },
+        "deniedStorage": "memory fallback passed"
+      }
+    },
+    {
+      "check": "auth/browser-webkit",
+      "status": "passed",
+      "evidence": {
+        "setup": "five-field rendered form and HttpOnly Lax session",
+        "email": "signup, signout, signin, own post/comment CRUD, voting, name update and failed signout",
+        "firstPartyTransport": "include, no bearer",
+        "reauthenticatedEmptyBoard": "new submission appears without navigation or reload",
+        "drawer": [
+          {
+            "host": "localhost",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          },
+          {
+            "host": "127.0.0.1",
+            "initialCookieIsolation": true,
+            "embeddedAdmin": "ordinary author",
+            "signOutIndependent": true,
+            "requests": 9
+          }
+        ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "WebKit persistence is not required",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 41,
+          "webkitFrameDiagnostics": 6
+        },
+        "deniedStorage": "memory fallback passed"
+      }
+    },
+    {
+      "check": "auth/cleanup",
+      "status": "passed",
+      "evidence": {
+        "ownedContainers": 4,
+        "networkRemoved": true
+      }
+    }
+  ],
+  "futurePhases": "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+}

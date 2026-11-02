@@ -2,29 +2,51 @@ import "server-only";
 import { DomainError } from "@/lib/domain-error";
 import { sql, type Kysely } from "kysely";
 import type { DB } from "../../db/schema";
+import { canAdministerSession } from "./session-policy";
 export type Actor = { userId: string; sessionId?: string | null };
 // Never accept a role/canAdminister flag from a request or caller. Re-read under
 // the membership lock when a mutation depends on administrative authority.
-export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
-  if (!actor.sessionId) return false;
-  const row = await trx
+async function actorRow(trx: Kysely<DB>, actor: Actor) {
+  if (!actor.sessionId) return undefined;
+  return trx
     .selectFrom("auth_session")
     .innerJoin("user", "user.id", "auth_session.userId")
     .where("auth_session.id", "=", actor.sessionId)
     .where("user.id", "=", actor.userId)
-    .where("user.role", "=", "admin")
-    .where("auth_session.scope", "=", "first-party")
-    .where("auth_session.expiresAt", ">", sql<Date>`clock_timestamp()`)
-    .where(
+    .select([
+      "auth_session.id",
+      "auth_session.userId",
       "auth_session.createdAt",
-      ">",
-      sql<Date>`clock_timestamp()-interval '7 days'`,
-    )
-    .select("user.id")
+      "auth_session.expiresAt",
+      "auth_session.scope",
+      "user.role",
+      sql<Date>`clock_timestamp()`.as("now"),
+    ])
     .executeTakeFirst();
-  return !!row;
+}
+export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
+  const row = await actorRow(trx, actor);
+  return (
+    !!row &&
+    canAdministerSession(
+      { user: { id: row.userId, role: row.role }, session: row },
+      row.now.getTime(),
+    )
+  );
+}
+export async function authorizeContentWrite(trx: Kysely<DB>, actor: Actor) {
+  const row = await actorRow(trx, actor);
+  if (!row || row.expiresAt <= row.now)
+    throw new DomainError("UNAUTHORIZED", "Sign in to continue");
+  return canAdministerSession(
+    { user: { id: row.userId, role: row.role }, session: row },
+    row.now.getTime(),
+  );
 }
 export async function requireAdmin(trx: Kysely<DB>, actor: Actor) {
   if (!(await canAdminister(trx, actor)))
-    throw new DomainError("UNAUTHORIZED", "UNAUTHORIZED");
+    throw new DomainError(
+      "FORBIDDEN",
+      "Sign in again with a first-party administrator session",
+    );
 }

@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import { Client, Pool } from "pg";
 import { parseDatabaseOptions } from "../../lib/config";
 import { command, eventually } from "./run";
+import { claimSetup } from "./setup-browser";
 
 type Check = (name: string, action: () => Promise<unknown>) => Promise<void>;
 const docker = (...args: string[]) => command("docker", args);
@@ -47,7 +48,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
     ),
     "Use an isolated checkout without operator dotenv files",
   );
-  assert.match(runId, /^p0[23]-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[234]-[0-9]+-[a-f0-9]+$/);
   await check("client/settings-drafts-and-revisions", () =>
     command(process.execPath, [
       "--import",
@@ -479,11 +480,12 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         async () => (await fetch(`${url}/api/health`)).status,
         (status) => status === 200,
       );
+      await claimSetup(url, setup);
       const root = await fetch(url),
         html = await root.text();
       assert.equal(root.status, 200);
       assert.equal(root.headers.get("location"), null);
-      assert(html.includes("Feedback"));
+      assert(html.includes("Fixture board"));
       const publicRead = await fetch(`${url}/api/settings`),
         settings = await publicRead.json();
       assert.equal(publicRead.headers.get("cache-control"), "no-store");
@@ -574,6 +576,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
       ]) {
         const response = await fetch(`${url}/api/feedback/create`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         assert.equal(response.status, 400);
@@ -618,7 +621,13 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         assert.equal(response.status, 401, endpoint);
       }
       assert.equal(
-        (await fetch(`${url}/api/chat`, { method: "POST" })).status,
+        (
+          await fetch(`${url}/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+          })
+        ).status,
         401,
       );
       const rewrite = await fetch(`${url}/api/trpc/rewriteFeedback`, {
@@ -649,7 +658,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
             )
           ).rows[0];
           assert.notEqual(secrets.authSecret, auth);
-          assert.equal(secrets.setupCode, setup);
+          assert.equal(secrets.setupCode, null);
           for (const secret of [auth, setup, secrets.authSecret].filter(
             Boolean,
           )) {

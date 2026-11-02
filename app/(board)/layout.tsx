@@ -9,6 +9,7 @@ import { getSettings } from "@/lib/settings";
 import { EMBED_HEADER } from "@/lib/embed-surface";
 import { getAppUrl } from "@/lib/app-url";
 import { log } from "@/lib/log";
+import { redirect } from "next/navigation";
 export async function generateMetadata() {
   const requestHeaders = await headers();
   try {
@@ -38,6 +39,7 @@ export default async function BoardLayout({
   children: React.ReactNode;
 }) {
   const settings = await getSettings();
+  if (!settings.isSetupComplete) redirect("/setup");
   const hint = (await headers()).get(EMBED_HEADER);
   const surface =
     hint === "drawer" || hint === "first-party" ? hint : "unresolved";

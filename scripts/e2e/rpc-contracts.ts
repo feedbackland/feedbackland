@@ -1,3 +1,4 @@
+import superjson from "superjson";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -48,7 +49,9 @@ export async function rpcContracts(actor: Actor) {
     const body = await response.json();
     assert.equal(response.status, status, `${path}: ${JSON.stringify(body)}`);
     if (code) assert.equal(body.error.json.data.code, code, path);
-    return body.result?.data?.json;
+    return body.result
+      ? superjson.deserialize<Record<string, string>>(body.result.data)
+      : ({} as Record<string, string>);
   };
   const settings = await db
     .selectFrom("settings")
@@ -83,7 +86,7 @@ export async function rpcContracts(actor: Actor) {
     400,
     "BAD_REQUEST",
   );
-  await call("updateSettings", save, 401, "UNAUTHORIZED", {
+  await call("updateSettings", save, 403, "FORBIDDEN", {
     ...context,
     sessionId: "invalid-session",
   });

@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import type { ResolvedSurface } from "@/lib/embed-surface";
@@ -20,6 +21,7 @@ export function SurfaceProviders({
   surface?: ResolvedSurface;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const boardSurface = useSurfaceState();
   const surface = explicit ?? boardSurface;
   const topLevel = useIsTopLevel();
@@ -35,8 +37,11 @@ export function SurfaceProviders({
   if (surface === "first-party" && !topLevel)
     return <p role="alert">Open this page in its own tab.</p>;
   return (
-    <TRPCClientProvider key={surface} surface={surface}>
-      <AuthProvider>
+    <TRPCClientProvider
+      key={`${surface}:${pathname === "/setup" ? "setup" : "board"}`}
+      surface={surface}
+    >
+      <AuthProvider surface={surface}>
         <JotaiProvider>{children}</JotaiProvider>
       </AuthProvider>
     </TRPCClientProvider>

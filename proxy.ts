@@ -14,7 +14,7 @@ export function proxy(req: NextRequest) {
   // remains the fallback when a deployment does not execute the proxy.
   if (
     req.nextUrl.pathname === "/robots.txt" ||
-    (segment && segment !== "admin" && !isPostId(segment))
+    (segment && !["admin", "setup"].includes(segment) && !isPostId(segment))
   )
     return new NextResponse("Not found", {
       status: 404,

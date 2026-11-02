@@ -3,7 +3,7 @@ import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
-import { canAdminister, type Actor } from "@/lib/auth/authorization";
+import { authorizeContentWrite, type Actor } from "@/lib/auth/authorization";
 import { revision } from "@/lib/revision";
 import { textContent } from "@/lib/utils-server";
 export async function updateCommentQuery(
@@ -16,7 +16,7 @@ export async function updateCommentQuery(
   const text = textContent(input.content);
   return db.transaction().execute(async (trx) => {
     await lock(trx, locks.membership);
-    const admin = await canAdminister(trx, input);
+    const admin = await authorizeContentWrite(trx, input);
     const row = await trx
       .selectFrom("comment")
       .select("authorId")

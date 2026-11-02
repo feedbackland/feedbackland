@@ -18,9 +18,8 @@ export function SignUpIn({
   onSuccess: (session: Session | null) => void;
   onSelectedMethodChange?: (newSelectedMethod: Method) => void;
 }) {
-  const { authAvailable } = useAuth();
-  if (!authAvailable)
-    return <p role="status">Sign-in is available in a later milestone.</p>;
+  const { isLoaded } = useAuth();
+  if (!isLoaded) return <p role="status">Loading sign-in…</p>;
 
   const handleOnSuccess = async (session: Session | null) => {
     onSuccess(session);

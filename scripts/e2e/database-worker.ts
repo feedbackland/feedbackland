@@ -208,7 +208,21 @@ async function main() {
   console.error("database worker: revisions passed");
   await readSurfaces(actor);
   console.error("database worker: read surfaces passed");
-  await rpcContracts(actor);
+  await db
+    .updateTable("settings")
+    .set({ setupCompletedAt: new Date() })
+    .where("id", "=", 1)
+    .execute();
+  try {
+    await rpcContracts(actor);
+  } finally {
+    await db
+      .updateTable("settings")
+      .set({ setupCompletedAt: null })
+      .where("id", "=", 1)
+      .execute();
+    runtimeState().setupComplete = false;
+  }
   console.error("database worker: RPC contracts passed");
   await sql`alter table rate_limit rename to rate_limit_fixture`.execute(db);
   try {

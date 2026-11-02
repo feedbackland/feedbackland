@@ -23,11 +23,11 @@
 
 ## Run it yourself
 
-> **Implementation status:** P02 adds transactional database boot, the single-tenant
-> schema and an anonymous text board at `/`. Setup/sign-in, uploads, AI,
-> exact/semantic search and the remaining release gates are later milestones.
-> This branch is a development milestone, not a self-hosted release. Use only a
-> new disposable database. See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
+> **Implementation status:** P04 adds one-time setup, email sign-in, comments,
+> voting and session-scoped administration. Social sign-in/recovery, uploads, AI,
+> exact/semantic search and remaining release gates are later milestones.
+> This branch is a development milestone. Use only a new disposable database.
+> See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
 
 Feedbackland is self-hosted. You run it, you own the data, and it needs one
 thing: a Postgres database.
@@ -43,8 +43,8 @@ curl -fsSL -o compose.yml https://raw.githubusercontent.com/feedbackland/feedbac
 docker compose up
 ```
 
-Either way you'll be asked for four things — your product's name, your name,
-your email and a password — and then your board is live.
+Setup asks for its one-time code, your product's name, your name, your email
+and a password. The generated code is in the private startup log.
 
 [Full instructions →](SELFHOSTING.md)
 
@@ -59,7 +59,7 @@ npm install feedbackland-react
 ```tsx
 import { FeedbackButton } from "feedbackland-react";
 
-<FeedbackButton url="https://feedback.yourcompany.com" />
+<FeedbackButton url="https://feedback.yourcompany.com" />;
 ```
 
 That's the whole integration. It opens your full board in a slide-in drawer, or
@@ -91,7 +91,7 @@ Feedbackland phones home. [How it works →](SELFHOSTING.md#turn-on-ai)
 ## Open source, and yours
 
 - **MIT-licensed** — free for any and all purposes.
-- **No accounts, no telemetry, no phone-home.** There is no Feedbackland
+- **No hosted account required, no telemetry or phone-home.** There is no Feedbackland
   service; there is only your instance.
 - **One `pg_dump` takes everything** — posts, comments, accounts and images —
   so moving or leaving is a restore away.

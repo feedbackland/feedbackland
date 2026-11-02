@@ -17,6 +17,7 @@ export async function redeemAdminInviteQuery(
       .where("user.id", "=", input.userId)
       .where("auth_session.scope", "=", "first-party")
       .where("auth_session.expiresAt", ">", sql<Date>`clock_timestamp()`)
+      .where("auth_session.createdAt", "<=", sql<Date>`clock_timestamp()`)
       .where(
         "auth_session.createdAt",
         ">",

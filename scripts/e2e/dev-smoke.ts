@@ -1,3 +1,4 @@
+import { claimSetup } from "./setup-browser";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
@@ -108,14 +109,26 @@ async function main() {
     ]);
     const root = await fetch(`http://127.0.0.1:${port}`);
     assert.equal(root.status, 200);
-    assert((await root.text()).includes("Feedback"));
+    const rootHtml = await root.text();
+    assert(
+      new URL(root.url).pathname === "/setup" ||
+        rootHtml.includes("NEXT_REDIRECT;replace;/setup;307;"),
+    );
+    const generated = output.match(
+      /Setup code \(keep private\): ([a-f0-9]{64})/,
+    );
+    assert(generated, "Boot must generate a private one-time setup code");
+    await claimSetup(`http://127.0.0.1:${port}`, generated[1]);
+    const board = await fetch(`http://127.0.0.1:${port}`);
+    assert.equal(board.status, 200);
+    assert((await board.text()).includes("Fixture board"));
     const settings = await (
       await fetch(`http://127.0.0.1:${port}/api/settings`)
     ).json();
     assert.equal(settings.capabilities.chat, false);
     assert(output.includes("boot.ready"));
     console.log(
-      "Development boot, migration, singleton settings and root board passed",
+      "Development boot, migration, singleton settings and rendered setup passed",
     );
   } finally {
     if (child?.pid) {

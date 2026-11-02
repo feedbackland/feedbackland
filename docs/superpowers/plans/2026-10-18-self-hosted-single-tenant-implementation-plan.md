@@ -1,9 +1,10 @@
 # Self-hosted single-tenant implementation PR sequence
 
-**Date:** 2026-10-18. **Execution update (2026-10-21):** P01/P02 merged;
-P02 review fixes, including the four follow-up findings, submitted as PR #13;
-P03 retains those fixes and all 16 cumulative
-phase-2 groups passed locally; independent review is next.
+**Date:** 2026-10-18. **Execution update (2026-11-02):** P01–P03 and their
+review fixes are merged into `single-tenant-self-hosting` (through PR #14).
+P04 is implemented in [PR #15](https://github.com/feedbackland/feedbackland/pull/15):
+all 21 cumulative phase-3 groups and the interactive keyless walkthrough pass
+locally. Independent P04 review and merge are next; P05 has not started.
 **Baseline:** `e159987a9d15d09c0b08c505cf644f34b8470f14`, branch
 `single-tenant-self-hosting`. **Integration PR:** [#10](https://github.com/feedbackland/feedbackland/pull/10).
 
@@ -462,8 +463,8 @@ post UUID route, global error page and Tiptap output/status/link handling.
 
 **Evidence (2026-10-21):** [implementation and limits](../reviews/2026-10-21-p03-implementation-evidence.md)
 and [16 passing cumulative groups](../reviews/2026-10-21-p03-verification.json).
-Development boot/migration/settings smoke also passed. P04 remains unstarted
-until the review-fix follow-up and this milestone are reviewed and merged.
+Development boot/migration/settings smoke also passed. The review-fix follow-up
+and this milestone have since merged; P04 evidence is recorded below.
 
 ### P04 — Setup and complete credential authorization (phase 3)
 
@@ -472,17 +473,26 @@ auth options/types, auth route, setup pages/actions, auth hook/providers,
 `lib/trpc.ts`, all four author-or-admin query paths, invite redemption,
 chat/tRPC CSRF guards and schema-drift/browser tests. Delete Firebase/config.
 
-- [ ] Implement cookie/bearer separation, immutable scope, signed bearer and
+- [x] Implement cookie/bearer separation, immutable scope, signed bearer and
       first-party header/cookie stripping; one full canAdminister predicate.
-- [ ] Add random code validation, setup dedicated connection/locks, pre-setup
+- [x] Add random code validation, setup dedicated connection/locks, pre-setup
       write lockdown, invite scope/expiry/email checks and final-write rechecks.
-- [ ] Remove the disabled auth bridge; make sign-in/up/out, own-content actions
+- [x] Remove the disabled auth bridge; make sign-in/up/out, own-content actions
       and admin access work in the correct surface. Preserve undefined avatars.
 
 **Exit:** V1 auth-DDL/signup; V5 three-engine email flow; V7/V19 authorization
 matrix and V22 code rules; V2 manual without search/images. Replay drawer admin
 as bearer **and** cookie against all privilege overrides. **Revert boundary:**
 only disposable integration installs; never reopen claimed setup. **Next:** P05.
+
+**Evidence (2026-11-02):** [implementation, interactive walkthrough and limits](../reviews/2026-11-02-p04-implementation-evidence.md)
+and [21 passing cumulative groups](../reviews/2026-11-02-p04-verification.json).
+The walkthrough exposed a detached-query bug after reauthentication; its fix is
+covered in all three engines. The subsequent PR review added lost-transaction-
+acknowledgement reconciliation, atomic per-email sign-in admission, synchronous
+bearer selection and the complete real-widget V5 email matrix; their regressions
+and residual limits are recorded in the implementation evidence. See [PR #15 checks](https://github.com/feedbackland/feedbackland/pull/15/checks)
+for current-head CI. Do not begin P05 before independent P04 review and merge.
 
 ### P05 — Social auth and operator recovery (phase 4)
 

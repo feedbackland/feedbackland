@@ -66,7 +66,11 @@ export async function staticFoundations() {
     "tsx",
     "scripts/e2e/build-identity.ts",
   ]);
-  for (const script of ["client-contracts.tsx", "caller-inventory.ts"])
+  for (const script of [
+    "client-contracts.tsx",
+    "caller-inventory.ts",
+    "auth-client.ts",
+  ])
     await command(process.execPath, [
       "--import",
       "tsx",
@@ -87,19 +91,33 @@ export async function staticFoundations() {
     "app/layout.tsx",
     "db/db.ts",
     "lib/lazy-delegate.ts",
-    "lib/firebase/client.ts",
+    "lib/auth/server.ts",
+    "lib/auth/options.ts",
+    "lib/auth/client.ts",
+    "lib/auth/popup-handoff.ts",
+    "lib/auth/session-policy.ts",
+    "lib/auth/sign-in-limit.ts",
+    "lib/setup.ts",
     "lib/supabase.ts",
     "next.config.ts",
     "eslint.config.mjs",
     "scripts/build-identity.mjs",
     "scripts/ci-gates.ts",
     "scripts/verify.ts",
+    "scripts/drawer-auth-check.ts",
     "scripts/e2e/run.ts",
     "scripts/e2e/import-boundaries.ts",
     "scripts/e2e/readiness-bounds.ts",
     "scripts/e2e/runner-failures.ts",
     "scripts/e2e/build-identity.ts",
     "scripts/e2e/v0-foundations.ts",
+    "scripts/e2e/auth-client.ts",
+    "scripts/e2e/auth-contracts.ts",
+    "scripts/e2e/setup-ack-fault.ts",
+    "scripts/e2e/sign-in-limit-worker.ts",
+    "scripts/e2e/v3-auth.ts",
+    "scripts/e2e/widget-host.ts",
+    "ci/fixtures/auth-widget-host.js",
   ]);
   return {
     checkout,

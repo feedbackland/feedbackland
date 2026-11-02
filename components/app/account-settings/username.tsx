@@ -19,7 +19,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 const FormSchema = z.object({
-  username: z.string().min(1),
+  username: z.string().trim().min(1).max(100),
 });
 
 export function Username({

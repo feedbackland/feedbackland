@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { DomainError } from "../../lib/domain-error";
 import { db } from "../../db/db";
 import { deleteAdminQuery } from "../../queries/delete-admin";
 import { redeemAdminInviteQuery } from "../../queries/redeem-admin-invite";
@@ -84,7 +85,8 @@ export async function membershipAndReplies() {
       sessionId: "invalid-session",
       adminInviteId: disposable.id,
     }),
-    /UNAUTHORIZED/,
+    (error: unknown) =>
+      error instanceof DomainError && error.code === "FORBIDDEN",
   );
   await deleteAdminInviteQuery({ ...surviving, adminInviteId: disposable.id });
   await assert.rejects(
