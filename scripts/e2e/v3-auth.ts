@@ -563,6 +563,11 @@ async function browserContracts(
       // browser clock across that boundary, then exercise an actual tab focus.
       await visitor.clock.fastForward(5_100);
       await visitor.bringToFront();
+      // Headless tabs can all remain visible. Deliver the visibility-change
+      // notification as well, then let the real SDK/session request settle.
+      await visitor.evaluate(() =>
+        document.dispatchEvent(new Event("visibilitychange")),
+      );
       await visitor
         .getByRole("button", { name: "Account", exact: true })
         .waitFor();
