@@ -178,7 +178,7 @@ async function contracts(base: string, post: string) {
       assert.equal(response.status, 200);
       assert.match(
         await response.text(),
-        /reset link is invalid, expired or already used/,
+        /name="robots" content="noindex,\s*nofollow"/,
       );
     }
     assert.equal(response.headers.get("content-security-policy"), policy, path);

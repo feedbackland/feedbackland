@@ -193,6 +193,14 @@ export async function mailContracts(
     assert.equal(new URL(link).origin, base);
     await resetForm(page, link, "Admin-reset-password-42");
     await resetForm(page, link, "Replay-must-fail-42", true);
+    await page.goto(base + "/reset-password");
+    await page
+      .getByRole("alert")
+      .filter({
+        hasText:
+          "This password reset link is invalid, expired or already used.",
+      })
+      .waitFor();
     assert.equal(
       (await (await fetch(mailApi + "/api/v1/messages")).json()).total,
       1,
