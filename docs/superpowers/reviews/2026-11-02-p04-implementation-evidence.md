@@ -141,6 +141,27 @@ All fixtures own disposable databases, names and ports and clean up afterward.
   for 14 days. See the [current PR checks](https://github.com/feedbackland/feedbackland/pull/15/checks)
   for the final head's Actions and Vercel results; these remain review blockers.
 
+### CI fixture follow-up
+
+The first two hosted attempts on `8bc4858` stopped in the earlier P03 host,
+before its trigger rendered. Uploaded diagnostics show Chromium aborting live
+Vite module requests with `net::ERR_NETWORK_CHANGED` (eleven requests, then two).
+The second attempt was a targeted job rerun with unchanged assertions.
+
+The P03 host now compiles the real workspace widget and clipboard/error fixtures
+before Chromium starts and serves only those generated browser assets. It no
+longer depends on the development optimizer or HMR module graph during the gate.
+All navigation, sandbox, credential-isolation, missing-proxy, plain-HTTP clipboard
+and error-route assertions remain. Unreadable assets return 404, rather than
+exposing the temporary Dockerfile or repository files.
+
+The canonical local 21-group summary above predates this fixture-only packaging
+follow-up; the application image and source hash are unchanged. A subsequent
+focused Linux surface run (`p04-linux-fead1226`) passed both surface groups,
+including all three navigation modes, all four isolation cases and clipboard/
+error handling, and removed its owned resources. The current PR's full
+Actions matrix verifies the final test sources on the pushed checkout.
+
 ### Interactive V2 walkthrough
 
 This walkthrough predates the four PR-review corrections. The cumulative result

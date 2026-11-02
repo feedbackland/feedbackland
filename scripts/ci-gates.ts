@@ -104,6 +104,7 @@ export async function staticFoundations() {
     "scripts/build-identity.mjs",
     "scripts/ci-gates.ts",
     "scripts/verify.ts",
+    "scripts/drawer-auth-check.ts",
     "scripts/e2e/run.ts",
     "scripts/e2e/import-boundaries.ts",
     "scripts/e2e/readiness-bounds.ts",

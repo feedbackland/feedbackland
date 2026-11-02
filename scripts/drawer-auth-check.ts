@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { createServer, type Server } from "node:http";
 import {
   chromium,
   type Browser,
@@ -18,7 +19,6 @@ import {
   type Page,
   type Route,
 } from "playwright";
-import type { ViteDevServer } from "vite";
 import { command, eventually, toolEnvironment } from "./e2e/run";
 
 import { claimSetup, fixturePassword } from "./e2e/setup-browser";
@@ -650,7 +650,7 @@ async function main() {
     tags: string[] = [];
   let network = false,
     browser: Browser | undefined,
-    host: ViteDevServer | undefined;
+    host: Server | undefined;
   let primary: unknown;
   let output: Record<string, unknown> | undefined;
   await mkdir(values.artifacts, { recursive: true });
@@ -814,38 +814,78 @@ async function main() {
       join(directory, "entry.js"),
       await readFile("ci/fixtures/drawer-host.js", "utf8"),
     );
-    const { createServer } = await import("vite");
-    host = await createServer({
+    // Finish compiling before launching the browser. A Vite development host
+    // makes the fixture depend on a live optimizer/HMR module graph, unrelated
+    // to the production navigation and credential behavior under test.
+    const { build } = await import("vite");
+    const entries: Record<string, string> = {
+      "feedbackland-react": "feedbackland-react/dist/feedbackland-react.js",
+      "fixture-copy": "lib/copy-text.ts",
+      "fixture-error": "app/global-error.tsx",
+      "fixture-image-actions":
+        "components/ui/minimal-tiptap/extensions/image/components/image-actions.tsx",
+      "fixture-tooltip": "components/ui/tooltip.tsx",
+      react: "node_modules/react/index.js",
+      "react/jsx-runtime": "node_modules/react/jsx-runtime.js",
+      "react/jsx-dev-runtime": "node_modules/react/jsx-dev-runtime.js",
+      "react-dom": "node_modules/react-dom/index.js",
+      "react-dom/client": "node_modules/react-dom/client.js",
+    };
+    const bundle = await build({
       configFile: false,
+      envDir: false,
       root: directory,
       logLevel: "error",
-      resolve: {
-        alias: {
-          "feedbackland-react": resolve(
-            "feedbackland-react/dist/feedbackland-react.js",
-          ),
-          "fixture-copy": resolve("lib/copy-text.ts"),
-          "fixture-error": resolve("app/global-error.tsx"),
-          "fixture-image-actions": resolve(
-            "components/ui/minimal-tiptap/extensions/image/components/image-actions.tsx",
-          ),
-          "fixture-tooltip": resolve("components/ui/tooltip.tsx"),
-          "@": resolve("."),
-          react: resolve("node_modules/react"),
-          "react-dom": resolve("node_modules/react-dom"),
+      plugins: [
+        {
+          name: "fixture-browser-entries",
+          enforce: "pre",
+          resolveId(source) {
+            return entries[source] ? resolve(entries[source]) : undefined;
+          },
         },
+      ],
+      resolve: {
+        alias: { "@": resolve(".") },
         dedupe: ["react", "react-dom"],
       },
-      server: {
-        host: "127.0.0.1",
-        port: 0,
-        strictPort: true,
-        allowedHosts: ["p03-http.test"],
-        fs: { allow: [directory, resolve(".")] },
-      },
+      build: { write: false, modulePreload: false },
     });
-    await host.listen();
-    const address = host.httpServer?.address();
+    const assets = new Map<string, Uint8Array>();
+    for (const result of Array.isArray(bundle) ? bundle : [bundle]) {
+      assert("output" in result);
+      for (const entry of result.output)
+        assets.set(
+          "/" + entry.fileName,
+          Buffer.from(entry.type === "chunk" ? entry.code : entry.source),
+        );
+    }
+    assert(assets.has("/index.html"));
+    host = createServer((request, response) => {
+      const pathname = new URL(request.url!, "http://fixture.invalid").pathname;
+      const path = ["/", "/error-route"].includes(pathname)
+        ? "/index.html"
+        : pathname;
+      const bytes = assets.get(path);
+      if (!bytes) return void response.writeHead(404).end();
+      response
+        .writeHead(200, {
+          "content-type": path.endsWith(".html")
+            ? "text/html"
+            : path.endsWith(".js")
+              ? "application/javascript"
+              : path.endsWith(".css")
+                ? "text/css"
+                : "application/octet-stream",
+          "cache-control": "no-store",
+        })
+        .end(bytes);
+    });
+    await new Promise<void>((yes, no) => {
+      host!.once("error", no);
+      host!.listen(0, "127.0.0.1", yes);
+    });
+    const address = host.address();
     assert(address && typeof address !== "string");
     const sameSite = `http://localhost:${address.port}`,
       crossSite = `http://127.0.0.1:${address.port}`;
@@ -890,6 +930,7 @@ async function main() {
         productionBase: image,
       },
       engine: "chromium",
+      fixtureHost: "prebuilt static browser bundle",
       headers: "passed",
       metadata:
         "indexing setting, private/drawer noindex and neutral icon passed",
@@ -904,7 +945,11 @@ async function main() {
     const failures: unknown[] = [];
     for (const action of [
       () => browser?.close(),
-      () => host?.close(),
+      () =>
+        new Promise<void>((yes, no) => {
+          if (!host?.listening) return yes();
+          host.close((error) => (error ? no(error) : yes()));
+        }),
       ...containers
         .reverse()
         .map((name) => () => docker("rm", "--volumes", "-f", name)),
