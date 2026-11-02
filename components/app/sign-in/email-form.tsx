@@ -20,9 +20,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Session } from "@/hooks/use-auth";
 
 export const signInSchema = z.object({
-  email: z.email()
-        .trim()
-        .min(1, "Please enter your email"),
+  email: z.string().trim().pipe(z.email()),
   password: z
     .string()
     .trim()
@@ -127,6 +125,7 @@ export function SignInEmailForm({
                 <div className="flex items-center justify-between">
                   <FormLabel>Password</FormLabel>
                   <Button
+                    type="button"
                     variant="link"
                     size="sm"
                     className="text-muted-foreground hover:text-foreground p-0 underline"

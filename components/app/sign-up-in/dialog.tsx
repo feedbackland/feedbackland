@@ -27,12 +27,16 @@ export function SignUpInDialog({
   const [selectedMethod, setSelectedMethod] = useState<Method>(
     initialSelectedMethod,
   );
-  const { authAvailable } = useAuth();
-  if (!authAvailable) return null;
+  const { isLoaded } = useAuth();
+  if (!isLoaded) return null;
 
+  const close = () => {
+    setSelectedMethod(initialSelectedMethod);
+    onClose();
+  };
   const handleOnSuccess = (session: Session | null) => {
     onSuccess?.(session);
-    onClose();
+    close();
   };
 
   return (
@@ -40,7 +44,7 @@ export function SignUpInDialog({
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          onClose();
+          close();
         }
       }}
     >

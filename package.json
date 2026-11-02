@@ -91,8 +91,6 @@
     "dequal": "^2.0.3",
     "dompurify": "^3.4.15",
     "embla-carousel-react": "^8.6.0",
-    "firebase": "^12.19.0",
-    "firebase-admin": "^14.4.0",
     "geist": "^1.7.2",
     "he": "^1.2.0",
     "html-react-parser": "^6.1.7",

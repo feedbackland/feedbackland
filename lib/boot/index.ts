@@ -211,6 +211,7 @@ async function seed(trx: Transaction<DB>) {
     .selectFrom("settings")
     .select(["id", "setupCompletedAt"])
     .where("id", "=", 1)
+    .forUpdate()
     .executeTakeFirst();
   if (!settings) {
     const existingUser = await trx
@@ -280,10 +281,11 @@ async function seed(trx: Transaction<DB>) {
     generatedSetupCode: setupCodeGenerated ? setupCode : null,
   };
 }
-export async function verifySetupCode(input: string) {
-  const stored = await new Kysely<DB>({
-    dialect: new PostgresDialect({ pool: getPool() }),
-  })
+export async function verifySetupCode(input: string, executor?: Kysely<DB>) {
+  const stored = await (
+    executor ??
+    new Kysely<DB>({ dialect: new PostgresDialect({ pool: getPool() }) })
+  )
     .selectFrom("instance_secret")
     .select("setupCode")
     .where("id", "=", 1)
@@ -338,12 +340,12 @@ export function boot() {
         host: origin.host,
         stage: origin.protocol.slice(0, -1),
       });
-    } else log("boot.app-url-inferred-email-social-disabled");
+    } else log("boot.app-url-inferred-social-recovery-disabled");
     log("boot.client-ip", {
       name: config.clientIpHeader,
       count: config.trustedProxies.length,
     });
-    log("boot.phase-1-auth-uploads-ai-disabled");
+    log("boot.phase-3-uploads-ai-disabled");
     log("boot.ai-environment-ignored", { name: "OPENROUTER_API_KEY" });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.

@@ -31,7 +31,6 @@ scripts/*
 !.npmrc
 !instrumentation.ts
 !proxy.ts
-!firebaseConfig.ts
 !LICENSE
 !Dockerfile
 !.dockerignore

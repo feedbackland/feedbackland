@@ -5,14 +5,14 @@ import { updateUserQuery } from "@/queries/update-user";
 
 export const updateUser = userProcedure
   .input(
-    z.object({
-      name: z.string().min(1),
+    z.strictObject({
+      name: z.string().trim().min(1).max(100),
     }),
   )
-  .mutation(async ({ input: { name }, ctx: { userId } }) => {
+  .mutation(async ({ input: { name }, ctx }) => {
     try {
       return await updateUserQuery({
-        userId,
+        headers: ctx.headers ?? new Headers(),
         name,
       });
     } catch (error) {

@@ -157,7 +157,7 @@ async function main() {
       const html = render(
         <SignUpIn selectedMethod={method} onSuccess={() => {}} />,
       );
-      assert.match(html, /Sign-in is available in a later milestone/);
+      assert.match(html, /Loading sign-in…/);
       assert.doesNotMatch(
         html,
         /<form|<input|Google|Microsoft|Send reset link/,
@@ -183,10 +183,7 @@ async function main() {
     ]) {
       const html = render(element);
       assert.match(html, /<button[^>]*disabled=""/);
-      assert.match(
-        html,
-        /aria-label="Voting requires sign-in, available in a later milestone"/,
-      );
+      assert.match(html, /aria-label="Checking sign-in…"/);
       assert.doesNotMatch(html, /<form|role="dialog"/);
     }
     let captured: Parameters<typeof Probe>[0] extends {

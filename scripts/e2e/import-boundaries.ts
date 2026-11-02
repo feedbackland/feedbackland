@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { lazyDelegate } from "../../lib/lazy-delegate";
-import * as browserSdk from "firebase/app";
-import * as adminSdk from "firebase-admin/app";
-import * as authSdk from "firebase/auth";
+import { readFile } from "node:fs/promises";
+import { command } from "./run";
 
 let calls = 0;
 class Fixture {
@@ -24,16 +23,16 @@ assert.equal(method, delegated.value);
 assert.equal(calls, 2);
 
 async function main() {
-  assert.equal(browserSdk.getApps().length, 0);
-  assert.equal(adminSdk.getApps().length, 0);
-  const client = await import("../../lib/firebase/client");
+  const pkg = JSON.parse(await readFile("package.json", "utf8"));
+  assert(!pkg.dependencies.firebase && !pkg.dependencies["firebase-admin"]);
+  await command(process.execPath, [
+    "--conditions=react-server",
+    "--import",
+    "tsx",
+    "-e",
+    "const assert=require('node:assert/strict');require('./lib/auth/server.ts');const s=require('./lib/runtime-state.ts').runtimeState();assert.equal(s.auth,undefined);assert.equal(s.pool,undefined);assert.equal(s.db,undefined);",
+  ]);
   const storage = await import("../../lib/supabase");
-  assert.equal(
-    browserSdk.getApps().length,
-    0,
-    "import initialized browser SDK",
-  );
-  assert.equal(adminSdk.getApps().length, 0, "import initialized admin SDK");
   // Missing credentials would make an eager Supabase factory throw at import.
   assert.throws(() => storage.supabase.storage, /supabaseKey/);
   process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID = "p01-fixture";
@@ -44,24 +43,6 @@ async function main() {
     /fixture.png$/,
   );
   assert.equal(storage.supabase.storage, storage.supabase.storage);
-  // Exercise first use only with fixture identities, never the hosted project.
-  const { firebaseConfig } = await import("../../firebaseConfig");
-  Object.assign(firebaseConfig, {
-    apiKey: "fixture-api-key",
-    authDomain: "localhost",
-    projectId: "p01-fixture",
-    appId: "p01-fixture",
-  });
-  assert.equal(client.app.options.projectId, "p01-fixture");
-  assert.equal(client.auth.app.options.projectId, "p01-fixture");
-  assert.equal(browserSdk.getApps().length, 1);
-  await client.auth.authStateReady();
-  const unsubscribe = authSdk.onAuthStateChanged(client.auth, () => {});
-  unsubscribe();
-  const adminApp = adminSdk.initializeApp({ projectId: "p01-fixture" });
-  await authSdk.signOut(client.auth);
-  await browserSdk.deleteApp(browserSdk.getApps()[0]);
-  await adminSdk.deleteApp(adminApp);
   console.log(
     "import boundaries: passed (fixture identities, no hosted requests)",
   );

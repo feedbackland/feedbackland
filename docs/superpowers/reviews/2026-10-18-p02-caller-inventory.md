@@ -4,7 +4,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 
 | Module | Importers |
 |---|---|
-| `queries/check-rate-limit.ts` | `lib/rate-limit.ts` |
+| `queries/check-rate-limit.ts` | `lib/auth/server.ts`, `lib/rate-limit.ts`, `lib/setup.ts` |
 | `queries/create-admin-invite.ts` | `trpc/create-admin-invite.ts` |
 | `queries/create-comment.ts` | `trpc/create-comment.ts` |
 | `queries/create-feedback-post.ts` | `app/api/feedback/create/route.ts`, `trpc/create-feedback-post.ts` |
@@ -27,7 +27,6 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/get-insights.ts` | `trpc/get-insights.ts` |
 | `queries/get-mentionable-users.ts` | `trpc/get-mentionable-users.ts` |
 | `queries/get-settings.ts` | `lib/settings.ts`, `queries/update-settings.ts`, `trpc/get-settings.ts` |
-| `queries/get-user-session.ts` | `trpc/get-user-session.ts` |
 | `queries/redeem-admin-invite.ts` | `trpc/redeem-admin-invite.ts` |
 | `queries/reply-parent.ts` | `queries/create-comment.ts` |
 | `queries/save-insights.ts` | No active importer; retained typed/internal interface for a later milestone |

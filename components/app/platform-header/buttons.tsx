@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,13 +38,17 @@ export function PlatformHeaderButtons() {
   const [isSignUpInDialogOpen, setIsSignUpInDialogOpen] = useState(false);
   const [isAccountSettingsDialogOpen, setIsAccountSettingsDialogOpen] =
     useState(false);
-  const { session, signOut, isAdmin, authAvailable } = useAuth();
+  const { session, signOut, isAdmin, isLoaded } = useAuth();
   const isAdminPage = pathname.includes("/admin");
   const href = useBoardHref();
   const boardRoot = href("/");
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch {
+      toast.error("Could not sign out. Try again.");
+    }
   };
 
   return (
@@ -77,13 +82,14 @@ export function PlatformHeaderButtons() {
           </Link>
         )}
 
-        {authAvailable && !session && (
+        {isLoaded && !session && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="icon-sm"
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground"
+                aria-label="Sign in"
                 onClick={() => setIsSignUpInDialogOpen(true)}
               >
                 <LogInIcon className="size-4!" />
@@ -102,6 +108,7 @@ export function PlatformHeaderButtons() {
                     variant="ghost"
                     size="icon-sm"
                     className="rounded-full"
+                    aria-label="Account"
                   >
                     <Avatar className="size-6!">
                       <AvatarImage

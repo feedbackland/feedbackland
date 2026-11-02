@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import {
   mkdtemp,
   readFile,
@@ -20,6 +20,8 @@ import {
 } from "playwright";
 import type { ViteDevServer } from "vite";
 import { command, eventually, toolEnvironment } from "./e2e/run";
+
+import { claimSetup, fixturePassword } from "./e2e/setup-browser";
 
 const sandbox =
   "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
@@ -170,7 +172,7 @@ async function contracts(base: string, post: string) {
     ],
   ]) {
     const response = await fetch(base + path);
-    if (["/setup", "/recover", "/reset-password", "/auth/popup"].includes(path))
+    if (["/recover", "/reset-password", "/auth/popup"].includes(path))
       assert.equal(response.status, 404, path);
     assert.equal(response.headers.get("content-security-policy"), policy, path);
     if (path.startsWith("/api/images/")) {
@@ -318,6 +320,15 @@ async function isolation(
   await context.addCookies([
     { name: "p03-sentinel", value: marker, url: base, sameSite: "Lax" },
   ]);
+  const login = await context.request.post(base + "/api/auth/sign-in/email", {
+    headers: { origin: base },
+    data: { email: "admin@fixture.invalid", password: fixturePassword },
+  });
+  assert.equal(login.status(), 200);
+  const actualCookie = (await context.cookies(base)).find((cookie) =>
+    cookie.name.endsWith("better-auth.session_token"),
+  );
+  assert(actualCookie?.httpOnly);
   await observe(context);
   const page = await context.newPage();
   const scriptRequests: Array<{ url: string; cookie: boolean }> = [];
@@ -347,10 +358,14 @@ async function isolation(
   try {
     const html = await (
       await fetch(`${base}/?embed=drawer`, {
-        headers: { cookie: `p03-sentinel=${marker}` },
+        headers: {
+          cookie: `p03-sentinel=${marker}; ${actualCookie.name}=${actualCookie.value}`,
+        },
       })
     ).text();
     assert.doesNotMatch(html, new RegExp(marker));
+    assert(!html.includes(actualCookie.value));
+    assert(!html.includes("admin@fixture.invalid"));
     if (bypass) assert.match(html, /data-surface="unresolved"/);
     const frame = await drawer(page, host, base);
     await frame
@@ -364,6 +379,18 @@ async function isolation(
         documentCookie.includes(marker),
         "No ambient-cookie challenge reached document navigation",
       );
+    assert.equal(
+      await frame
+        .getByText("Signed in as Fixture admin", { exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(
+      await frame
+        .getByRole("link", { name: "Admin Panel", exact: true })
+        .count(),
+      0,
+    );
     assert(scriptRequests.length > 0, "No API subrequests were observed");
     assert(
       scriptRequests.every((request) => !request.cookie),
@@ -674,6 +701,7 @@ async function main() {
       "tmpfs",
     );
     assert(databaseMounts.every((mount) => mount.Type !== "volume"));
+    const setupCode = randomBytes(32).toString("hex");
     const start = async (name: string, target: string) => {
       containers.push(name);
       await docker(
@@ -696,6 +724,8 @@ async function main() {
         "no-new-privileges:true",
         "-e",
         "DATABASE_URL=postgres://postgres:fixture-only@db:5432/postgres",
+        "-e",
+        `SETUP_CODE=${setupCode}`,
         target,
       );
       const port = (await inspect(name)).NetworkSettings.Ports["3000/tcp"][0]
@@ -709,6 +739,7 @@ async function main() {
       return base;
     };
     const base = await start(`${project}-normal`, image);
+    await claimSetup(base, setupCode);
     const response = await fetch(`${base}/api/feedback/create`, {
       method: "POST",
       headers: { "content-type": "application/json" },

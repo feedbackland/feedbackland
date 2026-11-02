@@ -24,7 +24,6 @@ const inputs = [
   "components.json",
   "proxy.ts",
   "instrumentation.ts",
-  "firebaseConfig.ts",
   "LICENSE",
   "Dockerfile",
   ".dockerignore",

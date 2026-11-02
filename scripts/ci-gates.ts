@@ -66,7 +66,11 @@ export async function staticFoundations() {
     "tsx",
     "scripts/e2e/build-identity.ts",
   ]);
-  for (const script of ["client-contracts.tsx", "caller-inventory.ts"])
+  for (const script of [
+    "client-contracts.tsx",
+    "caller-inventory.ts",
+    "auth-client.ts",
+  ])
     await command(process.execPath, [
       "--import",
       "tsx",
@@ -87,7 +91,12 @@ export async function staticFoundations() {
     "app/layout.tsx",
     "db/db.ts",
     "lib/lazy-delegate.ts",
-    "lib/firebase/client.ts",
+    "lib/auth/server.ts",
+    "lib/auth/options.ts",
+    "lib/auth/client.ts",
+    "lib/auth/popup-handoff.ts",
+    "lib/auth/session-policy.ts",
+    "lib/setup.ts",
     "lib/supabase.ts",
     "next.config.ts",
     "eslint.config.mjs",

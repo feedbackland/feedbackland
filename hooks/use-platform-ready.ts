@@ -26,8 +26,8 @@ const HARD_FALLBACK_MS = 8000;
  *     revealing a logged-out header that then pops to the logged-in one.
  *   - No queries fetching (`useIsFetching`): decoupled from any specific query,
  *     this implicitly waits for the board + feedback-post data and the post-auth
- *     `invalidateQueries()` refetch wave (the tRPC links also block on
- *     `authStateReady()`, so queries stay in-flight until auth resolves).
+ *     identity-change refetch wave. Credentials attach synchronously; auth
+ *     settlement is tracked separately from React Query.
  *   - Fonts ready: guards against a post-reveal text reflow if/when the
  *     next/font families are wired to a `font-family`.
  *

@@ -19,8 +19,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Session } from "@/hooks/use-auth";
 
 export const signUpSchema = z.object({
-  name: z.string().min(1, "please provide a name"),
-  email: z.email().min(1, "Please type your email address"),
+  name: z.string().trim().min(1, "Please provide a name").max(100),
+  email: z.string().trim().pipe(z.email()),
   password: z
     .string()
     .trim()

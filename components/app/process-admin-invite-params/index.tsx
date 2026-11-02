@@ -7,14 +7,14 @@ import { useRedeemAdminInvite } from "@/hooks/use-redeem-admin-invite";
 import { useAdminInvite } from "@/hooks/use-admin-invite";
 
 export function ProcessAdminInviteParams() {
-  const { authAvailable } = useAuth();
+  const { isLoaded } = useAuth();
   const [token, setToken] = useQueryState("admin-invite-token");
   const [email, setEmail] = useQueryState("admin-invite-email");
   const close = useCallback(() => {
     void setToken(null);
     void setEmail(null);
   }, [setToken, setEmail]);
-  if (!authAvailable || !token || !email) return null;
+  if (!isLoaded || !token || !email) return null;
   return (
     <InviteFlow
       key={`${token}:${email}`}

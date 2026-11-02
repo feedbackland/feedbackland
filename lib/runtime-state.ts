@@ -2,6 +2,7 @@ import "server-only";
 import type { Kysely } from "kysely";
 import type { Pool } from "pg";
 import type { DB } from "../db/schema";
+import type { Auth } from "./auth/server";
 export type VectorMetadata = {
   schema: string;
   version: string;
@@ -15,6 +16,7 @@ export type RuntimeState = {
   boot?: Promise<void>;
   booted?: boolean;
   authSecret?: string;
+  auth?: Auth;
   setupComplete?: boolean;
   vector?: VectorMetadata;
   sweepTimer?: ReturnType<typeof setTimeout>;

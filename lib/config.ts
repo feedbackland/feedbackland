@@ -6,7 +6,14 @@ import type { PoolConfig } from "pg";
 import { runtimeState } from "./runtime-state";
 import { log } from "./log";
 export class ConfigurationError extends Error {}
-const value = (name: string) => process.env[name]?.trim() || undefined;
+const value = (name: string) => {
+  const raw = process.env[name];
+  return (
+    (["SETUP_CODE", "RECOVERY_CODE"].includes(name)
+      ? raw?.replace(/^[\x09-\x0d\x20]+|[\x09-\x0d\x20]+$/g, "")
+      : raw?.trim()) || undefined
+  );
+};
 function integer(name: string, fallback: number, min: number, max: number) {
   const raw = value(name);
   const number = raw === undefined ? fallback : Number(raw);

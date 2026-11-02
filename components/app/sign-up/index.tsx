@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SSOButtonGoogle } from "@/components/app/sso/sso-button-google";
-import { SSOButtonMicrosoft } from "@/components/app/sso/sso-button-microsoft";
 import { SignUpEmailForm } from "./email-form";
 import { useState } from "react";
 import { Mail } from "lucide-react";
@@ -26,8 +24,6 @@ export function SignUp({
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
-          <SSOButtonGoogle onSuccess={handleOnSuccess} />
-          <SSOButtonMicrosoft onSuccess={handleOnSuccess} />
           <Button
             variant="outline"
             size="lg"
