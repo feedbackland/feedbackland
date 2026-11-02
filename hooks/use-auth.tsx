@@ -54,6 +54,12 @@ export function AuthProvider({
   const session =
     query.data?.session.id === revokedSessionId ? null : query.data;
   const sessionId = session?.session.id ?? null;
+  const resetIdentityQueries = async () => {
+    await cache.cancelQueries();
+    cache.removeQueries({ type: "inactive" });
+    // Keep mounted observers attached so later invalidations still refetch.
+    await cache.resetQueries({ type: "active" });
+  };
   const previousSessionId = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     if (query.isPending) return;
@@ -71,9 +77,8 @@ export function AuthProvider({
     if (result.error || !result.data)
       throw new Error("The session could not be loaded. Please sign in again.");
     setRevokedSessionId(null);
-    await cache.cancelQueries();
-    cache.clear();
     await query.refetch();
+    await resetIdentityQueries();
     return result.data;
   };
   const value: AuthContextValue = {
@@ -105,8 +110,7 @@ export function AuthProvider({
         throw new Error(result.error.message ?? "Sign-out failed");
       if (surface === "drawer") setEmbeddedToken(null);
       setRevokedSessionId(session?.session.id ?? null);
-      await cache.cancelQueries();
-      cache.clear();
+      await resetIdentityQueries();
       return null;
     },
     refreshSession: () => query.refetch(),

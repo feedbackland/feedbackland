@@ -234,6 +234,30 @@ async function browserContracts(
     await page
       .getByRole("link", { name: "Admin Panel", exact: true })
       .waitFor();
+    // A mounted empty list must stay subscribed through sign-out/sign-in.
+    // Removing its active query from the cache leaves the observer detached:
+    // submission succeeds, but invalidation cannot refresh the visible board.
+    await settleNotifications(page);
+    await page.getByRole("button", { name: "Account", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).waitFor();
+    await signIn(page, "admin@fixture.invalid");
+    await page
+      .getByText("Posting as Fixture admin.", { exact: true })
+      .waitFor();
+    await page
+      .getByRole("textbox", { name: "Your feedback", exact: true })
+      .fill("Post after empty-board reauthentication");
+    await page
+      .getByRole("button", { name: "Submit feedback", exact: true })
+      .click();
+    await page.getByText("Feedback submitted", { exact: true }).waitFor();
+    await page
+      .getByRole("heading", {
+        name: "Post after empty-board reauthentication",
+        exact: true,
+      })
+      .waitFor();
     const firstPartyCalls = await page.evaluate(
       () => (window as unknown as { authCalls: Calls }).authCalls,
     );
@@ -618,6 +642,8 @@ async function browserContracts(
       email:
         "signup, signout, signin, own post/comment CRUD, voting, name update and failed signout",
       firstPartyTransport: "include, no bearer",
+      reauthenticatedEmptyBoard:
+        "new submission appears without navigation or reload",
       drawer: rows,
       deniedStorage: "memory fallback passed",
     };
