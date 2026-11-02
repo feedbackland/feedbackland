@@ -1,19 +1,14 @@
 import "server-only";
 import { betterAuth } from "better-auth";
-import { createHash } from "node:crypto";
-import { sql } from "kysely";
-import { db, getPool } from "../../db/db";
+import { getPool } from "../../db/db";
 import { getConfig, neutraliseAuthEnv } from "../config";
 import { runtimeState } from "../runtime-state";
 import { isSetupComplete } from "../setup-state";
 import { checkRateLimit } from "../../queries/check-rate-limit";
-import { log, sqlstate } from "../log";
 import { DomainError } from "../domain-error";
 import { canAdministerSession, type SessionIdentity } from "./session-policy";
 import { buildAuthOptions } from "./options";
-
-const emailKey = (email: string) =>
-  `sign-in:email:${createHash("sha256").update(email.trim().toLowerCase()).digest("hex")}`;
+import { reserveSignIn } from "./sign-in-limit";
 function createAuth() {
   neutraliseAuthEnv();
   const config = getConfig();
@@ -33,35 +28,7 @@ function createAuth() {
             windowSeconds: 60,
           })
         ).allowed,
-      allowSignIn: async (email) => {
-        try {
-          const row = await db
-            .selectFrom("rate_limit")
-            .select("count")
-            .where("key", "=", emailKey(email))
-            .where(
-              "windowStart",
-              ">",
-              sql<Date>`clock_timestamp()-interval '15 minutes'`,
-            )
-            .executeTakeFirst();
-          return !row || row.count < 10;
-        } catch (error) {
-          log(
-            "auth.email-limit-unavailable",
-            { sqlstate: sqlstate(error) },
-            "warn",
-          );
-          return true;
-        }
-      },
-      recordSignInFailure: async (email) => {
-        await checkRateLimit({
-          key: emailKey(email),
-          limit: 10,
-          windowSeconds: 900,
-        });
-      },
+      reserveSignIn,
     }),
   );
 }

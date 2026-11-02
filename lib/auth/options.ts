@@ -3,14 +3,14 @@ import { bearer } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { popupHandoff } from "./popup-handoff";
+export type SignInPermit = { complete(failed: boolean): Promise<void> };
 type Dependencies = {
   db: NonNullable<BetterAuthOptions["database"]>;
   secret?: string;
   appUrl?: string;
   isSetupComplete?: () => Promise<boolean>;
   allowSignUp?: () => Promise<boolean>;
-  allowSignIn?: (email: string) => Promise<boolean>;
-  recordSignInFailure?: (email: string) => Promise<void>;
+  reserveSignIn?: (email: string) => Promise<SignInPermit | null>;
   clientIpHeader?: string;
   trustedProxies?: string[];
   sendResetPassword?: NonNullable<
@@ -33,6 +33,8 @@ function providerImage(value: unknown): value is string {
 }
 /** Pure options: all server collaborators are injected, including DDL stubs. */
 export function buildAuthOptions(deps: Dependencies) {
+  const permitKey = Symbol("sign-in-permit");
+  type PermitContext = { [permitKey]?: SignInPermit };
   return {
     database: deps.db,
     secret: deps.secret,
@@ -73,21 +75,24 @@ export function buildAuthOptions(deps: Dependencies) {
         if (
           ctx.path === "/sign-in/email" &&
           typeof ctx.body?.email === "string" &&
-          deps.allowSignIn &&
-          !(await deps.allowSignIn(ctx.body.email))
-        )
-          throw new APIError("TOO_MANY_REQUESTS", {
-            message: "Too many attempts. Try again later.",
-          });
+          deps.reserveSignIn
+        ) {
+          const permit = await deps.reserveSignIn(ctx.body.email);
+          if (!permit)
+            throw new APIError("TOO_MANY_REQUESTS", {
+              message: "Too many attempts. Try again later.",
+            });
+          (ctx.context as PermitContext)[permitKey] = permit;
+        }
       }),
       after: createAuthMiddleware(async (ctx) => {
-        if (
-          ctx.path === "/sign-in/email" &&
-          typeof ctx.body?.email === "string" &&
+        const permit = (ctx.context as PermitContext)[permitKey];
+        if (!permit) return;
+        delete (ctx.context as PermitContext)[permitKey];
+        await permit.complete(
           ctx.context.returned instanceof APIError &&
-          ctx.context.returned.statusCode === 401
-        )
-          await deps.recordSignInFailure?.(ctx.body.email);
+            ctx.context.returned.statusCode === 401,
+        );
       }),
     },
     databaseHooks: {

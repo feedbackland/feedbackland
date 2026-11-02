@@ -21,6 +21,9 @@ import { createContext } from "../../lib/trpc";
 import { POST as chat } from "../../app/api/chat/route";
 import { POST as trpcPost } from "../../app/api/trpc/[trpc]/route";
 import { POST as publicPost } from "../../app/api/feedback/create/route";
+import { withSetupAckLoss } from "./setup-ack-fault";
+import { reserveSignIn } from "../../lib/auth/sign-in-limit";
+import { command } from "./run";
 
 async function main() {
   const seeded = await migrateAndSeed();
@@ -175,12 +178,14 @@ async function main() {
     db,
   );
   try {
-    await assert.rejects(
-      completeSetup(
-        { ...input, email: "rollback@fixture.invalid" },
-        headers({ "x-forwarded-for": "192.0.2.52" }),
+    await withSetupAckLoss("ROLLBACK", () =>
+      assert.rejects(
+        completeSetup(
+          { ...input, email: "rollback@fixture.invalid" },
+          headers({ "x-forwarded-for": "192.0.2.52" }),
+        ),
+        /Setup could not/,
       ),
-      /Setup could not/,
     );
   } finally {
     await sql`drop trigger fixture_setup_failure on settings`.execute(db);
@@ -195,11 +200,13 @@ async function main() {
     undefined,
   );
   assert.equal(await isSetupComplete(), false);
-  const concurrent = await Promise.allSettled(
-    [0, 1].map((index) =>
-      completeSetup(
-        { ...input, email: `setup-${index}@fixture.invalid` },
-        headers({ "x-forwarded-for": `192.0.2.${40 + index}` }),
+  const concurrent = await withSetupAckLoss("COMMIT", () =>
+    Promise.allSettled(
+      [0, 1].map((index) =>
+        completeSetup(
+          { ...input, email: `setup-${index}@fixture.invalid` },
+          headers({ "x-forwarded-for": `192.0.2.${40 + index}` }),
+        ),
       ),
     ),
   );
@@ -210,6 +217,11 @@ async function main() {
     .where("role", "=", "admin")
     .execute();
   assert.equal(admin.length, 1);
+  assert.equal(
+    concurrent.find((r) => r.status === "fulfilled")?.value.userId,
+    admin[0].id,
+    "The committed setup admin must survive a lost COMMIT acknowledgement",
+  );
   assert.equal(
     (await db.selectFrom("feedback").select("id").execute()).length,
     0,
@@ -802,7 +814,130 @@ async function main() {
     ).userId,
     null,
   );
-  // Only failed sign-in attempts increment the normalized hashed email bucket.
+  // Two independent processes must share the admission bound, not a JS mutex.
+  const replicas = await Promise.all(
+    [0, 1].map(() =>
+      command(
+        process.execPath,
+        [
+          "--conditions=react-server",
+          "--import",
+          "tsx",
+          "scripts/e2e/sign-in-limit-worker.ts",
+          "replicas@fixture.invalid",
+        ],
+        {
+          env: {
+            DATABASE_URL: process.env.DATABASE_URL,
+            DATABASE_POOL_MAX: "2",
+          },
+        },
+      ),
+    ),
+  );
+  assert.equal(
+    replicas.reduce((n, result) => n + JSON.parse(result).admitted, 0),
+    10,
+  );
+  // Reserve before hashing: concurrent distributed guesses cannot overshoot.
+  await auth(
+    "/sign-up/email",
+    {
+      name: "Concurrent fixture",
+      email: "burst@fixture.invalid",
+      password,
+    },
+    200,
+    { "x-forwarded-for": "192.0.2.100" },
+  );
+  for (let i = 0; i < 12; i++)
+    await auth(
+      "/sign-in/email",
+      { email: "burst@fixture.invalid", password },
+      200,
+      { "x-forwarded-for": `192.0.2.${101 + i}` },
+    );
+  await auth("/sign-in/email", { email: "not-an-email", password }, 400, {
+    "x-forwarded-for": "192.0.2.140",
+  });
+  const invalidBucket = await db
+    .selectFrom("rate_limit")
+    .select("count")
+    .where(
+      "key",
+      "=",
+      "sign-in:email:" +
+        createHash("sha256").update("not-an-email").digest("hex"),
+    )
+    .executeTakeFirstOrThrow();
+  assert.equal(
+    invalidBucket.count,
+    0,
+    "Validation failures must refund their reservation",
+  );
+  const burst = await Promise.all(
+    Array.from({ length: 25 }, async (_, i) => {
+      const r = await authPost(
+        request(
+          "/api/auth/sign-in/email",
+          {
+            email: "burst@fixture.invalid",
+            password: `Wrong-password-${i}-42`,
+          },
+          { "x-forwarded-for": `198.51.100.${100 + i}` },
+        ),
+      );
+      return r.status;
+    }),
+  );
+  assert.equal(burst.filter((s) => s === 401).length, 10);
+  assert.equal(burst.filter((s) => s === 429).length, 15);
+  await auth(
+    "/sign-in/email",
+    { email: "burst@fixture.invalid", password },
+    429,
+    { "x-forwarded-for": "192.0.2.130" },
+  );
+  // A late successful request must not refund a reservation in a newer window.
+  const leaseEmail = "lease@fixture.invalid";
+  const leaseKey =
+    "sign-in:email:" + createHash("sha256").update(leaseEmail).digest("hex");
+  const oldPermit = await reserveSignIn(leaseEmail);
+  assert(oldPermit);
+  await sql`update rate_limit set "windowStart"=clock_timestamp()-interval '16 minutes', count=10 where key=${leaseKey}`.execute(
+    db,
+  );
+  const currentPermit = await reserveSignIn(leaseEmail);
+  assert(currentPermit);
+  await oldPermit.complete(false);
+  const leaseCount = async () =>
+    (
+      await db
+        .selectFrom("rate_limit")
+        .select("count")
+        .where("key", "=", leaseKey)
+        .executeTakeFirstOrThrow()
+    ).count;
+  assert.equal(await leaseCount(), 1);
+  await currentPermit.complete(false);
+  await currentPermit.complete(false);
+  assert.equal(
+    await leaseCount(),
+    0,
+    "A reservation may be refunded only once",
+  );
+  await sql`update rate_limit set "windowStart"=date_trunc('second',clock_timestamp())-interval '1 second'+interval '0.123456 seconds' where key=${leaseKey}`.execute(
+    db,
+  );
+  const precise = await reserveSignIn(leaseEmail);
+  assert(precise);
+  await precise.complete(false);
+  assert.equal(
+    await leaseCount(),
+    0,
+    "Refunds must preserve timestamp microseconds",
+  );
+  // Only failed sign-in attempts retain the normalized hashed email bucket.
   await db.deleteFrom("auth_rate_limit").execute();
   for (let i = 0; i < 10; i++)
     await auth(
@@ -868,7 +1003,8 @@ async function main() {
   }
   console.log(
     JSON.stringify({
-      setup: "atomic, fail-closed, code consumed",
+      setup:
+        "serialized, fail-closed, code consumed; lost COMMIT/ROLLBACK acknowledgements reconciled",
       minimumPool: 2,
       cookieBearerSeparation: "passed",
       immutableScope: "passed",
@@ -878,7 +1014,8 @@ async function main() {
       expiredAdmin: "ordinary author only",
       invites: "scope, email, expiry, reuse",
       rollingAndPasswordReplacement: "scope preserved",
-      signInLimits: "email plus trusted multi-hop IP",
+      signInLimits:
+        "atomic email reservations, successful refunds, fenced windows and trusted multi-hop IP",
     }),
   );
 }

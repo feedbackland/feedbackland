@@ -11,7 +11,8 @@ export function getEmbeddedToken() {
   if (typeof window === "undefined") return null;
   if (memoryOnly) return memoryToken;
   try {
-    return window.localStorage.getItem(storageKey);
+    memoryToken = window.localStorage.getItem(storageKey);
+    return memoryToken;
   } catch {
     memoryOnly = true;
     return memoryToken;
@@ -48,12 +49,23 @@ export function createSurfaceAuthClient(
       customFetchImpl: async (input, init) => {
         const epoch = credentialEpoch;
         const previous = embedded ? getEmbeddedToken() : null;
+        // Select the bearer here, synchronously with this snapshot. The SDK's
+        // async auth-header construction happens before customFetchImpl, so
+        // using its token callback would fence a different credential.
+        const headers = new Headers(init?.headers);
+        headers.delete("authorization");
+        headers.delete("x-feedbackland-scope");
+        if (embedded) {
+          headers.set("x-feedbackland-scope", "embedded");
+          if (previous) headers.set("authorization", `Bearer ${previous}`);
+        }
         const combined =
           signal && init?.signal
             ? AbortSignal.any([signal, init.signal])
             : (signal ?? init?.signal);
         const response = await fetch(input, {
           ...init,
+          headers,
           credentials: embedded ? "omit" : "include",
           signal: combined,
         });
@@ -70,15 +82,6 @@ export function createSurfaceAuthClient(
         }
         return response;
       },
-      ...(embedded
-        ? {
-            headers: { "x-feedbackland-scope": "embedded" },
-            auth: {
-              type: "Bearer" as const,
-              token: () => getEmbeddedToken() ?? undefined,
-            },
-          }
-        : {}),
     },
   });
 }

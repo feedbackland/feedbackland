@@ -10,10 +10,17 @@ async function main() {
   const originalFetch = globalThis.fetch;
   const values = new Map<string, string>();
   let denied = false;
+  let switchOnRead: string | undefined;
   const storage = {
     getItem(key: string) {
       if (denied) throw new Error("Storage denied");
-      return values.get(key) ?? null;
+      const value = values.get(key) ?? null;
+      if (switchOnRead !== undefined) {
+        const next = switchOnRead;
+        switchOnRead = undefined;
+        queueMicrotask(() => values.set(key, next));
+      }
+      return value;
     },
     setItem(key: string, value: string) {
       if (denied) throw new Error("Storage denied");
@@ -65,6 +72,23 @@ async function main() {
     assert.equal(calls[0].credentials, "omit");
     assert.equal(calls[0].bearer, "Bearer original");
     assert.equal(calls[0].scope, "embedded");
+    // Change shared storage after the SDK/transport selects Authorization,
+    // before the response. This also covers the old async SDK header gap.
+    setEmbeddedToken("identity-A");
+    switchOnRead = "identity-B";
+    const preparing = embedded.getSession();
+    while (!releases.length)
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(calls.at(-1)?.bearer, "Bearer identity-A");
+    assert.equal(getEmbeddedToken(), "identity-B");
+    releases.shift()!(response("identity-A"));
+    await preparing;
+    assert.equal(
+      getEmbeddedToken(),
+      "identity-B",
+      "Header preparation restored an older identity",
+    );
+    setEmbeddedToken(null);
     const controller = new AbortController();
     const disposable = createSurfaceAuthClient("drawer", controller.signal);
     const disposed = disposable.getSession();
@@ -96,12 +120,17 @@ async function main() {
       "Cross-tab deletion resurrected an in-memory token",
     );
     denied = true;
+    assert.equal(
+      getEmbeddedToken(),
+      null,
+      "Storage denial restored a previously cleared identity",
+    );
     setEmbeddedToken("memory fallback");
     assert.equal(getEmbeddedToken(), "memory fallback");
     setEmbeddedToken(null);
     assert.equal(getEmbeddedToken(), null);
     console.log(
-      "Auth clients: separate transports, stale/aborted reply fencing, cross-tab clearing and denied-storage fallback passed",
+      "Auth clients: separate transports, header-preparation and stale/aborted reply fencing, cross-tab clearing and denied-storage fallback passed",
     );
   } finally {
     globalThis.fetch = originalFetch;

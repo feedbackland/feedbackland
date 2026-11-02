@@ -50,14 +50,16 @@ export async function completeSetup(input: unknown, headers: Headers) {
   const data = parsed.data;
   // This pool is deliberately separate: the minimum app pool has one ordinary
   // connection and Better Auth needs it while the setup transaction holds locks.
+  const pool = new Pool({
+    ...getConfig().database(),
+    max: 1,
+    application_name: "feedbackland-setup",
+  });
+  pool.on("error", (error) =>
+    log("setup.idle-error", { sqlstate: sqlstate(error) }, "warn"),
+  );
   const dedicated = new Kysely<DB>({
-    dialect: new PostgresDialect({
-      pool: new Pool({
-        ...getConfig().database(),
-        max: 1,
-        application_name: "feedbackland-setup",
-      }),
-    }),
+    dialect: new PostgresDialect({ pool }),
   });
   let createdUser: string | undefined;
   try {
@@ -102,10 +104,44 @@ export async function completeSetup(input: unknown, headers: Headers) {
     runtimeState().setupComplete = true;
     return result;
   } catch (error) {
-    // The dedicated transaction has rolled back before the app pool is used.
+    // A lost COMMIT acknowledgement is not proof of rollback. Reacquire the
+    // same locks on the app pool, after the dedicated transaction has ended,
+    // to reconcile its durable outcome before considering compensation.
     if (createdUser) {
       try {
-        await db.deleteFrom("user").where("id", "=", createdUser).execute();
+        const userId = createdUser;
+        const committed = await db.transaction().execute(async (trx) => {
+          await lock(trx, locks.setup);
+          await lock(trx, locks.membership);
+          const settings = await trx
+            .selectFrom("settings")
+            .select("setupCompletedAt")
+            .where("id", "=", 1)
+            .forUpdate()
+            .executeTakeFirstOrThrow();
+          const user = await trx
+            .selectFrom("user")
+            .select("role")
+            .where("id", "=", userId)
+            .forUpdate()
+            .executeTakeFirst();
+          if (settings.setupCompletedAt) return user?.role === "admin";
+          // Never delete a promoted identity or compensate after another
+          // attempt has claimed setup. An unavailable/ambiguous outcome is
+          // preserved for reconciliation, rather than destructively guessed.
+          if (user?.role === "user")
+            await trx
+              .deleteFrom("user")
+              .where("id", "=", userId)
+              .where("role", "=", "user")
+              .execute();
+          return false;
+        });
+        if (committed) {
+          log("setup.commit-reconciled", { sqlstate: sqlstate(error) }, "warn");
+          runtimeState().setupComplete = true;
+          return { userId };
+        }
       } catch (cleanup) {
         log("setup.cleanup-failed", { sqlstate: sqlstate(cleanup) }, "error");
       }

@@ -1,7 +1,7 @@
 {
-  "runId": "p04-1793610531683-ca665a78",
+  "runId": "p04-1793617296339-c3ed2140",
   "phase": 3,
-  "image": "sha256:52270c38b5f12b271600a3d513722725518edb09f4a53c143608d9e2a2b409de",
+  "image": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
   "status": "passed",
   "checks": [
     {
@@ -9,8 +9,8 @@
       "status": "passed",
       "evidence": {
         "checkout": "e49002fff2122eeaf6c1f938f2571e88e80dca4f",
-        "sourceTreeHash": "bf2500637e43d9f46899966d3c2a310374a061c0d25d607c81d4072256714d59",
-        "hostArtifactId": "4b604cb317ebce0dc0d10a85b360b32726b768b99528385870eb00b9d2a49f40",
+        "sourceTreeHash": "2bebf35937dbd83fb4ae2d4f45eac3c9cc6bdee97dd090d8b6965fc5f010d43e",
+        "hostArtifactId": "0cafcdbaae93bdbb19c32e4ce3d88b0373016fc4de32d404784813c0ee953e28",
         "importBoundaries": "passed",
         "readinessBounds": "passed",
         "changedCodeLint": "passed",
@@ -24,20 +24,20 @@
       "check": "static/removal-configuration",
       "status": "passed",
       "evidence": {
-        "scannedFiles": 435,
+        "scannedFiles": 439,
         "literalExceptions": 17,
         "computedOrExtraReferences": "rejected",
         "actualEnvironmentDeletion": "passed",
-        "lintedFiles": 157
+        "lintedFiles": 161
       }
     },
     {
       "check": "image/identity/filesystem",
       "status": "passed",
       "evidence": {
-        "imageId": "sha256:52270c38b5f12b271600a3d513722725518edb09f4a53c143608d9e2a2b409de",
+        "imageId": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
         "sourceCommit": null,
-        "artifactId": "bad0a6df1011ac800ab2c9577c44b6ba0499243f4b6f427e5e4314c217b1d0e5",
+        "artifactId": "be17e99f9383273f8c6fa70ad0bd92aa67c44f3a2d8a1cdd846168e9b1b374be",
         "architecture": "amd64",
         "forbiddenFiles": 0,
         "prerenderedRoutes": [
@@ -57,9 +57,9 @@
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+bad0a6df1011"
+            "version": "0.1.0+be17e99f9383"
           },
-          "elapsedMs": 25
+          "elapsedMs": 22
         },
         "boardPage": "/",
         "writes": "only declared tmpfs"
@@ -70,22 +70,22 @@
       "status": "passed",
       "evidence": {
         "concurrentRequests": 40,
-        "maximumMs": 1870,
+        "maximumMs": 1781,
         "stoppedDatabase": {
           "status": 503,
           "body": {
             "status": "down",
-            "version": "0.1.0+bad0a6df1011"
+            "version": "0.1.0+be17e99f9383"
           },
-          "elapsedMs": 1906
+          "elapsedMs": 1905
         },
         "restoredDatabase": {
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+bad0a6df1011"
+            "version": "0.1.0+be17e99f9383"
           },
-          "elapsedMs": 16
+          "elapsedMs": 15
         },
         "restarts": 0
       }
@@ -100,9 +100,9 @@
           "status": 200,
           "body": {
             "status": "ok",
-            "version": "0.1.0+bad0a6df1011"
+            "version": "0.1.0+be17e99f9383"
           },
-          "elapsedMs": 332
+          "elapsedMs": 272
         },
         "explicitBadHostnameExit": 1
       }
@@ -111,7 +111,7 @@
       "check": "cleanup",
       "status": "passed",
       "evidence": {
-        "project": "p04-1793610531683-ca665a78",
+        "project": "p04-1793617296339-c3ed2140",
         "temporaryDirectoryRemoved": true,
         "resourceCleanup": "passed"
       }
@@ -293,17 +293,17 @@
         {
           "case": "missing",
           "exit": 1,
-          "elapsedMs": 649
+          "elapsedMs": 550
         },
         {
           "case": "unreachable",
           "exit": 1,
-          "elapsedMs": 90629
+          "elapsedMs": 90570
         },
         {
           "case": "invalid-tls",
           "exit": 1,
-          "elapsedMs": 655
+          "elapsedMs": 586
         }
       ]
     },
@@ -329,11 +329,11 @@
       "check": "surface/drawer-navigation-isolation-clipboard",
       "status": "passed",
       "evidence": {
-        "image": "sha256:52270c38b5f12b271600a3d513722725518edb09f4a53c143608d9e2a2b409de",
+        "image": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3",
         "proxyBypassFixture": {
-          "image": "sha256:74e1a189940f59e1b9661874df594e8158cf8cea059127ec3f0f397260b16169",
+          "image": "sha256:650b09e69e05bf107086a6bb3eaee787ae294c1d1f480fffbbb2d4914d0b6469",
           "change": "generated proxy registration removed",
-          "productionBase": "sha256:52270c38b5f12b271600a3d513722725518edb09f4a53c143608d9e2a2b409de"
+          "productionBase": "sha256:aa7f6957e2fdeae8fe5f605ddb0a993bc9c37a3f0fe78725389dc86d376892b3"
         },
         "engine": "chromium",
         "headers": "passed",
@@ -360,7 +360,7 @@
             "bypass": false,
             "site": "same-site",
             "ambientDocumentCookieObserved": true,
-            "firstApiRequests": 11,
+            "firstApiRequests": 14,
             "cookieFree": true,
             "freshCacheAfterRemount": true,
             "pendingRequestAborted": true,
@@ -370,7 +370,7 @@
             "bypass": false,
             "site": "cross-site",
             "ambientDocumentCookieObserved": false,
-            "firstApiRequests": 11,
+            "firstApiRequests": 14,
             "cookieFree": true,
             "freshCacheAfterRemount": true,
             "pendingRequestAborted": true,
@@ -409,7 +409,7 @@
       "check": "auth/setup-credentials-authorization-matrix",
       "status": "passed",
       "evidence": {
-        "setup": "atomic, fail-closed, code consumed",
+        "setup": "serialized, fail-closed, code consumed; lost COMMIT/ROLLBACK acknowledgements reconciled",
         "minimumPool": 2,
         "cookieBearerSeparation": "passed",
         "immutableScope": "passed",
@@ -419,7 +419,7 @@
         "expiredAdmin": "ordinary author only",
         "invites": "scope, email, expiry, reuse",
         "rollingAndPasswordReplacement": "scope preserved",
-        "signInLimits": "email plus trusted multi-hop IP"
+        "signInLimits": "atomic email reservations, successful refunds, fenced windows and trusted multi-hop IP"
       }
     },
     {
@@ -443,9 +443,19 @@
             "initialCookieIsolation": true,
             "embeddedAdmin": "ordinary author",
             "signOutIndependent": true,
-            "requests": 10
+            "requests": 9
           }
         ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "signed in after host reload",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 47,
+          "webkitFrameDiagnostics": 0
+        },
         "deniedStorage": "memory fallback passed"
       }
     },
@@ -473,6 +483,16 @@
             "requests": 9
           }
         ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "signed in after host reload",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 42,
+          "webkitFrameDiagnostics": 0
+        },
         "deniedStorage": "memory fallback passed"
       }
     },
@@ -500,6 +520,16 @@
             "requests": 9
           }
         ],
+        "widgetEmail": {
+          "actualWidget": true,
+          "sandbox": "checked",
+          "signupProtectedCall": "passed",
+          "reloadPersistence": "WebKit persistence is not required",
+          "clearedToken": "signed out with no cookie fallback",
+          "voteAndComment": "passed",
+          "cookieFreeRequests": 41,
+          "webkitFrameDiagnostics": 6
+        },
         "deniedStorage": "memory fallback passed"
       }
     },

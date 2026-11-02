@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
+import type { Server } from "node:http";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
@@ -14,6 +14,7 @@ import { Pool } from "pg";
 import { randomBytes } from "node:crypto";
 import { command, eventually, toolEnvironment } from "./run";
 import { submitSetup, fixturePassword } from "./setup-browser";
+import { createAuthWidgetHost } from "./widget-host";
 
 type Check = (name: string, action: () => Promise<unknown>) => Promise<void>;
 type Calls = { url: string; credentials: string; authorization: boolean }[];
@@ -21,9 +22,19 @@ async function observe(browser: Browser, blockedStorage = false) {
   const context = await browser.newContext();
   await context.addInitScript(
     ({ blockedStorage }) => {
-      const target = window as unknown as { authCalls: Calls };
+      const target = window as unknown as {
+        authCalls: Calls;
+        authErrors: string[];
+      };
       target.authCalls = [];
-      if (blockedStorage)
+      target.authErrors = [];
+      window.addEventListener("error", (event) =>
+        target.authErrors.push(event.message),
+      );
+      window.addEventListener("unhandledrejection", (event) =>
+        target.authErrors.push(String(event.reason)),
+      );
+      if (blockedStorage && window.self !== window.top)
         Object.defineProperty(window, "localStorage", {
           get() {
             throw new DOMException("Fixture storage denied", "SecurityError");
@@ -185,6 +196,39 @@ async function ownContent(page: Page, base: string) {
 async function frameOn(page: Page, host: string, base: string) {
   await page.bringToFront();
   await page.goto(host + "/?board=" + encodeURIComponent(base));
+  return openWidget(page, base);
+}
+async function openWidget(page: Page, base: string) {
+  await page
+    .getByRole("button", { name: "Open feedback", exact: true })
+    .click();
+  await page
+    .getByRole("dialog", { name: "Share your feedback", exact: true })
+    .evaluate(async (element) => {
+      await Promise.all(
+        element.getAnimations().map((a) => a.finished.catch(() => {})),
+      );
+    });
+  const iframe = page.locator('iframe[title="Share your feedback"]');
+  await iframe.waitFor();
+  assert.equal(
+    await iframe.getAttribute("sandbox"),
+    "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox",
+  );
+  await eventually(
+    () =>
+      iframe.evaluate((element) => {
+        const r = element.getBoundingClientRect();
+        return (
+          document.elementFromPoint(
+            r.left + r.width / 2,
+            r.top + Math.min(100, r.height / 2),
+          ) === element
+        );
+      }),
+    Boolean,
+    20_000,
+  );
   await eventually(
     () =>
       Promise.resolve(
@@ -197,6 +241,198 @@ async function frameOn(page: Page, host: string, base: string) {
     .getByRole("textbox", { name: "Your feedback", exact: true })
     .waitFor();
   return frame;
+}
+async function widgetEmailFlow(
+  browser: Browser,
+  context: Awaited<ReturnType<typeof observe>>,
+  base: string,
+  hostPort: number,
+  targetId: string,
+  artifact: string,
+) {
+  const page = await context.newPage();
+  const errors: string[] = [];
+  let webkitFrameDiagnostics = 0;
+  const host = `http://127.0.0.1:${hostPort}`;
+  page.on("pageerror", (error) => {
+    // WebKit reports the widget focus library's contentDocument getter as a
+    // pageerror even when it returns null without throwing. Match only that
+    // exact host/board diagnostic; DOM error/rejection events below still fail.
+    const diagnostic = `Blocked a frame with origin "${host}" from accessing a frame with origin "${base}". Protocols, domains, and ports must match.`;
+    if (
+      browser.browserType().name() === "webkit" &&
+      error.stack?.startsWith(diagnostic + "\n")
+    )
+      webkitFrameDiagnostics++;
+    else errors.push(error.message);
+  });
+  const cookies: boolean[] = [];
+  const pending: Promise<void>[] = [];
+  const observationErrors: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().startsWith(base + "/api/"))
+      pending.push(
+        request
+          .allHeaders()
+          .then((h) => {
+            cookies.push(!!h.cookie);
+          })
+          .catch((error: unknown) => {
+            observationErrors.push(String(error));
+          }),
+      );
+  });
+  const signedIn = (frame: Frame) =>
+    frame.getByText("Signed in as Fixture visitor", { exact: true }).waitFor();
+  const signedOut = (frame: Frame) =>
+    frame
+      .getByRole("button", { name: "Sign in to manage feedback", exact: true })
+      .waitFor();
+  try {
+    let frame = await frameOn(page, host, base);
+    await signIn(frame, "embedded@fixture.invalid", true);
+    await signedIn(frame);
+    const vote = () =>
+      frame
+        .locator(`[data-post-id="${targetId}"]`)
+        .getByRole("button", { name: "Upvote feedback", exact: true });
+    await vote().click();
+    await eventually(
+      () => vote().innerText(),
+      (text) => text.trim() === "1",
+    );
+    let reloadPersistence: string = "WebKit persistence is not required";
+    if (browser.browserType().name() !== "webkit") {
+      await page.reload();
+      frame = await openWidget(page, base);
+      await signedIn(frame);
+      await eventually(
+        () => vote().locator("svg").getAttribute("fill"),
+        (v) => v === "var(--background)",
+      );
+      reloadPersistence = "signed in after host reload";
+    }
+    await frame.evaluate(() =>
+      localStorage.removeItem("feedbackland-embedded-session"),
+    );
+    await page.reload();
+    frame = await openWidget(page, base);
+    await signedOut(frame);
+    assert.equal(
+      await frame
+        .getByText("Signed in as Fixture visitor", { exact: true })
+        .count(),
+      0,
+    );
+    await eventually(
+      () => vote().locator("svg").getAttribute("fill"),
+      (v) => v === "none",
+    );
+    await signIn(frame, "embedded@fixture.invalid");
+    await signedIn(frame);
+    await frame.getByRole("button", { name: "Sign out", exact: true }).click();
+    await signedOut(frame);
+    await signIn(frame, "embedded@fixture.invalid");
+    await signedIn(frame);
+    await frame
+      .getByRole("textbox", { name: "Your feedback", exact: true })
+      .fill("Embedded visitor post");
+    await frame
+      .getByRole("button", { name: "Submit feedback", exact: true })
+      .click();
+    await frame
+      .getByRole("link")
+      .filter({
+        has: frame.getByRole("heading", {
+          name: "Embedded visitor post",
+          exact: true,
+        }),
+      })
+      .click();
+    await frame
+      .getByRole("heading", {
+        name: "Embedded visitor post",
+        exact: true,
+        level: 1,
+      })
+      .waitFor();
+    const postVote = frame.getByRole("button", {
+      name: "Upvote feedback",
+      exact: true,
+    });
+    await postVote.click();
+    await eventually(
+      () => postVote.innerText(),
+      (text) => text.trim() === "1",
+    );
+    await frame
+      .locator('[contenteditable="true"]')
+      .fill("Embedded visitor comment");
+    await frame
+      .getByRole("button", { name: "Submit comment", exact: true })
+      .click();
+    await frame
+      .getByText("Embedded visitor comment", { exact: true })
+      .waitFor();
+    await frame.getByRole("button", { name: "Go back", exact: true }).click();
+    await frame.getByRole("button", { name: "Sign out", exact: true }).click();
+    await signedOut(frame);
+    page.removeAllListeners("request");
+    await Promise.all(pending);
+    assert.deepEqual(
+      observationErrors,
+      [],
+      "Widget request headers unavailable",
+    );
+    assert(cookies.length > 0);
+    assert(
+      cookies.every((cookie) => !cookie),
+      "Widget auth/tRPC requests sent an ambient cookie",
+    );
+    assert.deepEqual(errors, []);
+    for (const frame of page.frames())
+      assert.deepEqual(
+        await frame.evaluate(
+          () => (window as unknown as { authErrors: string[] }).authErrors,
+        ),
+        [],
+        "Widget frame raised an uncaught error or unhandled rejection",
+      );
+    return {
+      actualWidget: true,
+      sandbox: "checked",
+      signupProtectedCall: "passed",
+      reloadPersistence,
+      clearedToken: "signed out with no cookie fallback",
+      voteAndComment: "passed",
+      cookieFreeRequests: cookies.length,
+      webkitFrameDiagnostics,
+    };
+  } catch (error) {
+    await page.screenshot({ path: artifact + "-widget.png" }).catch(() => {});
+    await writeFile(
+      artifact + "-widget.txt",
+      JSON.stringify(
+        {
+          url: page.url(),
+          errors,
+          frames: await Promise.all(
+            page.frames().map(async (frame) => ({
+              url: frame.url(),
+              body: await frame.locator("body").innerText(),
+            })),
+          ),
+        },
+        null,
+        2,
+      ),
+    );
+    throw error;
+  } finally {
+    page.removeAllListeners("request");
+    await page.close();
+    await Promise.all(pending);
+  }
 }
 async function browserContracts(
   browser: Browser,
@@ -284,6 +520,7 @@ async function browserContracts(
       const drawerPage = await context.newPage();
       const network: unknown[] = [];
       const observed: Promise<void>[] = [];
+      const observationErrors: string[] = [];
       drawerPage.on("request", (request) => {
         if (request.url().includes("/api/auth/"))
           observed.push(
@@ -295,7 +532,9 @@ async function browserContracts(
                 bearer: !!h.authorization,
                 scope: h["x-feedbackland-scope"],
               });
-            })(),
+            })().catch((error: unknown) => {
+              observationErrors.push(String(error));
+            }),
           );
       });
       drawerPage.on("response", (response) => {
@@ -428,12 +667,6 @@ async function browserContracts(
           403,
         );
       }
-      await Promise.all(observed);
-      assert(
-        network.every((entry) => !(entry as { cookie?: boolean }).cookie),
-        "Embedded script request sent an ambient cookie: " +
-          JSON.stringify(network),
-      );
       // A signed-in admin's drawer remains an ordinary-author surface.
       await frame
         .getByRole("textbox", { name: "Your feedback", exact: true })
@@ -466,6 +699,22 @@ async function browserContracts(
           ).user.role,
       );
       assert.equal(stillAdmin, "admin");
+      // Stop admission before draining, then close only after all header reads
+      // settled. Every read has an immediate rejection handler, including when
+      // an earlier assertion fails and the context closes during diagnostics.
+      drawerPage.removeAllListeners("request");
+      drawerPage.removeAllListeners("response");
+      await Promise.all(observed);
+      assert.deepEqual(
+        observationErrors,
+        [],
+        "Drawer request headers unavailable",
+      );
+      assert(
+        network.every((entry) => !(entry as { cookie?: boolean }).cookie),
+        "Embedded script request sent an ambient cookie: " +
+          JSON.stringify(network),
+      );
       rows.push({
         host,
         initialCookieIsolation: true,
@@ -475,6 +724,29 @@ async function browserContracts(
       });
       await drawerPage.close();
     }
+    const widgetEmail = await widgetEmailFlow(
+      browser,
+      context,
+      base,
+      hostPort,
+      targetId,
+      artifact,
+    );
+    assert.equal(
+      (await context.cookies(base)).find((c) => c.name === cookieBefore.name)
+        ?.value,
+      cookieBefore.value,
+    );
+    assert.deepEqual(
+      await page.evaluate(async () => {
+        const r = await fetch("/api/auth/get-session", {
+          credentials: "include",
+        });
+        const data = await r.json();
+        return { role: data?.user?.role, scope: data?.session?.scope };
+      }),
+      { role: "admin", scope: "first-party" },
+    );
     // Exercise the actual email signup/signout/signin UI on a clean identity.
     const visitorContext = await observe(browser);
     const visitor = await visitorContext.newPage();
@@ -645,6 +917,7 @@ async function browserContracts(
       reauthenticatedEmptyBoard:
         "new submission appears without navigation or reload",
       drawer: rows,
+      widgetEmail,
       deniedStorage: "memory fallback passed",
     };
   } catch (error) {
@@ -678,19 +951,7 @@ export async function phaseThree(
   const project = runId + "-auth";
   const containers: string[] = [];
   let network = false;
-  const server = createServer((req, res) => {
-    const board = new URL(req.url!, "http://fixture.invalid").searchParams.get(
-      "board",
-    );
-    if (!board || !/^http:\/\/localhost:[0-9]+$/.test(board)) {
-      res.writeHead(400).end();
-      return;
-    }
-    res.setHeader("content-type", "text/html");
-    res.end(
-      `<html><body><iframe title="Fixture drawer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" src="${board}/?embed=drawer" style="width:850px;height:850px"></iframe></body></html>`,
-    );
-  });
+  let server: Server | undefined;
   let pool: Pool | undefined;
   let primary: unknown;
   try {
@@ -743,9 +1004,10 @@ export async function phaseThree(
       );
       return JSON.parse(output.split(/\r?\n/).at(-1)!);
     });
+    server = await createAuthWidgetHost();
     await new Promise<void>((yes, no) => {
-      server.once("error", no);
-      server.listen(0, "0.0.0.0", yes);
+      server!.once("error", no);
+      server!.listen(0, "0.0.0.0", yes);
     });
     const address = server.address();
     assert(address && typeof address !== "string");
@@ -834,7 +1096,7 @@ export async function phaseThree(
           () => pool?.end(),
           () =>
             new Promise<void>((yes, no) => {
-              if (!server.listening) return yes();
+              if (!server?.listening) return yes();
               server.close((error) => (error ? no(error) : yes()));
             }),
           ...containers.reverse().map((name) => async () => {

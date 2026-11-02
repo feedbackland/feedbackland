@@ -347,7 +347,10 @@ Sign out and sign in again on the standalone board when this window expires.
 The same admin account in a drawer can manage only its own content.
 
 Password sign-in allows ten failed attempts per normalized email per 15 minutes,
-regardless of IP. A targeted account lockout for that interval is possible.
+regardless of IP. An in-flight attempt reserves one of those ten slots before
+password verification; successful and non-authentication-error attempts refund
+their slots. Interrupted attempts conservatively occupy a slot until that window
+expires. A targeted account lockout for that interval is possible.
 Per-IP limits are best effort without a trusted ingress. Set `CLIENT_IP_HEADER`
 for that ingress and `TRUSTED_PROXIES` to its IPs/CIDRs when it supplies a
 multi-hop forwarded chain; both limiters use the same resolver.

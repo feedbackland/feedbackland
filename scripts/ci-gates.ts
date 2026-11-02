@@ -96,6 +96,7 @@ export async function staticFoundations() {
     "lib/auth/client.ts",
     "lib/auth/popup-handoff.ts",
     "lib/auth/session-policy.ts",
+    "lib/auth/sign-in-limit.ts",
     "lib/setup.ts",
     "lib/supabase.ts",
     "next.config.ts",
@@ -109,6 +110,13 @@ export async function staticFoundations() {
     "scripts/e2e/runner-failures.ts",
     "scripts/e2e/build-identity.ts",
     "scripts/e2e/v0-foundations.ts",
+    "scripts/e2e/auth-client.ts",
+    "scripts/e2e/auth-contracts.ts",
+    "scripts/e2e/setup-ack-fault.ts",
+    "scripts/e2e/sign-in-limit-worker.ts",
+    "scripts/e2e/v3-auth.ts",
+    "scripts/e2e/widget-host.ts",
+    "ci/fixtures/auth-widget-host.js",
   ]);
   return {
     checkout,

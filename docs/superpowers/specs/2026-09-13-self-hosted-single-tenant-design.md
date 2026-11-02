@@ -317,7 +317,7 @@ limit today gain one. The complete `RATE_LIMITS` table after this plan:
 | `rewrite:ip:<ip>` / `rewrite:instance` | 20 / 60 s · 120 / 60 s | `rewriteFeedback` | open |
 | `ask-ai:user:<id>` / `ask-ai:instance` | 10 / 60 s · 60 / 60 s | `/api/chat` (admin-only; no limit today) | open |
 | `images:ip:<ip>` / `images:instance` | 30 / 60 s · 60 / 60 s | `POST /api/images` (§4) | open |
-| `sign-in:email:<sha256(lower(email))>` | 10 failures / 900 s | `/sign-in/email`: a `hooks.after` counts failed attempts, a `hooks.before` refuses the next with 429, whatever the IP (§3) | open |
+| `sign-in:email:<sha256(lower(email))>` | 10 failures/in-flight reservations / 900 s | `/sign-in/email`: atomically reserve before verification; retain on 401, refund success/other handled errors; refuse when full with 429, whatever the IP (§3) | open |
 | `sign-up:instance` | 30 / 60 s | `/sign-up/email` | open |
 | `search-text:ip:<ip>` / `search-text:instance` | 60 / 60 s · 600 / 60 s | every search, `ILIKE` included — the embedding cap above does not bound a sequential scan; queries are cut to 200 characters on both paths; 429 | open |
 | `setup:ip:<ip>` | 5 / 900 s | `/setup` (§7) | **closed** |
@@ -800,10 +800,14 @@ So there are two modes, chosen by the surface:
 - The **token store** (`lib/auth/client.ts`) is app code: Better Auth's client
   has no pluggable persistence. It keeps the signed token in `localStorage`
   (partitioned by the browser per embedding site) and falls back to memory if
-  storage throws. The embedded client captures `set-auth-token` in
-  `fetchOptions.onSuccess` (overwriting on every capture; a rolling refresh
-  re-sends the **same** token *(measured)*), supplies it through
-  `fetchOptions.auth`, and sends `x-feedbackland-scope: embedded`. The embedded tRPC link attaches `Authorization`; first-party requests rely on the cookie. **The embedded surface never sends or stores a cookie**: every request it makes — Better Auth's embedded client (`fetchOptions.credentials: "omit"`; its default is `"include"`, `client/config.mjs:39`), the embedded tRPC link's `fetch`, uploads and `popup-handoff/claim` — uses `credentials: "omit"`. Without it a drawer framed by a *same-site* host sent the board's first-party cookie (so a signed-out drawer acted as the admin), a drawer sign-in replaced the board's first-party session, and a drawer sign-out deleted it *(measured in Chrome)*. As defence in depth, `popupHandoff`'s after-hook removes the session cookie's `Set-Cookie` from every response whose request carried `Authorization` or whose new session is `embedded`. (Ask-AI is admin-only and so always first-party: it uses the cookie.)
+  storage throws. In `customFetchImpl`, the embedded client snapshots the
+  credential generation and token and attaches `Authorization` synchronously
+  with the fetch. It captures `set-auth-token` only if that generation/token
+  still matches and the surface has not been aborted. Better Fetch's async
+  `fetchOptions.auth` construction runs too early to share this snapshot and
+  must not select the embedded bearer. A rolling refresh re-sends the **same**
+  token *(measured)*. The client also sends `x-feedbackland-scope: embedded`.
+  The embedded tRPC link attaches `Authorization`; first-party requests rely on the cookie. **The embedded surface never sends or stores a cookie**: every request it makes — Better Auth's embedded client (`fetchOptions.credentials: "omit"`; its default is `"include"`, `client/config.mjs:39`), the embedded tRPC link's `fetch`, uploads and `popup-handoff/claim` — uses `credentials: "omit"`. Without it a drawer framed by a *same-site* host sent the board's first-party cookie (so a signed-out drawer acted as the admin), a drawer sign-in replaced the board's first-party session, and a drawer sign-out deleted it *(measured in Chrome)*. As defence in depth, `popupHandoff`'s after-hook removes the session cookie's `Set-Cookie` from every response whose request carried `Authorization` or whose new session is `embedded`. (Ask-AI is admin-only and so always first-party: it uses the cookie.)
 - `createContext` calls `getAuth().api.getSession({ headers })` once per tRPC batch. Server components that read the session pass `query: { disableRefresh: true }`: `nextCookies()` cannot rewrite the cookie from a document GET, so a refresh there would move `expiresAt` without the browser learning of it (`integrations/next-js.mjs:67-69,94`). A validly signed bearer token wins over a cookie, even when its
   session is gone (it then yields no session); an unsigned or garbage value
   falls back to the cookie *(measured)*.
@@ -1058,7 +1062,7 @@ options Better Auth uses, so the two limiters always agree.
 | `CLIENT_IP_HEADER` | `x-forwarded-for` | The header holding the client address. Set per platform: `true-client-ip` on Render (set by `render.yaml`), `x-real-ip` on Railway (set by its template), `cf-connecting-ip` behind Cloudflare, `x-forwarded-for` behind the bundled Caddy (which overwrites the header with a single value) |
 | `TRUSTED_PROXIES` | empty | Comma-separated CIDRs. When set, a multi-value `x-forwarded-for` is walked right to left, skipping these, and the first untrusted address is the client. `lib/config.ts` rejects an entry that is not an IP address or CIDR, naming it (Better Auth would only warn and ignore it). A `null` address keys each limiter's single shared bucket per rule, as Better Auth does |
 
-With no proxy in front, per-IP limits are **best-effort**: a client can choose its own key. The instance caps (§1) bound cost there, and password guessing is bounded **per account**: a `hooks.after` on `/sign-in/email` counts failed attempts under `sign-in:email:<sha256(lower(email))>` and a `hooks.before` refuses the eleventh within 15 minutes with 429, whatever the IP (§1). A targeted lockout of one account's password sign-in is the accepted residual; `/recover` and social sign-in are unaffected. The docs say so.
+With no proxy in front, per-IP limits are **best-effort**: a client can choose its own key. The instance caps (§1) bound cost there, and password guessing is bounded **per account**. `hooks.before` atomically reserves a slot in `sign-in:email:<sha256(lower(email))>` before password verification, and refuses admission with 429 when the ten slots for the fixed 15-minute window are occupied, whatever the IP (§1). The count includes both completed failures and in-flight attempts; no app-pool connection is held during verification. `hooks.after` retains the reservation on 401, and refunds it on success or other handled errors. Refunds carry the exact database window timestamp, including microseconds, so an old request cannot decrement a new window; completing a permit twice is harmless. Interrupted requests or unavailable refunds conservatively retain their slot until window expiry. Limiter unavailability retains the documented fail-open policy. A targeted lockout of one account's password sign-in is the accepted residual; `/recover` and social sign-in are unaffected. The docs say so.
 
 ### Readiness, and what else changes
 
@@ -2745,9 +2749,18 @@ email, password. Its server action:
    existing identity**: if the email already exists, setup fails.
 4. Sets that user's `role = 'admin'` by the id it just created, sets
    `platformTitle` and `setupCompletedAt = now()`, calls
-   `clearSetupCode(trx)` from `lib/boot/`, and commits. If anything fails after
-   step 3, the user created in step 3 is deleted — on the app pool, after the `ROLLBACK` — before the error is returned,
-   so a retry is not refused with "email already exists" (if the process dies between steps 3 and 4, that email stays taken and the operator uses another; before setup no other path can create a user).
+   `clearSetupCode(trx)` from `lib/boot/`, and commits. If the dedicated
+   transaction reports an error after step 3, reconcile on the app pool under
+   the setup and membership locks and the settings row lock: a rejected COMMIT
+   may already have committed. If setup is claimed and that new identity is an
+   admin, return success without compensation. Delete that identity only after
+   confirming setup remains unclaimed and the identity is still an ordinary
+   user. Never delete a promoted identity or compensate after another attempt
+   has claimed setup. If reconciliation is unavailable, preserve the identity
+   and report the failure instead of guessing. Normal rollback cleanup permits
+   retry with the same email (if the process dies between steps 3 and 4, that
+   email may remain taken and the operator uses another; before setup no other
+   path can create a user).
 5. The session cookie is set on the response by Better Auth's `nextCookies()`
    plugin (verified from a Next 16.3.5 server action: the cookie arrives on the
    303, and the next `getSession` reads `role: admin` fresh, since

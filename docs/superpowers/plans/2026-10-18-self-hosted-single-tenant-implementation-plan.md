@@ -488,7 +488,10 @@ only disposable integration installs; never reopen claimed setup. **Next:** P05.
 **Evidence (2026-11-02):** [implementation, interactive walkthrough and limits](../reviews/2026-11-02-p04-implementation-evidence.md)
 and [21 passing cumulative groups](../reviews/2026-11-02-p04-verification.json).
 The walkthrough exposed a detached-query bug after reauthentication; its fix is
-covered in all three engines. See [PR #15 checks](https://github.com/feedbackland/feedbackland/pull/15/checks)
+covered in all three engines. The subsequent PR review added lost-transaction-
+acknowledgement reconciliation, atomic per-email sign-in admission, synchronous
+bearer selection and the complete real-widget V5 email matrix; their regressions
+and residual limits are recorded in the implementation evidence. See [PR #15 checks](https://github.com/feedbackland/feedbackland/pull/15/checks)
 for current-head CI. Do not begin P05 before independent P04 review and merge.
 
 ### P05 — Social auth and operator recovery (phase 4)
