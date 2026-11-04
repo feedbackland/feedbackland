@@ -136,7 +136,9 @@ async function social(
     .getByRole("button", { name: /Sign in to manage feedback|^Sign in$/ })
     .first()
     .click();
-  const popupEvent = page.waitForEvent("popup");
+  // A COOP-isolated tab may have no opener by the time Playwright sees it.
+  // The context observes the new tab even when the opener emits no popup event.
+  const popupEvent = page.context().waitForEvent("page");
   void popupEvent.catch(() => {});
   await target
     .getByRole("button", { name: "Continue with Fixture SSO", exact: true })

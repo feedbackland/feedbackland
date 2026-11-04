@@ -4,9 +4,9 @@
 review fixes are merged into `single-tenant-self-hosting` (through PR #14).
 P04 is implemented in [PR #15](https://github.com/feedbackland/feedbackland/pull/15):
 all 21 cumulative phase-3 groups and the interactive keyless walkthrough pass
-locally and on CI. P05 is in progress on `codex/social-recovery`, stacked on
-P04's reviewed/fixed tip `2014cc3`. The user explicitly requested P05 while
-PR #15 remained open; merge P04 before merging the P05 PR. P06 has not started.
+locally and on CI. P05 is implemented in
+[PR #16](https://github.com/feedbackland/feedbackland/pull/16), stacked on P04's
+reviewed tip `2014cc3`. Merge P04 before merging P05.
 **Baseline:** `e159987a9d15d09c0b08c505cf644f34b8470f14`, branch
 `single-tenant-self-hosting`. **Integration PR:** [#10](https://github.com/feedbackland/feedbackland/pull/10).
 
@@ -502,17 +502,15 @@ tip before P04 merge; the P05 branch remains stacked until that merge.
 **Entry:** P04. **Files:** popup routes/plugin, OIDC epoch/retry, mail/reset and
 recover routes, admin reset links, claim persistence, HTTPS/COOP/IdP/Mailpit fixtures.
 
-- [ ] Implement server-mediated handoff with callback binding/polling, provider
+- [x] Implement server-mediated handoff with callback binding/polling, provider
       token removal, discovery convergence and configured provider visibility.
-- [ ] Implement admin reset and zero-admin recovery, owner-fenced claims,
+- [x] Implement admin reset and zero-admin recovery, owner-fenced claims,
       interrupted reset/promotion handling and session revocation.
 
-**Execution:** implementation is present; the cumulative phase-4 exit gate is
-being validated. The HTTPS harness owns pinned Caddy, Mailpit and PostgreSQL
-fixtures, ephemeral certificates and two app replicas. Mock OIDC supplies real
-PKCE, signed JWTs, nonce checks and enforcing COOP. No production identity-provider
-credentials or hosted data are used. Keep both boxes open until the complete
-gate passes on the final source/image.
+**Execution:** the HTTPS harness owns pinned Caddy, Mailpit and PostgreSQL
+fixtures, ephemeral certificates and two app replicas. Mock OIDC supplies PKCE,
+signed JWTs, nonce checks and enforcing COOP. The cumulative phase-4 result and
+artifact are recorded in the [PR checks](https://github.com/feedbackland/feedbackland/pull/16/checks).
 
 **Exit:** V5 social/COOP/Helmet; V7 phase 4; V19 two-replica discovery/avatar;
 V22 recovery and code removal. Real Google/Microsoft device checks remain due

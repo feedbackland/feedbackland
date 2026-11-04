@@ -94,9 +94,8 @@ reset/promotion, stale owners, competing claims with minimum pool, an intervenin
 administrator, lost final COMMIT acknowledgement, code removal, handoff CAS and
 single consumption, immutable expiry and forbidden content links.
 
-The cumulative phase-4 production-image/browser run and current-head CI are still
-in progress. No pending group is counted as passed. The canonical result will be
-linked here when complete.
+The [PR #16 checks](https://github.com/feedbackland/feedbackland/pull/16/checks)
+record the cumulative phase-4 result and its production-image evidence artifact.
 
 The HTTPS fixture owns pinned PostgreSQL, Caddy and Mailpit containers and an
 ephemeral local certificate volume. Both the board and mock OIDC provider use
@@ -105,6 +104,8 @@ and enforcing provider COOP are exercised with the built workspace widget in
 Chromium, Firefox and Linux WebKit. Header observations drain before teardown;
 unreadable headers fail. The exact benign WebKit cross-origin focus diagnostic
 uses the existing P04 exception; other uncaught errors/rejections fail.
+The harness watches browser-context page creation so it can drive a COOP tab
+even when Firefox does not emit a popup event on the opener page.
 Private certificate keys stay outside retained artifacts and are removed with
 the owned containers/volume and temporary directory.
 
