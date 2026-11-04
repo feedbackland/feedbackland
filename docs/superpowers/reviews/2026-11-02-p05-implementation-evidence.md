@@ -97,6 +97,12 @@ single consumption, immutable expiry and forbidden content links.
 The [PR #16 checks](https://github.com/feedbackland/feedbackland/pull/16/checks)
 record the cumulative phase-4 result and its production-image evidence artifact.
 
+On November 4, focused Linux runs on the same application image passed the
+Chromium, Firefox and WebKit popup matrices, the known-account reset request
+with spoofed forwarding headers, and the operator recovery browser flow.
+That recovery flow exercised an inferred origin, session revocation, zero-admin
+repair and HTTP 404 on all three replicas after code removal.
+
 The HTTPS fixture owns pinned PostgreSQL, Caddy and Mailpit containers and an
 ephemeral local certificate volume. Both the board and mock OIDC provider use
 HTTPS; app replicas trust only that additional fixture CA. Real Helmet middleware

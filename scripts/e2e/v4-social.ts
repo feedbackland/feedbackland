@@ -289,12 +289,18 @@ async function socialBrowser(
     target.on("pageerror", (error) => {
       if (
         engine === "webkit" &&
-        [ordinaryHost, helmetHost].some(
-          (host) =>
-            target.url().startsWith(`${host}/`) &&
-            error.message.trimEnd() ===
-              `Blocked a frame with origin "${host}" from accessing a frame with origin "${base}".  The frame requesting access has a protocol of "http", the frame being accessed has a protocol of "https". Protocols must match.`,
-        )
+        [ordinaryHost, helmetHost].some((host) => {
+          if (!target.url().startsWith(`${host}/`)) return false;
+          const diagnostic = `Blocked a frame with origin "${host}" from accessing a frame with origin "${base}".  The frame requesting access has a protocol of "http", the frame being accessed has a protocol of "https". Protocols must match.`;
+          // Playwright splits WebKit console errors at the first colon. In
+          // this diagnostic that colon belongs to the host's URL scheme.
+          const colon = diagnostic.indexOf(":");
+          return (
+            error.stack?.startsWith(`${diagnostic}\n`) ||
+            (error.name === diagnostic.slice(0, colon) &&
+              error.message.trimEnd() === diagnostic.slice(colon + 2))
+          );
+        })
       )
         webkitFrameDiagnostics++;
       else browserErrors.push(error.message);
@@ -1010,6 +1016,7 @@ export async function phaseFour(
         browser!,
         adminContext,
         board,
+        `http://127.0.0.1:${a}`,
         `http://127.0.0.1:${mailApi}`,
         pool!,
       ),

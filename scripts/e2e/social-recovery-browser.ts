@@ -79,6 +79,7 @@ export async function mailContracts(
   browser: Browser,
   admin: BrowserContext,
   base: string,
+  directApp: string,
   mailApi: string,
   pool: Pool,
 ) {
@@ -91,6 +92,22 @@ export async function mailContracts(
     const visitor = await browser.newContext({ ignoreHTTPSErrors: true });
     try {
       const forgot = await visitor.newPage();
+      let spoofed = false;
+      // Send the form's known-account request directly to the app so Caddy
+      // cannot replace the forwarded headers before the app handles them.
+      await forgot.route("**/api/auth/request-password-reset", async (route) => {
+        const response = await route.fetch({
+          url: directApp + "/api/auth/request-password-reset",
+          headers: {
+            ...route.request().headers(),
+            "x-forwarded-host": "evil.example",
+            "x-forwarded-proto": "http",
+          },
+          maxRedirects: 0,
+        });
+        spoofed = true;
+        await route.fulfill({ response });
+      });
       await forgot.goto(base);
       await forgot
         .getByRole("button", { name: "Sign in", exact: true })
@@ -112,6 +129,7 @@ export async function mailContracts(
         .getByRole("button", { name: "Send reset link", exact: true })
         .click();
       const response = await result;
+      assert(spoofed, "Known-account reset missed the forwarded-host probe");
       assert.equal(response.status(), 200);
       responses.push(await response.json());
       await forgot
@@ -128,8 +146,6 @@ export async function mailContracts(
           headers: {
             origin: base,
             "sec-fetch-site": "same-origin",
-            "x-forwarded-host": "spoof.invalid",
-            "x-forwarded-proto": "http",
           },
           data: { ...body, email: address },
         },
