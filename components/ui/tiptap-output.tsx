@@ -10,6 +10,8 @@ import parse, {
 } from "html-react-parser";
 import { memo } from "react";
 import Image from "next/image";
+import { useSettings } from "@/hooks/use-settings";
+import { isBlockedContentLink } from "@/lib/safe-content-link";
 
 export const TiptapOutput = memo(function TiptapOutput({
   content,
@@ -22,6 +24,7 @@ export const TiptapOutput = memo(function TiptapOutput({
   forbiddenAttr?: string[];
   className?: React.ComponentProps<"div">["className"];
 }) {
+  const { appUrl } = useSettings();
   const sanitized = DOMPurify.sanitize(content, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: forbiddenTags,
@@ -40,6 +43,11 @@ export const TiptapOutput = memo(function TiptapOutput({
           <>{status}</>
         );
       }
+      if (
+        node.name === "a" &&
+        isBlockedContentLink(node.attribs.href ?? "", appUrl)
+      )
+        return <>{domToReact(node.children as DOMNode[], options)}</>;
       if (node.name === "a")
         return (
           <a

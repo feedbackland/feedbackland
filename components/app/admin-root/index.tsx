@@ -10,13 +10,14 @@ import Link from "next/link";
 import { useEffect, ReactNode } from "react";
 import { useIsTopLevel } from "@/providers/surface";
 
-// Approximate widths of the 7 tab labels, for the auth-loading skeleton.
+// Approximate widths of the tab labels, for the auth-loading skeleton.
 const TABS = [
   "Activity",
   "Insights",
   "Ask AI",
   "Settings",
   "Admins",
+  "System",
   "Widget",
   "API",
 ];

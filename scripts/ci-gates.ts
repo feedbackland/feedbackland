@@ -70,6 +70,7 @@ export async function staticFoundations() {
     "client-contracts.tsx",
     "caller-inventory.ts",
     "auth-client.ts",
+    "popup-client.ts",
   ])
     await command(process.execPath, [
       "--import",
@@ -118,6 +119,13 @@ export async function staticFoundations() {
     "scripts/e2e/v3-auth.ts",
     "scripts/e2e/widget-host.ts",
     "ci/fixtures/auth-widget-host.js",
+    "ci/oidc-mock.ts",
+    "ci/helmet-host.ts",
+    "scripts/e2e/v4-social.ts",
+    "scripts/e2e/p05-contracts.ts",
+    "scripts/e2e/oidc-contracts.ts",
+    "scripts/e2e/recovery-faults.ts",
+    "scripts/e2e/social-recovery-browser.ts",
   ]);
   return {
     checkout,

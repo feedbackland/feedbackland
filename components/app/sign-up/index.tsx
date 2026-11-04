@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { Method } from "../sign-up-in";
 import { Session } from "@/hooks/use-auth";
+import { SocialSignIn } from "../social-sign-in";
 
 export function SignUp({
   onSuccess,
@@ -24,6 +25,7 @@ export function SignUp({
     <>
       {!isEmailSelected ? (
         <div className="flex flex-col space-y-4">
+          <SocialSignIn onSuccess={handleOnSuccess} />
           <Button
             variant="outline"
             size="lg"

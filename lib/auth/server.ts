@@ -9,7 +9,11 @@ import { DomainError } from "../domain-error";
 import { canAdministerSession, type SessionIdentity } from "./session-policy";
 import { buildAuthOptions } from "./options";
 import { reserveSignIn } from "./sign-in-limit";
-function createAuth() {
+import { sendResetPassword } from "../mail";
+import { handoffStore } from "./handoff-store";
+import type { OidcMetadata } from "./oidc";
+import { authRateLimit } from "./rate-limit";
+export function createAuthInstance(metadata?: OidcMetadata) {
   neutraliseAuthEnv();
   const config = getConfig();
   return betterAuth(
@@ -17,8 +21,45 @@ function createAuth() {
       db: getPool(),
       secret: config.authSecret,
       appUrl: config.appUrl,
+      socialProviders: config.appUrl?.startsWith("https:")
+        ? {
+            ...(config.social.google.clientId &&
+            config.social.google.clientSecret
+              ? {
+                  google: {
+                    clientId: config.social.google.clientId,
+                    clientSecret: config.social.google.clientSecret,
+                    overrideUserInfoOnSignIn: true,
+                  },
+                }
+              : {}),
+            ...(config.social.microsoft.clientId &&
+            config.social.microsoft.clientSecret
+              ? {
+                  microsoft: {
+                    clientId: config.social.microsoft.clientId,
+                    clientSecret: config.social.microsoft.clientSecret,
+                    tenantId: config.social.microsoft.tenantId,
+                    overrideUserInfoOnSignIn: true,
+                  },
+                }
+              : {}),
+          }
+        : {},
+      oidc:
+        metadata &&
+        config.social.oidc.clientId &&
+        config.social.oidc.clientSecret
+          ? {
+              metadata,
+              clientId: config.social.oidc.clientId,
+              clientSecret: config.social.oidc.clientSecret,
+            }
+          : undefined,
+      handoff: config.appUrl?.startsWith("https:") ? handoffStore : undefined,
       clientIpHeader: config.clientIpHeader,
       trustedProxies: config.trustedProxies,
+      authRateLimit,
       isSetupComplete,
       allowSignUp: async () =>
         (
@@ -29,12 +70,18 @@ function createAuth() {
           })
         ).allowed,
       reserveSignIn,
+      sendResetPassword,
     }),
   );
 }
-export type Auth = ReturnType<typeof createAuth>;
+export type Auth = ReturnType<typeof createAuthInstance>;
 export function getAuth(): Auth {
-  return (runtimeState().auth ??= createAuth());
+  return (runtimeState().auth ??= createAuthInstance());
+}
+export async function getSocialAuth() {
+  const { synchronizeAuthProviders } = await import("./discovery");
+  await synchronizeAuthProviders(true);
+  return getAuth();
 }
 export function requireAdminSession<T extends SessionIdentity>(
   session: T | null,

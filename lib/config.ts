@@ -246,6 +246,26 @@ export function getConfig() {
       throw new ConfigurationError("APP_URL must be an HTTP(S) origin");
     appUrl = url.origin;
   }
+  const smtpUrl = value("SMTP_URL");
+  const smtpFrom = value("SMTP_FROM");
+  if (smtpUrl) {
+    try {
+      const url = new URL(smtpUrl);
+      if (
+        !["smtp:", "smtps:"].includes(url.protocol) ||
+        !url.hostname ||
+        url.hash ||
+        !["", "/"].includes(url.pathname)
+      )
+        throw new Error();
+      decodeURIComponent(url.username);
+      decodeURIComponent(url.password);
+    } catch {
+      throw new ConfigurationError("SMTP_URL must be a valid SMTP(S) URL");
+    }
+  }
+  if (smtpFrom && /[\r\n]/.test(smtpFrom))
+    throw new ConfigurationError("SMTP_FROM must contain one sender address");
   return {
     appUrl,
     appUrlSource,
@@ -262,6 +282,27 @@ export function getConfig() {
     },
     setupCode: value("SETUP_CODE"),
     recoveryCode: validateCode("RECOVERY_CODE", value("RECOVERY_CODE")),
+    social: {
+      google: {
+        clientId: value("GOOGLE_CLIENT_ID"),
+        clientSecret: value("GOOGLE_CLIENT_SECRET"),
+      },
+      microsoft: {
+        clientId: value("MICROSOFT_CLIENT_ID"),
+        clientSecret: value("MICROSOFT_CLIENT_SECRET"),
+        tenantId: value("MICROSOFT_TENANT_ID") ?? "common",
+      },
+      oidc: {
+        issuer: value("OIDC_ISSUER"),
+        clientId: value("OIDC_CLIENT_ID"),
+        clientSecret: value("OIDC_CLIENT_SECRET"),
+        name: (value("OIDC_NAME") ?? "Single sign-on").slice(0, 100),
+      },
+    },
+    smtp: {
+      url: smtpUrl,
+      from: smtpFrom,
+    },
     clientIpHeader,
     trustedProxies,
     llm: {

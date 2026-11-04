@@ -11,6 +11,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createSurfaceAuthClient, setEmbeddedToken } from "@/lib/auth/client";
 import { canAdministerSession } from "@/lib/auth/session-policy";
 import type { ResolvedSurface } from "@/lib/embed-surface";
+import {
+  openSocialPopup,
+  type PopupFlow,
+  type SocialProvider,
+} from "@/lib/auth/popup-client";
 type Client = ReturnType<typeof createSurfaceAuthClient>;
 export type Session = Client["$Infer"]["Session"] | null;
 type AuthContextValue = {
@@ -24,6 +29,13 @@ type AuthContextValue = {
     password: string;
   }): Promise<Session>;
   signOut(): Promise<null>;
+  requestPasswordReset(email: string): Promise<void>;
+  signInWithSocial(
+    provider: SocialProvider,
+    flow: PopupFlow,
+    signal: AbortSignal,
+    onOpen?: (href: string) => void,
+  ): Promise<Session>;
   refreshSession(): Promise<void>;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -85,6 +97,26 @@ export function AuthProvider({
     session,
     isLoaded: !query.isPending || (revokedSessionId !== null && !session),
     isAdmin: surface === "first-party" && canAdministerSession(session),
+    async requestPasswordReset(email) {
+      const result = await client.requestPasswordReset({
+        email: email.trim(),
+        redirectTo: "/reset-password",
+      });
+      if (result.error)
+        throw new Error(
+          "The reset request could not be submitted. Try again later.",
+        );
+    },
+    async signInWithSocial(provider, flow, signal, onOpen) {
+      await openSocialPopup(
+        provider,
+        flow,
+        surface,
+        AbortSignal.any([abort.signal, signal]),
+        onOpen,
+      );
+      return afterSignIn();
+    },
     async signInWithEmail(input) {
       const result = await client.signIn.email({
         email: input.email.trim(),

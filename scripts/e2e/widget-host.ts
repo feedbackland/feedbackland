@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
+import { createServer, type RequestListener } from "node:http";
 import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { build } from "vite";
 
 /** Bundle the real workspace widget once; serve only those fixture assets. */
-export async function createAuthWidgetHost() {
+export async function createAuthWidgetHost(
+  wrap: (handler: RequestListener) => RequestListener = (handler) => handler,
+) {
   const directory = await mkdtemp(join(tmpdir(), "p04-widget-"));
   const assets = new Map<string, Uint8Array>();
   try {
@@ -56,32 +58,36 @@ export async function createAuthWidgetHost() {
     assert.equal(dirname(resolve(directory)), resolve(tmpdir()));
     await rm(directory, { recursive: true, force: true });
   }
-  return createServer((request, response) => {
-    const url = new URL(request.url!, "http://fixture.invalid");
-    if (
-      url.pathname === "/" &&
-      !/^http:\/\/localhost:[0-9]+$/.test(url.searchParams.get("board") ?? "")
-    ) {
-      response.writeHead(400).end();
-      return;
-    }
-    const path = url.pathname === "/" ? "/index.html" : url.pathname;
-    const bytes = assets.get(path);
-    if (!bytes) {
-      response.writeHead(404).end();
-      return;
-    }
-    response
-      .writeHead(200, {
-        "content-type": path.endsWith(".html")
-          ? "text/html"
-          : path.endsWith(".js")
-            ? "application/javascript"
-            : path.endsWith(".css")
-              ? "text/css"
-              : "application/octet-stream",
-        "cache-control": "no-store",
-      })
-      .end(bytes);
-  });
+  return createServer(
+    wrap((request, response) => {
+      const url = new URL(request.url!, "http://fixture.invalid");
+      if (
+        url.pathname === "/" &&
+        !/^https?:\/\/localhost:[0-9]+$/.test(
+          url.searchParams.get("board") ?? "",
+        )
+      ) {
+        response.writeHead(400).end();
+        return;
+      }
+      const path = url.pathname === "/" ? "/index.html" : url.pathname;
+      const bytes = assets.get(path);
+      if (!bytes) {
+        response.writeHead(404).end();
+        return;
+      }
+      response
+        .writeHead(200, {
+          "content-type": path.endsWith(".html")
+            ? "text/html"
+            : path.endsWith(".js")
+              ? "application/javascript"
+              : path.endsWith(".css")
+                ? "text/css"
+                : "application/octet-stream",
+          "cache-control": "no-store",
+        })
+        .end(bytes);
+    }),
+  );
 }

@@ -320,6 +320,8 @@ export function boot() {
     state.setupComplete = result.setupComplete;
     state.vector = result.metadata;
     state.booted = true;
+    const { startAuthDiscovery } = await import("../auth/discovery");
+    await startAuthDiscovery();
     log("boot.ready", {
       version: identity.version,
       dimensions: result.metadata.dimensions,
@@ -340,12 +342,40 @@ export function boot() {
         host: origin.host,
         stage: origin.protocol.slice(0, -1),
       });
-    } else log("boot.app-url-inferred-social-recovery-disabled");
+    } else log("boot.app-url-inferred-social-mail-disabled");
+    if (config.recoveryCode) log("boot.recovery-enabled", {}, "warn");
+    const { smtpEnabled } = await import("../mail");
+    log("boot.smtp", { stage: smtpEnabled() ? "on" : "off" });
+    if (
+      config.appUrl?.startsWith("https:") &&
+      Object.values(config.social).some(
+        (provider) => provider.clientId && provider.clientSecret,
+      )
+    ) {
+      const { authStatus } = await import("../auth/discovery");
+      const status = await authStatus();
+      for (const provider of status.providers) {
+        log("boot.sign-in-provider", {
+          name: provider.id,
+          stage: provider.enabled
+            ? "enabled"
+            : provider.reason === "discovery failed"
+              ? "discovery-failed"
+              : "disabled",
+        });
+        // Only the validated, credential-free app origin and fixed path. Never
+        // print issuer metadata, client secrets, provider tokens or profile data.
+        if (provider.callbackUrl)
+          console.info(
+            `Sign-in callback (${provider.id}): ${provider.callbackUrl}`,
+          );
+      }
+    }
     log("boot.client-ip", {
       name: config.clientIpHeader,
       count: config.trustedProxies.length,
     });
-    log("boot.phase-3-uploads-ai-disabled");
+    log("boot.phase-4-uploads-ai-disabled");
     log("boot.ai-environment-ignored", { name: "OPENROUTER_API_KEY" });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.

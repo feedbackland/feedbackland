@@ -6,6 +6,7 @@ import { staticFoundations } from "./ci-gates";
 import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
 import { phaseThree } from "./e2e/v3-auth";
+import { phaseFour } from "./e2e/v4-social";
 import { phaseTwo } from "./e2e/v2-surfaces";
 import { removal } from "./e2e/v14-tenancy";
 import { command } from "./e2e/run";
@@ -20,12 +21,12 @@ async function main() {
     strict: true,
   });
   if (
-    !["0", "1", "2", "3"].includes(values.phase ?? "") ||
+    !["0", "1", "2", "3", "4"].includes(values.phase ?? "") ||
     !values.image ||
     !values.artifacts
   ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0|1|2|3 --image feedbackland:ci --artifacts artifacts/self-hosting",
+      "Usage: npm run verify -- --phase 0|1|2|3|4 --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
   const runId = `p0${Number(values.phase) + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -52,9 +53,11 @@ async function main() {
           status,
           checks: rows,
           futurePhases:
-            Number(values.phase) >= 3
-              ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-              : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
+            Number(values.phase) >= 4
+              ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+              : Number(values.phase) >= 3
+                ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
         },
         null,
         2,
@@ -86,7 +89,9 @@ async function main() {
     await foundations(image, runId, check);
     if (values.phase !== "0") await phaseOne(image, runId, check);
     if (Number(values.phase) >= 2) await phaseTwo(image, directory, check);
-    if (values.phase === "3") await phaseThree(image, runId, directory, check);
+    if (Number(values.phase) >= 3)
+      await phaseThree(image, runId, directory, check);
+    if (values.phase === "4") await phaseFour(image, runId, directory, check);
     await save("passed");
   } catch (error) {
     await save("failed");
