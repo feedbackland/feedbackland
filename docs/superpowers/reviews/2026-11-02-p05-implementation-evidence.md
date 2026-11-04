@@ -102,8 +102,10 @@ ephemeral local certificate volume. Both the board and mock OIDC provider use
 HTTPS; app replicas trust only that additional fixture CA. Real Helmet middleware
 and enforcing provider COOP are exercised with the built workspace widget in
 Chromium, Firefox and Linux WebKit. Header observations drain before teardown;
-unreadable headers fail. The exact benign WebKit cross-origin focus diagnostic
-uses the existing P04 exception; other uncaught errors/rejections fail.
+unreadable headers fail. The WebKit guard counts the exact mixed-protocol
+focus diagnostic for the fixture host and board origins. Frame `error` and
+`unhandledrejection` listeners independently check for thrown errors.
+[WebKit diagnostic source](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/page/DOMWindow.cpp#L905)
 The harness watches browser-context page creation so it can drive a COOP tab
 even when Firefox does not emit a popup event on the opener page.
 Private certificate keys stay outside retained artifacts and are removed with

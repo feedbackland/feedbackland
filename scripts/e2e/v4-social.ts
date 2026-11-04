@@ -289,10 +289,11 @@ async function socialBrowser(
     target.on("pageerror", (error) => {
       if (
         engine === "webkit" &&
-        [ordinaryHost, helmetHost].some((host) =>
-          error.stack?.startsWith(
-            `Blocked a frame with origin "${host}" from accessing a frame with origin "${base}". Protocols, domains, and ports must match.\n`,
-          ),
+        [ordinaryHost, helmetHost].some(
+          (host) =>
+            target.url().startsWith(`${host}/`) &&
+            error.message.trimEnd() ===
+              `Blocked a frame with origin "${host}" from accessing a frame with origin "${base}".  The frame requesting access has a protocol of "http", the frame being accessed has a protocol of "https". Protocols must match.`,
         )
       )
         webkitFrameDiagnostics++;
@@ -606,6 +607,7 @@ async function socialBrowser(
     );
     assert.equal(session.session.scope, "first-party");
     assert.equal(mock.controls.logoutRequests, 0);
+    assert.deepEqual(browserErrors, []);
     return {
       engine,
       cases,
