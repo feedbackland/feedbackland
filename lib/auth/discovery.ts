@@ -43,7 +43,10 @@ async function discoveryDocument(signal: AbortSignal) {
     redirect: "error",
     headers: { accept: "application/json" },
   });
-  if (!response.ok || !response.body) throw new Error("Discovery unavailable");
+  if (!response.ok || !response.body) {
+    await response.body?.cancel();
+    throw new Error("Discovery unavailable");
+  }
   const reader = response.body.getReader();
   const parts: Uint8Array[] = [];
   let size = 0;
@@ -77,12 +80,7 @@ async function discoveryDocument(signal: AbortSignal) {
     if (typeof document[key] !== "string")
       throw new Error("Incomplete discovery");
     const url = new URL(document[key]);
-    if (
-      url.protocol !== "https:" ||
-      url.username ||
-      url.password ||
-      url.hash
-    )
+    if (url.protocol !== "https:" || url.username || url.password || url.hash)
       throw new Error("Invalid discovery endpoint");
   }
   const allowed = new Set([
@@ -157,7 +155,7 @@ function construct(epoch: string) {
     if (state.pending === pending) state.pending = undefined;
   });
 }
-async function pollEpoch(force = false) {
+export async function pollEpoch(force = false) {
   if (!oidcConfigured()) return;
   const state = discoveryState();
   if (state.poll) return state.poll;
@@ -206,7 +204,7 @@ export async function synchronizeAuthProviders(force = false): Promise<void> {
 }
 export async function startAuthDiscovery() {
   if (!oidcConfigured()) return;
-  await synchronizeAuthProviders(true);
+  await pollEpoch(true);
   const state = discoveryState();
   if (state.timer) return;
   // Poll independently of construction. A newer epoch aborts an obsolete
@@ -219,7 +217,8 @@ export async function startAuthDiscovery() {
   state.timer.unref();
 }
 export async function authCapabilities() {
-  await synchronizeAuthProviders();
+  // Background discovery atomically replaces the instance when it is ready.
+  // Render from the currently usable providers even while an issuer is down.
   const config = getConfig();
   const context = await getAuth().$context;
   const socialProviders = context.socialProviders
@@ -272,7 +271,9 @@ export async function authStatus() {
             ? capabilities.socialProviders.includes(id)
               ? "retry failed; using the last working discovery"
               : "discovery failed"
-            : null,
+            : id === "oidc" && !capabilities.socialProviders.includes(id)
+              ? "discovery in progress"
+              : null,
       callbackUrl: config.appUrl
         ? new URL(`/api/auth/callback/${id}`, config.appUrl).href
         : null,

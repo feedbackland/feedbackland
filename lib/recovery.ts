@@ -1,7 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { Pool } from "pg";
-import { Kysely, PostgresDialect, sql } from "kysely";
+import { type Kysely, sql } from "kysely";
 import { z } from "zod/v4";
 import type { DB } from "../db/schema";
 import { db } from "../db/db";
@@ -10,7 +9,13 @@ import { getConfig } from "./config";
 import { getAuth } from "./auth/server";
 import { getClientIp } from "./client-ip";
 import { DomainError } from "./domain-error";
-import { captureResetToken } from "./mail";
+import {
+  credentialAccount,
+  credentialFingerprint,
+  lockCredentialUser,
+  revokeResetLinks,
+  withCredentialAdapter,
+} from "./auth/credentials";
 import { matchesOperatorCode, operatorCodeDigest } from "./operator-code";
 import { checkRateLimit } from "../queries/check-rate-limit";
 import { log, sqlstate } from "./log";
@@ -41,30 +46,7 @@ const adminCount = async (trx: Kysely<DB>) =>
       .executeTakeFirstOrThrow()
   ).count;
 
-export async function resetRecoveryPassword(
-  userId: string,
-  email: string,
-  password: string,
-  headers?: Headers,
-) {
-  const token = await captureResetToken(userId, () =>
-    getAuth().api.requestPasswordReset({
-      body: { email, redirectTo: "/reset-password" },
-      headers,
-    }),
-  );
-  await getAuth().api.resetPassword({
-    body: { token, newPassword: password },
-    headers,
-  });
-}
-export async function completeRecovery(
-  input: unknown,
-  headers: Headers,
-  dependencies: { resetPassword: typeof resetRecoveryPassword } = {
-    resetPassword: resetRecoveryPassword,
-  },
-) {
+export async function completeRecovery(input: unknown, headers: Headers) {
   const configured = getConfig().recoveryCode;
   if (!configured) throw new DomainError("NOT_FOUND", "Not found");
   if (
@@ -107,14 +89,10 @@ export async function completeRecovery(
         .executeTakeFirst();
       if (!user || (user.role !== "admin" && (await adminCount(trx)) !== 0))
         throw rejected();
-      const account = await trx
-        .selectFrom("auth_account")
-        .select("id")
-        .where("userId", "=", user.id)
-        .where("providerId", "=", "credential")
-        .where("password", "is not", null)
+      const account = await credentialAccount(trx, user.id)
+        .forUpdate()
         .executeTakeFirst();
-      if (!account) throw rejected();
+      if (!account?.password) throw rejected();
       const existing = await trx
         .selectFrom("recovery_claim")
         .selectAll()
@@ -126,9 +104,20 @@ export async function completeRecovery(
         .executeTakeFirst();
       if (existing?.status === "promoted") {
         if (user.role !== "admin") throw rejected();
+        if (
+          existing.credentialFingerprint !==
+          credentialFingerprint(account.password)
+        )
+          throw new DomainError(
+            "CONFLICT",
+            "This recovery code was already used. Configure a fresh code to recover this account again.",
+          );
         return { userId: user.id, completed: true, resume: true };
       }
-      const resume = existing?.status === "reset";
+      const resume =
+        existing?.status === "reset" &&
+        existing.credentialFingerprint ===
+          credentialFingerprint(account.password);
       if (existing && existing.expiresAt > existing.now)
         throw new DomainError(
           "CONFLICT",
@@ -148,6 +137,9 @@ export async function completeRecovery(
             owner,
             operationId,
             status: resume ? "reset" : "resetting",
+            credentialFingerprint: resume
+              ? existing.credentialFingerprint
+              : null,
             failure: null,
             createdAt: sql`clock_timestamp()`,
             expiresAt: sql`clock_timestamp()+interval '15 minutes'`,
@@ -169,60 +161,50 @@ export async function completeRecovery(
   let passwordMayHaveChanged = claim.resume;
   try {
     if (!claim.resume) {
-      // Hold only this claim row on a separate connection, never membership or
-      // settings, during the SDK operation. Even an expired owner paused inside
-      // reset cannot overlap a replacement reset. The minimum app pool remains
-      // available to Better Auth, including through transaction-mode poolers.
-      const pool = new Pool({
-        ...getConfig().database(),
-        max: 1,
-        connectionTimeoutMillis: 5000,
-        statement_timeout: 30_000,
-        application_name: "feedbackland-recovery",
-      });
-      pool.on("error", (error) =>
-        log("recovery.idle-error", { sqlstate: sqlstate(error) }, "warn"),
-      );
-      const isolated = new Kysely<DB>({
-        dialect: new PostgresDialect({ pool }),
-      });
-      try {
-        await isolated.transaction().execute(async (trx) => {
-          const current = await trx
-            .selectFrom("recovery_claim")
-            .select(["owner", "operationId", "status"])
-            .where("codeDigest", "=", codeDigest)
-            .where("userId", "=", claim.userId)
-            .where("expiresAt", ">", sql<Date>`clock_timestamp()`)
-            .forUpdate()
-            .executeTakeFirst();
-          if (
-            !current ||
-            current.owner !== owner ||
-            current.operationId !== operationId ||
-            current.status !== "resetting" ||
-            !matchesOperatorCode(data.code, getConfig().recoveryCode)
-          )
-            throw partial();
-          passwordMayHaveChanged = true;
-          await dependencies.resetPassword(
-            claim.userId,
-            data.email,
-            data.password,
-            headers,
-          );
-          await trx
-            .updateTable("recovery_claim")
-            .set({ status: "reset" })
-            .where("codeDigest", "=", codeDigest)
-            .where("userId", "=", claim.userId)
-            .where("owner", "=", owner)
-            .where("operationId", "=", operationId)
-            .execute();
+      const context = await getAuth().$context;
+      const hash = await context.password.hash(data.password);
+      await db.transaction().execute(async (trx) => {
+        const user = await lockCredentialUser(trx, claim.userId);
+        const account = await credentialAccount(trx, claim.userId)
+          .forUpdate()
+          .executeTakeFirst();
+        const current = await trx
+          .selectFrom("recovery_claim")
+          .select("owner")
+          .where("codeDigest", "=", codeDigest)
+          .where("userId", "=", claim.userId)
+          .where("operationId", "=", operationId)
+          .where("owner", "=", owner)
+          .where("status", "=", "resetting")
+          .where("expiresAt", ">", sql<Date>`clock_timestamp()`)
+          .forUpdate()
+          .executeTakeFirst();
+        if (
+          !user ||
+          user.email !== data.email ||
+          !account?.password ||
+          !current ||
+          !matchesOperatorCode(data.code, getConfig().recoveryCode)
+        )
+          throw rejected();
+        // Hashing is finished. The claim check, SDK writes and marker commit
+        // together on this connection, including after backend loss or retry.
+        passwordMayHaveChanged = true;
+        await withCredentialAdapter(trx, context, async () => {
+          await context.internalAdapter.updatePassword(user.id, hash);
+          await context.internalAdapter.deleteUserSessions(user.id);
         });
-      } finally {
-        await isolated.destroy();
-      }
+        await revokeResetLinks(trx, user.id);
+        await trx
+          .updateTable("recovery_claim")
+          .set({
+            status: "reset",
+            credentialFingerprint: credentialFingerprint(hash),
+          })
+          .where("codeDigest", "=", codeDigest)
+          .where("userId", "=", user.id)
+          .execute();
+      });
     }
     const restored = await db.transaction().execute(async (trx) => {
       await lock(trx, locks.membership);
@@ -232,15 +214,13 @@ export async function completeRecovery(
         .where("id", "=", 1)
         .forUpdate()
         .executeTakeFirstOrThrow();
-      const user = await trx
-        .selectFrom("user")
-        .select("role")
-        .where("id", "=", claim.userId)
+      const user = await lockCredentialUser(trx, claim.userId);
+      const account = await credentialAccount(trx, claim.userId)
         .forUpdate()
         .executeTakeFirst();
       const current = await trx
         .selectFrom("recovery_claim")
-        .select(["owner", "operationId", "status"])
+        .select(["owner", "operationId", "status", "credentialFingerprint"])
         .where("codeDigest", "=", codeDigest)
         .where("userId", "=", claim.userId)
         .where("expiresAt", ">", sql<Date>`clock_timestamp()`)
@@ -254,7 +234,14 @@ export async function completeRecovery(
         !matchesOperatorCode(data.code, getConfig().recoveryCode)
       )
         return false;
-      if (!user || (user.role !== "admin" && (await adminCount(trx)) !== 0)) {
+      if (
+        !user ||
+        user.email !== data.email ||
+        !account?.password ||
+        current.credentialFingerprint !==
+          credentialFingerprint(account.password) ||
+        (user.role !== "admin" && (await adminCount(trx)) !== 0)
+      ) {
         await trx
           .updateTable("recovery_claim")
           .set({ failure: "account-changed" })
@@ -272,6 +259,7 @@ export async function completeRecovery(
         .deleteFrom("auth_session")
         .where("userId", "=", claim.userId)
         .execute();
+      await revokeResetLinks(trx, user.id);
       await trx
         .updateTable("recovery_claim")
         .set({ status: "promoted", failure: null })
@@ -294,12 +282,26 @@ export async function completeRecovery(
       const durable = await db
         .selectFrom("recovery_claim")
         .innerJoin("user", "user.id", "recovery_claim.userId")
-        .select(["recovery_claim.status", "user.role"])
+        .innerJoin("auth_account", "auth_account.userId", "user.id")
+        .where("auth_account.providerId", "=", "credential")
+        .whereRef("auth_account.accountId", "=", "user.id")
+        .select([
+          "recovery_claim.status",
+          "recovery_claim.credentialFingerprint",
+          "auth_account.password",
+          "user.role",
+        ])
         .where("codeDigest", "=", codeDigest)
         .where("recovery_claim.userId", "=", claim.userId)
         .where("operationId", "=", operationId)
         .executeTakeFirst();
-      if (durable?.status === "promoted" && durable.role === "admin")
+      if (
+        durable?.status === "promoted" &&
+        durable.role === "admin" &&
+        durable.password &&
+        durable.credentialFingerprint ===
+          credentialFingerprint(durable.password)
+      )
         return { restored: true as const, previousPassword: claim.resume };
     } catch {}
     log("recovery.incomplete", { sqlstate: sqlstate(error) }, "warn");

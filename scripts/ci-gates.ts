@@ -94,6 +94,12 @@ export async function staticFoundations() {
     "lib/lazy-delegate.ts",
     "lib/auth/server.ts",
     "lib/auth/options.ts",
+    "lib/auth/credentials.ts",
+    "lib/auth/password-endpoints.ts",
+    "lib/auth/discovery.ts",
+    "lib/auth/oidc.ts",
+    "lib/recovery.ts",
+    "db/migrations/0002_password_recovery.ts",
     "lib/auth/client.ts",
     "lib/auth/popup-handoff.ts",
     "lib/auth/session-policy.ts",
@@ -124,7 +130,9 @@ export async function staticFoundations() {
     "scripts/e2e/v4-social.ts",
     "scripts/e2e/p05-contracts.ts",
     "scripts/e2e/oidc-contracts.ts",
+    "scripts/e2e/popup-callback-contracts.ts",
     "scripts/e2e/recovery-faults.ts",
+    "scripts/e2e/recovery-upgrade-contracts.ts",
     "scripts/e2e/social-recovery-browser.ts",
   ]);
   return {

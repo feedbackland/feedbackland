@@ -9,13 +9,36 @@ export type OidcMetadata = {
   jwks_uri: string;
   userinfo_endpoint?: string;
   id_token_signing_alg_values_supported: string[];
+  token_endpoint_auth_methods_supported?: string[];
 };
+
+function tokenAuthentication(metadata: OidcMetadata, registered?: string) {
+  const advertised = metadata.token_endpoint_auth_methods_supported;
+  const methods =
+    advertised === undefined ? ["client_secret_basic"] : advertised;
+  if (
+    !Array.isArray(methods) ||
+    !methods.every((method) => typeof method === "string")
+  )
+    throw new Error("Invalid OIDC token authentication metadata");
+  const chosen =
+    registered ??
+    (methods.includes("client_secret_basic")
+      ? "client_secret_basic"
+      : "client_secret_post");
+  if (!methods.includes(chosen))
+    throw new Error("Unsupported OIDC token authentication");
+  if (chosen === "client_secret_basic") return "basic";
+  if (chosen === "client_secret_post") return "post";
+  throw new Error("Unsupported OIDC client registration");
+}
 
 /** Adapt bounded, validated discovery to the SDK's public plugin/provider API. */
 export function oidcProvider(config: {
   clientId: string;
   clientSecret: string;
   metadata: OidcMetadata;
+  tokenAuthMethod?: string;
 }) {
   const { metadata } = config;
   const plugin = genericOAuth({
@@ -24,6 +47,7 @@ export function oidcProvider(config: {
         providerId: "oidc",
         clientId: config.clientId,
         clientSecret: config.clientSecret,
+        authentication: tokenAuthentication(metadata, config.tokenAuthMethod),
         authorizationUrl: metadata.authorization_endpoint,
         tokenUrl: metadata.token_endpoint,
         userInfoUrl: metadata.userinfo_endpoint,

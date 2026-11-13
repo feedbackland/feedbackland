@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { sql } from "kysely";
 import { db, getPool } from "../../db/db";
-import { migrateAndSeed } from "../../lib/boot";
+import { upgradeRecoverySchema } from "./recovery-upgrade-contracts";
 import { runtimeState } from "../../lib/runtime-state";
 import { getConfig } from "../../lib/config";
 import { getAuth } from "../../lib/auth/server";
 import { handoffStore } from "../../lib/auth/handoff-store";
-import { completeRecovery, resetRecoveryPassword } from "../../lib/recovery";
+import { completeRecovery } from "../../lib/recovery";
 import { createPasswordResetLinkQuery } from "../../queries/create-password-reset-link";
 import { createContext } from "../../lib/trpc";
 import {
@@ -18,14 +18,16 @@ import { isBlockedContentLink } from "../../lib/safe-content-link";
 import { clean } from "../../lib/utils-server";
 import { DomainError } from "../../lib/domain-error";
 import { oidcContracts } from "./oidc-contracts";
+import { popupCallbackContracts } from "./popup-callback-contracts";
 import { authRateLimit } from "../../lib/auth/rate-limit";
 import {
   withRecoveryCommitAckLoss,
-  withRecoveryOwnerReplacement,
+  duringPasswordWork,
+  withRecoveryConnectionLoss,
 } from "./recovery-faults";
 
 async function main() {
-  const seeded = await migrateAndSeed();
+  const seeded = await upgradeRecoverySchema();
   runtimeState().authSecret = seeded.authSecret;
   runtimeState().setupComplete = true;
   const limiterKey = "fixture-sdk-rate-limit";
@@ -50,11 +52,13 @@ async function main() {
   assert(
     (await authRateLimit.consume(limiterKey, { window: 10, max: 3 })).allowed,
   );
-  await oidcContracts({
+  const authFixture = {
     db: getPool(),
     secret: seeded.authSecret,
     appUrl: "https://fixture.invalid",
-  });
+  };
+  await oidcContracts(authFixture);
+  await popupCallbackContracts(authFixture);
   await db
     .updateTable("settings")
     .set({ setupCompletedAt: sql`clock_timestamp()` })
@@ -231,6 +235,147 @@ async function main() {
       before,
     );
   }
+  const memberGrant = async () =>
+    new URL(
+      (await createPasswordResetLinkQuery(adminActor, user.email, headers()))
+        .url,
+    ).searchParams.get("token")!;
+  for (const promotion of [true, false]) {
+    const token = await memberGrant();
+    try {
+      await duringPasswordWork(
+        "hash",
+        () =>
+          auth(
+            "/reset-password",
+            { token, newPassword: "Must-be-refused-42" },
+            400,
+          ),
+        async () => {
+          await db
+            .updateTable("user")
+            .set({ role: promotion ? "admin" : "user" })
+            .where("id", "=", promotion ? user.id : admin.id)
+            .execute();
+        },
+      );
+    } finally {
+      await db
+        .updateTable("user")
+        .set({ role: promotion ? "user" : "admin" })
+        .where("id", "=", promotion ? user.id : admin.id)
+        .execute();
+    }
+  }
+  // Older replicas can still insert an unmarked token during an upgrade.
+  await db
+    .insertInto("auth_verification")
+    .values({
+      id: "legacy-writer",
+      identifier: "reset-password:unmarked",
+      value: admin.id,
+      expiresAt: new Date(Date.now() + 60_000),
+    })
+    .execute();
+  await auth(
+    "/reset-password",
+    { token: "unmarked", newPassword: "Refused-legacy-password-42" },
+    400,
+  );
+  const siblingA = await memberGrant(),
+    siblingB = await memberGrant();
+  const attempts = await Promise.all(
+    [siblingA, siblingB].map((token) =>
+      getAuth().handler(
+        new Request("https://fixture.invalid/api/auth/reset-password", {
+          method: "POST",
+          headers: headers(),
+          body: JSON.stringify({
+            token,
+            newPassword: "Single-winner-password-42",
+          }),
+        }),
+      ),
+    ),
+  );
+  assert.deepEqual(attempts.map((result) => result.status).sort(), [200, 400]);
+  for (const token of [siblingA, siblingB])
+    await auth("/reset-password", { token, newPassword: password }, 400);
+  // A change beginning before recovery must lose even if it finishes after
+  // the final revocation. Exercise the HTTP entries with a verified password.
+  for (const operation of ["sign-in", "change", "reset"] as const) {
+    const target = await signup(operation + "-race@fixture.invalid");
+    await db
+      .updateTable("user")
+      .set({ role: "admin" })
+      .where("id", "=", target.id)
+      .execute();
+    const login = await auth(
+      "/sign-in/email",
+      { email: target.email, password },
+      200,
+    );
+    const cookie = login.headers
+      .getSetCookie()
+      .find((value) => value.includes("better-auth.session_token="))!
+      .split(";", 1)[0];
+    await getAuth().api.requestPasswordReset({
+      body: { email: target.email, redirectTo: "/reset-password" },
+      headers: headers(),
+    });
+    const oldGrant = await db
+      .selectFrom("auth_verification")
+      .select("identifier")
+      .where("value", "=", target.id)
+      .where("identifier", "like", "reset-password:%")
+      .executeTakeFirstOrThrow();
+    const token = oldGrant.identifier.slice("reset-password:".length);
+    const newPassword = "Refused-change-password-42";
+    await duringPasswordWork(
+      operation === "reset" ? "hash" : "verify",
+      () =>
+        operation === "sign-in"
+          ? auth("/sign-in/email", { email: target.email, password }, 401)
+          : operation === "change"
+            ? auth(
+                "/change-password",
+                {
+                  currentPassword: password,
+                  newPassword,
+                  revokeOtherSessions: true,
+                },
+                400,
+                { cookie },
+              )
+            : auth("/reset-password", { token, newPassword }, 400),
+      async () => {
+        assert(
+          (
+            await completeRecovery(
+              { code, email: target.email, password: "Recovered-race-42" },
+              headers(),
+            )
+          ).restored,
+        );
+      },
+    );
+    assert.equal(
+      (
+        await db
+          .selectFrom("auth_session")
+          .select("id")
+          .where("userId", "=", target.id)
+          .execute()
+      ).length,
+      0,
+    );
+    await auth("/reset-password", { token, newPassword }, 400);
+    await auth(
+      "/sign-in/email",
+      { email: target.email, password: "Recovered-race-42" },
+      200,
+    );
+  }
   await assert.rejects(
     completeRecovery(
       { code: "wrong", email: admin.email, password },
@@ -344,8 +489,7 @@ async function main() {
     ).length,
     0,
   );
-  // A crash after the SDK reset but before the durable reset marker must not
-  // grant the role. The same operator code is retryable after claim expiry.
+  // A marker failure rolls back the SDK write in the same transaction.
   const interrupted = await signup("interrupted@fixture.invalid");
   await db.updateTable("user").set({ role: "user" }).execute();
   await sql`create function fixture_recovery_failure() returns trigger language plpgsql as $$ begin if NEW.status='reset' then raise exception 'fixture reset-marker failure'; end if; return NEW; end $$`.execute(
@@ -378,11 +522,7 @@ async function main() {
     ).role,
     "user",
   );
-  await auth(
-    "/sign-in/email",
-    { email: interrupted.email, password: "Interrupted-password-42" },
-    200,
-  );
+  await auth("/sign-in/email", { email: interrupted.email, password }, 200);
   await db
     .updateTable("recovery_claim")
     .set({ expiresAt: sql`clock_timestamp()-interval '1 second'` })
@@ -456,64 +596,21 @@ async function main() {
     { email: promotion.email, password: "Must-not-replace-password-42" },
     401,
   );
-  // With one ordinary app connection, a competing claimant must release it
-  // immediately while the isolated owner holds its claim row before Auth I/O.
   const concurrent = await signup("concurrent@fixture.invalid");
   await db.updateTable("user").set({ role: "user" }).execute();
-  let release!: () => void, entered!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  const ready = new Promise<void>((resolve) => {
-    entered = resolve;
-  });
-  const first = completeRecovery(
-    { code, email: concurrent.email, password: "Concurrent-password-42" },
-    headers(),
-    {
-      resetPassword: async (...args) => {
-        entered();
-        await gate;
-        await resetRecoveryPassword(...args);
-      },
-    },
+  const recover = (email: string, newPassword: string) =>
+    completeRecovery({ code, email, password: newPassword }, headers());
+  const expireClaim = (userId: string) =>
+    db
+      .updateTable("recovery_claim")
+      .set({ expiresAt: sql`clock_timestamp()-interval '1 second'` })
+      .where("userId", "=", userId)
+      .execute();
+  await duringPasswordWork(
+    "hash",
+    () => recover(concurrent.email, "Concurrent-password-42"),
+    () => assert.rejects(recover(concurrent.email, password), /in progress/),
   );
-  const firstResult = first.then(
-    (value) => ({ value }),
-    (error: unknown) => ({ error }),
-  );
-  try {
-    await Promise.race([
-      ready,
-      firstResult.then((result) => {
-        if ("error" in result) throw result.error;
-        throw new Error("Recovery completed before the barrier");
-      }),
-    ]);
-    const second = completeRecovery(
-      { code, email: concurrent.email, password },
-      headers(),
-    );
-    await assert.rejects(
-      Promise.race([
-        second,
-        new Promise((_, reject) =>
-          setTimeout(
-            () =>
-              reject(new Error("Competing recovery held the app connection")),
-            2000,
-          ),
-        ),
-      ]),
-      (error: unknown) =>
-        error instanceof DomainError && /in progress/.test(error.message),
-    );
-  } finally {
-    release();
-  }
-  const completed = await firstResult;
-  if ("error" in completed) throw completed.error;
-  assert(completed.value.restored);
 
   const lostAck = await signup("recovery-lost-ack@fixture.invalid");
   await db.updateTable("user").set({ role: "user" }).execute();
@@ -521,6 +618,13 @@ async function main() {
     completeRecovery({ code, email: lostAck.email, password }, headers()),
   );
   assert(reconciled.restored);
+  // A pre-upgrade completed marker cannot attest to the current credential.
+  await db
+    .updateTable("recovery_claim")
+    .set({ credentialFingerprint: null })
+    .where("userId", "=", lostAck.id)
+    .execute();
+  await assert.rejects(recover(lostAck.email, password), /fresh code/);
   assert.equal(
     (
       await db
@@ -542,58 +646,71 @@ async function main() {
   );
   const replaced = await signup("recovery-replaced-owner@fixture.invalid");
   await db.updateTable("user").set({ role: "user" }).execute();
-  let resetCalls = 0;
-  await withRecoveryOwnerReplacement(
-    async () => {
-      await db
-        .updateTable("recovery_claim")
-        .set({ owner: randomUUID(), operationId: randomUUID() })
-        .where("userId", "=", replaced.id)
-        .execute();
-    },
+  await duringPasswordWork(
+    "hash",
     () =>
       assert.rejects(
-        completeRecovery({ code, email: replaced.email, password }, headers(), {
-          resetPassword: async () => {
-            resetCalls++;
-          },
-        }),
+        recover(replaced.email, "Superseded-password-42"),
         /could not be completed/,
       ),
+    async () => {
+      await expireClaim(replaced.id);
+      assert((await recover(replaced.email, "Winner-password-42")).restored);
+    },
   );
-  assert.equal(resetCalls, 0, "A replaced owner reached password reset");
+  await auth(
+    "/sign-in/email",
+    { email: replaced.email, password: "Superseded-password-42" },
+    401,
+  );
+  await auth(
+    "/sign-in/email",
+    { email: replaced.email, password: "Winner-password-42" },
+    200,
+  );
+
+  const disconnected = await signup("backend-loss@fixture.invalid");
+  await db.updateTable("user").set({ role: "user" }).execute();
+  await withRecoveryConnectionLoss(() =>
+    recover(disconnected.email, "Disconnected-password-42"),
+  );
+  await auth("/sign-in/email", { email: disconnected.email, password }, 200);
   assert.equal(
     (
       await db
-        .selectFrom("user")
-        .select("role")
-        .where("id", "=", replaced.id)
+        .selectFrom("recovery_claim")
+        .select("status")
+        .where("userId", "=", disconnected.id)
         .executeTakeFirstOrThrow()
-    ).role,
-    "user",
+    ).status,
+    "resetting",
+  );
+  await expireClaim(disconnected.id);
+  assert(
+    (await recover(disconnected.email, "Replacement-password-42")).restored,
+  );
+  await auth(
+    "/sign-in/email",
+    { email: disconnected.email, password: "Replacement-password-42" },
+    200,
   );
 
-  // An administrator appearing during Auth I/O fences zero-admin promotion.
   const intervening = await signup("intervening-admin@fixture.invalid");
   await db.updateTable("user").set({ role: "user" }).execute();
-  await assert.rejects(
-    completeRecovery(
-      { code, email: intervening.email, password: "Intervening-password-42" },
-      headers(),
-      {
-        resetPassword: async (...args) => {
-          await resetRecoveryPassword(...args);
-          await db
-            .updateTable("user")
-            .set({ role: "admin" })
-            .where("id", "=", concurrent.id)
-            .execute();
-        },
-      },
-    ),
-    (error: unknown) =>
-      error instanceof DomainError &&
-      /may already have changed/.test(error.message),
+  await duringPasswordWork(
+    "hash",
+    () =>
+      assert.rejects(
+        recover(intervening.email, "Initial-repair-42"),
+        /may already have changed/,
+      ),
+    async () => {
+      await db
+        .updateTable("user")
+        .set({ role: "admin" })
+        .where("id", "=", concurrent.id)
+        .execute();
+    },
   );
   assert.equal(
     (
@@ -605,6 +722,78 @@ async function main() {
     ).role,
     "user",
   );
+  const initial = await auth(
+    "/sign-in/email",
+    { email: intervening.email, password: "Initial-repair-42" },
+    200,
+  );
+  const credentialCookie = initial.headers
+    .getSetCookie()
+    .find((value) => value.includes("better-auth.session_token="))!
+    .split(";", 1)[0];
+  await auth(
+    "/change-password",
+    {
+      currentPassword: "Initial-repair-42",
+      newPassword: "Intervening-change-42",
+    },
+    200,
+    { cookie: credentialCookie },
+  );
+  await db
+    .updateTable("user")
+    .set({ role: "user" })
+    .where("id", "=", concurrent.id)
+    .execute();
+  await expireClaim(intervening.id);
+  const freshRepair = await recover(
+    intervening.email,
+    "Final-operator-password-42",
+  );
+  assert(freshRepair.restored && !freshRepair.previousPassword);
+  await auth(
+    "/sign-in/email",
+    { email: intervening.email, password: "Intervening-change-42" },
+    401,
+  );
+  await auth(
+    "/sign-in/email",
+    { email: intervening.email, password: "Final-operator-password-42" },
+    200,
+  );
+  await db
+    .updateTable("recovery_claim")
+    .set({
+      status: "reset",
+      credentialFingerprint: null,
+      expiresAt: sql`clock_timestamp()-interval '1 second'`,
+    })
+    .where("userId", "=", intervening.id)
+    .execute();
+  const legacyRepair = await recover(
+    intervening.email,
+    "Fresh-legacy-password-42",
+  );
+  assert(legacyRepair.restored && !legacyRepair.previousPassword);
+  const legacyLogin = await auth(
+    "/sign-in/email",
+    { email: intervening.email, password: "Fresh-legacy-password-42" },
+    200,
+  );
+  const legacyCookie = legacyLogin.headers
+    .getSetCookie()
+    .find((value) => value.includes("better-auth.session_token="))!
+    .split(";", 1)[0];
+  await auth(
+    "/change-password",
+    {
+      currentPassword: "Fresh-legacy-password-42",
+      newPassword: "After-completion-42",
+    },
+    200,
+    { cookie: legacyCookie },
+  );
+  await assert.rejects(recover(intervening.email, password), /fresh code/);
   const recoverySetting = process.env.RECOVERY_CODE;
   delete process.env.RECOVERY_CODE;
   try {
@@ -735,14 +924,15 @@ async function main() {
   );
   console.log(
     JSON.stringify({
-      oidc: "SDK PKCE/JWKS verification rejects wrong signature, issuer, audience, nonce and missing ID token",
+      oidc: "Signed ID tokens, PKCE, Basic and POST client registrations, unsupported metadata",
       sdkRateLimit:
         "25 concurrent requests admit exactly three; retry deadline is 1–10 seconds with PG bigint timestamps",
       recovery:
         "code before identity, constant-time decoded-byte identity, fail-closed limits, reset/revocation, zero-admin repair, interrupted reset and promotion, one owner with minimum pool",
-      adminReset: "non-admin credential only, single-use, pinned origin",
+      adminReset:
+        "issuer and target revalidated at redemption, sibling grants have one winner, legacy links expired",
       handoff:
-        "reservation retries, wrong secret, 202 pending, atomic single consumption, expiry and immutable deadline",
+        "overlapping popups, unknown or transplanted state, pending claims, atomic consumption and expiry",
       links: "internal auth/API links removed; external links retained",
     }),
   );

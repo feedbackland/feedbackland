@@ -374,7 +374,12 @@ HTTPS endpoints in its discovery document. Generic OIDC discovery validates
 issuer/JWKS metadata within ten seconds; failed discovery retries automatically
 after a minute. **Retry discovery** on System advances a shared epoch so other
 replicas converge within five seconds plus the bounded construction time. A
-failed retry preserves the last working provider. Password sign-in stays usable.
+failed retry preserves the last working provider. Board pages, settings, Google,
+Microsoft and password sign-in stay available during discovery.
+The token endpoint uses `client_secret_basic` when discovery omits the method
+or offers both Basic and POST. For a client registered for a particular method,
+set `OIDC_TOKEN_ENDPOINT_AUTH_METHOD` to `client_secret_basic` or
+`client_secret_post`. The issuer must advertise support for the selected method.
 
 Each sign-in opens a confirmation page outside the widget. Allow that popup,
 confirm the board and choose your account. Keep the widget open until it reports
@@ -391,7 +396,15 @@ An administrator can generate a one-time reset link for an existing non-admin
 password account under **Admin > Admins**. This also works with an inferred app
 origin. Give the link privately to that account owner. Administrators and
 social-only accounts cannot receive an administrator-generated reset link.
-Successful password resets revoke that account's sessions; each link works once.
+At redemption, the issuer must still be an administrator and the recipient must
+still be a non-admin password account. A successful reset revokes every session
+and all outstanding reset links for the account. Changing the password while
+signed in also invalidates outstanding reset links.
+
+When upgrading an existing installation to this version, stop the previous
+replicas before serving authentication traffic on the new version. The migration
+expires previously issued reset links because those records did not identify
+their issuer. Request new links after the upgrade.
 
 ### Recover administrator access
 
@@ -407,15 +420,15 @@ register a password account first. Recovery revokes the target account's session
 An interrupted attempt may already have changed the password; no administrator
 access is reported until the final transaction commits. A live claim reserves
 that account for fifteen minutes. Retry with the same code after the claim
-expires. If its reset already committed, the earlier attempt's password remains.
-
-If a replica stalls inside password reset, stop/restart that replica before
-retrying; its database claim lock prevents overlapping password writes even
-after the nominal claim expiry.
+expires. If its reset committed and the credential still matches, use the
+password from that attempt. If another password change intervened, the retry
+sets the newly submitted password before granting administrator access.
+Successful recovery revokes outstanding reset links as well as sessions.
 
 **After success, remove `RECOVERY_CODE` from every replica and restart them.**
 The recovery route then returns HTTP 404. To perform a new recovery after an
-already recovered account was subsequently demoted, rotate to a new random code.
+already recovered account was subsequently demoted or changed its password,
+rotate to a new random code.
 Do not reuse setup codes, put recovery codes in URLs or retain reset links in logs.
 
 ## Troubleshooting

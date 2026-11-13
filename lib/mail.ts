@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import { getConfig } from "./config";
 import { DomainError } from "./domain-error";
 import { log } from "./log";
+import type { Actor } from "./auth/authorization";
 
 type Reset = {
   user: { id: string; email: string };
@@ -12,6 +13,7 @@ type Reset = {
 };
 type ResetCapture = {
   userId: string;
+  issuer: Actor;
   token?: string;
 };
 const captureKey = Symbol.for("feedbackland.reset-capture");
@@ -28,9 +30,10 @@ export function smtpEnabled() {
 /** The SDK discards this callback's return value. Capture only in this request. */
 export async function captureResetToken(
   userId: string,
+  issuer: Actor,
   action: () => Promise<unknown>,
 ) {
-  const context = { userId, token: undefined as string | undefined };
+  const context: ResetCapture = { userId, issuer };
   await capture.run(context, action);
   if (!context.token)
     throw new DomainError(
@@ -38,6 +41,12 @@ export async function captureResetToken(
       "The password reset could not be created",
     );
   return context.token;
+}
+export function resetIssuer(userId: string) {
+  const context = capture.getStore();
+  if (context && context.userId !== userId)
+    throw new Error("Password reset capture identity mismatch");
+  return context?.issuer;
 }
 export async function sendResetPassword(reset: Reset) {
   const context = capture.getStore();

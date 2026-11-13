@@ -1,11 +1,9 @@
-import { getAuth, getSocialAuth } from "@/lib/auth/server";
+import { getAuth } from "@/lib/auth/server";
 import { credentialHeaders } from "@/lib/auth/headers";
 const handler = async (request: Request) => {
   // Capture one instance for this entire request. Background discovery may
   // replace the global instance, but never an in-flight callback's context.
-  const auth = new URL(request.url).pathname.endsWith("/sign-in/social")
-    ? await getSocialAuth()
-    : getAuth();
+  const auth = getAuth();
   if (request.headers.get("x-feedbackland-scope") !== "embedded")
     return auth.handler(request);
   // Next wraps Request in a tracking proxy. Passing that proxy to the native

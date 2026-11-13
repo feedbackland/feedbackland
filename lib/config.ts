@@ -294,6 +294,7 @@ export function getConfig() {
       },
       oidc: {
         issuer: value("OIDC_ISSUER"),
+        tokenAuthMethod: value("OIDC_TOKEN_ENDPOINT_AUTH_METHOD"),
         clientId: value("OIDC_CLIENT_ID"),
         clientSecret: value("OIDC_CLIENT_SECRET"),
         name: (value("OIDC_NAME") ?? "Single sign-on").slice(0, 100),

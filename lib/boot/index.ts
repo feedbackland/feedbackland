@@ -361,7 +361,9 @@ export function boot() {
             ? "enabled"
             : provider.reason === "discovery failed"
               ? "discovery-failed"
-              : "disabled",
+              : provider.reason === "discovery in progress"
+                ? "discovering"
+                : "disabled",
         });
         // Only the validated, credential-free app origin and fixed path. Never
         // print issuer metadata, client secrets, provider tokens or profile data.

@@ -131,6 +131,7 @@ export interface AuthVerification {
   expiresAt: Timestamp;
   id: string;
   identifier: string;
+  resetIssuerId: string | null;
   updatedAt: Generated<Timestamp>;
   value: string;
 }
@@ -275,6 +276,7 @@ export interface RateLimit {
 export interface RecoveryClaim {
   codeDigest: string;
   createdAt: Generated<Timestamp>;
+  credentialFingerprint: string | null;
   expiresAt: Generated<Timestamp>;
   failure: string | null;
   operationId: Generated<string>;

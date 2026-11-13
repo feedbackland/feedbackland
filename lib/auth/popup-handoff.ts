@@ -8,6 +8,7 @@ import {
 } from "better-auth/api";
 import { deleteSessionCookie, splitSetCookieHeader } from "better-auth/cookies";
 import { makeSignature } from "better-auth/crypto";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 
 export type HandoffValue = {
@@ -36,6 +37,14 @@ export type HandoffDependencies = {
 };
 const ticketSchema = z.string().regex(/^[a-f0-9]{32}$/);
 const ticketCookie = "fl_popup_ticket";
+function callbackCookie(provider: string, state: string) {
+  return (
+    "fl_popup_state_" +
+    createHash("sha256")
+      .update(provider + ":" + state)
+      .digest("hex")
+  );
+}
 const oldCookie = Symbol("popup-prior-session");
 type PriorContext = { [oldCookie]?: string };
 const errorCodes = new Set([
@@ -182,6 +191,7 @@ export function popupHandoff(deps?: HandoffDependencies): BetterAuthPlugin {
                   popupTicket: ticket,
                   popupHash: value.h,
                   popupMode: value.mode,
+                  popupProvider: ctx.body.provider,
                 });
                 const done = `/auth/popup/done?ticket=${ticket}`;
                 if (
@@ -224,8 +234,44 @@ export function popupHandoff(deps?: HandoffDependencies): BetterAuthPlugin {
           ? [
               {
                 matcher: (ctx: { path?: string }) =>
+                  ctx.path === "/sign-in/social",
+                handler: createAuthMiddleware(async (ctx) => {
+                  const flow = await getOAuthState();
+                  const ticket = flow?.serverContext?.popupTicket;
+                  const result = ctx.context.returned as
+                    { url?: unknown } | undefined;
+                  if (
+                    typeof ticket !== "string" ||
+                    typeof result?.url !== "string"
+                  )
+                    return;
+                  const state = new URL(result.url).searchParams.get("state");
+                  if (!state) throw new APIError("BAD_REQUEST");
+                  // Only a callback for this provider and this issued state can
+                  // report a failure that occurred before SDK state validation.
+                  const name = callbackCookie(ctx.body.provider, state);
+                  // Cookie signatures cover their value, so include the flow
+                  // name in the signed payload as well as the cookie name.
+                  await ctx.setSignedCookie(
+                    name,
+                    name + "." + ticket,
+                    ctx.context.secret,
+                    {
+                      httpOnly: true,
+                      sameSite: "lax",
+                      secure: true,
+                      path: "/api/auth/callback/" + ctx.body.provider,
+                      maxAge: 600,
+                    },
+                  );
+                }),
+              },
+              {
+                matcher: (ctx: { path?: string }) =>
                   !!ctx.path?.startsWith("/callback/"),
                 handler: createAuthMiddleware(async (ctx) => {
+                  // POST callbacks are first redirected to the canonical GET.
+                  if (ctx.method !== "GET") return;
                   const state = await getOAuthState();
                   const trusted = state?.serverContext;
                   const trustedTicket =
@@ -233,10 +279,29 @@ export function popupHandoff(deps?: HandoffDependencies): BetterAuthPlugin {
                     ticketSchema.safeParse(trusted.popupTicket).success
                       ? trusted.popupTicket
                       : null;
-                  const fallback = await ctx.getSignedCookie(
-                    ticketCookie,
-                    ctx.context.secret,
-                  );
+                  const provider = ctx.params?.id;
+                  const incoming = ctx.query?.state;
+                  const cookieName =
+                    typeof provider === "string" &&
+                    typeof incoming === "string" &&
+                    incoming.length <= 256
+                      ? callbackCookie(provider, incoming)
+                      : null;
+                  const signed = cookieName
+                    ? await ctx.getSignedCookie(cookieName, ctx.context.secret)
+                    : null;
+                  const fallback =
+                    cookieName && signed && signed.startsWith(cookieName + ".")
+                      ? signed.slice(cookieName.length + 1)
+                      : null;
+                  if (cookieName && fallback)
+                    ctx.setCookie(cookieName, "", {
+                      path: "/api/auth/callback/" + provider,
+                      maxAge: 0,
+                      httpOnly: true,
+                      sameSite: "lax",
+                      secure: true,
+                    });
                   const ticket =
                     trustedTicket ??
                     (fallback && ticketSchema.safeParse(fallback).success
@@ -247,10 +312,6 @@ export function popupHandoff(deps?: HandoffDependencies): BetterAuthPlugin {
                   let embeddedToken: string | undefined;
                   let bound = false;
                   try {
-                    if (!ticket) return;
-                    const value = await deps.read(ticket);
-                    if (value?.mode === "embedded" && created) isolate = true;
-                    if (!value || value.state !== "pending") return;
                     const location =
                       ctx.context.responseHeaders?.get("location");
                     const callbackError = location
@@ -258,21 +319,41 @@ export function popupHandoff(deps?: HandoffDependencies): BetterAuthPlugin {
                           "error",
                         )
                       : null;
+                    if (callbackError) {
+                      // The SDK can recover an error URL before authenticating
+                      // state. Only advertise a ticket once its association is proven.
+                      ctx.setHeader(
+                        "location",
+                        "/auth/popup/done?error=" + safeError(callbackError),
+                      );
+                    }
+                    if (!ticket) return;
+                    const value = await deps.read(ticket);
+                    if (trustedTicket && value?.mode === "embedded" && created)
+                      isolate = true;
+                    if (!value || value.state !== "pending") return;
                     if (
-                      !trustedTicket ||
-                      trusted?.popupHash !== value.h ||
-                      trusted?.popupMode !== value.mode ||
-                      callbackError
-                    ) {
-                      if (callbackError)
-                        await deps.bind(ticket, value, {
-                          ...value,
-                          state: "error",
-                          error: safeError(callbackError),
-                        });
+                      trustedTicket &&
+                      (trusted?.popupHash !== value.h ||
+                        trusted?.popupMode !== value.mode ||
+                        (trusted?.popupProvider !== undefined &&
+                          trusted.popupProvider !== provider))
+                    )
+                      return;
+                    if (callbackError) {
+                      const recorded = await deps.bind(ticket, value, {
+                        ...value,
+                        state: "error",
+                        error: safeError(callbackError),
+                      });
+                      if (recorded)
+                        ctx.setHeader(
+                          "location",
+                          `/auth/popup/done?ticket=${ticket}&error=${safeError(callbackError)}`,
+                        );
                       return;
                     }
-                    if (!created) return;
+                    if (!trustedTicket || !created) return;
                     if (value.mode === "first-party") {
                       await deps.bind(ticket, value, {
                         ...value,

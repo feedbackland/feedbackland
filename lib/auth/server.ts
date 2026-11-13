@@ -1,5 +1,5 @@
 import "server-only";
-import { betterAuth } from "better-auth";
+import { betterAuth, type AuthContext } from "better-auth";
 import { getPool } from "../../db/db";
 import { getConfig, neutraliseAuthEnv } from "../config";
 import { runtimeState } from "../runtime-state";
@@ -13,6 +13,7 @@ import { sendResetPassword } from "../mail";
 import { handoffStore } from "./handoff-store";
 import type { OidcMetadata } from "./oidc";
 import { authRateLimit } from "./rate-limit";
+import { passwordEndpoints } from "./password-endpoints";
 export function createAuthInstance(metadata?: OidcMetadata) {
   neutraliseAuthEnv();
   const config = getConfig();
@@ -52,6 +53,7 @@ export function createAuthInstance(metadata?: OidcMetadata) {
         config.social.oidc.clientSecret
           ? {
               metadata,
+              tokenAuthMethod: config.social.oidc.tokenAuthMethod,
               clientId: config.social.oidc.clientId,
               clientSecret: config.social.oidc.clientSecret,
             }
@@ -60,6 +62,16 @@ export function createAuthInstance(metadata?: OidcMetadata) {
       clientIpHeader: config.clientIpHeader,
       trustedProxies: config.trustedProxies,
       authRateLimit,
+      socialStartProviders: async (
+        provider,
+      ): Promise<AuthContext["socialProviders"]> => {
+        const { pollEpoch, synchronizeAuthProviders } =
+          await import("./discovery");
+        if (provider === "oidc") await synchronizeAuthProviders(true);
+        else await pollEpoch(true);
+        return (await getAuth().$context).socialProviders;
+      },
+      passwords: passwordEndpoints(),
       isSetupComplete,
       allowSignUp: async () =>
         (
@@ -77,11 +89,6 @@ export function createAuthInstance(metadata?: OidcMetadata) {
 export type Auth = ReturnType<typeof createAuthInstance>;
 export function getAuth(): Auth {
   return (runtimeState().auth ??= createAuthInstance());
-}
-export async function getSocialAuth() {
-  const { synchronizeAuthProviders } = await import("./discovery");
-  await synchronizeAuthProviders(true);
-  return getAuth();
 }
 export function requireAdminSession<T extends SessionIdentity>(
   session: T | null,

@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db/db";
 import { lock, locks } from "../db/locks";
 import { getAuth } from "../lib/auth/server";
+import { credentialAccount } from "../lib/auth/credentials";
 import { requireAdmin, type Actor } from "../lib/auth/authorization";
 import { captureResetToken } from "../lib/mail";
 import { getAppUrl } from "../lib/app-url";
@@ -27,14 +28,7 @@ export async function createPasswordResetLinkQuery(
         "FORBIDDEN",
         "Reset links are available only for non-admin password accounts",
       );
-    const account = await trx
-      .selectFrom("auth_account")
-      .select("id")
-      .where("userId", "=", user.id)
-      .where("providerId", "=", "credential")
-      .where("password", "is not", null)
-      .executeTakeFirst();
-    if (!account)
+    if (!(await credentialAccount(trx, user.id).executeTakeFirst())?.password)
       throw new DomainError(
         "FORBIDDEN",
         "Reset links are available only for non-admin password accounts",
@@ -44,7 +38,7 @@ export async function createPasswordResetLinkQuery(
   let token: string | undefined;
   try {
     // No membership transaction/connection is held across the Auth call.
-    token = await captureResetToken(target, () =>
+    token = await captureResetToken(target, actor, () =>
       getAuth().api.requestPasswordReset({
         headers,
         body: {
@@ -62,7 +56,11 @@ export async function createPasswordResetLinkQuery(
         .where("id", "=", target)
         .forUpdate()
         .executeTakeFirst();
-      if (!user || user.role === "admin")
+      if (
+        !user ||
+        user.role === "admin" ||
+        !(await credentialAccount(trx, target).executeTakeFirst())?.password
+      )
         throw new DomainError(
           "FORBIDDEN",
           "Reset links are available only for non-admin password accounts",

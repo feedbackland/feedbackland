@@ -12,7 +12,9 @@ ten-minute, one-time handoff. The opener generates independent 128-bit ticket
 and secret values before the click; only the secret hash enters the popup URL.
 GET does not reserve a ticket. A signed HttpOnly cookie permits retries of the
 same pending reservation. OAuth state carries server-only ticket/hash/mode
-context, and only the actual callback binds a result. The done page has no
+context. A signed cookie scoped to the provider callback binds the issued OAuth
+state and ticket for failures that precede SDK state validation. Unknown states
+leave pending tickets available. Only the actual callback binds a result. The done page has no
 binding authority. Polling works without an opener and never reads `popup.closed`.
 It also continues when COOP returns no usable popup handle; an explicit new-tab
 link gives a blocked-popup fallback without treating a missing handle as failure.
@@ -31,8 +33,10 @@ Microsoft use the pinned SDK providers. Generic OIDC discovery has a ten-second
 deadline, a 64 KiB response bound and strict HTTPS issuer/endpoints/JWKS/algorithm
 validation. An epoch shared through PostgreSQL coordinates replicas; five-second
 polling can abort an obsolete construction, and failed discovery retries after
-one minute. Failure retains the last working Auth instance. Each HTTP request
-captures one instance for its entire lifetime.
+one minute. Failure retains the last working Auth instance. Public settings and
+Google/Microsoft starts use the available providers immediately. Only an OIDC
+start waits for pending OIDC discovery. The token endpoint uses the registered
+and advertised Basic or POST method, with Basic as the discovery default.
 
 Better Auth 1.7.6 cannot accept a bounded pre-fetched discovery document. Its
 generic provider is therefore constructed from validated endpoints through the
@@ -59,29 +63,29 @@ debug logging. Known/unknown reset requests have the same response. Request-loca
 token capture uses one global AsyncLocalStorage channel across Next bundle layers;
 administrator-issued reset links and operator recovery do not send email. Admin
 links require a revalidated first-party administrator and a non-admin credential
-account, work with inferred origins, recheck roles after SDK work and log only
-issuer/target IDs and time. Reset tokens and URLs are not logged.
+account, work with inferred origins, and store the issuer at issuance. Redemption
+locks the target and rechecks both roles. Account email resets record the account
+as their own issuer. Password changes and recovery delete outstanding reset grants.
+Issuance logs contain only issuer/target IDs and time.
 
 Recovery checks a configured random 32-byte code and a fail-closed IP limiter
 before account lookup. It resets an existing administrator's credential account,
 or promotes an existing credential account only when no administrators remain.
 It never creates users or adds passwords to social-only accounts. A durable
-owner/operation claim fences SDK work. Only the claim row is locked on a separate
-connection during Auth I/O; membership/settings locks never span it. Competing
-initial claims use NOWAIT so the minimum application pool cannot deadlock.
+owner/operation claim identifies the current worker. It hashes the new password
+outside the transaction, then rechecks ownership, account, code and expiry.
+The SDK writes the credential and revokes sessions on the same PostgreSQL
+transaction that records the credential fingerprint and revokes reset grants.
+Ordinary sign-in and password changes recheck their original credential proof
+under the account lock before writing a session or credential.
 
-The final transaction rechecks ownership, expiry, code and administrator count,
-then promotes and revokes sessions atomically. Lost commit acknowledgements are
-reconciled. Interrupted resets report possible password changes; a committed
-reset marker resumes promotion using the earlier password after claim expiry.
-A completed claim cannot report success after its account was demoted. Operators
-must remove the recovery code from every replica and restart them after use;
-the disabled route returns 404 before streaming starts.
-If a worker is suspended inside Auth I/O, its claim-row lock deliberately
-prevents replacement even after nominal expiry. Stop that stalled worker before
-retrying. This fences delayed password writes; it does not hold membership or
-settings locks while waiting. The operator's replica restart is the termination
-boundary for an indefinitely stalled SDK/database operation.
+The final transaction rechecks ownership, expiry, code, credential fingerprint
+and administrator count, then promotes and revokes sessions and reset links
+atomically. Recovery reconciles a lost commit acknowledgement against the live
+role and credential. An expired interrupted claim resumes with the earlier
+password only if the credential still matches. Otherwise it resets the password
+again before promotion. Operators remove the code from every replica and restart
+them after use. The disabled route returns 404 before streaming starts.
 
 ## Verification record
 
@@ -93,6 +97,14 @@ admin-only reset restrictions, zero-admin repair, social-only refusal, interrupt
 reset/promotion, stale owners, competing claims with minimum pool, an intervening
 administrator, lost final COMMIT acknowledgement, code removal, handoff CAS and
 single consumption, immutable expiry and forbidden content links.
+
+The November 13 regression run upgrades a populated `0001_init` database,
+exercises overlapping OAuth callbacks and denied reset grants through the HTTP
+handler, and exchanges real authorization codes against Basic-only and POST-only
+fixture registrations. It terminates the PostgreSQL backend between the SDK
+password write and recovery marker, checks rollback, and completes a retry with
+the minimum pool. Separate cases pause sign-in, password change and reset during
+their password computation, complete recovery, and verify the stale requests fail.
 
 The [PR #16 checks](https://github.com/feedbackland/feedbackland/pull/16/checks)
 record the cumulative phase-4 result and its production-image evidence artifact.
@@ -124,6 +136,6 @@ real Google/Microsoft accounts, published image or production deployment is used
 Real Google/Microsoft and Safari/device acceptance remains release work. Images,
 AI and full search remain later milestones. P05 does not claim those gates.
 
-The lockfile adds Nodemailer and Helmet, declares the existing jose version
-directly, and records six optional WASM support packages selected by npm. No
+The lockfile adds Nodemailer and Helmet, declares the existing jose, Better Auth
+core and Kysely adapter versions directly, and records six optional WASM support packages selected by npm. No
 retained package version changes. There is no broad dependency upgrade/audit fix.

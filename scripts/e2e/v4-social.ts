@@ -219,15 +219,16 @@ async function social(
     );
   await popup.getByLabel("Email", { exact: true }).fill(email);
   await options.beforeApprove?.(ticket);
+  if (options.badState) {
+    // Preserve the returned state and the independent flow cookie. Remove
+    // just the SDK's state cookie so validation fails on this exact flow.
+    await popup.context().clearCookies({ name: /better-auth\.state$/ });
+  }
   const closed = options.expired ? popup.waitForEvent("close") : undefined;
   void closed?.catch(() => {});
   await popup
     .getByRole("button", {
-      name: options.deny
-        ? "Deny access"
-        : options.badState
-          ? "Break state"
-          : "Allow access",
+      name: options.deny ? "Deny access" : "Allow access",
       exact: true,
     })
     .click();
@@ -827,6 +828,14 @@ export async function phaseFour(
         "-e",
         "OIDC_NAME=Fixture SSO",
         "-e",
+        "GOOGLE_CLIENT_ID=fixture-google",
+        "-e",
+        "GOOGLE_CLIENT_SECRET=fixture-secret",
+        "-e",
+        "MICROSOFT_CLIENT_ID=fixture-microsoft",
+        "-e",
+        "MICROSOFT_CLIENT_SECRET=fixture-secret",
+        "-e",
         `SMTP_URL=smtp://localhost:${smtp}`,
         "-e",
         "SMTP_FROM=Fixture <fixture@fixture.invalid>",
@@ -883,11 +892,13 @@ export async function phaseFour(
         headers: { "x-fixture-replica": "B" },
       });
       assert.equal(initial.headers()["x-fixture-replica"], "B");
-      assert.deepEqual((await initial.json()).capabilities.socialProviders, []);
-      assert(
-        (await docker("logs", project + "-b")).includes(
-          "auth.discovery-failed",
-        ),
+      assert.deepEqual(
+        (await initial.json()).capabilities.socialProviders.sort(),
+        ["google", "microsoft"],
+      );
+      await eventually(
+        () => docker("logs", project + "-b"),
+        (logs) => logs.includes("auth.discovery-failed"),
       );
       mock.controls.ready = true;
       const started = Date.now();
@@ -923,6 +934,50 @@ export async function phaseFour(
         async () => mock.controls.discoveries,
         (count) => count >= initial + 2,
         10_000,
+      );
+      // Each request must finish while both discovery responses are held open.
+      const aborted = mock.controls.abortedDiscoveries;
+      for (const [replica, provider, host] of [
+        ["A", "google", "accounts.google.com"],
+        ["B", "microsoft", "login.microsoftonline.com"],
+      ]) {
+        const headers = { origin: board, "x-fixture-replica": replica };
+        const request = adminContext.request;
+        const settings = await request.get(board + "/api/settings", {
+          headers,
+          timeout: 2500,
+        });
+        assert.deepEqual(
+          (await settings.json()).capabilities.socialProviders.sort(),
+          ["google", "microsoft", "oidc"],
+        );
+        const ticket = randomBytes(16).toString("hex");
+        const reserved = await request.post(
+          board + "/api/auth/popup-handoff/start",
+          {
+            headers,
+            timeout: 2500,
+            data: {
+              ticket,
+              h: randomBytes(32).toString("hex"),
+              mode: "first-party",
+            },
+          },
+        );
+        assert.equal(reserved.status(), 200);
+        const callbackURL = "/auth/popup/done?ticket=" + ticket;
+        const signIn = await request.post(board + "/api/auth/sign-in/social", {
+          headers,
+          timeout: 2500,
+          data: { provider, callbackURL, errorCallbackURL: callbackURL },
+        });
+        assert.equal(signIn.status(), 200);
+        assert.equal(new URL((await signIn.json()).url).hostname, host);
+      }
+      assert.equal(
+        mock.controls.abortedDiscoveries,
+        aborted,
+        "Discovery ended before unrelated requests completed",
       );
       mock.controls.stall = false;
       const started = Date.now();

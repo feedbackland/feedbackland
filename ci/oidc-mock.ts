@@ -45,6 +45,8 @@ export async function createOidcMock(tls?: ServerOptions) {
     discoveries: 0,
     abortedDiscoveries: 0,
     tokenExchanges: 0,
+    tokenAuthMethod: "client_secret_basic" as
+      "client_secret_basic" | "client_secret_post",
     jwksRequests: 0,
     logoutRequests: 0,
   };
@@ -152,11 +154,15 @@ export async function createOidcMock(tls?: ServerOptions) {
                 .toString("utf8")
                 .split(":")
             : null;
-          if (
-            (params.get("client_id") ?? basic?.[0]) !== "fixture-client" ||
-            (params.get("client_secret") ?? basic?.[1]) !== "fixture-secret"
-          )
-            return void response.writeHead(401).end();
+          const authenticated =
+            controls.tokenAuthMethod === "client_secret_basic"
+              ? basic?.[0] === "fixture-client" &&
+                basic[1] === "fixture-secret" &&
+                !params.has("client_secret")
+              : !request.headers.authorization &&
+                params.get("client_id") === "fixture-client" &&
+                params.get("client_secret") === "fixture-secret";
+          if (!authenticated) return void response.writeHead(401).end();
           const code = params.get("code")!;
           const flow = codes.get(code);
           codes.delete(code);

@@ -9,6 +9,7 @@ export function PopupDone({
   error: string | null;
 }) {
   useEffect(() => {
+    if (!ticket && error) return;
     if (ticket) {
       try {
         window.opener?.postMessage(
@@ -19,7 +20,7 @@ export function PopupDone({
     }
     const timer = setTimeout(() => window.close(), 600);
     return () => clearTimeout(timer);
-  }, [ticket]);
+  }, [ticket, error]);
   // This page neither inspects a session nor binds a ticket. The callback did
   // all authoritative work; this message only wakes the opener's polling loop.
   return (
@@ -32,6 +33,12 @@ export function PopupDone({
           ? socialError(error)
           : "You can close this tab and return to the feedback board."}
       </p>
+      {!ticket && error && (
+        <p>
+          Close this tab, cancel the pending sign-in on the board or widget, and
+          start again.
+        </p>
+      )}
     </main>
   );
 }

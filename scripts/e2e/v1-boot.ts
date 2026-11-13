@@ -263,13 +263,18 @@ export async function phaseOne(image: string, runId: string, check: Check) {
           "instance_secret",
           "ai_settings",
           "auth_runtime",
-          "kysely_migration",
         ])
           assert.equal(
             (await pool.query(`select count(*)::int as count from "${table}"`))
               .rows[0].count,
             1,
           );
+        assert.deepEqual(
+          (
+            await pool.query("select name from kysely_migration order by name")
+          ).rows.map((row) => row.name),
+          ["0001_init", "0002_password_recovery"],
+        );
         assert.equal(
           (
             await pool.query(
@@ -281,7 +286,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
       });
       return {
         concurrentBlockedBoots: 2,
-        committedMigrations: 1,
+        committedMigrations: 2,
         originalFailure: "42P01",
         rollbackAndRetry: "passed through transaction-mode PgBouncer",
         sessionLocksRemaining: 0,
