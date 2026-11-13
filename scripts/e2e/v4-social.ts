@@ -674,8 +674,18 @@ export async function phaseFour(
       "127.0.0.1::5432",
       pgImage,
     );
+    // Initialization starts a temporary socket-only server. The app connects over TCP.
     await eventually(
-      () => docker("exec", database, "pg_isready", "-U", "postgres"),
+      () =>
+        docker(
+          "exec",
+          database,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "postgres",
+        ),
       (value) => value.includes("accepting connections"),
     );
     const dbInfo = JSON.parse(await docker("inspect", database))[0];

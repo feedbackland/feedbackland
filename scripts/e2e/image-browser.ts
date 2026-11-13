@@ -6,10 +6,7 @@ import { createAuthWidgetHost } from "./widget-host";
 import { frameOn } from "./v3-auth";
 import { samples } from "./image-fixtures";
 import { sendImage } from "./image-http-contracts";
-export async function uploadThroughEditor(
-  editor: Locator,
-  method: "paste" | "drop",
-) {
+async function sendEditorFile(editor: Locator, method: "paste" | "drop") {
   await editor.evaluate(
     (element, { method, encoded }) => {
       const data = new DataTransfer();
@@ -39,7 +36,41 @@ export async function uploadThroughEditor(
     },
     { method, encoded: samples.gif.toString("base64") },
   );
-  await editor.locator('img[src^="/api/images/"]').last().waitFor();
+}
+async function holdUpload(
+  page: Page,
+  editor: Locator,
+  submit: Locator,
+  insert: () => Promise<void>,
+) {
+  const pattern = "**/api/images";
+  let release!: () => void;
+  const gate = new Promise<void>((r) => {
+    release = r;
+  });
+  const ready = editor.locator('img[src^="/api/images/"]');
+  const before = await ready.count();
+  await page.route(pattern, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  try {
+    await insert();
+    await editor.getByText("Uploading image…").waitFor();
+    assert(
+      await submit.isDisabled(),
+      "Save was enabled while an attachment was pending",
+    );
+    release();
+    await eventually(
+      () => ready.count(),
+      (count) => count === before + 1,
+    );
+    assert(await submit.isEnabled());
+  } finally {
+    release();
+    await page.unroute(pattern);
+  }
 }
 export async function imageBrowser(
   page: Page,
@@ -73,35 +104,22 @@ export async function imageBrowser(
     ctx.fillRect(0, 0, c.width, c.height);
     return c.toDataURL("image/png").split(",")[1];
   });
-  // Hold the network reply while the real editor owns a blob placeholder.
-  const pattern = "**/api/images";
-  let release!: () => void;
-  const held = new Promise<void>((r) => {
-    release = r;
+  const submit = page.getByRole("button", {
+    name: "Submit feedback",
+    exact: true,
   });
-  await page.route(pattern, async (route) => {
-    await held;
-    await route.continue();
-  });
-  try {
-    await page.locator("form input[type=file]").setInputFiles({
+  await holdUpload(page, editor, submit, () =>
+    page.locator("form input[type=file]").setInputFiles({
       name: "wide.png",
       mimeType: "image/png",
       buffer: Buffer.from(large, "base64"),
-    });
-    await editor.getByText("Uploading image…").waitFor();
-    assert(
-      await page.getByRole("button", { name: "Submit feedback" }).isDisabled(),
-    );
-  } finally {
-    release();
-  }
+    }),
+  );
   const first = editor.locator('img[src^="/api/images/"]').first();
   await first.waitFor();
   assert.equal(await first.getAttribute("width"), "2000");
   assert.equal(await first.getAttribute("height"), "50");
   const imageUrl = (await first.getAttribute("src"))!;
-  await page.unroute(pattern);
   if (lan) {
     assert.equal(await page.evaluate(() => window.isSecureContext), false);
     await page.evaluate(() => {
@@ -151,7 +169,12 @@ export async function imageBrowser(
   });
   assert.equal(await comment.locator("img").count(), 0);
   await comment.fill("Attached comment");
-  await uploadThroughEditor(comment, "paste");
+  await holdUpload(
+    page,
+    comment,
+    page.getByRole("button", { name: "Submit comment", exact: true }),
+    () => sendEditorFile(comment, "paste"),
+  );
   await page
     .getByRole("button", { name: "Submit comment", exact: true })
     .click();
@@ -162,6 +185,12 @@ export async function imageBrowser(
   await edit.press("ControlOrMeta+End");
   await edit.press("End");
   await page.keyboard.type(" revised");
+  await holdUpload(
+    page,
+    edit,
+    page.getByRole("button", { name: "Save", exact: true }),
+    () => sendEditorFile(edit, "paste"),
+  );
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await page
     .getByText(/revised/)
@@ -169,7 +198,18 @@ export async function imageBrowser(
     .waitFor();
   await page.getByRole("button", { name: "Open options menu" }).first().click();
   await page.getByRole("menuitem", { name: "Edit post" }).click();
-  await page.getByPlaceholder("Title", { exact: true }).fill(title + " edited");
+  const titleInput = page.getByPlaceholder("Title", { exact: true });
+  await titleInput.fill(title + " edited");
+  const postEdit = page
+    .locator("form")
+    .filter({ has: titleInput })
+    .locator("[contenteditable=true]");
+  await holdUpload(
+    page,
+    postEdit,
+    page.getByRole("button", { name: "Save", exact: true }),
+    () => sendEditorFile(postEdit, "drop"),
+  );
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await page
     .getByRole("heading", { level: 1, name: title + " edited" })
@@ -188,7 +228,8 @@ export async function imageBrowser(
     );
     const box = widget.getByRole("textbox", { name: "Your feedback" });
     await box.fill("Drawer attachment");
-    await uploadThroughEditor(box, "drop");
+    await sendEditorFile(box, "drop");
+    await box.locator('img[src^="/api/images/"]').waitFor();
     await widget.getByRole("button", { name: "Submit feedback" }).click();
     await widget.getByText("Feedback submitted", { exact: true }).waitFor();
   } finally {

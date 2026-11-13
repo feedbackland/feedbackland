@@ -682,8 +682,18 @@ async function main() {
       "POSTGRES_PASSWORD=fixture-only",
       "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11",
     );
+    // Initialization starts a temporary socket-only server. The app connects over TCP.
     await eventually(
-      () => docker("exec", database, "pg_isready", "-U", "postgres"),
+      () =>
+        docker(
+          "exec",
+          database,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "postgres",
+        ),
       (text) => text.includes("accepting connections"),
     );
     const databaseState = await inspect(database);
