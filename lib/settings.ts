@@ -7,6 +7,8 @@ import { getSettingsQuery } from "../queries/get-settings";
 import { getAppUrl } from "./app-url";
 import type { PublicSettings } from "./public-settings";
 import identity from "./build-identity.json";
+import { getConfig } from "./config";
+import { imageUrl } from "./images/path";
 import { authCapabilities } from "./auth/discovery";
 export type { PublicSettings } from "./public-settings";
 export async function publicSettings(
@@ -18,7 +20,7 @@ export async function publicSettings(
   const payload = {
     platformTitle: settings.platformTitle,
     platformDescription: settings.platformDescription,
-    logoUrl: null,
+    logoUrl: settings.logoImageId ? imageUrl(settings.logoImageId) : null,
     allowIndexing: settings.allowIndexing,
     isSetupComplete: !!settings.setupCompletedAt,
     appUrl: origin.appUrl,
@@ -29,7 +31,7 @@ export async function publicSettings(
       chat: false,
       embeddings: false,
       ...auth,
-      maxImageBytes: 0,
+      maxImageBytes: getConfig().maxImageBytes,
     },
   } satisfies Omit<PublicSettings, "publicVersion">;
   return {

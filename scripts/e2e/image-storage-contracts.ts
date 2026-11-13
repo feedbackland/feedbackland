@@ -1,0 +1,226 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { sql } from "kysely";
+import { eventually } from "./run";
+import { getPool, db } from "../../db/db";
+import { locks } from "../../db/locks";
+import { inspectImage } from "../../lib/images/container-limits";
+import {
+  managePendingImages,
+  storeImage,
+  sweepImages,
+} from "../../lib/images/store";
+import { createFeedbackPostQuery } from "../../queries/create-feedback-post";
+import { updateFeedbackPostQuery } from "../../queries/update-feedback-post";
+import { deleteFeedbackPostQuery } from "../../queries/delete-feedback-post";
+import { createCommentQuery } from "../../queries/create-comment";
+import { deleteCommentQuery } from "../../queries/delete-comment";
+import { updateSettingsQuery } from "../../queries/update-settings";
+import { samples } from "./image-fixtures";
+async function contracts() {
+  const actor = await db
+    .selectFrom("auth_session")
+    .innerJoin("user", "user.id", "auth_session.userId")
+    .where("user.role", "=", "admin")
+    .where("auth_session.scope", "=", "first-party")
+    .select(["auth_session.id as sessionId", "user.id as userId"])
+    .executeTakeFirstOrThrow();
+  const upload = () => storeImage(samples.png, inspectImage(samples.png));
+  const img = (id: string) => '<img src="/api/images/' + id + '">';
+  const post = (id: string) =>
+    createFeedbackPostQuery({ description: img(id), authorId: actor.userId });
+  const exists = async (id: string) =>
+    !!(await db
+      .selectFrom("images")
+      .where("id", "=", id)
+      .select("id")
+      .executeTakeFirst());
+  const revision = async () =>
+    (
+      await db
+        .selectFrom("settings")
+        .select("revision")
+        .executeTakeFirstOrThrow()
+    ).revision;
+  const initial = await db
+    .selectFrom("settings")
+    .select("logoImageId")
+    .executeTakeFirstOrThrow();
+  const setLogo = async (id: string | null) =>
+    updateSettingsQuery({
+      ...actor,
+      expectedRevision: await revision(),
+      logoImageId: id,
+    });
+  const age = async (id: string) =>
+    db
+      .updateTable("images")
+      .where("id", "=", id)
+      .set({ createdAt: sql`now()-interval '25 hours'` })
+      .execute();
+  if (process.argv[2] === "detach") {
+    const { id } = await db
+      .selectFrom("feedback")
+      .innerJoin("image_ref", "image_ref.postId", "feedback.id")
+      .where("feedback.title", "=", "Image attachment")
+      .select("feedback.id")
+      .executeTakeFirstOrThrow();
+    const ref = await db
+      .selectFrom("image_ref")
+      .where("postId", "=", id)
+      .select("imageId")
+      .executeTakeFirstOrThrow();
+    const changed = await updateFeedbackPostQuery({
+      ...actor,
+      postId: id,
+      expectedRevision: "1",
+      description: "Detached",
+      title: "Detached",
+    });
+    assert.equal(changed.revision, "2");
+    assert(!(await exists(ref.imageId)));
+    return;
+  }
+  const preflight = await upload(),
+    holder = await getPool().connect();
+  try {
+    await holder.query("begin");
+    await holder.query("select pg_advisory_xact_lock($1::bigint)", [
+      locks.images.toString(),
+    ]);
+    const saving = post(preflight.id);
+    void saving.catch(() => {});
+    try {
+      await eventually(
+        () =>
+          holder.query(
+            "select count(*) as n from pg_locks where locktype='advisory' and not granted and objid=($1::bigint & 4294967295)::oid",
+            [locks.images.toString()],
+          ),
+        (v) => Number(v.rows[0].n) > 0,
+      );
+      await holder.query("delete from images where id=$1", [preflight.id]);
+      await holder.query("commit");
+      await assert.rejects(saving, /re-attach/i);
+    } finally {
+      await holder.query("rollback");
+      await Promise.allSettled([saving]);
+    }
+  } finally {
+    holder.release();
+  }
+  const shared = await upload(),
+    p = await post(shared.id),
+    nested = await upload();
+  const c = await createCommentQuery({
+    authorId: actor.userId,
+    postId: p.id,
+    parentCommentId: null,
+    content: img(shared.id),
+  });
+  await createCommentQuery({
+    authorId: actor.userId,
+    postId: p.id,
+    parentCommentId: c.id,
+    content: img(nested.id),
+  });
+  await deleteCommentQuery({ ...actor, commentId: c.id });
+  assert(!(await exists(nested.id)));
+  assert(await exists(shared.id));
+  await setLogo(shared.id);
+  await deleteFeedbackPostQuery({ ...actor, postId: p.id });
+  assert(await exists(shared.id));
+  await setLogo(initial.logoImageId);
+  await age(shared.id);
+  await sweepImages();
+  assert(!(await exists(shared.id)));
+  await assert.rejects(post(randomUUID()), /re-attach/i);
+  const invalid = await upload(),
+    p2 = await post(invalid.id);
+  await assert.rejects(
+    updateFeedbackPostQuery({
+      ...actor,
+      postId: p2.id,
+      title: "stale",
+      description: "removed",
+      expectedRevision: "9999",
+    }),
+    /CONFLICT/,
+  );
+  assert.equal(
+    (
+      await db
+        .selectFrom("image_ref")
+        .where("postId", "=", p2.id)
+        .selectAll()
+        .execute()
+    ).length,
+    1,
+  );
+  await deleteFeedbackPostQuery({ ...actor, postId: p2.id });
+  assert(!(await exists(invalid.id)));
+  await assert.rejects(
+    managePendingImages(
+      { userId: actor.userId, sessionId: randomUUID() },
+      true,
+    ),
+    /administrator/i,
+  );
+  for (const cleanup of [
+    () => managePendingImages(actor, true),
+    () => sweepImages(),
+  ]) {
+    const candidate = await upload();
+    await age(candidate.id);
+    const [attached, cleaned] = await Promise.allSettled([
+      post(candidate.id),
+      cleanup(),
+    ]);
+    assert.equal(cleaned.status, "fulfilled");
+    if (attached.status === "fulfilled") {
+      assert(await exists(candidate.id));
+      await deleteFeedbackPostQuery({ ...actor, postId: attached.value.id });
+    } else {
+      assert.match(String(attached.reason), /re-attach/i);
+      assert(!(await exists(candidate.id)));
+    }
+    const logo = await upload();
+    await age(logo.id);
+    const [setting, removed] = await Promise.allSettled([
+      setLogo(logo.id),
+      cleanup(),
+    ]);
+    assert.equal(removed.status, "fulfilled");
+    if (setting.status === "fulfilled") {
+      assert(await exists(logo.id));
+      await setLogo(initial.logoImageId);
+    } else {
+      assert.match(String(setting.reason), /re-attach/i);
+      assert(!(await exists(logo.id)));
+    }
+  }
+  const parentImage = await upload(),
+    root = await post(parentImage.id),
+    childImage = await upload();
+  await createCommentQuery({
+    postId: root.id,
+    parentCommentId: null,
+    content: img(childImage.id),
+    authorId: actor.userId,
+  });
+  await deleteFeedbackPostQuery({ ...actor, postId: root.id });
+  assert(!(await exists(parentImage.id)));
+  assert(!(await exists(childImage.id)));
+  await managePendingImages(actor, true);
+}
+async function main() {
+  if (process.argv[2] === "sweep") await sweepImages();
+  else await contracts();
+  console.log(JSON.stringify({ completed: true }));
+}
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => db.destroy());

@@ -26,6 +26,31 @@ assert.deepEqual([...AUTH_ENV_TO_NEUTRALISE], names);
 neutraliseAuthEnv();
 for (const name of names) assert.equal(process.env[name], undefined);
 assert.equal(getConfig().llm.apiKey, undefined);
+assert.equal(getConfig().maxImageBytes, 4000000);
+assert.equal(getConfig().maxPendingImageBytes, 200000000n);
+for (const [name, valid, invalid] of [
+  ["MAX_IMAGE_BYTES", ["1", "4000000"], ["0", "4000001", "1e3"]],
+  [
+    "MAX_PENDING_IMAGE_BYTES",
+    ["0", "9223372036854775807"],
+    ["-1", "1.5", "9223372036854775808"],
+  ],
+  [
+    "MAX_IMAGE_STORAGE_BYTES",
+    ["0", "9223372036854775807"],
+    ["-1", "10000000000000000000"],
+  ],
+] as const) {
+  for (const value of valid) {
+    process.env[name] = value;
+    assert.doesNotThrow(getConfig);
+  }
+  for (const value of invalid) {
+    process.env[name] = value;
+    assert.throws(getConfig, new RegExp(name));
+  }
+  delete process.env[name];
+}
 const base = "postgres://fixture:fixture-only@localhost/fixture";
 assert.equal(parseDatabaseOptions(base).ssl, false);
 for (const selector of ["ssl=false", "sslmode=disable"])

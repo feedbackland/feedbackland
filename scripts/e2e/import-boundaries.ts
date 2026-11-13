@@ -32,17 +32,11 @@ async function main() {
     "-e",
     "const assert=require('node:assert/strict');require('./lib/auth/server.ts');const s=require('./lib/runtime-state.ts').runtimeState();assert.equal(s.auth,undefined);assert.equal(s.pool,undefined);assert.equal(s.db,undefined);",
   ]);
-  const storage = await import("../../lib/supabase");
-  // Missing credentials would make an eager Supabase factory throw at import.
-  assert.throws(() => storage.supabase.storage, /supabaseKey/);
-  process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID = "p01-fixture";
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "p01-fixture-anonymous-key";
-  const bucket = storage.supabase.storage.from("images");
-  assert.match(
-    bucket.getPublicUrl("fixture.png").data.publicUrl,
-    /fixture.png$/,
+  assert(
+    !Object.keys(pkg.dependencies).some((name) =>
+      name.startsWith("@supabase/"),
+    ),
   );
-  assert.equal(storage.supabase.storage, storage.supabase.storage);
   console.log(
     "import boundaries: passed (fixture identities, no hosted requests)",
   );

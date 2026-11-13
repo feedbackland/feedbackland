@@ -949,7 +949,7 @@ export async function phaseThree(
   artifacts: string,
   check: Check,
 ) {
-  assert.match(runId, /^p0[45]-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[456]-[0-9]+-[a-f0-9]+$/);
   const docker = (...args: string[]) =>
     command("docker", args, { timeout: 150_000 });
   const project = runId + "-auth";

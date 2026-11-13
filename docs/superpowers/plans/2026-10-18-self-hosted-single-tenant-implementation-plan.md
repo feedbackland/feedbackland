@@ -523,12 +523,14 @@ session secrets to make a broken test pass. **Next:** P06.
 metadata validators, editor upload/paste/drop/logo flows, image references/locks,
 reclaim action/System control and `scripts/e2e/v4-backup.ts`.
 
-- [ ] Implement complete-stream/part/deadline/process limits, bounded GIF work,
+- [x] Implement complete-stream/part/deadline/process limits, bounded GIF work,
       static PNG/WebP checks and reference validation before/final write.
-- [ ] Serialize upload/attach/detach/logo/delete/sweep/reclaim quota changes.
+- [x] Serialize upload/attach/detach/logo/delete/sweep/reclaim quota changes.
       Add pending-usage preview/reclaim; explain direct EXIF and draft grace.
-- [ ] Enforce other public body caps and remove Supabase plus all remaining
+- [x] Enforce other public body caps and remove Supabase plus all remaining
       NEXT_PUBLIC variables. Restore an attachment-containing dump privately.
+
+The phase-5 verifier exercises uploads in the editor and cross-site drawer, quota races on two replicas, and private restores with matching attachment hashes and an original-password sign-in. Run it with `npm run verify -- --phase 5 --image feedbackland:ci --artifacts artifacts/self-hosting`.
 
 **Exit:** V7 phase 5, V20 upload/quota/container races, V4 attachment restore
 and V2 manual with images. **Revert boundary:** attachment bytes remain DB data;

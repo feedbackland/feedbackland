@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, type SyntheticEvent } from "react";
+import React, { useRef, useState, type SyntheticEvent } from "react";
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
@@ -17,13 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import "react-image-crop/dist/ReactCrop.css";
 import { Trash2Icon, UploadIcon } from "lucide-react";
-import { FileWithPath } from "react-dropzone";
-
-export type FileWithPreview = FileWithPath & {
-  preview: string;
-};
-
-export function centerAspectCrop(
+function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
   aspect: number,
@@ -44,46 +38,31 @@ export function centerAspectCrop(
   );
 }
 
-function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
+function getCroppedImg(
+  image: HTMLImageElement,
+  crop: PixelCrop,
+): Promise<Blob> {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {
-    return "";
+    throw new Error("Image cropping is unavailable.");
   }
 
   const { naturalWidth, naturalHeight, width, height } = image;
 
-  const imageAspectRatio = naturalWidth / naturalHeight;
-  const containerAspectRatio = width / height;
+  const scaleX = naturalWidth / width,
+    scaleY = naturalHeight / height;
+  const sourceX = crop.x * scaleX,
+    sourceY = crop.y * scaleY;
+  const sourceWidth = crop.width * scaleX,
+    sourceHeight = crop.height * scaleY;
+  const scale = Math.min(1, 2000 / Math.max(sourceWidth, sourceHeight));
+  canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+  canvas.height = Math.max(1, Math.round(sourceHeight * scale));
 
-  let renderWidth,
-    renderHeight,
-    xOffset = 0,
-    yOffset = 0;
-
-  if (imageAspectRatio > containerAspectRatio) {
-    renderWidth = width;
-    renderHeight = width / imageAspectRatio;
-    yOffset = (height - renderHeight) / 2;
-  } else {
-    renderHeight = height;
-    renderWidth = height * imageAspectRatio;
-    xOffset = (width - renderWidth) / 2;
-  }
-
-  const scaleX = naturalWidth / renderWidth;
-  const scaleY = naturalHeight / renderHeight;
-
-  const sourceX = (crop.x - xOffset) * scaleX;
-  const sourceY = (crop.y - yOffset) * scaleY;
-  const sourceWidth = crop.width * scaleX;
-  const sourceHeight = crop.height * scaleY;
-
-  canvas.width = sourceWidth;
-  canvas.height = sourceHeight;
-
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.drawImage(
     image,
@@ -93,11 +72,17 @@ function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
     sourceHeight,
     0,
     0,
-    sourceWidth,
-    sourceHeight,
+    canvas.width,
+    canvas.height,
   );
 
-  return canvas.toDataURL("image/png", 1.0);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) =>
+        blob ? resolve(blob) : reject(new Error("Image cropping failed.")),
+      "image/png",
+    ),
+  );
 }
 
 export function ImageCropper({
@@ -109,17 +94,14 @@ export function ImageCropper({
   open: boolean;
   imageSrc: string | null;
   onClose: () => void;
-  onCrop: (croppedImage: string) => void;
+  onCrop: (croppedImage: Blob) => Promise<void>;
 }) {
   const aspect = 1;
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [crop, setCrop] = useState<Crop>();
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [cropError, setCropError] = useState(false);
   const [processing, setProcessing] = useState(false);
-
-  useEffect(() => {
-    setProcessing(false);
-  }, [open]);
 
   function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
     const { width, height } = e.currentTarget;
@@ -128,17 +110,20 @@ export function ImageCropper({
 
   function onCropComplete(crop: PixelCrop) {
     if (imgRef.current && crop.width && crop.height) {
-      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
-      setCroppedImage(croppedImageUrl);
+      setCompletedCrop(crop);
     }
   }
 
   async function handleOnCrop() {
-    if (croppedImage) {
-      onCrop(croppedImage);
-      setProcessing(true);
-    } else {
-      handleOnClose();
+    if (!completedCrop || !imgRef.current || processing) return;
+    setProcessing(true);
+    setCropError(false);
+    try {
+      await onCrop(await getCroppedImg(imgRef.current, completedCrop));
+    } catch {
+      setCropError(true);
+    } finally {
+      setProcessing(false);
     }
   }
 
@@ -155,23 +140,24 @@ export function ImageCropper({
     >
       <DialogContent className="">
         <DialogTitle className="sr-only">Upload logo</DialogTitle>
-        <div className="mx-auto size-96!">
+        <div className="mx-auto flex max-w-full items-center justify-center">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
             onComplete={(c) => onCropComplete(c)}
             aspect={aspect}
-            className="w-full"
+            className="max-w-full"
           >
             <img
               ref={imgRef}
-              className="size-96! rounded-none object-contain"
+              className="block h-auto max-h-96 max-w-full rounded-none"
               alt="Image Cropper"
               src={imageSrc || undefined}
               onLoad={onImageLoad}
             />
           </ReactCrop>
         </div>
+        {cropError && <p role="alert">The logo could not be cropped.</p>}
         <DialogFooter className="">
           <DialogClose asChild>
             <Button
@@ -190,6 +176,7 @@ export function ImageCropper({
             size={"sm"}
             className="w-fit"
             onClick={handleOnCrop}
+            disabled={!completedCrop || processing}
             loading={processing}
           >
             <UploadIcon className="mr-1.5 size-4" />

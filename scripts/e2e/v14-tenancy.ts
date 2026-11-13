@@ -67,7 +67,7 @@ function maskEnvironmentLiterals(source: string, expected: string[]) {
       const numericHelper =
         owner &&
         ts.isFunctionDeclaration(owner) &&
-        owner.name?.text === "integer";
+        ["integer", "storageLimit"].includes(owner.name?.text ?? "");
       assert(
         ts.isCallExpression(node.parent) &&
           node.parent.expression === node &&
@@ -81,7 +81,7 @@ function maskEnvironmentLiterals(source: string, expected: string[]) {
     }
     if (
       ts.isIdentifier(node) &&
-      node.text === "integer" &&
+      ["integer", "storageLimit"].includes(node.text) &&
       !ts.isFunctionDeclaration(node.parent)
     )
       assert(
@@ -175,15 +175,12 @@ export async function removal() {
     }
     if (file === "lib/config.ts")
       source = maskEnvironmentLiterals(source, expected);
+    if (!file.startsWith("scripts/"))
+      assert.doesNotMatch(source, /NEXT_PUBLIC_|supabase/i, file);
     if (pattern.test(file) || pattern.test(source)) violations.push(file);
     if (
       !file.startsWith("scripts/") &&
-      ![
-        "lib/config.ts",
-        "instrumentation.ts",
-        "next.config.ts",
-        "lib/supabase.ts",
-      ].includes(file)
+      !["lib/config.ts", "instrumentation.ts", "next.config.ts"].includes(file)
     )
       assert.doesNotMatch(
         source,

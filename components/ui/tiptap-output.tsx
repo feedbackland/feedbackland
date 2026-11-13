@@ -8,6 +8,7 @@ import parse, {
   type DOMNode,
   type HTMLReactParserOptions,
 } from "html-react-parser";
+import { imageId } from "@/lib/images/path";
 import { memo } from "react";
 import Image from "next/image";
 import { useSettings } from "@/hooks/use-settings";
@@ -60,7 +61,7 @@ export const TiptapOutput = memo(function TiptapOutput({
         );
       if (node.name === "img") {
         const src = node.attribs.src;
-        if (!src) return <></>;
+        if (!src || !imageId(src)) return <></>;
         const width = Number(node.attribs.width),
           height = Number(node.attribs.height);
         const image =

@@ -28,6 +28,15 @@ function integer(name: string, fallback: number, min: number, max: number) {
     );
   return number;
 }
+function storageLimit(name: string, fallback?: bigint) {
+  const raw = value(name);
+  if (raw === undefined) return fallback;
+  if (!/^(0|[1-9][0-9]{0,18})$/.test(raw) || BigInt(raw) > 9223372036854775807n)
+    throw new ConfigurationError(
+      name + " must be a nonnegative 64-bit integer",
+    );
+  return BigInt(raw);
+}
 export const AUTH_ENV_TO_NEUTRALISE = Object.freeze([
   "BETTER_AUTH_URL",
   "NEXT_PUBLIC_BETTER_AUTH_URL",
@@ -271,6 +280,9 @@ export function getConfig() {
     appUrlSource,
     database: () =>
       parseDatabaseOptions(value("DATABASE_URL"), value("DATABASE_SSL_CA")),
+    maxImageBytes: integer("MAX_IMAGE_BYTES", 4000000, 1, 4000000),
+    maxImageStorageBytes: storageLimit("MAX_IMAGE_STORAGE_BYTES"),
+    maxPendingImageBytes: storageLimit("MAX_PENDING_IMAGE_BYTES", 200000000n)!,
     poolMax: integer("DATABASE_POOL_MAX", 10, 2, 1000),
     dimensions: integer("AI_EMBEDDING_DIMENSIONS", 768, 1, 4000),
     injectedAuthSecret: value("BETTER_AUTH_SECRET"),

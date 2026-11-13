@@ -1,4 +1,6 @@
 import "server-only";
+import { replaceImageRefs, validateImages } from "@/lib/images/store";
+import { lock, locks } from "@/db/locks";
 import { db } from "@/db/db";
 import { textContent } from "@/lib/utils-server";
 import { validateReplyParent } from "./reply-parent";
@@ -14,8 +16,10 @@ export async function createCommentQuery({
   parentCommentId: string | null;
 }) {
   const text = textContent(content);
+  await validateImages(db, text.imageIds);
   await validateReplyParent(db, postId, parentCommentId);
   return db.transaction().execute(async (trx) => {
+    await lock(trx, locks.images);
     await trx
       .selectFrom("feedback")
       .select("id")
@@ -23,7 +27,7 @@ export async function createCommentQuery({
       .forKeyShare()
       .executeTakeFirstOrThrow();
     await validateReplyParent(trx, postId, parentCommentId);
-    return trx
+    const row = await trx
       .insertInto("comment")
       .values({
         content: text.content,
@@ -36,5 +40,7 @@ export async function createCommentQuery({
       })
       .returningAll()
       .executeTakeFirstOrThrow();
+    await replaceImageRefs(trx, { commentId: row.id }, text.imageIds);
+    return row;
   });
 }

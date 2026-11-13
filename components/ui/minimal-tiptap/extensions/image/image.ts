@@ -7,11 +7,9 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageViewBlock } from "./components/image-view-block";
 import {
   filterFiles,
-  randomId,
   type FileError,
   type FileValidationOptions,
 } from "../../utils";
-import { ReplaceStep } from "@tiptap/pm/transform";
 import type { Attrs } from "@tiptap/pm/model";
 
 type ImageAction = "download" | "copyImage" | "copyLink";
@@ -25,16 +23,7 @@ interface ImageActionProps extends DownloadImageCommandProps {
   action: ImageAction;
 }
 
-export type UploadReturnType =
-  | string
-  | {
-      id: string | number;
-      src: string;
-    };
-
-interface CustomImageOptions
-  extends ImageOptions, Omit<FileValidationOptions, "allowBase64"> {
-  uploadFn?: (file: File, editor: Editor) => Promise<UploadReturnType>;
+interface CustomImageOptions extends ImageOptions, FileValidationOptions {
   onImageRemoved?: (props: Attrs) => void;
   onActionSuccess?: (props: ImageActionProps) => void;
   onActionError?: (error: Error, props: ImageActionProps) => void;
@@ -86,20 +75,7 @@ const handleError = (
   errorHandler?.(typedError, props);
 };
 
-const handleDataUrl = (src: string): { blob: Blob; extension: string } => {
-  const [header, base64Data] = src.split(",");
-  const mimeType = header.split(":")[1].split(";")[0];
-  const extension = mimeType.split("/")[1];
-  const byteCharacters = atob(base64Data);
-  const byteArray = new Uint8Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteArray[i] = byteCharacters.charCodeAt(i);
-  }
-  const blob = new Blob([byteArray], { type: mimeType });
-  return { blob, extension };
-};
-
-const handleImageUrl = async (
+const fetchImageBlob = async (
   src: string,
 ): Promise<{ blob: Blob; extension: string }> => {
   const response = await fetch(src);
@@ -107,12 +83,6 @@ const handleImageUrl = async (
   const blob = await response.blob();
   const extension = blob.type.split(/\/|\+/)[1];
   return { blob, extension };
-};
-
-const fetchImageBlob = async (
-  src: string,
-): Promise<{ blob: Blob; extension: string }> => {
-  return src.startsWith("data:") ? handleDataUrl(src) : handleImageUrl(src);
 };
 
 const saveImage = async (
@@ -192,7 +162,6 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
       ...this.parent?.(),
       allowedMimeTypes: [],
       maxFileSize: 0,
-      uploadFn: undefined,
       onToggle: undefined,
       downloadImage: undefined,
       copyImage: undefined,
@@ -230,53 +199,18 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
     return {
       setImages:
         (attrs) =>
-        ({ commands }) => {
-          const [validImages, errors] = filterFiles(attrs, {
-            allowedMimeTypes: this.options.allowedMimeTypes,
-            maxFileSize: this.options.maxFileSize,
-            allowBase64: this.options.allowBase64,
-          });
-
-          if (errors.length > 0 && this.options.onValidationError) {
-            this.options.onValidationError(errors);
-          }
-
-          if (validImages.length > 0) {
-            return commands.insertContent(
-              validImages.map((image) => {
-                if (image.src instanceof File) {
-                  const blobUrl = URL.createObjectURL(image.src);
-                  const id = randomId();
-
-                  return {
-                    type: this.type.name,
-                    attrs: {
-                      id,
-                      src: blobUrl,
-                      alt: image.alt,
-                      title: image.title,
-                      fileName: image.src.name,
-                    },
-                  };
-                } else {
-                  return {
-                    type: this.type.name,
-                    attrs: {
-                      id: randomId(),
-                      src: image.src,
-                      alt: image.alt,
-                      title: image.title,
-                      fileName: null,
-                    },
-                  };
-                }
-              }),
-            );
-          }
-
-          return false;
+        ({ editor }) => {
+          const [valid, errors] = filterFiles(
+            attrs
+              .map((item) => item.src)
+              .filter((src): src is File => src instanceof File),
+            this.options,
+          );
+          if (errors.length) this.options.onValidationError?.(errors);
+          if (!valid.length || !this.options.onToggle) return false;
+          this.options.onToggle(editor, valid, editor.state.selection.from);
+          return true;
         },
-
       downloadImage: (attrs) => () => {
         const downloadFunc = this.options.downloadImage || downloadImage;
         void downloadFunc({ ...attrs, action: "download" }, this.options);
@@ -305,54 +239,13 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
             const files = input.files;
             if (!files) return;
 
-            const [validImages, errors] = filterFiles(Array.from(files), {
-              allowedMimeTypes: this.options.allowedMimeTypes,
-              maxFileSize: this.options.maxFileSize,
-              allowBase64: this.options.allowBase64,
-            });
-
-            if (errors.length > 0 && this.options.onValidationError) {
-              this.options.onValidationError(errors);
-              return false;
-            }
-
-            if (validImages.length === 0) return false;
-
-            if (this.options.onToggle) {
-              this.options.onToggle(
-                editor,
-                validImages,
-                editor.state.selection.from,
-              );
-            }
-
-            return false;
+            editor.commands.setImages(Array.from(files, (src) => ({ src })));
           };
 
           input.click();
           return true;
         },
     };
-  },
-
-  onTransaction({ transaction }) {
-    transaction.steps.forEach((step) => {
-      if (step instanceof ReplaceStep && step.slice.size === 0) {
-        const deletedPages = transaction.before.content.cut(step.from, step.to);
-
-        deletedPages.forEach((node) => {
-          if (node.type.name === "image") {
-            const attrs = node.attrs;
-
-            if (attrs.src.startsWith("blob:")) {
-              URL.revokeObjectURL(attrs.src);
-            }
-
-            this.options.onImageRemoved?.(attrs);
-          }
-        });
-      }
-    });
   },
 
   addNodeView() {

@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { MAX_FEEDBACK_TEXT_LENGTH } from "@/lib/feedback-text";
+import { Tiptap } from "@/components/ui/tiptap";
+import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
 export function FeedbackForm() {
   const { session, isLoaded } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
@@ -25,7 +25,8 @@ export function FeedbackForm() {
   );
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    mutation.mutate({ description });
+    if (description.trim() && !hasPendingUpload(description))
+      mutation.mutate({ description, descriptionFormat: "html" });
   };
   return (
     <>
@@ -35,16 +36,11 @@ export function FeedbackForm() {
         onClose={() => setSignInOpen(false)}
       />
       <form onSubmit={submit} className="space-y-3">
-        <label htmlFor="feedback-description" className="sr-only">
-          Your feedback
-        </label>
-        <Textarea
-          id="feedback-description"
+        <Tiptap
+          ariaLabel="Your feedback"
           placeholder="Share your feedback…"
-          maxLength={MAX_FEEDBACK_TEXT_LENGTH}
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          required
+          onChange={setDescription}
         />
         <p className="text-muted-foreground text-xs">
           {session
@@ -53,7 +49,12 @@ export function FeedbackForm() {
         </p>
         <Button
           type="submit"
-          disabled={!isLoaded || !description.trim() || mutation.isPending}
+          disabled={
+            !isLoaded ||
+            !description.trim() ||
+            hasPendingUpload(description) ||
+            mutation.isPending
+          }
         >
           Submit feedback
         </Button>
@@ -68,7 +69,11 @@ export function FeedbackForm() {
         )}
         {mutation.isSuccess && <p role="status">Feedback submitted</p>}
         {mutation.isError && (
-          <p role="alert">Could not submit feedback. Please try again.</p>
+          <p role="alert">
+            {mutation.error.data?.code === "BAD_REQUEST"
+              ? mutation.error.message
+              : "Could not submit feedback. Please try again."}
+          </p>
         )}
       </form>
     </>

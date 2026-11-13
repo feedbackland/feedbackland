@@ -1,5 +1,6 @@
 "use client";
 
+import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Tiptap } from "@/components/ui/tiptap";
@@ -13,7 +14,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
@@ -63,6 +64,9 @@ export function FeedbackPostEdit({
     control,
     formState: { errors },
   } = form;
+  const uploading = hasPendingUpload(
+    useWatch({ control, name: "description" }),
+  );
 
   const updatePost = useMutation(
     trpc.updateFeedbackPost.mutationOptions({
@@ -88,6 +92,7 @@ export function FeedbackPostEdit({
   );
 
   const onSubmit: SubmitHandler<FormData> = async ({ title, description }) => {
+    if (hasPendingUpload(description)) return;
     setFormState("pending");
 
     updatePost.mutate({
@@ -145,8 +150,16 @@ export function FeedbackPostEdit({
           />
         </FormItem>
 
+        <p className="text-muted-foreground text-xs">
+          Detached images may need to be uploaded again.
+        </p>
         <div className="flex items-center space-x-2">
-          <Button type="submit" loading={formState === "pending"} size="sm">
+          <Button
+            type="submit"
+            disabled={uploading}
+            loading={formState === "pending"}
+            size="sm"
+          >
             Save
           </Button>
 
@@ -158,7 +171,11 @@ export function FeedbackPostEdit({
         {formState === "error" && (
           <Error
             title="Could not save changes"
-            description="An error occured while trying to save your changes. Please try again."
+            description={
+              updatePost.error?.data?.code === "BAD_REQUEST"
+                ? updatePost.error?.message
+                : "Could not save the changes. Try again."
+            }
           />
         )}
       </form>

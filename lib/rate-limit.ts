@@ -82,3 +82,10 @@ export function enforceSearchLimit(ip: string) {
     { key: "search-text:instance", ...RATE_LIMITS.searchText.instance },
   ]);
 }
+
+export function enforceImageLimit(ip: string) {
+  return enforceInOrder([
+    { key: "images:ip:" + ip, ...RATE_LIMITS.images.ip },
+    { key: "images:instance", ...RATE_LIMITS.images.instance },
+  ]);
+}

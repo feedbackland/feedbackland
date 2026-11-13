@@ -7,21 +7,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ClipboardCopyIcon,
-  DotsHorizontalIcon,
   DownloadIcon,
   Link2Icon,
   SizeIcon,
 } from "@radix-ui/react-icons";
 
 interface ImageActionsProps {
-  shouldMerge?: boolean;
   isLink?: boolean;
   onView?: () => void;
   onDownload?: () => void;
@@ -38,7 +30,7 @@ export const ActionWrapper = React.memo(
   ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
       className={cn(
-        "absolute top-3 right-3 flex flex-row rounded-md px-0.5 opacity-0 group-hover/node-image:opacity-100",
+        "absolute top-1 right-1 flex max-w-full flex-wrap rounded-md px-0.5 opacity-0 group-hover/node-image:opacity-100 focus-within:opacity-100",
         "border-[0.5px] bg-[var(--mt-bg-secondary)] [backdrop-filter:saturate(1.8)_blur(20px)]",
         className,
       )}
@@ -56,6 +48,7 @@ export const ActionButton = React.memo(
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          type="button"
           aria-label={tooltip}
           variant="ghost"
           className={cn(
@@ -107,8 +100,7 @@ const ActionItems: Array<{
 ];
 
 export const ImageActions: React.FC<ImageActionsProps> = React.memo(
-  ({ shouldMerge = false, isLink = false, ...actions }) => {
-    const [isOpen, setIsOpen] = React.useState(false);
+  ({ isLink = false, ...actions }) => {
     const secure = React.useSyncExternalStore(
       () => () => {},
       () => window.isSecureContext,
@@ -134,40 +126,15 @@ export const ImageActions: React.FC<ImageActionsProps> = React.memo(
     );
 
     return (
-      <ActionWrapper className={cn({ "opacity-100": isOpen })}>
-        {shouldMerge ? (
-          <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-            <DropdownMenuTrigger asChild>
-              <ActionButton
-                icon={<DotsHorizontalIcon className="size-4" />}
-                tooltip="Open menu"
-                onClick={(e) => e.preventDefault()}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              {filteredActions.map(({ key, icon, tooltip }) => (
-                <DropdownMenuItem
-                  key={key}
-                  onClick={(e) => handleAction(e, actions[key])}
-                >
-                  <div className="flex flex-row items-center gap-2">
-                    {icon}
-                    <span>{tooltip}</span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          filteredActions.map(({ key, icon, tooltip }) => (
-            <ActionButton
-              key={key}
-              icon={icon}
-              tooltip={tooltip}
-              onClick={(e) => handleAction(e, actions[key])}
-            />
-          ))
-        )}
+      <ActionWrapper contentEditable={false}>
+        {filteredActions.map(({ key, icon, tooltip }) => (
+          <ActionButton
+            key={key}
+            icon={icon}
+            tooltip={tooltip}
+            onClick={(e) => handleAction(e, actions[key])}
+          />
+        ))}
       </ActionWrapper>
     );
   },

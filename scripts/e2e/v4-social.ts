@@ -646,7 +646,7 @@ export async function phaseFour(
     "linux",
     "The HTTPS three-engine gates require Linux (Docker Desktop host networking is not assumed)",
   );
-  assert.match(runId, /^p05-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[56]-[0-9]+-[a-f0-9]+$/);
   const project = runId + "-social";
   const directory = await mkdtemp(join(tmpdir(), project + "-"));
   const containers: string[] = [];

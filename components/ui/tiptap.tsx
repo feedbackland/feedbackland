@@ -6,6 +6,7 @@ import { useState } from "react";
 export const Tiptap = ({
   value,
   placeholder,
+  ariaLabel,
   onChange,
   onFocus,
   onBlur,
@@ -19,6 +20,7 @@ export const Tiptap = ({
 }: {
   value: Content;
   placeholder?: string;
+  ariaLabel?: string;
   onChange: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -51,7 +53,7 @@ export const Tiptap = ({
       value={value}
       className={cn(
         "bg-background! border-border! rounded-lg shadow-sm transition-shadow duration-200 hover:shadow-md",
-        isFocused && "ring-ring ring-1 shadow-md",
+        isFocused && "ring-ring shadow-md ring-1",
         className,
       )}
       editorContentClassName={cn(
@@ -61,6 +63,7 @@ export const Tiptap = ({
       editorClassName={cn("focus:outline-hidden", editorClassName)}
       output="html"
       placeholder={placeholder}
+      ariaLabel={ariaLabel}
       autofocus={!!autofocus}
       editable={true}
       showToolbar={showToolbar}
