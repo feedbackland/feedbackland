@@ -921,7 +921,13 @@ Instead, one flow serves both contexts. It is built on Better Auth's standard
    override *(measured)*), stores that session's **raw** token on the ticket (`claim` returns `${token}.${await makeSignature(token, ctx.context.secret)}`, so the database never holds a usable credential),
    and deletes the popup's own session, so no hidden first-party session is left on a shared machine — except that when the callback request carried an earlier, still-valid session cookie (the visitor was already signed in on the board in this browser), the hook re-sets that cookie (`setSessionCookie`) instead of expiring it, so a drawer sign-in never signs the visitor out of the board *(measured)*; in `first-party` mode it
    marks the ticket done; on failure it stores the error code (e.g.
-   `account_not_linked`). When the failure happens before Better Auth has parsed the state (`state_mismatch`, `invalid_callback_request`, an expired state), `getOAuthState()` is empty *(measured)*; the hook then reads the popup's signed `fl_popup_ticket` cookie and records the redirect's `error` on that ticket only while the ticket is unbound (this path only ever writes an error, never a token, and cannot overwrite a bound one; a top-level GET to the callback from another site can still fail a visitor's pending, unbound sign-in, since the `Lax` ticket cookie is sent — they retry, and this is accepted), and `onAPIError.errorURL` is `/auth/popup/done`. `/auth/popup/done` itself binds nothing: it posts `{ type: "feedbackland:popup-ready", ticket: T }` (no token) to `window.opener` with the board's origin as `targetOrigin`, shows "Signed in" — or the `error` parameter's message when present — and closes. (Binding "the current session" in `/done`, as an earlier
+   `account_not_linked`). When state validation fails, the callback can record an
+   error only for the ticket named in a signed HttpOnly cookie issued for that
+   provider and returned OAuth state. Missing or unknown states leave pending
+   tickets untouched. The default error landing page is `/auth/popup/done`.
+   With a ticket, the page wakes the opener's poll using a same-origin
+   `feedbackland:popup-ready` message and closes. An unassociated error stays
+   visible with instructions to cancel and retry. (Binding "the current session" in `/done`, as an earlier
    revision specified, lets anyone who chose a ticket collect the session of
    any signed-in visitor they lure to `/done` *(measured)*.)
 4. **The opening page polls** `POST /api/auth/popup-handoff/claim { ticket,

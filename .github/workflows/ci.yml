@@ -1,9 +1,9 @@
-name: Self-hosting phase 3
+name: Self-hosting phase 4
 on:
   push:
     branches: [main, single-tenant-self-hosting]
   pull_request:
-    branches: [main, single-tenant-self-hosting]
+    branches: [main, single-tenant-self-hosting, codex/setup-auth]
 permissions:
   contents: read
 jobs:
@@ -31,9 +31,9 @@ jobs:
           printf 'P01_BUILD_DECOY=must-never-ship\n' > .env.production
           docker build --build-arg SOURCE_COMMIT="$SOURCE_COMMIT" --tag feedbackland:ci .
           rm .env .env.production
-      - name: Install all engines for the phase-3 auth gates
+      - name: Install all engines for the phase-4 auth gates
         run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run verify -- --phase 3 --image feedbackland:ci --artifacts artifacts/self-hosting
+      - run: npm run verify -- --phase 4 --image feedbackland:ci --artifacts artifacts/self-hosting
       - name: Inspect evidence for fixture-only output
         id: evidence
         if: always()
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
         with:
-          name: self-hosting-phase-3
+          name: self-hosting-phase-4
           path: artifacts/self-hosting/
           retention-days: 14
   development-boot:

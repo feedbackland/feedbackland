@@ -1,18 +1,37 @@
-import type { BetterAuthOptions } from "better-auth";
+import type {
+  AuthContext,
+  BetterAuthOptions,
+  BetterAuthPlugin,
+} from "better-auth";
 import { bearer } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { popupHandoff } from "./popup-handoff";
+import type { HandoffDependencies } from "./popup-handoff";
+import { oidcProvider, type OidcMetadata } from "./oidc";
 export type SignInPermit = { complete(failed: boolean): Promise<void> };
 type Dependencies = {
   db: NonNullable<BetterAuthOptions["database"]>;
   secret?: string;
   appUrl?: string;
+  socialProviders?: BetterAuthOptions["socialProviders"];
+  oidc?: {
+    clientId: string;
+    clientSecret: string;
+    metadata: OidcMetadata;
+    tokenAuthMethod?: string;
+  };
+  socialStartProviders?: (
+    provider: string,
+  ) => Promise<AuthContext["socialProviders"]>;
+  handoff?: HandoffDependencies;
+  passwords?: BetterAuthPlugin;
   isSetupComplete?: () => Promise<boolean>;
   allowSignUp?: () => Promise<boolean>;
   reserveSignIn?: (email: string) => Promise<SignInPermit | null>;
   clientIpHeader?: string;
   trustedProxies?: string[];
+  authRateLimit?: NonNullable<BetterAuthOptions["rateLimit"]>["customStorage"];
   sendResetPassword?: NonNullable<
     BetterAuthOptions["emailAndPassword"]
   >["sendResetPassword"];
@@ -39,6 +58,8 @@ export function buildAuthOptions(deps: Dependencies) {
     database: deps.db,
     secret: deps.secret,
     baseURL: deps.appUrl,
+    socialProviders: deps.socialProviders,
+    onAPIError: { errorURL: "/auth/popup/done" },
     telemetry: { enabled: false },
     logger: { disabled: true },
     hooks: {
@@ -52,6 +73,10 @@ export function buildAuthOptions(deps: Dependencies) {
             code: "SETUP_REQUIRED",
             message: "Complete setup first",
           });
+        if (ctx.path === "/sign-in/social" && deps.socialStartProviders)
+          ctx.context.socialProviders = await deps.socialStartProviders(
+            ctx.body?.provider,
+          );
         if (ctx.body && typeof ctx.body === "object") {
           for (const field of ["password", "newPassword", "currentPassword"]) {
             if (typeof ctx.body[field] === "string") {
@@ -96,6 +121,32 @@ export function buildAuthOptions(deps: Dependencies) {
       }),
     },
     databaseHooks: {
+      account: {
+        create: {
+          before: async (account) => ({
+            data: {
+              ...account,
+              accessToken: null,
+              refreshToken: null,
+              idToken: null,
+              accessTokenExpiresAt: null,
+              refreshTokenExpiresAt: null,
+            },
+          }),
+        },
+        update: {
+          before: async (account) => ({
+            data: {
+              ...account,
+              accessToken: null,
+              refreshToken: null,
+              idToken: null,
+              accessTokenExpiresAt: null,
+              refreshTokenExpiresAt: null,
+            },
+          }),
+        },
+      },
       user: {
         create: {
           before: async (user, ctx) => ({
@@ -182,6 +233,7 @@ export function buildAuthOptions(deps: Dependencies) {
       enabled: true,
       storage: "database",
       modelName: "auth_rate_limit",
+      customStorage: deps.authRateLimit,
       customRules: {
         "/sign-in/email": { window: 900, max: 10 },
         "/sign-up/email": { window: 60, max: 30 },
@@ -205,7 +257,9 @@ export function buildAuthOptions(deps: Dependencies) {
     },
     plugins: [
       bearer({ requireSignature: true }),
-      popupHandoff(),
+      ...(deps.passwords ? [deps.passwords] : []),
+      ...(deps.oidc ? [oidcProvider(deps.oidc)] : []),
+      popupHandoff(deps.handoff),
       nextCookies(),
     ],
   } satisfies BetterAuthOptions;

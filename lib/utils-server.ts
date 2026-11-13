@@ -4,6 +4,8 @@ import sanitizeHtml from "sanitize-html";
 import { parse, NodeType, type Node } from "node-html-parser";
 import { DomainError } from "./domain-error";
 import { isStatusLabel } from "./feedback-status";
+import { isBlockedContentLink } from "./safe-content-link";
+import { getConfig } from "./config";
 import {
   escapeFeedbackText,
   MAX_FEEDBACK_TEXT_LENGTH,
@@ -26,6 +28,11 @@ export function plainTextContent(text: string) {
 export function clean(html: string) {
   return sanitizeHtml(html, {
     transformTags: {
+      a(tagName, attribs) {
+        return isBlockedContentLink(attribs.href ?? "", getConfig().appUrl)
+          ? { tagName: "span", attribs: {} }
+          : { tagName, attribs };
+      },
       span(tagName, attribs) {
         const label = attribs["data-label"];
         if (attribs["data-type"] === "status" && label && !isStatusLabel(label))

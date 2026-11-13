@@ -70,7 +70,11 @@ async function settleNotifications(page: Page) {
     15_000,
   );
 }
-async function signIn(target: Page | Frame, email: string, signup = false) {
+export async function signIn(
+  target: Page | Frame,
+  email: string,
+  signup = false,
+) {
   await target
     .getByRole("button", { name: /Sign in to manage feedback|^Sign in$/ })
     .first()
@@ -193,12 +197,12 @@ async function ownContent(page: Page, base: string) {
     .click();
   await page.waitForURL(base + "/");
 }
-async function frameOn(page: Page, host: string, base: string) {
+export async function frameOn(page: Page, host: string, base: string) {
   await page.bringToFront();
   await page.goto(host + "/?board=" + encodeURIComponent(base));
   return openWidget(page, base);
 }
-async function openWidget(page: Page, base: string) {
+export async function openWidget(page: Page, base: string) {
   await page
     .getByRole("button", { name: "Open feedback", exact: true })
     .click();
@@ -945,7 +949,7 @@ export async function phaseThree(
   artifacts: string,
   check: Check,
 ) {
-  assert.match(runId, /^p04-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[45]-[0-9]+-[a-f0-9]+$/);
   const docker = (...args: string[]) =>
     command("docker", args, { timeout: 150_000 });
   const project = runId + "-auth";

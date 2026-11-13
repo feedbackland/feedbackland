@@ -21,6 +21,14 @@ export function getPool(maintenance = false): Pool {
         ? "feedbackland-maintenance"
         : "feedbackland-app",
     });
+    // pg-pool removes its idle error listener at checkout. A backend can
+    // disconnect between statements of a transaction while no query is active.
+    const checkedOutError = (error: Error) =>
+      log("database.connection-error", { sqlstate: sqlstate(error) }, "warn");
+    pool.on("acquire", (client) => client.on("error", checkedOutError));
+    pool.on("release", (_error, client) =>
+      client.off("error", checkedOutError),
+    );
     pool.on("error", (error) =>
       log("database.idle-error", { sqlstate: sqlstate(error) }, "warn"),
     );

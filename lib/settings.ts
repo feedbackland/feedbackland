@@ -7,12 +7,14 @@ import { getSettingsQuery } from "../queries/get-settings";
 import { getAppUrl } from "./app-url";
 import type { PublicSettings } from "./public-settings";
 import identity from "./build-identity.json";
+import { authCapabilities } from "./auth/discovery";
 export type { PublicSettings } from "./public-settings";
 export async function publicSettings(
   requestHeaders: Headers,
 ): Promise<PublicSettings> {
   const settings = await getSettingsQuery();
   const origin = getAppUrl(requestHeaders);
+  const auth = await authCapabilities();
   const payload = {
     platformTitle: settings.platformTitle,
     platformDescription: settings.platformDescription,
@@ -26,9 +28,7 @@ export async function publicSettings(
     capabilities: {
       chat: false,
       embeddings: false,
-      smtp: false,
-      socialProviders: [],
-      oidcLabel: null,
+      ...auth,
       maxImageBytes: 0,
     },
   } satisfies Omit<PublicSettings, "publicVersion">;

@@ -1,5 +1,5 @@
 import "server-only";
-import { betterAuth } from "better-auth";
+import { betterAuth, type AuthContext } from "better-auth";
 import { getPool } from "../../db/db";
 import { getConfig, neutraliseAuthEnv } from "../config";
 import { runtimeState } from "../runtime-state";
@@ -9,7 +9,12 @@ import { DomainError } from "../domain-error";
 import { canAdministerSession, type SessionIdentity } from "./session-policy";
 import { buildAuthOptions } from "./options";
 import { reserveSignIn } from "./sign-in-limit";
-function createAuth() {
+import { sendResetPassword } from "../mail";
+import { handoffStore } from "./handoff-store";
+import type { OidcMetadata } from "./oidc";
+import { authRateLimit } from "./rate-limit";
+import { passwordEndpoints } from "./password-endpoints";
+export function createAuthInstance(metadata?: OidcMetadata) {
   neutraliseAuthEnv();
   const config = getConfig();
   return betterAuth(
@@ -17,8 +22,56 @@ function createAuth() {
       db: getPool(),
       secret: config.authSecret,
       appUrl: config.appUrl,
+      socialProviders: config.appUrl?.startsWith("https:")
+        ? {
+            ...(config.social.google.clientId &&
+            config.social.google.clientSecret
+              ? {
+                  google: {
+                    clientId: config.social.google.clientId,
+                    clientSecret: config.social.google.clientSecret,
+                    overrideUserInfoOnSignIn: true,
+                  },
+                }
+              : {}),
+            ...(config.social.microsoft.clientId &&
+            config.social.microsoft.clientSecret
+              ? {
+                  microsoft: {
+                    clientId: config.social.microsoft.clientId,
+                    clientSecret: config.social.microsoft.clientSecret,
+                    tenantId: config.social.microsoft.tenantId,
+                    overrideUserInfoOnSignIn: true,
+                  },
+                }
+              : {}),
+          }
+        : {},
+      oidc:
+        metadata &&
+        config.social.oidc.clientId &&
+        config.social.oidc.clientSecret
+          ? {
+              metadata,
+              tokenAuthMethod: config.social.oidc.tokenAuthMethod,
+              clientId: config.social.oidc.clientId,
+              clientSecret: config.social.oidc.clientSecret,
+            }
+          : undefined,
+      handoff: config.appUrl?.startsWith("https:") ? handoffStore : undefined,
       clientIpHeader: config.clientIpHeader,
       trustedProxies: config.trustedProxies,
+      authRateLimit,
+      socialStartProviders: async (
+        provider,
+      ): Promise<AuthContext["socialProviders"]> => {
+        const { pollEpoch, synchronizeAuthProviders } =
+          await import("./discovery");
+        if (provider === "oidc") await synchronizeAuthProviders(true);
+        else await pollEpoch(true);
+        return (await getAuth().$context).socialProviders;
+      },
+      passwords: passwordEndpoints(),
       isSetupComplete,
       allowSignUp: async () =>
         (
@@ -29,12 +82,13 @@ function createAuth() {
           })
         ).allowed,
       reserveSignIn,
+      sendResetPassword,
     }),
   );
 }
-export type Auth = ReturnType<typeof createAuth>;
+export type Auth = ReturnType<typeof createAuthInstance>;
 export function getAuth(): Auth {
-  return (runtimeState().auth ??= createAuth());
+  return (runtimeState().auth ??= createAuthInstance());
 }
 export function requireAdminSession<T extends SessionIdentity>(
   session: T | null,

@@ -30,6 +30,21 @@ export function setEmbeddedToken(token: string | null) {
     memoryOnly = true;
   }
 }
+export function embeddedCredentialSnapshot() {
+  return { epoch: credentialEpoch, token: getEmbeddedToken() };
+}
+export function acceptEmbeddedCredential(
+  snapshot: ReturnType<typeof embeddedCredentialSnapshot>,
+  token: string,
+) {
+  if (
+    snapshot.epoch !== credentialEpoch ||
+    snapshot.token !== getEmbeddedToken()
+  )
+    return false;
+  setEmbeddedToken(token);
+  return true;
+}
 export function createSurfaceAuthClient(
   surface: ResolvedSurface,
   signal?: AbortSignal,

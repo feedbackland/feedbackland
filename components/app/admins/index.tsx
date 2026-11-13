@@ -2,6 +2,7 @@
 
 import { AdminsInvite } from "./invite";
 import { AdminsTable } from "./table";
+import { PasswordResetLink } from "./reset-link";
 
 export function Admins() {
   return (
@@ -10,6 +11,7 @@ export function Admins() {
       <div className="space-y-8">
         <AdminsInvite />
         <AdminsTable />
+        <PasswordResetLink />
       </div>
     </div>
   );

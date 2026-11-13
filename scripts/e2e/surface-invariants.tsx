@@ -1,14 +1,13 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { NextRequest } from "next/server";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SearchParamsContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime";
 import { EmbedProvider } from "../../providers/embed";
 import { SurfaceProviders } from "../../providers/surface";
 import { boardHref } from "../../lib/board-href";
-import { parseEmbedSurface, EMBED_HEADER } from "../../lib/embed-surface";
-import { proxy } from "../../proxy";
+import { parseEmbedSurface } from "../../lib/embed-surface";
+import { command } from "./run";
 
 async function main() {
   assert.equal(parseEmbedSurface([]), null);
@@ -20,35 +19,12 @@ async function main() {
     "/post?filter=1&embed=drawer&mode=dark#text",
   );
   assert.throws(() => boardHref("//foreign.invalid"));
-  for (const query of [
-    "",
-    "?embed=x",
-    "?embed=x&embed=drawer",
-    "?embed=drawer&embed=x",
-  ]) {
-    const response = proxy(
-      new NextRequest(`http://fixture.invalid/${query}`, {
-        headers: { [EMBED_HEADER]: "spoofed" },
-      }),
-    );
-    assert.equal(
-      response.headers.get(`x-middleware-request-${EMBED_HEADER}`),
-      query.includes("drawer") ? "drawer" : "first-party",
-    );
-    if (query.includes("drawer"))
-      assert.equal(
-        response.headers.get("content-security-policy"),
-        "frame-ancestors *",
-      );
-    const admin = proxy(
-      new NextRequest(`http://fixture.invalid/admin${query}`),
-    );
-    assert.equal(
-      admin.headers.get("content-security-policy"),
-      null,
-      "Proxy must not override private-route denial",
-    );
-  }
+  await command(process.execPath, [
+    "--conditions=react-server",
+    "--import",
+    "tsx",
+    "scripts/e2e/proxy-contracts.ts",
+  ]);
   let mounted = 0;
   function Descendant(): never {
     mounted++;

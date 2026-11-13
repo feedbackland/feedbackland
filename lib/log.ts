@@ -8,6 +8,9 @@ type Fields = {
   version?: string;
   dimensions?: number;
   count?: number;
+  actor?: string;
+  target?: string;
+  time?: string;
 };
 // Never serialize errors/causes, URLs, PEMs or arbitrary provider data.
 export function log(

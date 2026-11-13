@@ -33,6 +33,9 @@ import { setAllActivitiesSeen } from "./set-all-activities-seen";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
 import { rewriteFeedback } from "./rewrite-feedback";
+import { createPasswordResetLink } from "./create-password-reset-link";
+import { retryOidcDiscovery } from "./retry-oidc-discovery";
+import { getAuthStatus } from "./get-auth-status";
 
 export const appRouter = router({
   updateSettings,
@@ -69,6 +72,9 @@ export const appRouter = router({
   updateUser,
   getUserSession,
   rewriteFeedback,
+  createPasswordResetLink,
+  retryOidcDiscovery,
+  getAuthStatus,
 });
 
 export type AppRouter = typeof appRouter;
