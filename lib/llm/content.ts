@@ -183,11 +183,12 @@ export async function labelFeedback(
   coverage: Coverage,
   signal?: AbortSignal,
 ) {
+  const sentence =
+    sentences.segment(text).containing(0)?.segment.trim() ?? text;
+  // The board also treats sentence punctuation before a lowercase continuation as a boundary.
+  const first = sentence.match(/^.*?[.!?](?=\s|$)/u)?.[0] ?? sentence;
   const fallback = {
-    title:
-      Array.from(sentences.segment(text).containing(0)?.segment.trim() ?? text)
-        .slice(0, 80)
-        .join("") || "Untitled feedback",
+    title: Array.from(first).slice(0, 80).join("") || "Untitled feedback",
     category: "general feedback" as const,
   };
   if (!text || coverage.state === "disabled" || coverage.state === "unscreened")

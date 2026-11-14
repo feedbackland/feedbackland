@@ -149,6 +149,10 @@ export async function contentContracts(mock: Mock, admin: Actor) {
     "disabled",
   );
   assert.equal((await post("最初の文。次の文。", owner)).title, "最初の文。");
+  assert.equal(
+    (await post("<p>First sentence.</p><p>lowercase details</p>", owner)).title,
+    "First sentence.",
+  );
   const unicode = "🟩".repeat(81);
   assert.equal(
     (await post(unicode, owner)).title,
