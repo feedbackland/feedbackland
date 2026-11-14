@@ -173,6 +173,41 @@ export async function removal() {
         }
       }
     }
+    if (!file.startsWith("scripts/") && !file.startsWith("lib/llm/")) {
+      assert.doesNotMatch(
+        source,
+        /\b(?:generateText|streamText|embedMany|embed)\s*\(|["']@ai-sdk\/openai-compatible["']|https:\/\/openrouter\.ai\/api\/v1/,
+        file,
+      );
+      for (const statement of ts.createSourceFile(
+        file,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+      ).statements) {
+        if (
+          ts.isImportDeclaration(statement) &&
+          ts.isStringLiteral(statement.moduleSpecifier) &&
+          statement.moduleSpecifier.text === "ai"
+        ) {
+          const names = statement.importClause?.namedBindings;
+          if (names)
+            assert(
+              ts.isNamedImports(names) &&
+                names.elements.every(
+                  (n) =>
+                    ![
+                      "generateText",
+                      "streamText",
+                      "embed",
+                      "embedMany",
+                    ].includes((n.propertyName ?? n.name).text),
+                ),
+              file,
+            );
+        }
+      }
+    }
     if (file === "lib/config.ts")
       source = maskEnvironmentLiterals(source, expected);
     if (!file.startsWith("scripts/"))

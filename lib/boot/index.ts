@@ -17,7 +17,13 @@ import { discoverVector } from "../../db/vector";
 import { getConfig, neutraliseAuthEnv, validateCode } from "../config";
 import { runtimeState } from "../runtime-state";
 import { log, sqlstate } from "../log";
-import { ensureAiSettingsRow } from "../llm/settings-store";
+import {
+  ensureAiSettingsRow,
+  synchronizeAiEnvironment,
+  renewConfigurationLease,
+  replicaId,
+  startConfigurationLease,
+} from "../llm/settings-store";
 import identity from "../build-identity.json";
 import { BootError } from "./errors";
 
@@ -195,7 +201,10 @@ export async function migrateAndSeed(
         kind: columns.rows[0].kind as "vector" | "halfvec",
       };
       state.vector = observed;
-      const seeded = await seed(trx);
+      const seeded = await seed(
+        trx,
+        Object.hasOwn(registry, "0003_ai_dispatch"),
+      );
       return { ...seeded, metadata: observed };
     });
   } catch (error) {
@@ -205,7 +214,7 @@ export async function migrateAndSeed(
   // Never destroy bootDb: it shares the running application's pool.
 }
 
-async function seed(trx: Transaction<DB>) {
+async function seed(trx: Transaction<DB>, aiSchemaReady: boolean) {
   const config = getConfig();
   let settings = await trx
     .selectFrom("settings")
@@ -256,6 +265,9 @@ async function seed(trx: Transaction<DB>) {
       .set({ authSecret })
       .where("id", "=", 1)
       .execute();
+  const aiAligned =
+    aiSchemaReady && (await synchronizeAiEnvironment(trx, authSecret));
+  if (aiAligned) await renewConfigurationLease(trx, replicaId());
   const setupComplete = settings.setupCompletedAt !== null;
   const injected = setupComplete
     ? undefined
@@ -277,6 +289,7 @@ async function seed(trx: Transaction<DB>) {
   );
   return {
     authSecret,
+    aiAligned,
     setupComplete,
     generatedSetupCode: setupCodeGenerated ? setupCode : null,
   };
@@ -384,7 +397,14 @@ export function boot() {
           : "enabled",
       count: config.maxImageBytes,
     });
-    log("boot.ai-environment-ignored", { name: "OPENROUTER_API_KEY" });
+    startConfigurationLease();
+    log("boot.ai-foundations", {
+      stage: !config.llm.valid
+        ? "invalid-configuration"
+        : result.aiAligned
+          ? "ready"
+          : "CONFIGURATION_DIVERGED",
+    });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.
     if (result.generatedSetupCode)

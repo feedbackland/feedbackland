@@ -4,8 +4,42 @@ import { X509Certificate } from "node:crypto";
 import { BlockList, isIP } from "node:net";
 import type { PoolConfig } from "pg";
 import { runtimeState } from "./runtime-state";
+import { optionsSchema, keySchema } from "./llm/defaults";
 import { log } from "./log";
 export class ConfigurationError extends Error {}
+
+function readAiEnvironment() {
+  try {
+    return parseAiEnvironment();
+  } catch (error) {
+    if (!(error instanceof ConfigurationError)) throw error;
+    return { valid: false, options: {}, apiKey: undefined };
+  }
+}
+function parseAiEnvironment() {
+  const options = optionsSchema.safeParse({
+    model: value("OPENROUTER_MODEL"),
+    embeddingModel: value("OPENROUTER_EMBEDDING_MODEL"),
+    privacy: value("OPENROUTER_PRIVACY"),
+    timeoutMs:
+      value("AI_TIMEOUT_MS") === undefined
+        ? undefined
+        : integer("AI_TIMEOUT_MS", 15000, 1000, 120000),
+    dailyCallLimit:
+      value("AI_DAILY_CALL_LIMIT") === undefined
+        ? undefined
+        : integer("AI_DAILY_CALL_LIMIT", 5000, 10, 1000000),
+  });
+  const apiKey = value("OPENROUTER_API_KEY");
+  if (
+    !options.success ||
+    (apiKey !== undefined && !keySchema.safeParse(apiKey).success)
+  )
+    throw new ConfigurationError(
+      "Invalid OpenRouter model, privacy, timeout, daily limit or API key configuration",
+    );
+  return { valid: true, apiKey, options: options.data };
+}
 const value = (name: string) => {
   const raw = process.env[name];
   return (
@@ -285,6 +319,7 @@ export function getConfig() {
     maxPendingImageBytes: storageLimit("MAX_PENDING_IMAGE_BYTES", 200000000n)!,
     poolMax: integer("DATABASE_POOL_MAX", 10, 2, 1000),
     dimensions: integer("AI_EMBEDDING_DIMENSIONS", 768, 1, 4000),
+    explicitDimensions: value("AI_EMBEDDING_DIMENSIONS") !== undefined,
     injectedAuthSecret: value("BETTER_AUTH_SECRET"),
     get authSecret() {
       const secret = runtimeState().authSecret;
@@ -318,10 +353,6 @@ export function getConfig() {
     },
     clientIpHeader,
     trustedProxies,
-    llm: {
-      apiKey: undefined,
-      chatEnabled: false,
-      embeddingsEnabled: false,
-    } as const,
+    llm: readAiEnvironment(),
   };
 }

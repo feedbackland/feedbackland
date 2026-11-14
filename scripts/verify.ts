@@ -6,6 +6,7 @@ import { staticFoundations } from "./ci-gates";
 import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
 import { phaseThree } from "./e2e/v3-auth";
+import { aiFoundations } from "./e2e/v6a-foundations";
 import { phaseFive } from "./e2e/v4-backup";
 import { phaseFour } from "./e2e/v4-social";
 import { phaseTwo } from "./e2e/v2-surfaces";
@@ -22,15 +23,16 @@ async function main() {
     strict: true,
   });
   if (
-    !["0", "1", "2", "3", "4", "5"].includes(values.phase ?? "") ||
+    !["0", "1", "2", "3", "4", "5", "6a"].includes(values.phase ?? "") ||
     !values.image ||
     !values.artifacts
   ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0|1|2|3|4|5 --image feedbackland:ci --artifacts artifacts/self-hosting",
+      "Usage: npm run verify -- --phase 0|1|2|3|4|5|6a --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
-  const runId = `p0${Number(values.phase) + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const phase = values.phase === "6a" ? 6 : Number(values.phase);
+  const runId = `p0${phase + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
   // Resolve once for every group, so a retag cannot mix builds during the run.
   const image = JSON.parse(
     await command("docker", ["image", "inspect", values.image]),
@@ -49,18 +51,20 @@ async function main() {
       JSON.stringify(
         {
           runId,
-          phase: Number(values.phase),
+          phase: values.phase === "6a" ? values.phase : phase,
           image,
           status,
           checks: rows,
           futurePhases:
-            Number(values.phase) >= 5
-              ? "AI and search are scheduled for later phases."
-              : Number(values.phase) >= 4
-                ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                : Number(values.phase) >= 3
-                  ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                  : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
+            phase >= 6
+              ? "Content AI, search, jobs and the admin controls are scheduled for later milestones."
+              : phase >= 5
+                ? "AI and search are scheduled for later phases."
+                : phase >= 4
+                  ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                  : phase >= 3
+                    ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                    : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
         },
         null,
         2,
@@ -91,12 +95,14 @@ async function main() {
       await check("static/removal-configuration", removal);
     await foundations(image, runId, check);
     if (values.phase !== "0") await phaseOne(image, runId, check);
-    if (Number(values.phase) >= 2) await phaseTwo(image, directory, check);
-    if (Number(values.phase) >= 3)
-      await phaseThree(image, runId, directory, check);
-    if (Number(values.phase) >= 4)
-      await phaseFour(image, runId, directory, check);
-    if (values.phase === "5") await phaseFive(image, runId, directory, check);
+    if (phase >= 2) await phaseTwo(image, directory, check);
+    if (phase >= 3) await phaseThree(image, runId, directory, check);
+    if (phase >= 4) await phaseFour(image, runId, directory, check);
+    if (phase >= 5) await phaseFive(image, runId, directory, check);
+    if (phase >= 6)
+      await check("V12/V20/V21 OpenRouter foundations", () =>
+        aiFoundations(runId, image),
+      );
     await save("passed");
   } catch (error) {
     await save("failed");
