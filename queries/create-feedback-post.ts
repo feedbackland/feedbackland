@@ -12,7 +12,7 @@ export async function createFeedbackPostQuery({
 }: {
   description: string;
   authorId: string | null;
-  sessionId?: string | null;
+  sessionId: string | null | undefined;
   descriptionFormat?: "html" | "plain-text";
   signal?: AbortSignal;
 }) {

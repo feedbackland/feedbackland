@@ -127,6 +127,7 @@ export async function membershipAndReplies() {
   const other = await createFeedbackPostQuery({
     description: "Other fixture.",
     authorId: null,
+    sessionId: null,
   });
   let parent: string | null = null;
   for (let depth = 0; depth <= 8; depth++) {

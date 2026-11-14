@@ -268,7 +268,11 @@ export async function rpcContracts(actor: Actor) {
     anonymous,
   );
   await assert.rejects(
-    createFeedbackPostQuery({ description: '<img src="x">', authorId: null }),
+    createFeedbackPostQuery({
+      description: '<img src="x">',
+      authorId: null,
+      sessionId: null,
+    }),
     /Content is empty/,
   );
 

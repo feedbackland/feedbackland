@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     const { id } = await createFeedbackPostQuery({
       description: input.description,
       authorId: null,
+      sessionId: null,
       signal: request.signal,
     });
     return Response.json({ id }, { status: 201, headers: cors });

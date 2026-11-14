@@ -11,7 +11,7 @@ export async function createCommentQuery({
 }: {
   content: string;
   authorId: string;
-  sessionId?: string | null;
+  sessionId: string | null | undefined;
   postId: string;
   parentCommentId: string | null;
   signal?: AbortSignal;
