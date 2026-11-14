@@ -23,9 +23,10 @@
 
 ## Run it yourself
 
-> **Implementation status** — P06 includes setup, password and social sign-in,
+> **Implementation status** — P07 includes setup, password and social sign-in,
 > recovery, comments, voting, administration and PostgreSQL-backed attachments.
-> AI, search and release packaging are scheduled for later milestones.
+> P07 adds OpenRouter transport and usage accounting. User-facing AI features,
+> search and release packaging are scheduled for later milestones.
 > This branch is a development milestone. Use only a new disposable database.
 > See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
 
@@ -73,15 +74,9 @@ a lightweight popover form. Style the button or bring your own.
 
 ## AI insights
 
-One click turns your whole board into a short, ranked list of underlying needs
-— scored by reach, momentum, severity, and effort. Or just ask: a built-in chat
-answers questions about your feedback.
-
-This part is **optional and strongly recommended**. It works with a hosted
-model for cents a month, or with a local model through
-[Ollama](https://ollama.com) — free, open source, and nothing leaves your
-machine. Your key stays on your server; we never see it, and nothing in
-Feedbackland phones home. [How it works →](SELFHOSTING.md#turn-on-ai)
+Insights and Ask AI are planned for later milestones. P07 adds the server-side
+OpenRouter client, privacy settings and request accounting that those features
+will use. The board runs without an API key. [AI configuration](SELFHOSTING.md#ai-configuration-in-this-development-milestone)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="screenshots/insights_dark_mode.png">
