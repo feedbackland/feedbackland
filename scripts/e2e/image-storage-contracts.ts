@@ -226,7 +226,7 @@ async function contracts() {
       description: "removed",
       expectedRevision: "9999",
     }),
-    /CONFLICT/,
+    { code: "CONFLICT", message: "CONTENT_CHANGED" },
   );
   assert.equal(
     (
