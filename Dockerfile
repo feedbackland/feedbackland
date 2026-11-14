@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1
-FROM node:24-trixie-slim@sha256:7f486cabe892bff8fef04c0f7da8dba84a560be3e4e2740b7a86afc57ebec315 AS build
+FROM node:24-trixie-slim@sha256:7f486cabe892bff8fef04c0f7da8dba84a560be3e4e2740b7a86afc57ebec315 AS dependencies
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json .npmrc ./
 COPY feedbackland-react/package.json ./feedbackland-react/package.json
 RUN npm ci --no-audit --no-fund
+
+FROM dependencies AS build
 COPY . .
 ARG SOURCE_COMMIT
 RUN mkdir -p public

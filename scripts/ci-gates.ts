@@ -13,8 +13,9 @@ export async function staticFoundations() {
   const dockerfile = await readFile("Dockerfile", "utf8");
   assert.match(
     dockerfile,
-    /FROM node:24-trixie-slim@sha256:[a-f0-9]{64} AS build/,
+    /FROM node:24-trixie-slim@sha256:[a-f0-9]{64} AS dependencies/,
   );
+  assert.match(dockerfile, /FROM dependencies AS build/);
   assert.match(dockerfile, /ENV NEXT_TELEMETRY_DISABLED=1/);
   assert.match(dockerfile, /RUN --network=none npm run build/);
   assert.match(dockerfile, /USER node/);
@@ -24,6 +25,27 @@ export async function staticFoundations() {
   const pkg = JSON.parse(await readFile("package.json", "utf8"));
   assert.equal(pkg.engines.node, ">=24 <25");
   assert.equal(pkg.license, "MIT");
+  const dependencyLock = JSON.parse(
+    await readFile("package-lock.json", "utf8"),
+  ).packages;
+  for (const [name, version] of Object.entries({
+    ai: "7.0.99",
+    "@ai-sdk/openai-compatible": "3.0.48",
+    "js-tiktoken": "1.0.21",
+  })) {
+    assert.equal(pkg.dependencies[name], version);
+    assert.equal(dependencyLock["node_modules/" + name].version, version);
+  }
+  assert.deepEqual(
+    Object.keys(dependencyLock).filter((path) =>
+      path.endsWith("node_modules/@ai-sdk/provider"),
+    ),
+    ["node_modules/@ai-sdk/provider"],
+  );
+  assert.equal(
+    dependencyLock["node_modules/@ai-sdk/provider"].version,
+    "4.0.14",
+  );
   const identity = JSON.parse(
     await readFile("lib/build-identity.json", "utf8"),
   );

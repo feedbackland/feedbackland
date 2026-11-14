@@ -542,12 +542,12 @@ take a dump before any destructive test. **Next:** P07.
 errors,usage,input-budgets,model-profiles}.ts`, secret box, budget functions,
 `ai_health` access and mock OpenRouter fixture. Extend the seed-only store.
 
-- [ ] Add exact transport/tokenizer pins, one fixed endpoint/manual redirects,
+- [x] Add exact transport/tokenizer pins, one fixed endpoint/manual redirects,
       provider objects/privacy handling, response bounds, mapped errors and
       process admission before image-byte loading. No feature bypasses this layer.
-- [ ] Implement configuration revision/full-key token, per-capability dispatch
+- [x] Implement configuration revision/full-key token, per-capability dispatch
       sequence, async CAS and effective-environment divergence handling.
-- [ ] Implement UTC admission/reservations/diagnostic and metadata allowances,
+- [x] Implement UTC admission/reservations/diagnostic and metadata allowances,
       all retries/output/input budgets and explicit uncosted usage.
 
 **Exit:** real store/budget/transport tests under V12/V20/V21; reflected private

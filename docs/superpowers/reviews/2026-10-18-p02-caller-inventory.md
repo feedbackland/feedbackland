@@ -4,7 +4,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 
 | Module | Importers |
 |---|---|
-| `queries/check-rate-limit.ts` | `lib/auth/handoff-store.ts`, `lib/auth/server.ts`, `lib/rate-limit.ts`, `lib/recovery.ts`, `lib/setup.ts` |
+| `queries/check-rate-limit.ts` | `lib/auth/handoff-store.ts`, `lib/auth/server.ts`, `lib/llm/usage.ts`, `lib/rate-limit.ts`, `lib/recovery.ts`, `lib/setup.ts` |
 | `queries/create-admin-invite.ts` | `trpc/create-admin-invite.ts` |
 | `queries/create-comment.ts` | `trpc/create-comment.ts` |
 | `queries/create-feedback-post.ts` | `app/api/feedback/create/route.ts`, `trpc/create-feedback-post.ts` |

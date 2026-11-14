@@ -33,6 +33,39 @@ export async function consumeRateLimit(
   return { allowed: count <= limit };
 }
 
+// Only allowed requests increment these counters. Use the database clock on
+// every replica, including when the PostgreSQL session time zone is non-UTC.
+export async function consumeAiBudget(
+  cap: number,
+  n = 1,
+  connection = db,
+  diagnostic = false,
+) {
+  if (
+    !Number.isInteger(cap) ||
+    cap < 1 ||
+    cap > 1_000_000 ||
+    !Number.isInteger(n) ||
+    n < 1 ||
+    n > cap
+  )
+    return null;
+  const prefix = diagnostic
+    ? "ai:instance:day:diagnostic:"
+    : "ai:instance:day:";
+  const result = await sql<{ day: string }>`
+    with instant as (select clock_timestamp() as at),
+    attempt as (insert into rate_limit(key,count,"windowStart")
+      select ${prefix}::text || to_char(at at time zone 'UTC','YYYY-MM-DD'), ${n}::integer, at from instant
+      on conflict(key) do update set count=rate_limit.count+excluded.count
+        where rate_limit.count+excluded.count<=${cap}
+      returning "windowStart")
+    select to_char("windowStart" at time zone 'UTC','YYYY-MM-DD') as day from attempt`.execute(
+    connection,
+  );
+  return result.rows[0]?.day ?? null;
+}
+
 export async function checkRateLimit({
   failClosed = false,
   ...check

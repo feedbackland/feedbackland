@@ -17,7 +17,13 @@ import { discoverVector } from "../../db/vector";
 import { getConfig, neutraliseAuthEnv, validateCode } from "../config";
 import { runtimeState } from "../runtime-state";
 import { log, sqlstate } from "../log";
-import { ensureAiSettingsRow } from "../llm/settings-store";
+import {
+  ensureAiSettingsRow,
+  synchronizeAiEnvironment,
+  renewConfigurationLease,
+  replicaId,
+  startConfigurationLease,
+} from "../llm/settings-store";
 import identity from "../build-identity.json";
 import { BootError } from "./errors";
 
@@ -256,6 +262,8 @@ async function seed(trx: Transaction<DB>) {
       .set({ authSecret })
       .where("id", "=", 1)
       .execute();
+  const aiAligned = await synchronizeAiEnvironment(trx, authSecret);
+  if (aiAligned) await renewConfigurationLease(trx, replicaId());
   const setupComplete = settings.setupCompletedAt !== null;
   const injected = setupComplete
     ? undefined
@@ -277,6 +285,7 @@ async function seed(trx: Transaction<DB>) {
   );
   return {
     authSecret,
+    aiAligned,
     setupComplete,
     generatedSetupCode: setupCodeGenerated ? setupCode : null,
   };
@@ -384,7 +393,10 @@ export function boot() {
           : "enabled",
       count: config.maxImageBytes,
     });
-    log("boot.ai-environment-ignored", { name: "OPENROUTER_API_KEY" });
+    startConfigurationLease();
+    log("boot.ai-foundations", {
+      stage: result.aiAligned ? "ready" : "CONFIGURATION_DIVERGED",
+    });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.
     if (result.generatedSetupCode)

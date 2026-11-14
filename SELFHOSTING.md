@@ -2,12 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P06 provides transactional boot, one-time setup,
+> **Implementation status:** P07 includes transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
 > recovery are available. Posts, comments and logos can include images stored in PostgreSQL.
-> AI, search, automated backups and one-click release packaging are later milestones.
+> The OpenRouter client and accounting are available internally. User-facing AI,
+> search, automated backups and one-click release packaging are later milestones.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
@@ -109,7 +110,7 @@ npm run typecheck
 npm run build
 docker build --tag feedbackland:ci .
 npx playwright install --with-deps chromium firefox webkit
-npm run verify -- --phase 5 --image feedbackland:ci --artifacts artifacts/self-hosting
+npm run verify -- --phase 6a --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
 Run the full browser matrix on Linux; CI uses Ubuntu 24.04. The Windows
@@ -272,104 +273,25 @@ If the target already provides pgvector in a different schema, have the extensio
 
 ---
 
-## Turn on AI
+## AI configuration in this development milestone
 
-Feedbackland works completely without this. Posting, commenting, voting,
-searching, the widget — all of it runs with nothing configured, and it always
-will.
+P07 adds the server-side OpenRouter client, configuration store and usage accounting. Public posting, editing and the widget continue to work without a key. Moderation, generated titles, semantic search, insights, Ask AI and the admin controls are scheduled in later milestones.
 
-But AI is where this stops being a list of feedback and starts telling you
-things. With a model configured you get:
+| Environment setting | Default | Effect |
+| --- | --- | --- |
+| `OPENROUTER_API_KEY` | Unset | Credential for requests to OpenRouter. Keep it in your server environment. |
+| `OPENROUTER_MODEL` | `google/gemini-3.8-flash` | Chat model ID. |
+| `OPENROUTER_EMBEDDING_MODEL` | `openai/text-embedding-3-small` | The small and large OpenAI text-embedding-3 models have tokenizer profiles. `none` disables embedding calls. |
+| `OPENROUTER_PRIVACY` | `deny` | `deny` requests providers that decline data collection. `zdr` also requires zero data retention. `allow` permits collection. |
+| `AI_TIMEOUT_MS` | `15000` | Request timeout in milliseconds, from 1,000 through 120,000. |
+| `AI_DAILY_CALL_LIMIT` | `5000` | Ordinary model requests per UTC day, from 10 through 1,000,000. Moderation can use the full limit. Other calls share the first 80%. |
+| `AI_EMBEDDING_DIMENSIONS` | `768` | Physical vector width selected at database creation. |
 
-- **Insights** — your whole board condensed into a ranked list of what people
-  actually need, scored by how many asked and how badly.
-- **Ask AI** — "what are people saying about pricing?", answered from your
-  feedback.
-- **Better search** — finds "can't log in" when someone wrote "authentication
-  broken".
-- **Automatic titles and categories** on every post.
+Use identical AI settings on every replica. To change environment overrides, stop all replicas, allow the previous configuration leases to expire (20 seconds), then restart with the new values. A replica that detects a configuration mismatch suspends AI requests. Environment settings override their stored fields. An explicit administrative off setting takes precedence over an environment key.
 
-It is genuinely optional and honestly recommended — it's the difference between
-a feedback board and knowing what to build next.
+Embedding inputs preserve a Unicode prefix of up to 8,000 tokens. An uninterrupted tokenizer segment longer than 1,024 bytes truncates the input at that segment, which bounds processing time for long identifiers or encoded text.
 
-### First, the part that matters
-
-You're about to be asked to paste a key and to send your users' feedback
-somewhere. Here's exactly where you stand:
-
-- **The key stays on your server.** It's only ever used in server-side code,
-  never sent to a browser, and never written to logs.
-- **We never see any of it.** There is no Feedbackland server involved in your
-  installation. Requests go from your machine directly to whichever provider
-  you pick. We couldn't see your key or your feedback if we wanted to.
-- **Nothing phones home.** Feedbackland contains no analytics, no telemetry, no
-  error reporting. You can search the source for it.
-- **It's your account.** Your key, your spending limit, your usage dashboard.
-  Revoke it whenever you like.
-- **Turning it off costs you nothing.** Remove the setting and the AI features
-  disappear. Every post, comment and vote stays exactly where it was.
-
-**What actually gets sent, if you turn it on:**
-
-| Feature               | What leaves your server                           |
-| --------------------- | ------------------------------------------------- |
-| Moderation            | the post or comment, and its images               |
-| Titles and categories | the post text                                     |
-| Search                | your posts (to index them) and your search terms  |
-| Insights              | every post on the board                           |
-| Ask AI                | your posts, plus your question                    |
-| Improve draft         | the draft, only when the author clicks the button |
-
-With nothing configured, none of these requests happen at all.
-
-### Pick how you want to run it
-
-**Option 1 — a model on your own machine. Free, and nothing leaves it.**
-
-Install [Ollama](https://ollama.com), pull a model, and point Feedbackland at
-it:
-
-```
-LLM_BASE_URL=http://host.docker.internal:11434/v1
-LLM_MODEL=llama3.1
-```
-
-No account, no key, no data leaving your network. It's open source, it's free,
-and it's the right answer if your feedback is sensitive. The trade-off is
-honest: you need a reasonably capable machine, and a small local model won't
-match a large hosted one.
-
-**Option 2 — a hosted key. Cents a month, best results.**
-
-Create a key at [OpenRouter](https://openrouter.ai) — or any OpenAI-compatible
-provider — and set:
-
-```
-OPENROUTER_API_KEY=sk-or-v1-...
-```
-
-Set a spending limit on the provider's side while you're there. For a board
-getting a few posts a day this costs small change.
-
-**Option 3 — free hosted models. Read this bit first.**
-
-Some providers offer models at no cost, and they're a reasonable way to try
-this out. Two things to know before you rely on them:
-
-- They're **heavily rate-limited** — OpenRouter allows roughly 50 requests a
-  day until you've bought $10 of credit, and a single post uses three.
-- On some free endpoints, **your prompts are the payment**: the text you send
-  may be used to train models. For feedback your users wrote in confidence,
-  that may not be a trade you want to make.
-
-If privacy matters more than convenience, Option 1 is free too — and nothing
-leaves your server.
-
-> [!TIP]
-> Already have posts from before you turned AI on? They won't appear in
-> semantic search until they're indexed. Run
-> `docker compose exec app node scripts/backfill-embeddings.mjs` once, and
-> they will.
+Each attempted model request, including an allowed retry, consumes an allowance. An explicit administrator **Test again** may use up to 40 additional requests per UTC day across the instance. Usage records distinguish a reported zero price from a missing price. OpenRouter key spend limits control the monetary amount.
 
 ---
 
@@ -515,7 +437,7 @@ own Postgres. Two things it needs:
 
 Everything here is optional — your board already works without any of it —
 and each is covered in the sections that follow this guide as they land.
-[Turning on AI](#turn-on-ai) is written up above.
+The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P07.
 
 - **Add the widget** — drop a feedback button into your own app.
 - **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.

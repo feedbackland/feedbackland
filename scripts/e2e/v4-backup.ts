@@ -47,7 +47,7 @@ export async function phaseFive(
   directory: string,
   check: Check,
 ) {
-  assert.match(runId, /^p06-\d+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[67]-\d+-[a-f0-9]+$/);
   const project = runId + "-images",
     database = project + "-db";
   const docker = (...args: string[]) =>

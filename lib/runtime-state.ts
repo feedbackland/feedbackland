@@ -10,6 +10,15 @@ export type VectorMetadata = {
   kind: "vector" | "halfvec";
 };
 export type RuntimeState = {
+  aiConfigGeneration?: number;
+  aiConfig?: {
+    value: import("./llm/settings-store").Configuration;
+    until: number;
+  };
+  aiReplicaId?: string;
+  aiLeaseTimer?: ReturnType<typeof setTimeout>;
+  unreadableAiKey?: string;
+  aiWork?: { model: number; vision: number; metadata: number };
   pool?: Pool;
   maintenancePool?: Pool;
   db?: Kysely<DB>;
