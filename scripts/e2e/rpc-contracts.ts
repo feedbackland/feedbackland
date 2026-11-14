@@ -267,7 +267,7 @@ export async function rpcContracts(actor: Actor) {
   );
   await assert.rejects(
     createFeedbackPostQuery({ description: '<img src="x">', authorId: null }),
-    /Text-only/,
+    /Content is empty/,
   );
 
   // An unexpected error with the same message must retain its 500 contract.

@@ -1,4 +1,5 @@
 import "server-only";
+import { sweepImages } from "./images/store";
 import { sql } from "kysely";
 import { db } from "../db/db";
 import { locks } from "../db/locks";
@@ -77,9 +78,24 @@ export async function sweep(hourly = true) {
         trx,
       );
     });
-    if (hourly) await sweepHealth();
   } catch (error) {
     log("housekeeping.expiry-failed", { sqlstate: sqlstate(error) }, "warn");
+  }
+  if (hourly) {
+    for (const [name, task] of [
+      ["images", sweepImages],
+      ["ai_health", sweepHealth],
+    ] as const) {
+      try {
+        await task();
+      } catch (error) {
+        log(
+          "housekeeping.sweep-failed",
+          { name, sqlstate: sqlstate(error) },
+          "warn",
+        );
+      }
+    }
   }
 }
 export function startHousekeeping() {

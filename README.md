@@ -23,9 +23,9 @@
 
 ## Run it yourself
 
-> **Implementation status:** P04 adds one-time setup, email sign-in, comments,
-> voting and session-scoped administration. Social sign-in/recovery, uploads, AI,
-> exact/semantic search and remaining release gates are later milestones.
+> **Implementation status** — P06 includes setup, password and social sign-in,
+> recovery, comments, voting, administration and PostgreSQL-backed attachments.
+> AI, search and release packaging are scheduled for later milestones.
 > This branch is a development milestone. Use only a new disposable database.
 > See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
 

@@ -2,12 +2,12 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P05 provides transactional boot, one-time setup,
+> **Implementation status:** P06 provides transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
-> recovery are available. Uploads, AI and search remain unavailable. The one-click, backup and product
-> instructions below describe later milestones. No stable image is published.
+> recovery are available. Posts, comments and logos can include images stored in PostgreSQL.
+> AI, search, automated backups and one-click release packaging are later milestones.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
@@ -94,7 +94,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P05 contributor verification (development only)**
+**P06 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -109,7 +109,7 @@ npm run typecheck
 npm run build
 docker build --tag feedbackland:ci .
 npx playwright install --with-deps chromium firefox webkit
-npm run verify -- --phase 4 --image feedbackland:ci --artifacts artifacts/self-hosting
+npm run verify -- --phase 5 --image feedbackland:ci --artifacts artifacts/self-hosting
 ```
 
 Run the full browser matrix on Linux; CI uses Ubuntu 24.04. The Windows
@@ -125,14 +125,14 @@ restart persistence, rollback/retry, simultaneous boots, schema/revisions,
 serialized admin query invariants, TLS and source/import boundaries. Its PG15/18,
 vector/halfvec, extension-schema and transaction-pooler fixtures are pinned.
 The injected-secret logging check includes removing the injection on restart.
-The cumulative phase-4 run also checks real setup, email flows in Chromium,
+The cumulative phase-5 run also checks real setup, email flows in Chromium,
 Firefox and WebKit, cookie/bearer isolation, avatar preservation, immutable
 session scope, absolute admin age, final-write revalidation, invite consumption,
 CSRF, failed-password throttles and rollback compensation. HTTPS mock OIDC,
 COOP and Helmet fixtures exercise real popup callbacks and polling in all three
 engines; Mailpit checks actual reset delivery. Two replicas exercise discovery
-retry/cancellation, and PostgreSQL faults exercise interrupted recovery. Image,
-AI and search gates are not counted as passed. Real Google/Microsoft and Safari
+retry/cancellation, and PostgreSQL faults exercise interrupted recovery. Phase 5 also exercises attachment uploads, quotas across two replicas,
+image lifetimes and recovery into two fresh databases. Real Google/Microsoft and Safari
 device checks remain release work.
 
 The separate development smoke check also owns its database and chooses free
@@ -195,37 +195,80 @@ docker compose pull       # fetch the latest version
 
 ---
 
-## Backups
+## Images and storage
 
-Your data lives in the `db` Docker volume.
+Anyone who can post on a configured board can upload an image. Attach a file,
+paste an image, or drop it into the editor. The editor accepts source files up
+to 25 MB, resizes photos to a longest edge of 2,000 pixels, and shows an upload
+indicator until the attachment is ready. GIFs retain their animation. Browser
+re-encoding generally removes photo metadata. Direct uploads and untouched GIFs
+can retain EXIF, including location. Remove sensitive metadata before sharing.
 
-**Back up:**
+The server accepts static PNG, JPEG and WebP, and GIFs with at most 100 frames,
+60 seconds of declared animation and 40 million canvas pixels across frames.
+Every image must fit within 10,000 pixels per side and 40 million pixels. These
+are container checks. The server stores and serves the accepted bytes.
 
-```bash
-docker compose exec -T db pg_dump -U postgres feedbackland > backup.sql
+| Environment variable | Bytes | What it limits |
+| --- | ---: | --- |
+| `MAX_IMAGE_BYTES` | 4,000,000 by default | Encoded file. Set between 1 and 4,000,000. |
+| `MAX_PENDING_IMAGE_BYTES` | 200,000,000 by default | Combined bytes in unattached uploads. Zero prevents new uploads. |
+| `MAX_IMAGE_STORAGE_BYTES` | Unlimited by default | Combined stored attachment bytes. Allow additional database space for other data, indexes and backups. |
+
+Apply the same limits to every replica. Admin → System shows current total and
+unattached bytes. Reclaiming requires a preview and confirmation in a fresh
+first-party administrator session. Unsubmitted drafts can lose reclaimed
+attachments. Hourly cleanup removes unattached uploads older than 24 hours.
+Removing an image during an edit can delete it immediately if the pending limit
+is full. Deleting a post or comment removes attachments that lose their last
+reference. Shared images and the current logo survive. An already cached public
+image can remain visible for up to one day.
+
+## Backups and private restore
+
+The database contains accounts, posts, comments, logo and attachment bytes.
+Keep the archive private. Store a separate protected copy of your configuration,
+including any injected `BETTER_AUTH_SECRET`, provider credentials and mail
+settings. Keep both copies outside the database volume.
+
+Use the backup helper from this checkout in a POSIX shell. Give it the exact title shown on the board and an existing private destination on the host. It makes a new directory per run, checks the source board, reads back the full custom-format archive and records its SHA-256. A failed run leaves earlier backups available.
+
+For the bundled database, use the same Compose project, directory and Compose files that started the board. The helper reads the running app's database coordinates and selects that project's database service. Substitute your own project and title below.
+
+```sh
+project=feedbackland-p04-demo
+archive=$(sh scripts/backup-board.sh compose "$project" 'My feedback board' "$HOME/private-backups") || exit 1
+cat "$archive/source.json"
 ```
 
-**Restore** (into an empty database):
+For an external database or a custom connection, configure a private libpq service in `pg_service.conf` with the host, port, database, role and TLS settings from the app's effective `DATABASE_URL`. Supply the password through a protected passfile. Use compatible PostgreSQL client tools on the host. Verify the endpoint and database independently against the running deployment, especially when cloned boards share a title.
 
-```bash
-docker compose exec -T db psql -U postgres -d feedbackland < backup.sql
+```sh
+archive=$(sh scripts/backup-board.sh service feedbackland-source 'My feedback board' "$HOME/private-backups") || exit 1
+cat "$archive/source.json"
 ```
 
-That single file contains everything — posts, comments, accounts and uploaded
-images. Restoring it anywhere gives you your board back, whole, which is also
-how you move between any of the options on this page.
+Check the database, board title, setup timestamp and vector schema in that inventory before accepting the archive. The backup contains PostgreSQL's consistent snapshot at dump time. For a **planned cutover**, put the source in maintenance, drain requests and stop every writer, including app replicas, background jobs and other database clients. Take the final dump through the verified libpq service while the apps are stopped. Keep writers stopped until the destination is verified and traffic has switched. Record source table counts, image IDs and SHA-256 hashes, image references and the logo during that same quiet interval. Keep the source database for rollback.
 
-> [!IMPORTANT]
-> The `-T` matters. Without it Docker attaches a terminal to the command, which
-> rewrites line endings on the way out and leaves you with a backup that looks
-> fine and will not restore.
+For **incident recovery**, record which archive and recovery time you selected. Changes after that snapshot require separate recovery. Use a fresh target and the inventory from that recovery point. Verify the archive checksum after copying it and before restoring.
 
-> [!WARNING]
-> `docker compose down -v` deletes the volume, and with it all your data. Take
-> a backup first.
+```sh
+(cd "$archive" && sha256sum -c sha256.txt) || exit 1
+```
 
-If you deployed online, the platform takes care of database backups for you —
-but it's worth keeping your own copy too.
+On macOS use `shasum -a 256 -c sha256.txt`. Restore into a new private database on the intended cluster, using compatible PostgreSQL and pgvector versions and a restore client at least as new as the dump client. For the bundled service on the selected project, this example assumes the source vector schema is `public` and the target database name is unused.
+
+```sh
+(
+  set -eu
+  docker compose -p "$project" exec -T db createdb -U postgres feedbackland_restore
+  docker compose -p "$project" exec -T db pg_restore -U postgres -d feedbackland_restore --no-owner --no-privileges --no-comments --single-transaction --exit-on-error < "$archive/feedbackland.dump"
+)
+```
+
+For an external target, create a new empty database and a separate protected libpq service pointing to it. Verify its endpoint and database, then run `pg_restore --dbname='service=feedbackland-restore' --no-owner --no-privileges --no-comments --single-transaction --exit-on-error < "$archive/feedbackland.dump"`.
+
+If the target already provides pgvector in a different schema, have the extension owner move it to the recorded source schema before running the restore. If you created that schema on the target, use the archive inventory with `pg_restore --use-list` and omit only that schema's already-created entry. Stop if relocation is unavailable. Compare counts, hashes, references and the logo before starting the app or housekeeping. Set the restored app's `DATABASE_URL` to the new database, restore the original secrets and start it privately. Verify an existing account can sign in and that its attachments render before switching traffic.
 
 ---
 

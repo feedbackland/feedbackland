@@ -8,6 +8,7 @@ export const updateSettings = adminProcedure
       expectedRevision: z.string().regex(/^[1-9][0-9]*$/),
       platformTitle: z.string().trim().min(1).max(300).optional(),
       platformDescription: z.string().max(10000).nullable().optional(),
+      logoImageId: z.uuid().nullable().optional(),
       allowIndexing: z.boolean().optional(),
     }),
   )

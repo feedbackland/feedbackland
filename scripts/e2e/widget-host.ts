@@ -8,6 +8,7 @@ import { build } from "vite";
 /** Bundle the real workspace widget once; serve only those fixture assets. */
 export async function createAuthWidgetHost(
   wrap: (handler: RequestListener) => RequestListener = (handler) => handler,
+  allowedBoard?: string,
 ) {
   const directory = await mkdtemp(join(tmpdir(), "p04-widget-"));
   const assets = new Map<string, Uint8Array>();
@@ -63,6 +64,7 @@ export async function createAuthWidgetHost(
       const url = new URL(request.url!, "http://fixture.invalid");
       if (
         url.pathname === "/" &&
+        url.searchParams.get("board") !== allowedBoard &&
         !/^https?:\/\/localhost:[0-9]+$/.test(
           url.searchParams.get("board") ?? "",
         )

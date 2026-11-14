@@ -66,6 +66,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-settings.ts` | `trpc/index.ts` |
 | `trpc/get-user-session.ts` | `trpc/index.ts` |
 | `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `providers/trpc-client.tsx` |
+| `trpc/reclaim-pending-images.ts` | `trpc/index.ts` |
 | `trpc/redeem-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/retry-oidc-discovery.ts` | `trpc/index.ts` |
 | `trpc/rewrite-feedback.ts` | `trpc/index.ts` |

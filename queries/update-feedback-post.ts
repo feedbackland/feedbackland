@@ -1,6 +1,7 @@
 import "server-only";
 import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
+import { replaceImageRefs, validateImages } from "@/lib/images/store";
 import { db } from "@/db/db";
 import { lock, locks } from "@/db/locks";
 import { authorizeContentWrite, type Actor } from "@/lib/auth/authorization";
@@ -15,9 +16,11 @@ export async function updateFeedbackPostQuery(
   },
 ) {
   const text = feedbackPostHtmlContent(input.description);
+  await validateImages(db, text.imageIds);
   return db.transaction().execute(async (trx) => {
     await lock(trx, locks.membership);
     const admin = await authorizeContentWrite(trx, input);
+    await lock(trx, locks.images);
     const row = await trx
       .selectFrom("feedback")
       .select("authorId")
@@ -43,6 +46,7 @@ export async function updateFeedbackPostQuery(
       .returningAll()
       .executeTakeFirst();
     if (!result) throw new DomainError("CONFLICT", "CONFLICT");
+    await replaceImageRefs(trx, { postId: result.id }, text.imageIds);
     return result;
   });
 }

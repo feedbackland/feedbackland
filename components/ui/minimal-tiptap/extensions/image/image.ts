@@ -7,11 +7,16 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageViewBlock } from "./components/image-view-block";
 import {
   filterFiles,
-  randomId,
   type FileError,
   type FileValidationOptions,
 } from "../../utils";
-import { ReplaceStep } from "@tiptap/pm/transform";
+import { closeHistory } from "@tiptap/pm/history";
+import { Plugin } from "@tiptap/pm/state";
+import {
+  prepareImageUpload,
+  reconcileUploads,
+  removeAbandonedUploads,
+} from "../../upload";
 import type { Attrs } from "@tiptap/pm/model";
 
 type ImageAction = "download" | "copyImage" | "copyLink";
@@ -25,16 +30,7 @@ interface ImageActionProps extends DownloadImageCommandProps {
   action: ImageAction;
 }
 
-export type UploadReturnType =
-  | string
-  | {
-      id: string | number;
-      src: string;
-    };
-
-interface CustomImageOptions
-  extends ImageOptions, Omit<FileValidationOptions, "allowBase64"> {
-  uploadFn?: (file: File, editor: Editor) => Promise<UploadReturnType>;
+interface CustomImageOptions extends ImageOptions, FileValidationOptions {
   onImageRemoved?: (props: Attrs) => void;
   onActionSuccess?: (props: ImageActionProps) => void;
   onActionError?: (error: Error, props: ImageActionProps) => void;
@@ -51,15 +47,24 @@ interface CustomImageOptions
     options: CustomImageOptions,
   ) => Promise<void>;
   onValidationError?: (errors: FileError[]) => void;
-  onToggle?: (editor: Editor, files: File[], pos: number) => void;
+  maxImageBytes: number;
+}
+
+// Extension storage belongs to Tiptap and persists for the life of the editor.
+export function setImageUploadLimit(editor: Editor, maxImageBytes: number) {
+  editor.storage.image.maxImageBytes = maxImageBytes;
+}
+
+declare module "@tiptap/core" {
+  interface Storage {
+    image: { maxImageBytes: number };
+  }
 }
 
 declare module "@tiptap/react" {
   interface Commands<ReturnType> {
     setImages: {
-      setImages: (
-        attrs: { src: string | File; alt?: string; title?: string }[],
-      ) => ReturnType;
+      setImages: (files: File[], pos?: number) => ReturnType;
     };
     downloadImage: {
       downloadImage: (attrs: DownloadImageCommandProps) => ReturnType;
@@ -86,20 +91,7 @@ const handleError = (
   errorHandler?.(typedError, props);
 };
 
-const handleDataUrl = (src: string): { blob: Blob; extension: string } => {
-  const [header, base64Data] = src.split(",");
-  const mimeType = header.split(":")[1].split(";")[0];
-  const extension = mimeType.split("/")[1];
-  const byteCharacters = atob(base64Data);
-  const byteArray = new Uint8Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteArray[i] = byteCharacters.charCodeAt(i);
-  }
-  const blob = new Blob([byteArray], { type: mimeType });
-  return { blob, extension };
-};
-
-const handleImageUrl = async (
+const fetchImageBlob = async (
   src: string,
 ): Promise<{ blob: Blob; extension: string }> => {
   const response = await fetch(src);
@@ -107,12 +99,6 @@ const handleImageUrl = async (
   const blob = await response.blob();
   const extension = blob.type.split(/\/|\+/)[1];
   return { blob, extension };
-};
-
-const fetchImageBlob = async (
-  src: string,
-): Promise<{ blob: Blob; extension: string }> => {
-  return src.startsWith("data:") ? handleDataUrl(src) : handleImageUrl(src);
 };
 
 const saveImage = async (
@@ -152,10 +138,8 @@ const copyImage = async (
 ): Promise<void> => {
   const { src } = props;
   try {
-    const res = await fetch(src);
-    const blob = await res.blob();
-    if (!(await copyImageBlob(blob)))
-      throw new Error("Image copying requires a secure context");
+    if (!(await copyImageBlob(async () => (await fetchImageBlob(src)).blob)))
+      throw new Error("Image copying is unavailable in this browser.");
     options.onActionSuccess?.({ ...props, action: "copyImage" });
   } catch (error) {
     handleError(
@@ -184,7 +168,10 @@ const copyLink = async (
   }
 };
 
-export const Image = TiptapImage.extend<CustomImageOptions>({
+export const Image = TiptapImage.extend<
+  CustomImageOptions,
+  { maxImageBytes: number }
+>({
   atom: true,
 
   addOptions() {
@@ -192,12 +179,16 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
       ...this.parent?.(),
       allowedMimeTypes: [],
       maxFileSize: 0,
-      uploadFn: undefined,
-      onToggle: undefined,
+      maxImageBytes: 0,
+
       downloadImage: undefined,
       copyImage: undefined,
       copyLink: undefined,
     } as CustomImageOptions;
+  },
+
+  addStorage() {
+    return { maxImageBytes: this.options.maxImageBytes };
   },
 
   addAttributes() {
@@ -220,6 +211,7 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
       height: {
         default: null,
       },
+      uploadError: { default: null, rendered: false },
       fileName: {
         default: null,
       },
@@ -229,54 +221,27 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
   addCommands() {
     return {
       setImages:
-        (attrs) =>
-        ({ commands }) => {
-          const [validImages, errors] = filterFiles(attrs, {
-            allowedMimeTypes: this.options.allowedMimeTypes,
-            maxFileSize: this.options.maxFileSize,
-            allowBase64: this.options.allowBase64,
-          });
-
-          if (errors.length > 0 && this.options.onValidationError) {
-            this.options.onValidationError(errors);
-          }
-
-          if (validImages.length > 0) {
-            return commands.insertContent(
-              validImages.map((image) => {
-                if (image.src instanceof File) {
-                  const blobUrl = URL.createObjectURL(image.src);
-                  const id = randomId();
-
-                  return {
-                    type: this.type.name,
-                    attrs: {
-                      id,
-                      src: blobUrl,
-                      alt: image.alt,
-                      title: image.title,
-                      fileName: image.src.name,
-                    },
-                  };
-                } else {
-                  return {
-                    type: this.type.name,
-                    attrs: {
-                      id: randomId(),
-                      src: image.src,
-                      alt: image.alt,
-                      title: image.title,
-                      fileName: null,
-                    },
-                  };
-                }
-              }),
-            );
-          }
-
-          return false;
+        (files, pos) =>
+        ({ editor, tr, commands, dispatch }) => {
+          const [valid, errors] = filterFiles(files, this.options);
+          if (dispatch && errors.length)
+            this.options.onValidationError?.(errors);
+          if (!valid.length || !dispatch) return valid.length > 0;
+          closeHistory(tr);
+          return commands.insertContentAt(
+            pos ?? { from: tr.selection.from, to: tr.selection.to },
+            valid.map((file) => ({
+              type: "image",
+              attrs: {
+                src: prepareImageUpload(
+                  editor,
+                  file,
+                  () => editor.storage.image.maxImageBytes,
+                ),
+              },
+            })),
+          );
         },
-
       downloadImage: (attrs) => () => {
         const downloadFunc = this.options.downloadImage || downloadImage;
         void downloadFunc({ ...attrs, action: "download" }, this.options);
@@ -305,28 +270,7 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
             const files = input.files;
             if (!files) return;
 
-            const [validImages, errors] = filterFiles(Array.from(files), {
-              allowedMimeTypes: this.options.allowedMimeTypes,
-              maxFileSize: this.options.maxFileSize,
-              allowBase64: this.options.allowBase64,
-            });
-
-            if (errors.length > 0 && this.options.onValidationError) {
-              this.options.onValidationError(errors);
-              return false;
-            }
-
-            if (validImages.length === 0) return false;
-
-            if (this.options.onToggle) {
-              this.options.onToggle(
-                editor,
-                validImages,
-                editor.state.selection.from,
-              );
-            }
-
-            return false;
+            editor.commands.setImages(Array.from(files));
           };
 
           input.click();
@@ -335,24 +279,22 @@ export const Image = TiptapImage.extend<CustomImageOptions>({
     };
   },
 
-  onTransaction({ transaction }) {
-    transaction.steps.forEach((step) => {
-      if (step instanceof ReplaceStep && step.slice.size === 0) {
-        const deletedPages = transaction.before.content.cut(step.from, step.to);
-
-        deletedPages.forEach((node) => {
-          if (node.type.name === "image") {
-            const attrs = node.attrs;
-
-            if (attrs.src.startsWith("blob:")) {
-              URL.revokeObjectURL(attrs.src);
-            }
-
-            this.options.onImageRemoved?.(attrs);
-          }
-        });
-      }
-    });
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() ?? []),
+      new Plugin({
+        appendTransaction: (transactions, _old, state) =>
+          transactions.some((tr) => tr.docChanged)
+            ? removeAbandonedUploads(state.tr)
+            : null,
+      }),
+    ];
+  },
+  onTransaction({ editor, transaction }) {
+    if (transaction.docChanged) reconcileUploads(editor);
+  },
+  onDestroy() {
+    reconcileUploads(this.editor, true);
   },
 
   addNodeView() {

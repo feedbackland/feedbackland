@@ -3,7 +3,8 @@
 import { encode } from "he";
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
-import { cn, processImagesInHTML } from "@/lib/utils";
+import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
+import { cn } from "@/lib/utils";
 import { SendIcon, XIcon } from "lucide-react";
 import { useTRPC } from "@/providers/trpc-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -98,14 +99,19 @@ export function CommentForm({
 
         setValue("");
         onSuccess?.();
+        onClose?.();
       },
-      onError: () => {
-        setErrormessage("Something went wrong. Please try again.");
+      onError: (error) => {
+        setErrormessage(
+          error.data?.code === "BAD_REQUEST"
+            ? error.message
+            : "Something went wrong. Please try again.",
+        );
       },
     }),
   );
 
-  const onSubmit = async (session: Session) => {
+  const onSubmit = (session: Session) => {
     if (!value || value.trim().length === 0) {
       setErrormessage("Please enter a comment");
       return;
@@ -116,19 +122,20 @@ export function CommentForm({
       return;
     }
 
-    const content = await processImagesInHTML(value);
+    if (hasPendingUpload(value)) return;
+    const content = value;
 
-    await saveComment.mutateAsync({
+    saveComment.mutate({
       postId,
       parentCommentId,
       content,
     });
-
-    onClose?.();
   };
 
   // Check if text exists beyond the initial mention (if any)
-  const hasText = value?.replace(initialContent, "").trim().length > 0;
+  const hasText =
+    !hasPendingUpload(value) &&
+    value?.replace(initialContent, "").trim().length > 0;
 
   const handleOnClose = () => {
     // Reset to initial state, not just empty

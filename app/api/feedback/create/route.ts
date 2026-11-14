@@ -1,7 +1,12 @@
 import { z } from "zod/v4";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { getClientIp, enforceFeedbackCreateLimit } from "@/lib/rate-limit";
-import { ContentInputError } from "@/lib/utils-server";
+import { DomainError } from "@/lib/domain-error";
+import {
+  BodyError,
+  boundedRequest,
+  discardBody,
+} from "@/lib/http/limited-body";
 import { isSetupComplete } from "@/lib/setup-state";
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -15,15 +20,20 @@ export async function OPTIONS() {
 }
 const schema = z.object({ description: z.string().trim().min(1).max(10000) });
 export async function POST(request: Request) {
-  if (!(await isSetupComplete()))
+  if (!(await isSetupComplete())) {
+    discardBody(request);
     return Response.json(
       { error: "SETUP_REQUIRED" },
       { status: 403, headers: cors },
     );
+  }
   let input: z.infer<typeof schema>;
   try {
-    input = schema.parse(await request.json());
-  } catch {
+    input = schema.parse(
+      await (await boundedRequest(request, 256 * 1024)).json(),
+    );
+  } catch (error) {
+    if (error instanceof BodyError) return error.response(cors);
     return Response.json(
       { error: "INVALID_INPUT" },
       { status: 400, headers: cors },
@@ -49,8 +59,11 @@ export async function POST(request: Request) {
     return Response.json({ id }, { status: 201, headers: cors });
   } catch (error) {
     return Response.json(
-      { error: "CONTENT_UNAVAILABLE" },
-      { status: error instanceof ContentInputError ? 400 : 500, headers: cors },
+      {
+        error:
+          error instanceof DomainError ? error.message : "CONTENT_UNAVAILABLE",
+      },
+      { status: error instanceof DomainError ? 400 : 500, headers: cors },
     );
   }
 }

@@ -1,21 +1,18 @@
 import { getAuth } from "@/lib/auth/server";
 import { credentialHeaders } from "@/lib/auth/headers";
+import { boundedRequest, BodyError } from "@/lib/http/limited-body";
 const handler = async (request: Request) => {
-  // Capture one instance for this entire request. Background discovery may
-  // replace the global instance, but never an in-flight callback's context.
   const auth = getAuth();
-  if (request.headers.get("x-feedbackland-scope") !== "embedded")
+  const headers = credentialHeaders(request.headers);
+  try {
+    if (request.method === "POST")
+      request = await boundedRequest(request, 64 * 1024, headers);
+    else if (request.headers.get("x-feedbackland-scope") === "embedded")
+      request = new Request(request.url, { headers, signal: request.signal });
     return auth.handler(request);
-  // Next wraps Request in a tracking proxy. Passing that proxy to the native
-  // Request copy constructor fails its private-field brand check. Rebuild from
-  // the URL and stream without consuming the body before auth rate admission.
-  const init: RequestInit & { duplex: "half" } = {
-    method: request.method,
-    headers: credentialHeaders(request.headers),
-    body: request.body,
-    signal: request.signal,
-    duplex: "half",
-  };
-  return auth.handler(new Request(request.url, init));
+  } catch (error) {
+    if (error instanceof BodyError) return error.response();
+    throw error;
+  }
 };
 export { handler as GET, handler as POST };

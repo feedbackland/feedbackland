@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { Editor } from "@tiptap/react";
+import { uploadHelp } from "../../upload";
 import { ImageIcon } from "@radix-ui/react-icons";
 import {
   Tooltip,
@@ -22,30 +23,14 @@ export const ImageSelectBlock = ({
   }, []);
 
   const handleFile = React.useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (!files?.length) return;
 
-      const insertImages = async () => {
-        const contentBucket = [];
-        const filesArray = Array.from(files);
+      editor.commands.setImages(Array.from(files));
+      e.target.value = "";
 
-        for (const file of filesArray) {
-          contentBucket.push({ src: file });
-        }
-
-        editor.commands.setImages(contentBucket);
-      };
-
-      await insertImages();
-
-      editor
-        .chain()
-        .focus()
-        .enter() // Add the new paragraph
-        .focus() // Re-focus might be needed
-        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
-        .run();
+      editor.commands.focus();
     },
     [editor],
   );
@@ -55,6 +40,8 @@ export const ImageSelectBlock = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            type="button"
+            aria-label="Attach images"
             variant="ghost"
             size="icon"
             onClick={handleClick}
@@ -65,21 +52,12 @@ export const ImageSelectBlock = ({
             <span className="sr-only">Upload images</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Upload images</TooltipContent>
+        <TooltipContent>{uploadHelp}</TooltipContent>
       </Tooltip>
-
-      {/* <ToolbarButton
-        isActive={editor.isActive("image")}
-        tooltip="Upload images"
-        aria-label="Upload images"
-        onClick={handleClick}
-      >
-        <ImageIcon className="size-3.5!" />
-      </ToolbarButton> */}
 
       <input
         type="file"
-        accept="image/png, image/jpeg, image/jpg"
+        accept="image/*"
         ref={fileInputRef}
         multiple
         className="hidden"

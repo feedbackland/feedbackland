@@ -37,7 +37,10 @@ import { createPasswordResetLink } from "./create-password-reset-link";
 import { retryOidcDiscovery } from "./retry-oidc-discovery";
 import { getAuthStatus } from "./get-auth-status";
 
+import { getImageUsage, reclaimPendingImages } from "./reclaim-pending-images";
 export const appRouter = router({
+  getImageUsage,
+  reclaimPendingImages,
   updateSettings,
   getSettings,
   updateFeedbackPostStatus,

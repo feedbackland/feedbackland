@@ -14,6 +14,7 @@ import MentionList from "@/components/ui/minimal-tiptap/components/mention-list"
 import {
   Link,
   Image,
+  setImageUploadLimit,
   HorizontalRule,
   CodeBlockLowlight,
   Selection,
@@ -23,13 +24,16 @@ import {
   FileHandler,
 } from "../extensions";
 import { cn } from "@/lib/utils";
-import { fileToBase64, getOutput, randomId } from "../utils";
+import { getOutput } from "../utils";
 import { useThrottle } from "../hooks/use-throttle";
 import { toast } from "sonner";
-import { useCallback } from "react";
+import { useCallback, useLayoutEffect } from "react";
+import { MAX_SOURCE_BYTES } from "../upload";
+import { useSettings } from "@/hooks/use-settings";
 import DOMPurify from "dompurify";
 
 export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
+  ariaLabel?: string;
   value?: Content;
   output?: "html" | "json" | "text";
   placeholder?: string;
@@ -40,7 +44,7 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   onCreate?: () => void;
 }
 
-const createExtensions = (placeholder: string) => [
+const createExtensions = (placeholder: string, maxImageBytes: number) => [
   StarterKit.configure({
     // Turned off because this list registers its own version of each below.
     // StarterKit bundles Link and Underline (see its dependencies), so leaving
@@ -79,33 +83,13 @@ const createExtensions = (placeholder: string) => [
   Underline,
   Image.configure({
     allowedMimeTypes: ["image/*"],
-    maxFileSize: 5 * 1024 * 1024,
-    allowBase64: true,
+    maxFileSize: MAX_SOURCE_BYTES,
+    allowBase64: false,
     HTMLAttributes: {
       class: "tiptap-image",
     },
 
-    onToggle(editor, files, pos) {
-      editor.commands.insertContentAt(
-        pos,
-        files.map((image) => {
-          const blobUrl = URL.createObjectURL(image);
-          const id = randomId();
-
-          return {
-            type: "image",
-            attrs: {
-              id,
-              src: blobUrl,
-              alt: image.name,
-              title: image.name,
-              fileName: image.name,
-            },
-          };
-        }),
-      );
-    },
-    // onImageRemoved({ id, src }) {},
+    maxImageBytes,
     onValidationError(errors) {
       errors.forEach((error) => {
         toast.error("Image validation error", {
@@ -138,51 +122,22 @@ const createExtensions = (placeholder: string) => [
     },
   }),
   FileHandler.configure({
-    allowBase64: true,
     allowedMimeTypes: ["image/*"],
-    maxFileSize: 5 * 1024 * 1024,
-    onDrop: async (editor, files, pos) => {
-      const insertionPromises = files.map(async (file) => {
-        const src = await fileToBase64(file);
-        // Insert content at the original drop position for all files
-        editor.commands.insertContentAt(pos, {
-          type: "image",
-          attrs: { src },
-        });
-      });
-
-      await Promise.all(insertionPromises);
-
-      // After all images are inserted, focus, add a new line, and move cursor to the end
+    maxFileSize: MAX_SOURCE_BYTES,
+    onDrop: (editor, files, pos) => editor.commands.setImages(files, pos),
+    onPaste: (editor, files, slice, text) =>
       editor
         .chain()
-        .focus()
-        .enter() // Add the new paragraph
-        .focus() // Re-focus might be needed
-        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
-        .run();
-    },
-    onPaste: async (editor, files) => {
-      const insertionPromises = files.map(async (file) => {
-        const src = await fileToBase64(file);
-        // Insert content at the current cursor position
-        editor.commands.insertContent({
-          type: "image",
-          attrs: { src },
-        });
-      });
-
-      await Promise.all(insertionPromises);
-
-      // After all images are inserted, focus, add a new line, and move cursor to the end
-      editor
-        .chain()
-        .focus()
-        .enter() // Add the new paragraph
-        .focus() // Re-focus might be needed
-        .setTextSelection(editor.state.doc.content.size) // Move cursor to the end
-        .run();
-    },
+        .command(({ tr }) => {
+          // Keep ProseMirror's sanitized clipboard content and its files in one
+          // editor update and one undo event.
+          if (slice.size) tr.replaceSelection(slice);
+          else if (text) tr.insertText(text);
+          tr.setMeta("paste", true).setMeta("uiEvent", "paste");
+          return true;
+        })
+        .setImages(files)
+        .run(),
     onValidationError: (errors) => {
       errors.forEach((error) => {
         toast.error("Image validation error", {
@@ -296,6 +251,7 @@ const createExtensions = (placeholder: string) => [
 
 export const useMinimalTiptapEditor = ({
   value,
+  ariaLabel,
   output = "html",
   placeholder = "",
   editorClassName,
@@ -305,14 +261,18 @@ export const useMinimalTiptapEditor = ({
   onCreate,
   ...props
 }: UseMinimalTiptapEditorProps) => {
+  const { capabilities } = useSettings();
   const throttledSetValue = useThrottle(
     (value: Content) => onUpdate?.(value),
     throttleDelay,
   );
 
   const handleUpdate = useCallback(
-    (editor: Editor) => throttledSetValue(getOutput(editor, output)),
-    [output, throttledSetValue],
+    (editor: Editor) =>
+      throttleDelay
+        ? throttledSetValue(getOutput(editor, output))
+        : onUpdate?.(getOutput(editor, output)),
+    [output, throttledSetValue, throttleDelay, onUpdate],
   );
 
   const handleCreate = useCallback(
@@ -336,14 +296,18 @@ export const useMinimalTiptapEditor = ({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createExtensions(placeholder),
+    extensions: createExtensions(placeholder, capabilities.maxImageBytes),
     editorProps: {
       transformPastedHTML(dirtyHtml) {
         return DOMPurify.sanitize(dirtyHtml, {
+          FORBID_TAGS: ["img", "picture", "source"],
           FORBID_ATTR: ["class", "style"],
         }).trim();
       },
       attributes: {
+        role: "textbox",
+        "aria-multiline": "true",
+        ...(ariaLabel ? { "aria-label": ariaLabel } : {}),
         autocomplete: "off",
         autocorrect: "off",
         autocapitalize: "off",
@@ -356,6 +320,9 @@ export const useMinimalTiptapEditor = ({
     ...props,
   });
 
+  useLayoutEffect(() => {
+    if (editor) setImageUploadLimit(editor, capabilities.maxImageBytes);
+  }, [editor, capabilities.maxImageBytes]);
   return editor;
 };
 

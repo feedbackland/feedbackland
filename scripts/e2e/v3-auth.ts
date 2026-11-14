@@ -949,7 +949,7 @@ export async function phaseThree(
   artifacts: string,
   check: Check,
 ) {
-  assert.match(runId, /^p0[45]-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[456]-[0-9]+-[a-f0-9]+$/);
   const docker = (...args: string[]) =>
     command("docker", args, { timeout: 150_000 });
   const project = runId + "-auth";
@@ -980,8 +980,18 @@ export async function phaseThree(
       "127.0.0.1::5432",
       "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11",
     );
+    // Initialization starts a temporary socket-only server. The app connects over TCP.
     await eventually(
-      () => docker("exec", database, "pg_isready", "-U", "postgres"),
+      () =>
+        docker(
+          "exec",
+          database,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "postgres",
+        ),
       (value) => value.includes("accepting connections"),
     );
     const state = JSON.parse(await docker("inspect", database))[0];

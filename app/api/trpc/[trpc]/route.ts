@@ -3,10 +3,24 @@ import { appRouter } from "@/trpc";
 import { createContext as createTRPCContext } from "@/lib/trpc";
 import { mutationGuard } from "@/lib/http/mutation-guard";
 
+import {
+  boundedRequest,
+  BodyError,
+  discardBody,
+} from "@/lib/http/limited-body";
 const handler = async (req: Request) => {
   if (req.method === "POST") {
     const rejected = mutationGuard(req);
-    if (rejected) return rejected;
+    if (rejected) {
+      discardBody(req);
+      return rejected;
+    }
+    try {
+      req = await boundedRequest(req, 256 * 1024);
+    } catch (error) {
+      if (error instanceof BodyError) return error.response();
+      throw error;
+    }
   }
   const context = await createTRPCContext({ req });
   return fetchRequestHandler({

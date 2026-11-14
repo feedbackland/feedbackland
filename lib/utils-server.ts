@@ -5,6 +5,7 @@ import { parse, NodeType, type Node } from "node-html-parser";
 import { DomainError } from "./domain-error";
 import { isStatusLabel } from "./feedback-status";
 import { isBlockedContentLink } from "./safe-content-link";
+import { imageId, imageUrl } from "./images/path";
 import { getConfig } from "./config";
 import {
   escapeFeedbackText,
@@ -23,11 +24,32 @@ export function plainTextContent(text: string) {
   const content = escapeFeedbackText(text);
   const plainText = getPlainText(content);
   if (!plainText) throw new ContentInputError("Content is empty");
-  return { content, plainText };
+  return { content, plainText, imageIds: [] as string[] };
 }
-export function clean(html: string) {
+export function clean(html: string, images?: Set<string>) {
   return sanitizeHtml(html, {
     transformTags: {
+      img(tagName, attribs) {
+        const src = (attribs.src ?? "").trim();
+        if (
+          images &&
+          /^(?:data|blob):/i.test(src.replace(/[\u0000-\u0020]+/g, ""))
+        )
+          throw new ContentInputError(
+            "Wait for the attachment to finish uploading or re-attach it.",
+          );
+        const id = imageId(src);
+        if (!id) return { tagName: "img", attribs: {} };
+        images?.add(id);
+        const attributes: Record<string, string> = { src: imageUrl(id) };
+        for (const key of ["width", "height"])
+          if (
+            /^[1-9]\d{0,4}$/.test(attribs[key] ?? "") &&
+            Number(attribs[key]) <= 10000
+          )
+            attributes[key] = attribs[key];
+        return { tagName, attribs: attributes };
+      },
       a(tagName, attribs) {
         return isBlockedContentLink(attribs.href ?? "", getConfig().appUrl)
           ? { tagName: "span", attribs: {} }
@@ -40,9 +62,11 @@ export function clean(html: string) {
         return { tagName, attribs };
       },
     },
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["span"]),
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["span", "img"]),
+    exclusiveFilter: (frame) => frame.tag === "img" && !frame.attribs.src,
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
+      img: ["src", "width", "height"],
       span: ["data-type", "data-id", "data-label"],
     },
     allowedClasses: { span: ["mention"] },
@@ -51,7 +75,10 @@ export function clean(html: string) {
 export function getPlainText(html: string) {
   return convert(clean(html), {
     wordwrap: false,
-    selectors: [{ selector: "a", options: { ignoreHref: true } }],
+    selectors: [
+      { selector: "img", format: "skip" },
+      { selector: "a", options: { ignoreHref: true } },
+    ],
   })
     .replace(/\s+/g, " ")
     .trim();
@@ -63,12 +90,11 @@ export function textContent(
 ) {
   if (
     Buffer.byteLength(html, "utf8") > maxBytes ||
-    /<\s*(img|svg|video|audio|iframe|object)\b/i.test(html)
+    /<\s*(svg|video|audio|iframe|object)\b/i.test(html)
   )
-    throw new ContentInputError(
-      `Text-only content up to ${maxBytes} bytes is required`,
-    );
-  const content = clean(html);
+    throw new ContentInputError(`Content up to ${maxBytes} bytes is required`);
+  const ids = new Set<string>();
+  const content = clean(html, ids);
   const pending: Array<{ node: Node; depth: number }> = [
     { node: parse(content), depth: 0 },
   ];
@@ -90,8 +116,8 @@ export function textContent(
   }
   // Validate nesting before html-to-text's recursive conversion.
   const plainText = getPlainText(content);
-  if (!plainText) throw new ContentInputError("Content is empty");
-  return { content, plainText };
+  if (!plainText && !ids.size) throw new ContentInputError("Content is empty");
+  return { content, plainText, imageIds: [...ids] };
 }
 export function feedbackPostHtmlContent(html: string) {
   return textContent(html, MAX_FEEDBACK_HTML_BYTES, MAX_FEEDBACK_TEXT_LENGTH);

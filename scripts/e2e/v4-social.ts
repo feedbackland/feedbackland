@@ -646,7 +646,7 @@ export async function phaseFour(
     "linux",
     "The HTTPS three-engine gates require Linux (Docker Desktop host networking is not assumed)",
   );
-  assert.match(runId, /^p05-[0-9]+-[a-f0-9]+$/);
+  assert.match(runId, /^p0[56]-[0-9]+-[a-f0-9]+$/);
   const project = runId + "-social";
   const directory = await mkdtemp(join(tmpdir(), project + "-"));
   const containers: string[] = [];
@@ -674,8 +674,18 @@ export async function phaseFour(
       "127.0.0.1::5432",
       pgImage,
     );
+    // Initialization starts a temporary socket-only server. The app connects over TCP.
     await eventually(
-      () => docker("exec", database, "pg_isready", "-U", "postgres"),
+      () =>
+        docker(
+          "exec",
+          database,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-U",
+          "postgres",
+        ),
       (value) => value.includes("accepting connections"),
     );
     const dbInfo = JSON.parse(await docker("inspect", database))[0];

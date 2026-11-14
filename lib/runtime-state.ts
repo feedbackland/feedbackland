@@ -15,6 +15,7 @@ export type RuntimeState = {
   db?: Kysely<DB>;
   boot?: Promise<void>;
   booted?: boolean;
+  uploads?: number;
   authSecret?: string;
   auth?: Auth;
   authDiscovery?: {

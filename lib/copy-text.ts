@@ -53,14 +53,45 @@ export async function copyText(text: string): Promise<boolean> {
   return false;
 }
 
-export async function copyImage(blob: Blob): Promise<boolean> {
-  if (
-    typeof window === "undefined" ||
-    !window.isSecureContext ||
-    !navigator.clipboard?.write ||
-    typeof ClipboardItem === "undefined"
-  )
-    return false;
-  await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+export function canCopyImage() {
+  return (
+    typeof window !== "undefined" &&
+    window.isSecureContext &&
+    typeof navigator.clipboard?.write === "function" &&
+    typeof ClipboardItem !== "undefined" &&
+    (typeof ClipboardItem.supports !== "function" ||
+      ClipboardItem.supports("image/png"))
+  );
+}
+
+async function clipboardPng(blob: Blob) {
+  if (blob.type === "image/png") return blob;
+  const bitmap = await createImageBitmap(blob);
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Image copying is unavailable.");
+    ctx.drawImage(bitmap, 0, 0);
+    return await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob(
+        (png) =>
+          png ? resolve(png) : reject(new Error("Could not copy the image.")),
+        "image/png",
+      ),
+    );
+  } finally {
+    bitmap.close();
+  }
+}
+
+export async function copyImage(load: () => Promise<Blob>): Promise<boolean> {
+  if (!canCopyImage()) return false;
+  // Initiate the clipboard write inside the click, even if fetching or converting
+  // the image finishes after the browser's transient user activation has expired.
+  const png = load().then(clipboardPng);
+  void png.catch(() => {});
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
   return true;
 }

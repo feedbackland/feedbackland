@@ -377,7 +377,13 @@ export function boot() {
       name: config.clientIpHeader,
       count: config.trustedProxies.length,
     });
-    log("boot.phase-4-uploads-ai-disabled");
+    log("boot.image-storage", {
+      stage:
+        config.maxPendingImageBytes === 0n || config.maxImageStorageBytes === 0n
+          ? "disabled"
+          : "enabled",
+      count: config.maxImageBytes,
+    });
     log("boot.ai-environment-ignored", { name: "OPENROUTER_API_KEY" });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.

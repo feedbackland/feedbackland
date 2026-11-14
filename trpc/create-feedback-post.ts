@@ -4,19 +4,23 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "@/lib/trpc";
 import { createFeedbackPostQuery } from "@/queries/create-feedback-post";
 import { enforceFeedbackCreateLimit } from "@/lib/rate-limit";
-import { MAX_FEEDBACK_TEXT_LENGTH } from "@/lib/feedback-text";
+import { MAX_FEEDBACK_HTML_BYTES } from "@/lib/feedback-text";
 
 export const createFeedbackPost = publicProcedure
   .input(
     z.object({
+      descriptionFormat: z.enum(["plain-text", "html"]).default("plain-text"),
       description: z
         .string()
-        .max(MAX_FEEDBACK_TEXT_LENGTH)
+        .max(MAX_FEEDBACK_HTML_BYTES)
         .refine((text) => text.trim().length > 0),
     }),
   )
-  .mutation(async ({ input: { description }, ctx: { userId, ip } }) => {
-    try {
+  .mutation(
+    async ({
+      input: { description, descriptionFormat },
+      ctx: { userId, ip },
+    }) => {
       // Share per-source and board limits with the public HTTP endpoint.
       const { allowed } = await enforceFeedbackCreateLimit({ ip });
 
@@ -27,12 +31,10 @@ export const createFeedbackPost = publicProcedure
         });
       }
 
-      return await createFeedbackPostQuery({
+      return createFeedbackPostQuery({
         description,
         authorId: userId,
-        descriptionFormat: "plain-text",
+        descriptionFormat,
       });
-    } catch (error) {
-      throw error;
-    }
-  });
+    },
+  );
