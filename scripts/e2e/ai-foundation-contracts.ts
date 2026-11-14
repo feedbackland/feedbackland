@@ -347,7 +347,12 @@ function inputChecks() {
     () => embeddingBatch(model, Array(5).fill("abcdefgh ".repeat(3556))),
     AiError,
   );
+  const started = performance.now();
   assert.equal(prepareEmbedding(model, "a".repeat(128000))?.tokens, 8000);
+  assert(
+    performance.now() - started < 5000,
+    "Long pieces must fit the embedding preparation time budget",
+  );
   assert.throws(() => embeddingBatch("unknown", ["x"]), AiError);
 }
 

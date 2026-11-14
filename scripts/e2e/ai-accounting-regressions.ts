@@ -129,6 +129,73 @@ export async function accountingRegressions(mock: Mock, actor: Actor) {
         .execute();
   }
 
+  // Hold COMMIT after all admission writes. Cancellation releases the caller's
+  // slot while the transaction is still waiting, then refunds its own window.
+  await saveConfiguration(actor, await configuration(), {
+    options: { timeoutMs: 10000 },
+  });
+  await callChat("title", prompt);
+  await db
+    .updateTable("rate_limit")
+    .set({ windowStart: sql`clock_timestamp()` })
+    .where("key", "in", ["ai:metadata:minute", "ai-check:user:" + actor.userId])
+    .execute();
+  for (const table of ["llm_usage", "rate_limit"] as const) {
+    const predicate =
+      table === "llm_usage" ? "new.calls > old.calls" : "new.count > old.count";
+    await sql`create function fixture_hold_commit() returns trigger language plpgsql as $$
+      begin perform pg_advisory_xact_lock(70182); return new; end $$`.execute(
+      db,
+    );
+    try {
+      await sql
+        .raw(
+          `create constraint trigger fixture_hold_commit after update on ${table}
+        deferrable initially deferred for each row when (${predicate})
+        execute function fixture_hold_commit()`,
+        )
+        .execute(db);
+      const before = await usage(),
+        budget = await limits(),
+        sent = mock.requests;
+      const external = new AbortController();
+      await locked("select pg_advisory_xact_lock(70182)", async () => {
+        const request =
+          table === "llm_usage"
+            ? callChat("title", prompt, { signal: external.signal })
+            : readProviderMetadata("key", actor, external.signal);
+        const result = assert.rejects(request, { reason: "aborted" });
+        await waiting("commit%");
+        const start = performance.now();
+        external.abort();
+        await result;
+        assert(performance.now() - start < 1000);
+        assert.deepEqual(runtimeState().aiWork, {
+          model: 0,
+          vision: 0,
+          metadata: 0,
+        });
+      });
+      // Queue behind the waiting COMMIT before checking its visible outcome.
+      await sql`select pg_advisory_xact_lock(70182)`.execute(db);
+      await eventually(
+        async () => {
+          assert.deepEqual(await usage(), before);
+          assert.deepEqual(await limits(), budget);
+          return true;
+        },
+        Boolean,
+        5000,
+      );
+      assert.equal(mock.requests, sent);
+    } finally {
+      await sql
+        .raw(`drop trigger if exists fixture_hold_commit on ${table}`)
+        .execute(db);
+      await sql`drop function fixture_hold_commit()`.execute(db);
+    }
+  }
+
   // Admission succeeds. Failure occurs only while settling the returned result.
   for (const table of ["llm_usage", "ai_health"] as const) {
     const predicate =
@@ -240,6 +307,7 @@ export async function accountingRegressions(mock: Mock, actor: Actor) {
     .set({ until: sql`clock_timestamp()+interval '1 second'` })
     .execute();
   let outcome: Promise<void> | undefined;
+  let reservationRetry: Promise<void> | undefined;
   await locked(
     "select id from insight_reports where id=$1 for update",
     async () => {
@@ -247,7 +315,11 @@ export async function accountingRegressions(mock: Mock, actor: Actor) {
         callChat("insights", prompt, { reservation: ticket }),
         { reason: "RESERVATION_EXPIRED" },
       );
+      reservationRetry = assert.rejects(reserve(plan.groups), {
+        reason: "RESERVATION_EXPIRED",
+      });
       await waiting("update %insight_reports%");
+      await waiting("%insight_reports%for update%");
       await eventually(
         async () =>
           (await db
@@ -262,6 +334,7 @@ export async function accountingRegressions(mock: Mock, actor: Actor) {
     [report.id],
   );
   await outcome;
+  await reservationRetry;
   assert.equal((await record()).reservationCount, remaining);
   assert.equal(mock.requests, sent);
   await db

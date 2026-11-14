@@ -9,7 +9,7 @@ import { log } from "../log";
 import type { Actor } from "../auth/authorization";
 import {
   consumeAiBudget,
-  consumeRateLimit,
+  consumeRateLimitWindow,
 } from "../../queries/check-rate-limit";
 import { AiError, healthReason } from "./errors";
 import {
@@ -56,26 +56,51 @@ export async function admitMetadata(
   wall = deadline(config.options.timeoutMs),
   kind = "key",
 ) {
-  await withinTransaction(wall, async (trx) => {
-    const admin = check?.action?.actor ?? actor;
-    if (admin) await authorizeCheckActor(trx, admin, !check);
-    const purpose = admin
-      ? "admin"
-      : check && kind === "key"
-        ? "check"
-        : "ordinary";
-    await requireDispatch(trx, config, purpose, check);
-    if (
-      !(
-        await consumeRateLimit(
-          { key: "ai:metadata:minute", limit: 60, windowSeconds: 60 },
-          trx,
-        )
-      ).allowed
-    )
-      throw new AiError("provider-rate", 429);
-    await requireDispatch(trx, config, purpose, check);
-  });
+  return withinTransaction(
+    wall,
+    async (trx) => {
+      const admin = check?.action?.actor ?? actor;
+      const user = admin
+        ? await authorizeCheckActor(trx, admin, !check)
+        : undefined;
+      const purpose = admin
+        ? "admin"
+        : check && kind === "key"
+          ? "check"
+          : "ordinary";
+      await requireDispatch(trx, config, purpose, check);
+      const instance = await consumeRateLimitWindow(
+        { key: "ai:metadata:minute", limit: 60, windowSeconds: 60 },
+        trx,
+      );
+      if (!instance.allowed) throw new AiError("provider-rate", 429);
+      await requireDispatch(trx, config, purpose, check);
+      return user ? [user, instance] : [instance];
+    },
+    cancelUndispatchedMetadata,
+  );
+}
+export async function cancelUndispatchedMetadata(
+  windows: readonly { key: string; window: string }[],
+) {
+  try {
+    await withinTransaction(deadline(2000), async (trx) => {
+      for (const { key, window } of windows)
+        await trx
+          .updateTable("rate_limit")
+          .where("key", "=", key)
+          .where("windowStart", "=", sql<Date>`${window}::timestamptz`)
+          .where("count", ">", 0)
+          .set({ count: sql`count-1` })
+          .execute();
+    });
+  } catch {
+    log(
+      "ai.admission-reversal-failed",
+      { name: "metadata", stage: "accounting" },
+      "warn",
+    );
+  }
 }
 // P10 can bind its frozen chunk plan and this reservation in the same short
 // transaction. No credit is returned for abandoned or expired work.
@@ -147,8 +172,10 @@ export async function reserveInsightPlan(
     record.stage === "admitted" &&
     record.reservationId &&
     isDeepStrictEqual(record.requestPlan, frozen)
-  )
+  ) {
+    await requireInsightLease(trx, run);
     return { ...run, id: record.reservationId };
+  }
   if (record.stage !== "admitting") throw new AiError("RESERVATION_EXPIRED");
   const day = await consumeAiBudget(dailyShare(config, "insights"), count, trx);
   if (!day) throw new AiError("AI_PAUSED");
@@ -201,62 +228,66 @@ export async function beginAttempt(
   wall: Deadline = deadline(config.options.timeoutMs),
 ): Promise<Admission> {
   try {
-    return await withinTransaction(wall, async (trx) => {
-      if (check && feature !== "check") throw new AiError("invalid-input");
-      const action = check?.action;
-      if (action) await authorizeCheckActor(trx, action.actor, false);
-      const purpose = action
-        ? "admin"
-        : feature === "check" && check
-          ? "check"
-          : "ordinary";
-      await requireDispatch(trx, config, purpose, check);
-      if (
-        (feature === "insights" && !reservation) ||
-        (reservation && feature !== "insights")
-      )
-        throw new AiError("invalid-input");
-      const sequence = await issueSequence(
-        trx,
-        config,
-        capability,
-        feature === "check" || feature === "probe",
-      );
-      let day = reservation
-        ? await spendReservation(trx, config, reservation)
-        : await consumeAiBudget(dailyShare(config, feature), 1, trx);
-      let diagnostic = false;
-      if (!day && action?.intent === "test-again") {
-        day = await consumeAiBudget(40, 1, trx, true);
-        diagnostic = !!day;
-      }
-      if (!day) throw new AiError("AI_PAUSED");
-      // If the worker dies after dispatch, retain an explicitly uncosted call.
-      await trx
-        .insertInto("llm_usage")
-        .values({ day, feature, calls: 1, uncostedCalls: 1 })
-        .onConflict((c) =>
-          c.columns(["day", "feature"]).doUpdateSet({
-            calls: sql`llm_usage.calls+1`,
-            uncostedCalls: sql`llm_usage."uncostedCalls"+1`,
-          }),
+    return await withinTransaction(
+      wall,
+      async (trx) => {
+        if (check && feature !== "check") throw new AiError("invalid-input");
+        const action = check?.action;
+        if (action) await authorizeCheckActor(trx, action.actor, false);
+        const purpose = action
+          ? "admin"
+          : feature === "check" && check
+            ? "check"
+            : "ordinary";
+        await requireDispatch(trx, config, purpose, check);
+        if (
+          (feature === "insights" && !reservation) ||
+          (reservation && feature !== "insights")
         )
-        .execute();
-      await requireDispatch(trx, config, purpose, check);
-      const leaseEnd = reservation
-        ? await requireInsightLease(trx, reservation)
-        : undefined;
-      return {
-        leaseEnd,
-        token: config.token,
-        revision: config.revision,
-        feature,
-        capability,
-        day,
-        sequence,
-        diagnostic,
-      };
-    });
+          throw new AiError("invalid-input");
+        const sequence = await issueSequence(
+          trx,
+          config,
+          capability,
+          feature === "check" || feature === "probe",
+        );
+        let day = reservation
+          ? await spendReservation(trx, config, reservation)
+          : await consumeAiBudget(dailyShare(config, feature), 1, trx);
+        let diagnostic = false;
+        if (!day && action?.intent === "test-again") {
+          day = await consumeAiBudget(40, 1, trx, true);
+          diagnostic = !!day;
+        }
+        if (!day) throw new AiError("AI_PAUSED");
+        // If the worker dies after dispatch, retain an explicitly uncosted call.
+        await trx
+          .insertInto("llm_usage")
+          .values({ day, feature, calls: 1, uncostedCalls: 1 })
+          .onConflict((c) =>
+            c.columns(["day", "feature"]).doUpdateSet({
+              calls: sql`llm_usage.calls+1`,
+              uncostedCalls: sql`llm_usage."uncostedCalls"+1`,
+            }),
+          )
+          .execute();
+        await requireDispatch(trx, config, purpose, check);
+        const leaseEnd = reservation
+          ? await requireInsightLease(trx, reservation)
+          : undefined;
+        return {
+          leaseEnd,
+          token: config.token,
+          revision: config.revision,
+          feature,
+          capability,
+          day,
+          sequence,
+          diagnostic,
+        };
+      },
+      (receipt) => cancelUndispatched(receipt, reservation),
+    );
   } catch (error) {
     wall.signal.throwIfAborted();
     if (error instanceof DomainError) throw new AiError("forbidden", 403);

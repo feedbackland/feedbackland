@@ -15,7 +15,7 @@ import type { Capability } from "./constants";
 import type { DB, AiSettings } from "../../db/schema";
 import { sql } from "kysely";
 import { db } from "../../db/db";
-import { consumeRateLimit } from "../../queries/check-rate-limit";
+import { consumeRateLimitWindow } from "../../queries/check-rate-limit";
 import { deadline, withinTransaction, type Deadline } from "./deadline";
 export async function ensureAiSettingsRow(trx: Kysely<DB>) {
   await trx
@@ -429,16 +429,13 @@ export async function authorizeCheckActor(
     if (error instanceof DomainError) throw new AiError("forbidden", 403);
     throw error;
   }
-  if (
-    charge &&
-    !(
-      await consumeRateLimit(
-        { key: "ai-check:user:" + actor.userId, limit: 10, windowSeconds: 60 },
-        trx,
-      )
-    ).allowed
-  )
-    throw new AiError("provider-rate", 429);
+  if (!charge) return;
+  const window = await consumeRateLimitWindow(
+    { key: "ai-check:user:" + actor.userId, limit: 10, windowSeconds: 60 },
+    trx,
+  );
+  if (!window.allowed) throw new AiError("provider-rate", 429);
+  return window;
 }
 
 // Issue once per logical check, before any provider steps or retries.

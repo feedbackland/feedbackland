@@ -168,6 +168,14 @@ export async function aiFoundations(runId: string, productionImage: string) {
       output.split('"event":"ai.stored-key-unreadable"').length - 1,
       1,
     );
+    assert(
+      output.split(
+        '"event":"ai.settlement-failed","name":"title","stage":"accounting"',
+      ).length -
+        1 >=
+        4,
+      "Each injected settlement failure must emit a safe accounting diagnostic",
+    );
     const summary = output
       .split(/\r?\n/)
       .find((line) => line.startsWith("P07_OUTCOME="));

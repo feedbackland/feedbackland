@@ -13,6 +13,7 @@ import { AiError, responseError, safeError } from "./errors";
 import {
   beginAttempt,
   cancelUndispatched,
+  cancelUndispatchedMetadata,
   admitMetadata,
   type Admission,
   type Reservation,
@@ -211,7 +212,7 @@ export const providerFetch: typeof fetch = async (input, init) => {
       )
         throw new AiError("RESERVATION_EXPIRED");
     } catch (error) {
-      await cancelUndispatched(admission, ctx.reservation);
+      void cancelUndispatched(admission, ctx.reservation);
       throw error;
     }
     ctx.admission = admission;
@@ -320,7 +321,13 @@ export async function metadata(
 ): Promise<KeyInfo | ModelInfo[]> {
   if (!Object.hasOwn(metadataPaths, kind) || !config.apiKey)
     throw new AiError("invalid-input");
-  await admitMetadata(config, actor, check, wall, kind);
+  const windows = await admitMetadata(config, actor, check, wall, kind);
+  try {
+    checkDeadline(wall);
+  } catch (error) {
+    void cancelUndispatchedMetadata(windows);
+    throw error;
+  }
   const res = await send(
     metadataPaths[kind],
     config.apiKey,

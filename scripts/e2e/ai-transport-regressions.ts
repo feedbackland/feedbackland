@@ -12,8 +12,7 @@ import {
   saveConfiguration,
   synchronizeAiEnvironment,
 } from "../../lib/llm/settings-store";
-import { defaults } from "../../lib/llm/defaults";
-import { responseError } from "../../lib/llm/errors";
+import { defaults, inputBytes } from "../../lib/llm/defaults";
 import { prepareEmbedding } from "../../lib/llm/model-profiles";
 import { prepareChat } from "../../lib/llm/input-budgets";
 import { MODEL_RESPONSE_BYTES } from "../../lib/llm/constants";
@@ -43,38 +42,39 @@ export async function transportRegressions(mock: Mock, actor: Actor) {
     ["openrouter_credits", "weight_exceeds_budget", "request-exceeds-balance"],
     ["unrecognized", null, undefined],
   ] as const) {
-    const error = responseError(
-      402,
-      { error: { metadata: { limit_source: source, reason } } },
-      null,
-    );
-    assert.equal(error.reason, "provider-credit");
-    assert.equal(error.creditDetail, detail);
+    mock.handler = ({ response }) =>
+      json(
+        response,
+        { error: { metadata: { limit_source: source, reason } } },
+        402,
+      );
+    await assert.rejects(callChat("check", prompt), {
+      reason: "provider-credit",
+      status: 402,
+      creditDetail: detail,
+    });
   }
-  assert.equal(
-    responseError(
-      402,
+  mock.handler = ({ response }) =>
+    json(
+      response,
       { error: { metadata: { limit_source: "openrouter_in_flight_budget" } } },
-      "1",
-    ).reason,
-    "in-flight-budget",
-  );
-  assert.equal(
-    responseError(
-      400,
-      { error: { metadata: { error_type: "context_length_exceeded" } } },
-      null,
-    ).reason,
-    "context-length",
-  );
-  assert.equal(
-    responseError(
-      400,
-      { error: { metadata: { error_type: "invalid_request" } } },
-      null,
-    ).reason,
-    "provider-input",
-  );
+      402,
+    );
+  await assert.rejects(callChat("check", prompt), {
+    reason: "in-flight-budget",
+    status: 402,
+  });
+  for (const [error_type, reason] of [
+    ["context_length_exceeded", "context-length"],
+    ["invalid_request", "provider-input"],
+  ] as const) {
+    mock.handler = ({ response }) =>
+      json(response, { error: { metadata: { error_type } } }, 400);
+    await assert.rejects(
+      callEmbeddings("backfill", ["valid row one", "valid row two"]),
+      { reason, status: 400 },
+    );
+  }
 
   const key = {
     usage: 0,
@@ -147,6 +147,23 @@ export async function transportRegressions(mock: Mock, actor: Actor) {
     });
     assert.equal(p.omitted, 2);
     assert(p.messages.some((m) => m.content.includes("one\ntwo")));
+    const limited = prepareChat(feature, {
+      ...prompt,
+      text: "x".repeat(
+        inputBytes[feature] - Buffer.byteLength(prompt.system) - 9,
+      ),
+      items: ["", "猫猫", " ", "a", "excess"],
+    });
+    assert.equal(limited.omitted, 3);
+    assert(limited.messages.some((m) => m.content.endsWith("猫猫\na")));
+    assert(
+      Buffer.byteLength(limited.system) +
+        limited.messages.reduce(
+          (n, m) => n + Buffer.byteLength(m.content),
+          0,
+        ) <=
+        inputBytes[feature],
+    );
   }
   const history = [
     { role: "user" as const, content: "Earlier question" },

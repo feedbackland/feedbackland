@@ -31,12 +31,13 @@ export function checkDeadline(wall: Deadline) {
 export async function withinTransaction<T>(
   wall: Deadline,
   work: (trx: Transaction<DB>) => Promise<T>,
+  reverseUnclaimed?: (receipt: T) => Promise<void>,
 ) {
   checkDeadline(wall);
   return new Promise<T>((resolve, reject) => {
     let committing = false;
     const abort = () => {
-      if (!committing) reject(wall.signal.reason);
+      if (!committing || reverseUnclaimed) reject(wall.signal.reason);
     };
     wall.signal.addEventListener("abort", abort, { once: true });
     db.connection()
@@ -52,16 +53,29 @@ export async function withinTransaction<T>(
             );
             const result = await work(trx);
             checkDeadline(wall);
-            // Keep the outcome of an already-starting COMMIT observable so the
-            // transport can reverse committed admission if the signal wins.
+            // Once COMMIT starts, only a compensating operation can undo the
+            // admission. Other transactions must report the actual outcome.
             committing = true;
             return result;
           }),
         { signal: wall.signal },
       )
-      .then(resolve, (error) => {
-        reject(sqlstate(error) === "57014" ? new AiError("timeout") : error);
-      })
+      .then(
+        (result) => {
+          if (reverseUnclaimed) {
+            try {
+              checkDeadline(wall);
+            } catch (error) {
+              reject(error);
+              return reverseUnclaimed(result);
+            }
+          }
+          resolve(result);
+        },
+        (error) => {
+          reject(sqlstate(error) === "57014" ? new AiError("timeout") : error);
+        },
+      )
       .finally(() => wall.signal.removeEventListener("abort", abort));
   });
 }

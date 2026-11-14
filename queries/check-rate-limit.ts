@@ -7,11 +7,11 @@ import { db } from "@/db/db";
 type RateLimit = { key: string; limit: number; windowSeconds: number };
 
 // One upsert serializes consumption of a fixed window across all replicas.
-export async function consumeRateLimit(
+export async function consumeRateLimitWindow(
   { key, limit, windowSeconds }: RateLimit,
   connection = db,
 ) {
-  const result = await sql<{ count: number }>`
+  const result = await sql<{ count: number; window: string }>`
       INSERT INTO "public"."rate_limit" ("key", "count", "windowStart")
       VALUES (${key}, 1, now())
       ON CONFLICT ("key") DO UPDATE SET
@@ -25,12 +25,16 @@ export async function consumeRateLimit(
           THEN now()
           ELSE "rate_limit"."windowStart"
         END
-      RETURNING "count"
+      RETURNING "count", "windowStart"::text as "window"
     `.execute(connection);
 
-  const count = Number(result.rows[0]?.count ?? 0);
+  const { count, window } = result.rows[0];
+  return { allowed: count <= limit, key, window };
+}
 
-  return { allowed: count <= limit };
+export async function consumeRateLimit(check: RateLimit, connection = db) {
+  const { allowed } = await consumeRateLimitWindow(check, connection);
+  return { allowed };
 }
 
 // Only allowed requests increment these counters. Use the database clock on
