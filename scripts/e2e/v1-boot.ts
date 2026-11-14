@@ -257,7 +257,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         await blocker.query("rollback").catch(() => {});
         await blocker.end();
       }
-      await withDb(url, async (pool) => {
+      const committedMigrations = await withDb(url, async (pool) => {
         for (const table of [
           "settings",
           "instance_secret",
@@ -269,10 +269,11 @@ export async function phaseOne(image: string, runId: string, check: Check) {
               .rows[0].count,
             1,
           );
+        const { rows } = await pool.query<{ name: string }>(
+          "select name from kysely_migration order by name",
+        );
         assert.deepEqual(
-          (
-            await pool.query("select name from kysely_migration order by name")
-          ).rows.map((row) => row.name),
+          rows.map((row) => row.name),
           ["0001_init", "0002_password_recovery", "0003_ai_dispatch"],
         );
         assert.equal(
@@ -283,10 +284,11 @@ export async function phaseOne(image: string, runId: string, check: Check) {
           ).rows[0].count,
           0,
         );
+        return rows.length;
       });
       return {
         concurrentBlockedBoots: 2,
-        committedMigrations: 2,
+        committedMigrations,
         originalFailure: "42P01",
         rollbackAndRetry: "passed through transaction-mode PgBouncer",
         sessionLocksRemaining: 0,
