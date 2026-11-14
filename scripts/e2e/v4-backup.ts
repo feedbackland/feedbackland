@@ -400,9 +400,12 @@ export async function phaseFive(
     await check("images/production-streams-rss-and-slot-recovery", () =>
       streamContracts(app.base, app.name, docker),
     );
-    await check("images/attach-logo-delete-reclaim-sweep", async () =>
-      JSON.parse(await worker("postgres", "contracts")),
-    );
+    await check("images/attach-logo-delete-reclaim-sweep", async () => {
+      const output = await worker("postgres", "contracts");
+      const result = JSON.parse(output.split(/\r?\n/).at(-1)!);
+      assert.equal(result.completed, true);
+      return result;
+    });
     await check("images/two-replica-quota", async () => {
       const before = await snapshot(pool);
       assert.equal(before.counts.images, before.images.length);
