@@ -117,6 +117,7 @@ function resolve(row: Row, secret: string) {
     check,
     enabled: row.enabled,
     indexEpoch: row.indexEpoch,
+    activeToken: row.effectiveConfigToken,
     diverged: row.effectiveConfigToken !== token,
   };
 }
@@ -128,6 +129,19 @@ const clearResults = {
 };
 const currentRow = (connection: Kysely<DB>) =>
   connection.selectFrom("ai_settings").where("id", "=", 1).selectAll();
+// A published revision must reflect the configuration used to screen it,
+// including a keyless preflight on another replica.
+export async function lockContentConfiguration(
+  trx: Transaction<DB>,
+  expected: Configuration,
+) {
+  const row = await currentRow(trx).forShare().executeTakeFirstOrThrow();
+  if (
+    row.effectiveConfigToken !== expected.activeToken ||
+    resolve(row, getConfig().authSecret).token !== expected.token
+  )
+    throw new DomainError("CONFLICT", "CONTENT_SETTINGS_CHANGED");
+}
 export async function synchronizeAiEnvironment(
   trx: Transaction<DB>,
   secret: string,

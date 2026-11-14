@@ -13,7 +13,8 @@ import { ActivityFeedEmpty } from "./empty";
 
 export function ActivityFeedList() {
   const [state, setState] = useAtom(activtyFeedStateAtom);
-  const { category, orderBy, status, searchValue, unseenOnly } = state;
+  const { category, orderBy, status, searchValue, unseenOnly, unscreenedOnly } =
+    state;
 
   const isSearchActive = searchValue.length > 0;
 
@@ -48,13 +49,14 @@ export function ActivityFeedList() {
     excludeFeedback,
     searchValue,
     unseenOnly,
+    unscreenedOnly,
   });
 
   const items = data?.pages.flatMap((page) => page.items) ?? [];
   const isLoaded = !isPending && !isError;
   const hasItems = items.length > 0;
   const isEmpty = isLoaded && !hasItems;
-  const hasFilter = category !== "all" || status !== null;
+  const hasFilter = category !== "all" || status !== null || unscreenedOnly;
 
   const { ref } = useInView({
     onChange: (inView) => {
@@ -68,7 +70,12 @@ export function ActivityFeedList() {
   const resetUnseen = () =>
     setState((prev) => ({ ...prev, unseenOnly: false }));
   const resetFilters = () =>
-    setState((prev) => ({ ...prev, category: "all", status: null }));
+    setState((prev) => ({
+      ...prev,
+      category: "all",
+      status: null,
+      unscreenedOnly: false,
+    }));
 
   return (
     <div className="border-border bg-background overflow-hidden rounded-lg border shadow-xs">

@@ -82,6 +82,12 @@ export function enforceContentLimit(
     { key: prefix + ":instance", ...RATE_LIMITS[feature].instance },
   ]);
 }
+export function enforceRewriteLimit(ip: string) {
+  return enforceInOrder([
+    { key: "rewrite:ip:" + ip, ...RATE_LIMITS.rewrite.ip },
+    { key: "rewrite:instance", ...RATE_LIMITS.rewrite.instance },
+  ]);
+}
 export function enforceSearchLimit(ip: string) {
   return enforceInOrder([
     { key: "search-text:ip:" + ip, ...RATE_LIMITS.searchText.ip },

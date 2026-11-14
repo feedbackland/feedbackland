@@ -1,3 +1,4 @@
+import { ModerationCoverage } from "./moderation";
 import { AuthStatus } from "./status";
 import { ImageStorage } from "./images";
 export default function SystemPage() {
@@ -6,6 +7,7 @@ export default function SystemPage() {
       <h1 className="text-2xl font-semibold">System</h1>
       <AuthStatus />
       <ImageStorage />
+      <ModerationCoverage />
     </main>
   );
 }

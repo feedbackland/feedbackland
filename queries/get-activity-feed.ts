@@ -22,6 +22,7 @@ export async function getActivityFeedQuery({
   excludeComments,
   searchValue,
   unseenOnly,
+  unscreenedOnly = false,
 }: {
   userId: string;
   page: number;
@@ -33,6 +34,7 @@ export async function getActivityFeedQuery({
   excludeComments: boolean;
   searchValue: string;
   unseenOnly: boolean;
+  unscreenedOnly?: boolean;
 }) {
   try {
     const offset = (page - 1) * pageSize;
@@ -69,6 +71,18 @@ export async function getActivityFeedQuery({
       sql<string | null>`null`.as("commentId"),
       "feedback.createdAt",
       "feedback.title",
+      "feedback.moderationState",
+      (eb) =>
+        eb
+          .selectFrom("moderation_event")
+          .select("reason")
+          .whereRef("moderation_event.postId", "=", "feedback.id")
+          .whereRef(
+            "moderation_event.contentRevision",
+            "=",
+            "feedback.revision",
+          )
+          .as("moderationReason"),
       "feedback.description as content",
       "feedback.upvotes",
       "feedback.category",
@@ -97,13 +111,27 @@ export async function getActivityFeedQuery({
       .selectFrom("comment")
       .innerJoin("feedback", "comment.postId", "feedback.id")
       .leftJoin("user", "comment.authorId", "user.id")
-      .where("comment.content", "not like", "Updated status to%")
+      .$if(!unscreenedOnly, (q) =>
+        q.where("comment.content", "not like", "Updated status to%"),
+      )
       .select([
         "comment.id",
         "comment.postId",
         "comment.id as commentId",
         "comment.createdAt",
         "feedback.title as title",
+        "comment.moderationState",
+        (eb) =>
+          eb
+            .selectFrom("moderation_event")
+            .select("reason")
+            .whereRef("moderation_event.commentId", "=", "comment.id")
+            .whereRef(
+              "moderation_event.contentRevision",
+              "=",
+              "comment.revision",
+            )
+            .as("moderationReason"),
         "comment.content",
         "comment.upvotes",
         sql<FeedbackCategory | null>`null`.as("category"),
@@ -137,6 +165,11 @@ export async function getActivityFeedQuery({
       activityQuery = db.selectFrom(feedbackCTE.as("activity"));
     }
 
+    if (unscreenedOnly)
+      activityQuery = activityQuery.where("activity.moderationState", "in", [
+        "unscreened",
+        "screened-text",
+      ]);
     let orderedQuery = activityQuery.selectAll("activity");
 
     if (!isSearching) {
@@ -193,7 +226,8 @@ export async function getActivityFeedQuery({
     const totalItemsCount =
       results.length > 0 ? Number(results[0].totalItemsCount) : 0;
     const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
-      ({ totalItemsCount, isSeen, ...rest }) => {
+      ({ totalItemsCount: windowCount, isSeen, ...rest }) => {
+        void windowCount; // The page count belongs to the response, outside each item.
         return { ...rest, isSeen: Boolean(isSeen) };
       },
     );

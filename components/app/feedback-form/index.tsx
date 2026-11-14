@@ -1,4 +1,7 @@
 "use client";
+import { useSettings } from "@/hooks/use-settings";
+import { contentMessage } from "@/lib/content-message";
+import { applyDraftText, draftText } from "./draft";
 import { useAuth } from "@/hooks/use-auth";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
 import { useMemo, useState } from "react";
@@ -34,10 +37,17 @@ function draftError(html: string) {
 }
 export function FeedbackForm() {
   const { session, isLoaded } = useAuth();
+  const { capabilities } = useSettings();
   const [signInOpen, setSignInOpen] = useState(false);
   const [description, setDescription] = useState("");
   const validation = useMemo(() => draftError(description), [description]);
   const canSubmit = !validation && !hasPendingUpload(description);
+  const rewriteText = useMemo(
+    () => (capabilities.chat && canSubmit ? draftText(description) : ""),
+    [capabilities.chat, canSubmit, description],
+  );
+  const canRewrite =
+    !!rewriteText && rewriteText.length <= MAX_FEEDBACK_TEXT_LENGTH;
   const trpc = useTRPC(),
     cache = useQueryClient();
   const mutation = useMutation(
@@ -50,9 +60,24 @@ export function FeedbackForm() {
       },
     }),
   );
+  const rewrite = useMutation(trpc.rewriteFeedback.mutationOptions());
+  const improve = async () => {
+    const original = description;
+    if (!canRewrite || rewrite.isPending || mutation.isPending) return;
+    try {
+      const result = await rewrite.mutateAsync({ description: rewriteText });
+      setDescription((current) =>
+        current === original
+          ? applyDraftText(original, result.description)
+          : current,
+      );
+    } catch {
+      /* The mutation exposes its typed error below. */
+    }
+  };
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (canSubmit && isLoaded && !mutation.isPending)
+    if (canSubmit && isLoaded && !mutation.isPending && !rewrite.isPending)
       mutation.mutate({ description, descriptionFormat: "html" });
   };
   return (
@@ -79,10 +104,30 @@ export function FeedbackForm() {
         )}
         <Button
           type="submit"
-          disabled={!isLoaded || !canSubmit || mutation.isPending}
+          disabled={
+            !isLoaded || !canSubmit || mutation.isPending || rewrite.isPending
+          }
         >
           Submit feedback
         </Button>
+        {capabilities.chat && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!canRewrite || rewrite.isPending || mutation.isPending}
+            onClick={improve}
+          >
+            {rewrite.isPending ? "Improving draft…" : "Improve my draft"}
+          </Button>
+        )}
+        {rewrite.isError && (
+          <p role="alert">
+            {contentMessage(
+              rewrite.error,
+              "Could not improve this draft. Please try again.",
+            )}
+          </p>
+        )}
         {isLoaded && !session && (
           <Button
             type="button"
@@ -95,9 +140,10 @@ export function FeedbackForm() {
         {mutation.isSuccess && <p role="status">Feedback submitted</p>}
         {mutation.isError && (
           <p role="alert">
-            {mutation.error.data?.code === "BAD_REQUEST"
-              ? mutation.error.message
-              : "Could not submit feedback. Please try again."}
+            {contentMessage(
+              mutation.error,
+              "Could not submit feedback. Please try again.",
+            )}
           </p>
         )}
       </form>

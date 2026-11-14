@@ -6,9 +6,9 @@ import { canAdministerSession } from "./session-policy";
 export type Actor = { userId: string; sessionId?: string | null };
 // Never accept a role/canAdminister flag from a request or caller. Re-read under
 // the membership lock when a mutation depends on administrative authority.
-async function actorRow(trx: Kysely<DB>, actor: Actor) {
+async function actorRow(trx: Kysely<DB>, actor: Actor, hold = false) {
   if (!actor.sessionId) return undefined;
-  return trx
+  let query = trx
     .selectFrom("auth_session")
     .innerJoin("user", "user.id", "auth_session.userId")
     .where("auth_session.id", "=", actor.sessionId)
@@ -21,8 +21,9 @@ async function actorRow(trx: Kysely<DB>, actor: Actor) {
       "auth_session.scope",
       "user.role",
       sql<Date>`clock_timestamp()`.as("now"),
-    ])
-    .executeTakeFirst();
+    ]);
+  if (hold) query = query.forShare(["auth_session", "user"]);
+  return query.executeTakeFirst();
 }
 export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
   const row = await actorRow(trx, actor);
@@ -34,8 +35,12 @@ export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
     )
   );
 }
-export async function authorizeContentWrite(trx: Kysely<DB>, actor: Actor) {
-  const row = await actorRow(trx, actor);
+export async function authorizeContentWrite(
+  trx: Kysely<DB>,
+  actor: Actor,
+  hold = false,
+) {
+  const row = await actorRow(trx, actor, hold);
   if (!row || row.expiresAt <= row.now)
     throw new DomainError("UNAUTHORIZED", "Sign in to continue");
   return canAdministerSession(

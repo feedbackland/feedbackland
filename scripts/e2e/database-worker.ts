@@ -190,6 +190,7 @@ async function main() {
     assert.equal(acquired.rows[0].acquired, true);
   }
   const first = await migrateAndSeed();
+  runtimeState().authSecret = first.authSecret;
   assert.equal(
     first.authSecret,
     getConfig().injectedAuthSecret ?? first.authSecret,

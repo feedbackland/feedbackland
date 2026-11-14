@@ -9,6 +9,7 @@ import type { PublicSettings } from "./public-settings";
 import identity from "./build-identity.json";
 import { getConfig } from "./config";
 import { imageUrl } from "./images/path";
+import { canImproveDraft } from "./llm/content-capabilities";
 import { authCapabilities } from "./auth/discovery";
 export type { PublicSettings } from "./public-settings";
 export async function publicSettings(
@@ -28,7 +29,7 @@ export async function publicSettings(
     version: identity.version,
     buildIdentity: `${identity.artifactId}:${identity.architecture}`,
     capabilities: {
-      chat: false,
+      chat: !!settings.setupCompletedAt && (await canImproveDraft()),
       embeddings: false,
       ...auth,
       maxImageBytes: getConfig().maxImageBytes,

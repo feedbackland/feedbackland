@@ -19,7 +19,7 @@ export const createFeedbackPost = publicProcedure
   .mutation(
     async ({
       input: { description, descriptionFormat },
-      ctx: { userId, ip },
+      ctx: { userId, sessionId, ip, signal },
     }) => {
       // Share per-source and board limits with the public HTTP endpoint.
       const { allowed } = await enforceFeedbackCreateLimit({ ip });
@@ -34,6 +34,8 @@ export const createFeedbackPost = publicProcedure
       return createFeedbackPostQuery({
         description,
         authorId: userId,
+        sessionId,
+        signal,
         descriptionFormat,
       });
     },

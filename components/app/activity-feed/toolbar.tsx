@@ -54,12 +54,23 @@ export function ActivityFeedToolbar({
       >
         Unseen
         {totalUnseen > 0 && (
-          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-medium tabular-nums text-white dark:bg-blue-500">
+          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-medium text-white tabular-nums dark:bg-blue-500">
             {totalUnseen}
           </span>
         )}
       </Toggle>
 
+      <Toggle
+        variant="outline"
+        pressed={state.unscreenedOnly}
+        onPressedChange={(pressed) =>
+          setState((prev) => ({ ...prev, unscreenedOnly: pressed }))
+        }
+        aria-label="Show unscreened items"
+        className="order-1"
+      >
+        Unscreened
+      </Toggle>
       <ActivityFeedSearchInput
         onDebouncedChange={handleSearch}
         className="order-last min-w-0 sm:order-2 sm:w-auto sm:flex-1"

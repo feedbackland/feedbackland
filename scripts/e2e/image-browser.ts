@@ -97,6 +97,10 @@ export async function imageBrowser(
   await page.goto(base);
   const editor = page.getByRole("textbox", { name: "Your feedback" });
   await editor.fill(title);
+  assert.equal(
+    await page.getByRole("button", { name: "Improve my draft" }).count(),
+    0,
+  );
   const large = await page.evaluate(() => {
     const c = document.createElement("canvas");
     c.width = 3200;
@@ -230,6 +234,10 @@ export async function imageBrowser(
     );
     const box = widget.getByRole("textbox", { name: "Your feedback" });
     await box.fill("Drawer attachment");
+    assert.equal(
+      await widget.getByRole("button", { name: "Improve my draft" }).count(),
+      0,
+    );
     await sendEditorFile(box, "drop");
     await box.locator('img[src^="/api/images/"]').waitFor();
     await widget.getByRole("button", { name: "Submit feedback" }).click();

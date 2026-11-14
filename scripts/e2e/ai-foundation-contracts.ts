@@ -45,6 +45,7 @@ import {
   secondKey,
 } from "../mock-llm";
 import { eventually } from "./run";
+import { contentContracts } from "./content-ai-contracts";
 import { accountingRegressions } from "./ai-accounting-regressions";
 import { transportRegressions } from "./ai-transport-regressions";
 import { configurationRegressions } from "./ai-configuration-regressions";
@@ -921,7 +922,10 @@ async function main() {
     await configurationRegressions(mock, account);
     await transportRegressions(mock, account);
     await accountingRegressions(mock, account);
+    console.log("P08_CONTENT_CONTRACTS");
+    const content = await contentContracts(mock, account);
     const sinks = [
+      await db.selectFrom("moderation_event").selectAll().execute(),
       await db.selectFrom("ai_settings").select("lastCheck").execute(),
       await db.selectFrom("ai_health").selectAll().execute(),
       await db.selectFrom("insight_reports").select("error").execute(),
@@ -949,6 +953,7 @@ async function main() {
     console.log(
       "P07_OUTCOME=" +
         JSON.stringify({
+          content,
           transport: "verified TLS",
           identity: "passed",
           accounting: "passed",

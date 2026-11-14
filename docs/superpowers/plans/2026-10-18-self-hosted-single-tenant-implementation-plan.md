@@ -561,11 +561,11 @@ the following cards. **Revert boundary:** disable AI; preserve ciphertext/usage.
 rewrite route/form, current moderation state/event queries, Activity filter and
 keyless title/category behavior.
 
-- [ ] Move model work outside transactions, revalidate authority/revision/refs
+- [x] Move model work outside transactions, revalidate authority/revision/refs
       before final commit, and route every request/retry through P07 admission.
-- [ ] Wire allowed/refused/unavailable/partial coverage semantics, saturation
+- [x] Wire allowed/refused/unavailable/partial coverage semantics, saturation
       rejection and daily-limit anonymous versus signed-in behavior.
-- [ ] Preserve draft images and distinguish current state from historical counts.
+- [x] Preserve draft images and distinguish current state from historical counts.
 
 **Exit:** V11/V12 content paths, V20 vision memory/abort/logging, V21 coverage
 revision transitions and V7 feature routing. **Revert boundary:** turn AI off;

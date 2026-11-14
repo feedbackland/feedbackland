@@ -119,7 +119,7 @@ const success: Handler = ({ url, body, response }) => {
     ],
   });
 };
-export async function mockOpenRouter() {
+export async function mockOpenRouter(host = "127.0.0.1") {
   const fixture = {
     requests: 0,
     active: 0,
@@ -187,7 +187,7 @@ export async function mockOpenRouter() {
       });
     },
   );
-  server.listen(443, "127.0.0.1");
+  server.listen(443, host);
   await once(server, "listening");
   return Object.assign(fixture, {
     close: async () => {

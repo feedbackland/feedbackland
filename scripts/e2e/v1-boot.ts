@@ -477,8 +477,6 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         `BETTER_AUTH_SECRET=${auth}`,
         "-e",
         `SETUP_CODE=${setup}`,
-        "-e",
-        "OPENROUTER_API_KEY=fixture-ignored-model-key",
         image,
       );
       const state = await inspect(app);
@@ -734,8 +732,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         }
       });
       const logs = await docker("logs", app);
-      for (const secret of [auth, setup, "fixture-ignored-model-key"])
-        assert(!logs.includes(secret));
+      for (const secret of [auth, setup]) assert(!logs.includes(secret));
       assert.doesNotMatch(logs, /postgres:\/\/|unhandled|PRIVATE KEY/i);
       return {
         root: 200,

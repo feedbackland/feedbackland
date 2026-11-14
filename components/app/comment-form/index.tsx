@@ -1,4 +1,5 @@
 "use client";
+import { contentMessage } from "@/lib/content-message";
 
 import { encode } from "he";
 import { Button } from "@/components/ui/button";
@@ -103,9 +104,7 @@ export function CommentForm({
       },
       onError: (error) => {
         setErrormessage(
-          error.data?.code === "BAD_REQUEST"
-            ? error.message
-            : "Something went wrong. Please try again.",
+          contentMessage(error, "Could not save the changes. Try again."),
         );
       },
     }),

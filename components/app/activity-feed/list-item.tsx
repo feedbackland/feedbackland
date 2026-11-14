@@ -96,11 +96,24 @@ export function ActivityFeedListItem({
             </h3>
           )}
 
+          {(item.moderationState === "unscreened" ||
+            item.moderationState === "screened-text") && (
+            <span className="text-muted-foreground text-xs">
+              {item.moderationState === "screened-text"
+                ? "Text screened only"
+                : "Unscreened"}
+              {item.moderationReason &&
+                " · " + item.moderationReason.replaceAll("-", " ")}
+            </span>
+          )}
           <div className="text-muted-foreground flex items-center gap-1.5 overflow-hidden text-xs">
             {isComment && (
               <>
                 <span className="min-w-0 truncate">
-                  on <span className="text-foreground/70">"{title}"</span>
+                  on{" "}
+                  <span className="text-foreground/70">
+                    &quot;{title}&quot;
+                  </span>
                 </span>
                 <span className="shrink-0 text-[8px]">•</span>
               </>

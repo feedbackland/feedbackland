@@ -1,4 +1,5 @@
 "use client";
+import { contentMessage } from "@/lib/content-message";
 
 import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
 import { Button } from "@/components/ui/button";
@@ -171,11 +172,10 @@ export function FeedbackPostEdit({
         {formState === "error" && (
           <Error
             title="Could not save changes"
-            description={
-              updatePost.error?.data?.code === "BAD_REQUEST"
-                ? updatePost.error?.message
-                : "Could not save the changes. Try again."
-            }
+            description={contentMessage(
+              updatePost.error,
+              "Could not save the changes. Try again.",
+            )}
           />
         )}
       </form>

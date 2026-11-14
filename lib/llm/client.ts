@@ -359,8 +359,15 @@ export async function callChat(
     const result = await generateText(args);
     setUsage(ctx, result.steps[0].usage);
     checkFinish(result.rawFinishReason, result.finishReason);
-    if (feature === "moderation")
-      validateModeration(result.text, result.finishReason);
+    if (
+      (feature === "title" || feature === "rewrite") &&
+      result.finishReason !== "stop"
+    )
+      throw new AiError("invalid-response");
+    if (feature === "moderation") {
+      const moderation = parseModeration(result.text, result.finishReason);
+      return { text: result.text, omitted: prepared.omitted, moderation };
+    }
     return { text: result.text, omitted: prepared.omitted };
   });
 }
@@ -368,13 +375,13 @@ const verdict = z.object({
   isInappropriate: z.boolean(),
   confidenceScore: z.number().min(0).max(1),
 });
-function validateModeration(text: string, finish: string) {
+function parseModeration(text: string, finish: string) {
   const cleaned = text
     .trim()
     .replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1");
   try {
-    if (finish === "stop" && verdict.safeParse(JSON.parse(cleaned)).success)
-      return;
+    const parsed = verdict.safeParse(JSON.parse(cleaned));
+    if (finish === "stop" && parsed.success) return parsed.data;
   } catch {
     /* Return only the fixed classification. */
   }

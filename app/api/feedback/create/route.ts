@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     const { id } = await createFeedbackPostQuery({
       description: input.description,
       authorId: null,
+      signal: request.signal,
     });
     return Response.json({ id }, { status: 201, headers: cors });
   } catch (error) {
@@ -63,7 +64,13 @@ export async function POST(request: Request) {
         error:
           error instanceof DomainError ? error.message : "CONTENT_UNAVAILABLE",
       },
-      { status: error instanceof DomainError ? 400 : 500, headers: cors },
+      {
+        status: error instanceof DomainError ? error.status : 500,
+        headers:
+          error instanceof DomainError && error.retryAfterSeconds
+            ? { ...cors, "Retry-After": String(error.retryAfterSeconds) }
+            : cors,
+      },
     );
   }
 }

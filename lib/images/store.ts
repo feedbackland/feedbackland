@@ -62,10 +62,10 @@ export async function validateImages(
   connection: Kysely<DB>,
   ids: readonly string[],
 ) {
-  if (!ids.length) return;
+  if (!ids.length) return [];
   const found = await connection
     .selectFrom("images")
-    .select("id")
+    .select(["id", "byteSize", "width", "height", "contentType"])
     .where("id", "in", ids)
     .execute();
   if (found.length !== ids.length)
@@ -73,6 +73,8 @@ export async function validateImages(
       "BAD_REQUEST",
       "An attachment is unavailable. Re-attach it before saving.",
     );
+  const byId = new Map(found.map((row) => [row.id, row]));
+  return ids.map((id) => byId.get(id)!);
 }
 // Caller holds membership (when applicable), then the image lock, before owner rows.
 export async function replaceImageRefs(trx: Trx, owner: Owner, ids: string[]) {

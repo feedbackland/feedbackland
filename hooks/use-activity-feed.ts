@@ -16,6 +16,7 @@ export function useActivityFeed({
   excludeComments,
   searchValue,
   unseenOnly,
+  unscreenedOnly,
 }: {
   enabled: boolean;
   pageSize: number;
@@ -26,6 +27,7 @@ export function useActivityFeed({
   excludeComments: boolean;
   searchValue: string;
   unseenOnly: boolean;
+  unscreenedOnly?: boolean;
 }) {
   const trpc = useTRPC();
   const trpcQuery = trpc.getActivityFeed.infiniteQueryOptions(
@@ -38,6 +40,7 @@ export function useActivityFeed({
       excludeComments,
       searchValue,
       unseenOnly,
+      unscreenedOnly,
     },
     {
       enabled,

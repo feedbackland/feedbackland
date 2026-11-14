@@ -14,6 +14,7 @@ export type RequestContext = {
   sessionId: string | null;
   canAdminister: boolean;
   ip: string;
+  signal?: AbortSignal;
   headers?: Headers;
   responseHeaders?: Headers;
   session?: Awaited<
@@ -36,6 +37,7 @@ export const createContext = async ({
     sessionId: session?.session.id ?? null,
     canAdminister: canAdministerSession(session),
     ip: getClientIp(req.headers),
+    signal: req.signal,
     headers: authHeaders,
     responseHeaders: headers,
     session,
@@ -55,10 +57,12 @@ const t = initTRPC.context<RequestContext>().create({
   },
 });
 export const router = t.router;
-const mapDomainErrors = t.middleware(async ({ next }) => {
+const mapDomainErrors = t.middleware(async ({ ctx, next }) => {
   const result = await next();
   if (!result.ok && result.error.cause instanceof DomainError) {
     const cause = result.error.cause;
+    if (cause.retryAfterSeconds !== undefined)
+      ctx.responseHeaders?.set("Retry-After", String(cause.retryAfterSeconds));
     throw new TRPCError({ code: cause.code, message: cause.message, cause });
   }
   return result;
