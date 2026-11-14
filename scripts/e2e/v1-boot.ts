@@ -273,7 +273,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
           (
             await pool.query("select name from kysely_migration order by name")
           ).rows.map((row) => row.name),
-          ["0001_init", "0002_password_recovery"],
+          ["0001_init", "0002_password_recovery", "0003_ai_dispatch"],
         );
         assert.equal(
           (

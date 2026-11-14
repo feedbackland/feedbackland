@@ -51,21 +51,32 @@ export function prepareChat(feature: ChatFeature, input: ChatInput) {
     historyBytes;
   if (historyBytes > 16000 || remaining < 0) throw new AiError("invalid-input");
   const selected: string[] = [];
-  for (const item of items.slice(0, feature === "insights" ? 200 : 300)) {
+  const maxItems = feature === "insights" ? 200 : 300;
+  for (const item of items.slice(0, maxItems)) {
+    if (selected.length === maxItems || remaining <= 1) break;
+    if (!item.trim()) continue;
     const entry = utf8Prefix(
       item,
       remaining - 1,
       feature === "insights" ? 700 : 400,
     );
     const size = Buffer.byteLength(entry) + 1;
-    if (!entry || size > remaining) break;
+    if (!entry) continue;
     selected.push(entry);
     remaining -= size;
   }
-  const content = [text, ...selected].join("\n");
+  const cacheCorpus = feature === "ask-ai" && selected.length > 0;
+  const content = cacheCorpus ? text : [text, ...selected].join("\n");
   return {
     system,
-    messages: [...history, { role: "user" as const, content }],
+    cacheCorpus,
+    messages: [
+      ...(cacheCorpus
+        ? [{ role: "user" as const, content: selected.join("\n") }]
+        : []),
+      ...history,
+      { role: "user" as const, content },
+    ],
     omitted: items.length - selected.length,
   };
 }

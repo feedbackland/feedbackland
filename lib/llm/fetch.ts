@@ -1,4 +1,5 @@
 import "server-only";
+import { z } from "zod";
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
   OPENROUTER_API,
@@ -11,13 +12,18 @@ import { privacyRouting } from "./defaults";
 import { AiError, responseError, safeError } from "./errors";
 import {
   beginAttempt,
+  cancelUndispatched,
   admitMetadata,
   type Admission,
   type Reservation,
   type Usage,
-  type CheckAction,
 } from "./usage";
-import type { Configuration } from "./settings-store";
+import {
+  recordModelVision,
+  type Configuration,
+  type CheckTicket,
+} from "./settings-store";
+import { checkDeadline, type Deadline } from "./deadline";
 import type { Actor } from "../auth/authorization";
 
 export type Dispatch = {
@@ -25,7 +31,8 @@ export type Dispatch = {
   feature: Feature;
   capability: Capability;
   signal: AbortSignal;
-  action?: CheckAction;
+  end: number;
+  check?: CheckTicket;
   reservation?: Reservation;
   admission?: Admission;
   error?: AiError;
@@ -109,6 +116,18 @@ function readUsage(data: Record<string, unknown>): Usage {
         : undefined,
   };
 }
+export function observeStreamFrame(ctx: Dispatch, frame: unknown) {
+  const data = object(frame);
+  if (data.usage) {
+    const usage = readUsage(data);
+    ctx.usage = {
+      inputTokens: usage.inputTokens ?? ctx.usage.inputTokens,
+      outputTokens: usage.outputTokens ?? ctx.usage.outputTokens,
+      cost: usage.cost ?? ctx.usage.cost,
+    };
+  }
+  if (data.error) ctx.error = responseError(200, data, null);
+}
 async function send(
   path: string,
   key: string,
@@ -176,13 +195,26 @@ export const providerFetch: typeof fetch = async (input, init) => {
     if (Buffer.byteLength(payload) > 6_000_000)
       throw new AiError("invalid-input");
     ctx.signal.throwIfAborted();
-    ctx.admission = await beginAttempt(
+    const admission = await beginAttempt(
       ctx.config,
       ctx.feature,
       ctx.capability,
-      ctx.action,
+      ctx.check,
       ctx.reservation,
+      ctx,
     );
+    try {
+      checkDeadline(ctx);
+      if (
+        admission.leaseEnd !== undefined &&
+        performance.now() >= admission.leaseEnd
+      )
+        throw new AiError("RESERVATION_EXPIRED");
+    } catch (error) {
+      await cancelUndispatched(admission, ctx.reservation);
+      throw error;
+    }
+    ctx.admission = admission;
     const result = await send(
       path,
       ctx.config.apiKey,
@@ -241,35 +273,59 @@ export const providerFetch: typeof fetch = async (input, init) => {
     throw ctx.error;
   }
 };
-export type KeyInfo = {
-  usage: number | null;
-  expiresAt: string | null;
-  limit: number | null;
-  remaining: number | null;
-  freeTier: boolean;
-  management: boolean;
-  expired: boolean;
-};
+const amount = z.number().finite().nonnegative();
+const keyMetadata = z.object({
+  usage: amount,
+  limit: amount.nullable(),
+  limit_remaining: amount.nullable(),
+  is_free_tier: z.boolean(),
+  is_management_key: z.boolean().optional(),
+  is_provisioning_key: z.boolean().optional(),
+  expires_at: z.iso.datetime({ offset: true }).nullish(),
+});
+function keyInfo(raw: unknown) {
+  const result = keyMetadata.safeParse(raw);
+  if (!result.success) throw new AiError("invalid-response");
+  const data = result.data;
+  const expiresAt = data.expires_at;
+  return {
+    usage: data.usage,
+    limit: data.limit,
+    remaining: data.limit_remaining,
+    freeTier: data.is_free_tier,
+    expiresAt: expiresAt ?? null,
+    expired:
+      expiresAt === undefined
+        ? null
+        : !!expiresAt && Date.parse(expiresAt) <= Date.now(),
+    management:
+      data.is_management_key === true || data.is_provisioning_key === true
+        ? true
+        : (data.is_management_key ?? data.is_provisioning_key ?? null),
+  };
+}
+export type KeyInfo = ReturnType<typeof keyInfo>;
 export type ModelInfo = {
   id: string;
   inputPrice: string | null;
   outputPrice: string | null;
-  vision: boolean;
+  vision: boolean | null;
 };
 export async function metadata(
   config: Configuration,
   kind: MetadataKind,
   actor: Actor | undefined,
-  signal: AbortSignal,
+  wall: Deadline,
+  check?: CheckTicket,
 ): Promise<KeyInfo | ModelInfo[]> {
   if (!Object.hasOwn(metadataPaths, kind) || !config.apiKey)
     throw new AiError("invalid-input");
-  await admitMetadata(config, actor);
+  await admitMetadata(config, actor, check, wall, kind);
   const res = await send(
     metadataPaths[kind],
     config.apiKey,
     undefined,
-    signal,
+    wall.signal,
     METADATA_RESPONSE_BYTES,
   );
   let raw: unknown;
@@ -279,29 +335,9 @@ export async function metadata(
     if (error instanceof SyntaxError) throw new AiError("invalid-response");
     throw error;
   }
-  if (kind === "key") {
-    if (!raw || typeof raw !== "object" || Array.isArray(raw))
-      throw new AiError("invalid-response");
-    const data = object(raw);
-    const amount = (v: unknown) =>
-      typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
-    const expires =
-      typeof data.expires_at === "string" ? Date.parse(data.expires_at) : NaN;
-    return {
-      usage: amount(data.usage),
-      expiresAt: Number.isFinite(expires)
-        ? new Date(expires).toISOString()
-        : null,
-      limit: amount(data.limit),
-      remaining: amount(data.limit_remaining),
-      freeTier: data.is_free_tier === true,
-      management:
-        data.is_management_key === true || data.is_provisioning_key === true,
-      expired: expires <= Date.now(),
-    };
-  }
+  if (kind === "key") return keyInfo(raw);
   if (!Array.isArray(raw)) throw new AiError("invalid-response");
-  return raw.flatMap((item) => {
+  const models = raw.flatMap((item) => {
     const row = object(item),
       pricing = object(row.pricing);
     if (
@@ -318,8 +354,10 @@ export async function metadata(
         id: row.id,
         inputPrice: price(pricing.prompt),
         outputPrice: price(pricing.completion),
-        vision: Array.isArray(modalities) && modalities.includes("image"),
+        vision: Array.isArray(modalities) ? modalities.includes("image") : null,
       },
     ];
   });
+  if (kind === "chatModels") await recordModelVision(config, models, wall);
+  return models;
 }

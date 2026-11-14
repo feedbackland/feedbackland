@@ -22,6 +22,7 @@ export function chat(
   res: ServerResponse,
   cost: number | string | null = 0.001,
   finish = "stop",
+  content = "fixture answer",
 ) {
   json(res, {
     id: "fixture-chat",
@@ -31,7 +32,7 @@ export function chat(
     choices: [
       {
         index: 0,
-        message: { role: "assistant", content: "fixture answer" },
+        message: { role: "assistant", content },
         finish_reason: finish,
       },
     ],
@@ -73,6 +74,13 @@ export function stream(res: ServerResponse) {
 const success: Handler = ({ url, body, response }) => {
   if (url === "/api/v1/chat/completions") {
     if (body.stream) stream(response);
+    else if (JSON.stringify(body.messages).includes("Moderate fixture"))
+      chat(
+        response,
+        0.001,
+        "stop",
+        JSON.stringify({ isInappropriate: false, confidenceScore: 0.99 }),
+      );
     else chat(response);
     return;
   }

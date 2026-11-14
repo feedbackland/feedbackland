@@ -53,7 +53,43 @@ export async function upgradeRecoverySchema() {
       status: "reset",
     })
     .execute();
+  const oldToken = "a".repeat(64);
+  await db
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .set({
+      enabled: false,
+      options: { model: "fixture/retained" },
+      effectiveConfigToken: oldToken,
+      lastCheck: {
+        key: "valid",
+        chat: "passed",
+        search: "passed",
+        configToken: oldToken,
+      },
+      creditWaitConfigToken: oldToken,
+      creditWaitUntil: expiresAt,
+      keepOffAt: new Date(),
+      keepOffBy: userId,
+    })
+    .execute();
   const migrated = await migrateAndSeed();
+  const ai = await db
+    .selectFrom("ai_settings")
+    .selectAll()
+    .where("id", "=", 1)
+    .executeTakeFirstOrThrow();
+  assert.equal(ai.enabled, false);
+  assert.equal(ai.keepOffBy, userId);
+  assert(ai.keepOffAt);
+  assert.deepEqual(ai.options, { model: "fixture/retained" });
+  assert.equal(ai.configGeneration, "1");
+  assert.equal(ai.checkSequence, "0");
+  assert.notEqual(ai.effectiveConfigToken, oldToken);
+  assert.equal(ai.lastCheck, null);
+  assert.equal(ai.creditWaitUntil, null);
+  assert.equal(ai.creditWaitConfigToken, null);
+
   assert.deepEqual(
     await db
       .selectFrom("auth_verification")

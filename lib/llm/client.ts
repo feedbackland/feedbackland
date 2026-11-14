@@ -1,4 +1,7 @@
 import "server-only";
+import { z } from "zod";
+import { getConfig } from "../config";
+import { deadline, checkDeadline, type Deadline } from "./deadline";
 import { setTimeout as pause } from "node:timers/promises";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import {
@@ -14,16 +17,23 @@ import type { Actor } from "../auth/authorization";
 import {
   OPENROUTER_API,
   VISION_WORK_BYTES,
+  MODEL_RESPONSE_BYTES,
   type Capability,
   type Feature,
 } from "./constants";
-import { outputTokens, privacyRouting, type ChatFeature } from "./defaults";
+import {
+  defaults,
+  outputTokens,
+  privacyRouting,
+  type ChatFeature,
+} from "./defaults";
 import {
   configuration,
   failingCapability,
   type Configuration,
+  type CheckTicket,
 } from "./settings-store";
-import { finishAttempt, type Reservation, type CheckAction } from "./usage";
+import { finishAttempt, type Reservation } from "./usage";
 import { AiError, safeError, logFailure } from "./errors";
 import {
   prepareChat,
@@ -35,6 +45,7 @@ import { embeddingBatch } from "./model-profiles";
 import {
   providerFetch,
   dispatchContext,
+  observeStreamFrame,
   metadata,
   type Dispatch,
   type MetadataKind,
@@ -46,24 +57,27 @@ const provider = createOpenAICompatible({
   includeUsage: true,
   fetch: providerFetch,
   transformRequestBody(body) {
-    if (body.feedbackland_cache !== true) return body;
+    const marker = body.feedbackland_cache;
+    if (marker !== "system" && marker !== "corpus") return body;
     const rest = { ...body };
     delete rest.feedbackland_cache;
     return {
       ...rest,
-      messages: body.messages.map((m: { role: string; content: unknown }) =>
-        m.role === "system" && typeof m.content === "string"
-          ? {
-              ...m,
-              content: [
-                {
-                  type: "text",
-                  text: m.content,
-                  cache_control: { type: "ephemeral" },
-                },
-              ],
-            }
-          : m,
+      messages: body.messages.map(
+        (m: { role: string; content: unknown }, index: number) =>
+          index === (marker === "corpus" ? 1 : 0) &&
+          typeof m.content === "string"
+            ? {
+                ...m,
+                content: [
+                  {
+                    type: "text",
+                    text: m.content,
+                    cache_control: { type: "ephemeral" },
+                  },
+                ],
+              }
+            : m,
       ),
     };
   },
@@ -72,7 +86,7 @@ globalThis.AI_SDK_DEFAULT_PROVIDER = provider;
 globalThis.AI_SDK_LOG_WARNINGS = false;
 type Controls = {
   signal?: AbortSignal;
-  action?: CheckAction;
+  check?: CheckTicket;
   reservation?: Reservation;
 };
 function acquire(kind: "model" | "vision" | "metadata") {
@@ -88,18 +102,51 @@ function acquire(kind: "model" | "vision" | "metadata") {
     work[kind] -= amount;
   };
 }
+function duration(feature: Feature | "metadata", timeout: number) {
+  if (feature === "insights") return Math.min(6 * timeout, 180000);
+  if (feature === "ask-ai") return 180000;
+  return timeout;
+}
 async function ready(
   feature: Feature | "metadata",
   cap: Capability,
-  admin = false,
+  controls: Controls,
+  metadataAdmin = false,
 ) {
-  const config = await configuration(),
-    diagnostic =
-      feature === "check" || feature === "metadata" || feature === "probe";
+  const start = performance.now();
+  const knownTimeout =
+    getConfig().llm.options.timeoutMs ??
+    runtimeState().aiConfig?.value.options.timeoutMs ??
+    defaults.timeoutMs;
+  const initial = deadline(
+    feature === "ask-ai" ? knownTimeout : duration(feature, knownTimeout),
+    controls.signal,
+    start,
+  );
+  const config = await configuration(initial.signal).catch((error) => {
+    throw safeError(error, initial.signal);
+  });
+  const wall = deadline(
+    duration(feature, config.options.timeoutMs),
+    controls.signal,
+    start,
+  );
+  const readiness =
+    feature === "ask-ai"
+      ? deadline(config.options.timeoutMs, controls.signal, start)
+      : wall;
+  checkDeadline(readiness);
+  const diagnostic =
+    feature === "check" || feature === "metadata" || feature === "probe";
+  if (!config.valid) throw new AiError("AI_UNAVAILABLE");
   if (config.diverged) throw new AiError("CONFIGURATION_DIVERGED");
+  const admin = metadataAdmin || !!controls.check?.action;
   if (
-    (config.enabled === false && !admin) ||
-    (!config.configured && !diagnostic)
+    !config.configured &&
+    !(
+      diagnostic &&
+      (admin || (controls.check?.creditWait && config.enabled === null))
+    )
   )
     throw new AiError("AI_NOT_CONFIGURED");
   if (config.unreadable) throw new AiError("key-unreadable");
@@ -108,44 +155,27 @@ async function ready(
     !diagnostic &&
     ((config.check &&
       ["invalid", "management", "expired"].includes(config.check.key)) ||
-      (await failingCapability(config, cap)))
+      (await failingCapability(config, cap, readiness.signal).catch((error) => {
+        throw safeError(error, readiness.signal);
+      })))
   )
     throw new AiError("AI_UNAVAILABLE");
-  return config;
+  return { config, wall };
 }
-function deadline(
-  config: Configuration,
-  feature: Feature | "metadata",
-  external?: AbortSignal,
-) {
-  const duration =
-    feature === "insights"
-      ? Math.min(6 * config.options.timeoutMs, 180000)
-      : feature === "ask-ai"
-        ? 180000
-        : config.options.timeoutMs;
-  const timeout = AbortSignal.timeout(duration);
-  return {
-    end: performance.now() + duration,
-    signal: external ? AbortSignal.any([external, timeout]) : timeout,
-  };
-}
+
 async function execute<T>(
   feature: Feature,
   capability: Capability,
   vision: boolean,
   controls: Controls,
   operation: (ctx: Dispatch) => Promise<T>,
+  snapshot?: { config: Configuration; wall: Deadline },
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
     release = acquire(vision ? "vision" : "model");
-    const config = await ready(
-      feature,
-      capability,
-      !!controls.action && feature === "check",
-    );
-    const wall = deadline(config, feature, controls.signal);
+    const { config, wall } =
+      snapshot ?? (await ready(feature, capability, controls));
     signal = wall.signal;
     signal.throwIfAborted();
     if (vision && !config.options.vision) throw new AiError("invalid-input");
@@ -155,7 +185,8 @@ async function execute<T>(
         feature,
         capability,
         signal,
-        action: controls.action,
+        end: wall.end,
+        check: controls.check,
         reservation: controls.reservation,
         usage: {},
       };
@@ -165,8 +196,21 @@ async function execute<T>(
       } catch (error) {
         failure = ctx.error ?? safeError(error, signal);
       } finally {
-        if (ctx.admission)
-          await finishAttempt(ctx.admission, ctx.usage, failure);
+        if (ctx.admission) {
+          // Settlement has its own short transaction. It can finish after a
+          // caller disconnects or the request deadline releases the slot.
+          const settlement = finishAttempt(ctx.admission, ctx.usage, failure);
+          if (!ctx.signal.aborted) {
+            const { promise, resolve } = Promise.withResolvers<void>();
+            const leave = () => resolve();
+            ctx.signal.addEventListener("abort", leave, { once: true });
+            try {
+              await Promise.race([settlement, promise]);
+            } finally {
+              ctx.signal.removeEventListener("abort", leave);
+            }
+          }
+        }
       }
       if (
         attempt ||
@@ -246,53 +290,62 @@ export async function callChat(
       providerOptions: {
         openrouter: {
           provider: privacyRouting(ctx.config.options.privacy),
-          ...(feature === "rewrite"
-            ? {}
-            : {
-                reasoning: {
-                  effort: feature === "ask-ai" ? "medium" : "low",
-                  ...(feature === "insights" ? { exclude: true } : {}),
-                },
-              }),
+          reasoning: {
+            effort:
+              feature === "ask-ai"
+                ? "low"
+                : feature === "insights"
+                  ? "medium"
+                  : "minimal",
+            ...(feature === "insights" ? { exclude: true } : {}),
+          },
           ...(["moderation", "title", "insights", "check"].includes(feature)
             ? { response_format: { type: "json_object" } }
             : {}),
-          ...(feature === "ask-ai" ? { feedbackland_cache: true } : {}),
+          ...(feature === "ask-ai"
+            ? { feedbackland_cache: prepared.cacheCorpus ? "corpus" : "system" }
+            : {}),
         },
       },
     };
-    if (controls.onText) {
+    if (feature === "ask-ai") {
       const timer = new AbortController();
       let idle: ReturnType<typeof setTimeout> | undefined;
-      const reset = () => {
+      const reset = (ms = ctx.config.options.timeoutMs) => {
         clearTimeout(idle);
         idle = setTimeout(
           () => timer.abort(new DOMException("Timeout", "TimeoutError")),
-          ctx.config.options.timeoutMs,
+          ms,
         );
       };
       ctx.signal = AbortSignal.any([ctx.signal, timer.signal]);
-      reset();
+      const firstTokenMs =
+        ctx.end - 180000 + ctx.config.options.timeoutMs - performance.now();
+      if (firstTokenMs <= 0) throw new AiError("timeout");
+      reset(firstTokenMs);
       try {
         const result = streamText({
           ...args,
           abortSignal: ctx.signal,
+          includeRawChunks: true,
           onError: () => {},
         });
         let text = "",
           finished = false;
         for await (const part of result.fullStream) {
+          if (part.type === "raw") observeStreamFrame(ctx, part.rawValue);
           if (part.type === "error")
             throw ctx.error ?? safeError(part.error, ctx.signal);
           if (part.type === "abort") throw safeError(null, ctx.signal);
           if (part.type === "text-delta" && part.text) {
             reset();
             text += part.text;
-            controls.onText(part.text);
+            controls.onText?.(part.text);
           }
           if (part.type === "reasoning-delta" && part.text) reset();
           if (part.type === "finish-step") {
             setUsage(ctx, part.usage);
+            if (ctx.error) throw ctx.error;
             checkFinish(part.rawFinishReason, part.finishReason);
             finished = true;
           }
@@ -306,8 +359,26 @@ export async function callChat(
     const result = await generateText(args);
     setUsage(ctx, result.steps[0].usage);
     checkFinish(result.rawFinishReason, result.finishReason);
+    if (feature === "moderation")
+      validateModeration(result.text, result.finishReason);
     return { text: result.text, omitted: prepared.omitted };
   });
+}
+const verdict = z.object({
+  isInappropriate: z.boolean(),
+  confidenceScore: z.number().min(0).max(1),
+});
+function validateModeration(text: string, finish: string) {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1");
+  try {
+    if (finish === "stop" && verdict.safeParse(JSON.parse(cleaned)).success)
+      return;
+  } catch {
+    /* Return only the fixed classification. */
+  }
+  throw new AiError("invalid-response");
 }
 function checkFinish(raw: string | undefined, reason: string) {
   if (raw === "content_filter" || reason === "content-filter")
@@ -315,45 +386,87 @@ function checkFinish(raw: string | undefined, reason: string) {
   if (raw === "error" || reason === "error")
     throw new AiError("provider-error");
 }
-export function callEmbeddings(
+export async function callEmbeddings(
   feature: "embed-write" | "embed-query" | "backfill" | "probe" | "check",
   items: readonly string[],
   controls: Controls = {},
 ) {
-  return execute(feature, "embeddings", false, controls, async (ctx) => {
-    const { options, dimensions } = ctx.config;
-    if (ctx.config.widthMismatch) throw new AiError("AI_UNAVAILABLE");
-    if (options.embeddingModel === "none")
+  // Acquire a slot before tokenizer work, including for empty inputs.
+  const release = acquire("model");
+  let snapshot: Awaited<ReturnType<typeof ready>>;
+  let entries: ReturnType<typeof embeddingBatch>;
+  try {
+    snapshot = await ready(feature, "embeddings", controls);
+    const { config } = snapshot;
+    if (config.widthMismatch) throw new AiError("AI_UNAVAILABLE");
+    if (config.options.embeddingModel === "none")
       throw new AiError("AI_NOT_CONFIGURED");
-    const values = embeddingBatch(
-      options.embeddingModel,
+    entries = embeddingBatch(
+      config.options.embeddingModel,
       items,
       feature === "embed-query",
     );
-    if (!values.length) return [];
-    const args = {
-      model: provider.textEmbeddingModel(options.embeddingModel),
-      maxRetries: 0,
-      abortSignal: ctx.signal,
-      providerOptions: { openrouter: { dimensions } },
-    };
-    return values.length === 1
-      ? [(await embed({ ...args, value: values[0] })).embedding]
-      : (await embedMany({ ...args, values, maxParallelCalls: 1 })).embeddings;
-  });
+  } finally {
+    release();
+  }
+  const dimensions = snapshot.config.dimensions;
+  // A finite IEEE-754 number uses at most 24 JSON characters, plus its comma.
+  // Leave room for the provider envelope, per-row indexes and usage metadata.
+  const perRequest = Math.max(
+    1,
+    Math.floor((MODEL_RESPONSE_BYTES - 16384) / (dimensions * 25 + 128)),
+  );
+  const result: (number[] | null)[] = items.map(() => null);
+  for (let offset = 0; offset < entries.length; offset += perRequest) {
+    const batch = entries.slice(offset, offset + perRequest);
+    const vectors = await execute(
+      feature,
+      "embeddings",
+      false,
+      controls,
+      async (ctx) => {
+        const args = {
+          model: provider.textEmbeddingModel(ctx.config.options.embeddingModel),
+          maxRetries: 0,
+          abortSignal: ctx.signal,
+          providerOptions: { openrouter: { dimensions } },
+        };
+        if (batch.length === 1)
+          return [(await embed({ ...args, value: batch[0].text })).embedding];
+        return (
+          await embedMany({
+            ...args,
+            values: batch.map((item) => item.text),
+            maxParallelCalls: 1,
+          })
+        ).embeddings;
+      },
+      snapshot,
+    );
+    batch.forEach((item, i) => {
+      result[item.index] = vectors[i];
+    });
+  }
+  return result;
 }
 export async function readProviderMetadata(
   kind: MetadataKind,
   actor?: Actor,
   external?: AbortSignal,
+  check?: CheckTicket,
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
     release = acquire("metadata");
-    const config = await ready("metadata", "chat", !!actor);
-    signal = deadline(config, "metadata", external).signal;
+    const { config, wall } = await ready(
+      "metadata",
+      "chat",
+      { signal: external, check },
+      !!actor,
+    );
+    signal = wall.signal;
     signal.throwIfAborted();
-    return await metadata(config, kind, actor, signal);
+    return await metadata(config, kind, actor, wall, check);
   } catch (error) {
     const failure = safeError(error, signal);
     logFailure(failure, "metadata");

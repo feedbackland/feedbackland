@@ -101,7 +101,7 @@ async function main() {
     if (phase >= 5) await phaseFive(image, runId, directory, check);
     if (phase >= 6)
       await check("V12/V20/V21 OpenRouter foundations", () =>
-        aiFoundations(runId),
+        aiFoundations(runId, image),
       );
     await save("passed");
   } catch (error) {

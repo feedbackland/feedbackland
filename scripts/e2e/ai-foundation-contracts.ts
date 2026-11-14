@@ -22,6 +22,7 @@ import {
 import { embeddingBatch, prepareEmbedding } from "../../lib/llm/model-profiles";
 import {
   configuration,
+  beginCheck,
   saveCheck,
   saveConfiguration,
   beginCreditWait,
@@ -44,6 +45,9 @@ import {
   secondKey,
 } from "../mock-llm";
 import { eventually } from "./run";
+import { accountingRegressions } from "./ai-accounting-regressions";
+import { transportRegressions } from "./ai-transport-regressions";
+import { configurationRegressions } from "./ai-configuration-regressions";
 import type { Actor } from "../../lib/auth/authorization";
 
 type Mock = Awaited<ReturnType<typeof mockOpenRouter>>;
@@ -51,6 +55,10 @@ const passed = { key: "valid", chat: "passed", search: "passed" } as const;
 const prompt = {
   system: "Answer from the provided board.",
   text: "Example question",
+};
+const moderationPrompt = {
+  system: "Moderate fixture content.",
+  text: "A suggestion",
 };
 const account = { userId: "fixture-admin", sessionId: "fixture-session" };
 async function actor(userId: string, sessionId: string) {
@@ -149,36 +157,49 @@ async function identityChecks(mock: Mock) {
   assert.equal(pending.configured, false);
   await denied(callChat("rewrite", prompt), "AI_NOT_CONFIGURED");
   assert.equal(mock.requests, 0);
-  await callEmbeddings("probe", ["width"]);
+  await denied(callEmbeddings("probe", ["width"]), "AI_NOT_CONFIGURED");
+  const pendingCheck = await beginCheck(pending, {
+    actor: account,
+    intent: "configure",
+  });
   const dbKey = await db
     .selectFrom("ai_settings")
     .select(["apiKey", "apiKeyLast4", "apiKeySetAt"])
     .executeTakeFirstOrThrow();
   assert(dbKey.apiKey?.startsWith("v1.") && !dbKey.apiKey.includes(firstKey));
   assert.equal(dbKey.apiKeyLast4, "1111");
-  const wait = await beginCreditWait(pending);
+  const wait = await beginCreditWait(pendingCheck);
   assert(wait && dbKey.apiKeySetAt);
   assert.equal(wait.getTime() - dbKey.apiKeySetAt.getTime(), 7 * 86400000);
-  assert.equal(await saveCheck(pending, passed), true);
+  assert.equal(await saveCheck(pendingCheck, passed), true);
   await saveConfiguration(account, pending, { apiKey: secondKey });
   const second = await configuration();
   assert.notEqual(second.keyDigest, pending.keyDigest);
   assert.notEqual(second.token, pending.token);
   assert.equal(second.check, null);
-  assert.equal(await saveCheck(pending, passed), false);
+  assert.equal(await saveCheck(pendingCheck, passed), false);
   assert.equal(
-    await completeCreditWait(pending, pending.keyDigest!, wait, passed),
+    await completeCreditWait(pendingCheck, pending.keyDigest!, wait, passed),
     null,
   );
   mock.expectedKey = secondKey;
-  const secondWait = await beginCreditWait(second);
+  const secondCheck = await beginCheck(second, {
+    actor: account,
+    intent: "configure",
+  });
+  const secondWait = await beginCreditWait(secondCheck);
   assert(secondWait);
   assert.equal(
-    await completeCreditWait(second, pending.keyDigest!, secondWait, passed),
+    await completeCreditWait(
+      secondCheck,
+      pending.keyDigest!,
+      secondWait,
+      passed,
+    ),
     null,
   );
   const on = await completeCreditWait(
-    second,
+    secondCheck,
     second.keyDigest!,
     secondWait,
     passed,
@@ -190,13 +211,20 @@ async function identityChecks(mock: Mock) {
   await denied(callChat("check", prompt), "AI_NOT_CONFIGURED");
   await denied(callEmbeddings("probe", ["x"]), "AI_NOT_CONFIGURED");
   assert.equal(
-    await completeCreditWait(second, second.keyDigest!, secondWait, passed),
+    await completeCreditWait(
+      secondCheck,
+      second.keyDigest!,
+      secondWait,
+      passed,
+    ),
     null,
   );
-  await callChat("check", prompt, {
-    action: { actor: account, intent: "configure" },
+  const offCheck = await beginCheck(off, {
+    actor: account,
+    intent: "configure",
   });
-  await saveCheck(off, passed);
+  await callChat("check", prompt, { check: offCheck });
+  await saveCheck(offCheck, passed);
   await saveConfiguration(account, off, { enabled: true });
   const active = await configuration();
   assert(active.configured && active.check?.search === "passed");
@@ -306,11 +334,11 @@ function inputChecks() {
   );
   assert.equal(prepareEmbedding(model, p.text)!.tokens, p.tokens);
   assert.equal(
-    embeddingBatch(model, ["  ", "<|endoftext|>"])[0],
+    embeddingBatch(model, ["  ", "<|endoftext|>"])[0].text,
     "<|endoftext|>",
   );
   assert.equal(
-    [...embeddingBatch(model, ["😀".repeat(201)], true)[0]].length,
+    [...embeddingBatch(model, ["😀".repeat(201)], true)[0].text].length,
     200,
   );
   assert.throws(() => embeddingBatch(model, Array(65).fill("x")), AiError);
@@ -319,7 +347,7 @@ function inputChecks() {
     () => embeddingBatch(model, Array(5).fill("abcdefgh ".repeat(3556))),
     AiError,
   );
-  assert.equal(prepareEmbedding(model, "a".repeat(128000))?.bytes, 1024);
+  assert.equal(prepareEmbedding(model, "a".repeat(128000))?.tokens, 8000);
   assert.throws(() => embeddingBatch("unknown", ["x"]), AiError);
 }
 
@@ -446,7 +474,7 @@ async function responseChecks(mock: Mock) {
       },
     });
   const healthy = await health(config.token, "chat");
-  await denied(callChat("moderation", prompt), "provider-refusal");
+  await denied(callChat("moderation", moderationPrompt), "provider-refusal");
   assert.equal(
     (await health(config.token, "chat")).lastAppliedSequence,
     healthy.lastAppliedSequence,
@@ -487,7 +515,7 @@ async function responseChecks(mock: Mock) {
     "provider-error",
   );
   mock.handler = ({ response }) => chat(response, 0, "content_filter");
-  await denied(callChat("moderation", prompt), "provider-refusal");
+  await denied(callChat("moderation", moderationPrompt), "provider-refusal");
   mock.handler = ({ response }) =>
     json(response, {
       data: [{ index: 0, embedding: [0, 1] }],
@@ -651,7 +679,7 @@ async function concurrencyChecks(mock: Mock) {
   const cancel = new AbortController();
   const options = { signal: cancel.signal };
   const vision = denied(
-    callChat("moderation", prompt, {
+    callChat("moderation", moderationPrompt, {
       ...options,
       images: [...assets, assets[0]],
     }),
@@ -664,7 +692,10 @@ async function concurrencyChecks(mock: Mock) {
   const loadCount = loads;
   const burst = await Promise.all(
     Array.from({ length: 32 }, () =>
-      denied(callChat("moderation", prompt, { images: assets }), "VISION_BUSY"),
+      denied(
+        callChat("moderation", moderationPrompt, { images: assets }),
+        "VISION_BUSY",
+      ),
     ),
   );
   assert.equal(burst.length, 32);
@@ -711,7 +742,7 @@ async function concurrencyChecks(mock: Mock) {
   };
   await denied(callChat("ask-ai", prompt, { onText: () => {} }), "timeout");
   mock.reset();
-  await callChat("moderation", prompt, {
+  await callChat("moderation", moderationPrompt, {
     images: [
       { ...assets[0], byteSize: 3, load: async () => Buffer.from([1, 2, 3]) },
     ],
@@ -741,18 +772,21 @@ async function budgetChecks(mock: Mock) {
   await denied(callEmbeddings("probe", ["x"]), "AI_PAUSED");
   await denied(
     callChat("check", prompt, {
-      action: { actor: account, intent: "configure" },
+      check: await beginCheck(current, { actor: account, intent: "configure" }),
     }),
     "AI_PAUSED",
   );
   assert.equal(mock.requests, start);
-  await callChat("moderation", prompt);
-  await callChat("moderation", prompt);
-  await denied(callChat("moderation", prompt), "AI_PAUSED");
+  await callChat("moderation", moderationPrompt);
+  await callChat("moderation", moderationPrompt);
+  await denied(callChat("moderation", moderationPrompt), "AI_PAUSED");
   assert(await consumeAiBudget(40, 39, db, true));
-  const action = { actor: account, intent: "test-again" } as const;
-  await callChat("check", prompt, { action });
-  await denied(callChat("check", prompt, { action }), "AI_PAUSED");
+  const check = await beginCheck(current, {
+    actor: account,
+    intent: "test-again",
+  });
+  await callChat("check", prompt, { check });
+  await denied(callChat("check", prompt, { check }), "AI_PAUSED");
   await resetCounters();
   await db.transaction().execute(async (trx) => {
     await sql`set local time zone 'Pacific/Kiritimati'`.execute(trx);
@@ -773,8 +807,9 @@ async function budgetChecks(mock: Mock) {
   await resetCounters();
   await assert.rejects(admitMetadata(current, { userId: account.userId }));
   await denied(
-    callChat("check", prompt, {
-      action: { actor: { userId: account.userId }, intent: "test-again" },
+    beginCheck(current, {
+      actor: { userId: account.userId },
+      intent: "test-again",
     }),
     "forbidden",
   );
@@ -808,9 +843,12 @@ async function budgetChecks(mock: Mock) {
     })
     .execute();
   const reserve = (chunks: number) =>
-    db
-      .transaction()
-      .execute((trx) => reserveInsightPlan(trx, current, owner, chunks));
+    db.transaction().execute((trx) =>
+      reserveInsightPlan(trx, current, owner, {
+        snapshot: "fixture",
+        groups: Array.from({ length: chunks }, (_, i) => [String(i)]),
+      }),
+    );
   await denied(reserve(8), "AI_PAUSED");
   const [one, two] = await Promise.all([reserve(2), reserve(2)]);
   assert.deepEqual(one, two);
@@ -874,6 +912,10 @@ async function main() {
     await responseChecks(mock);
     await concurrencyChecks(mock);
     await budgetChecks(mock);
+    await resetCounters();
+    await configurationRegressions(mock, account);
+    await transportRegressions(mock, account);
+    await accountingRegressions(mock, account);
     const sinks = [
       await db.selectFrom("ai_settings").select("lastCheck").execute(),
       await db.selectFrom("ai_health").selectAll().execute(),
@@ -906,6 +948,9 @@ async function main() {
           identity: "passed",
           accounting: "passed",
           requestBounds: "passed",
+          configurationRegressions: "passed",
+          transportRegressions: "passed",
+          accountingRegressions: "passed",
           privateMarkers: "absent",
           modelSlots: 8,
           visionSlots: 1,

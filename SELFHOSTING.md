@@ -289,7 +289,7 @@ P07 adds the server-side OpenRouter client, configuration store and usage accoun
 
 Use identical AI settings on every replica. To change environment overrides, stop all replicas, allow the previous configuration leases to expire (20 seconds), then restart with the new values. A replica that detects a configuration mismatch suspends AI requests. Environment settings override their stored fields. An explicit administrative off setting takes precedence over an environment key.
 
-Embedding inputs preserve a Unicode prefix of up to 8,000 tokens. An uninterrupted tokenizer segment longer than 1,024 bytes truncates the input at that segment, which bounds processing time for long identifiers or encoded text.
+Embedding inputs preserve a Unicode prefix of up to 8,000 tokens, including continuous multilingual prose. Wide indexes use smaller request batches to stay within the provider response limit. An unset width uses the physical index width after a rebuild. Invalid OpenRouter settings suspend AI and produce a startup diagnostic while the board remains available.
 
 Each attempted model request, including an allowed retry, consumes an allowance. An explicit administrator **Test again** may use up to 40 additional requests per UTC day across the instance. Usage records distinguish a reported zero price from a missing price. OpenRouter key spend limits control the monetary amount.
 

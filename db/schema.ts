@@ -70,6 +70,10 @@ export interface AiSettings {
   apiKeyDigest: string | null;
   apiKeyLast4: string | null;
   apiKeySetAt: Timestamp | null;
+  catalogueModel: string | null;
+  catalogueVision: boolean | null;
+  checkSequence: Generated<Int8>;
+  configGeneration: Generated<Int8>;
   creditWaitConfigToken: string | null;
   creditWaitUntil: Timestamp | null;
   effectiveConfigToken: string | null;

@@ -201,7 +201,10 @@ export async function migrateAndSeed(
         kind: columns.rows[0].kind as "vector" | "halfvec",
       };
       state.vector = observed;
-      const seeded = await seed(trx);
+      const seeded = await seed(
+        trx,
+        Object.hasOwn(registry, "0003_ai_dispatch"),
+      );
       return { ...seeded, metadata: observed };
     });
   } catch (error) {
@@ -211,7 +214,7 @@ export async function migrateAndSeed(
   // Never destroy bootDb: it shares the running application's pool.
 }
 
-async function seed(trx: Transaction<DB>) {
+async function seed(trx: Transaction<DB>, aiSchemaReady: boolean) {
   const config = getConfig();
   let settings = await trx
     .selectFrom("settings")
@@ -262,7 +265,8 @@ async function seed(trx: Transaction<DB>) {
       .set({ authSecret })
       .where("id", "=", 1)
       .execute();
-  const aiAligned = await synchronizeAiEnvironment(trx, authSecret);
+  const aiAligned =
+    aiSchemaReady && (await synchronizeAiEnvironment(trx, authSecret));
   if (aiAligned) await renewConfigurationLease(trx, replicaId());
   const setupComplete = settings.setupCompletedAt !== null;
   const injected = setupComplete
@@ -395,7 +399,11 @@ export function boot() {
     });
     startConfigurationLease();
     log("boot.ai-foundations", {
-      stage: result.aiAligned ? "ready" : "CONFIGURATION_DIVERGED",
+      stage: !config.llm.valid
+        ? "invalid-configuration"
+        : result.aiAligned
+          ? "ready"
+          : "CONFIGURATION_DIVERGED",
     });
     // An internally generated code is deliberately printed only in the private
     // startup log. Injected setup/auth/recovery values are never logged.

@@ -9,6 +9,14 @@ import { log } from "./log";
 export class ConfigurationError extends Error {}
 
 function readAiEnvironment() {
+  try {
+    return parseAiEnvironment();
+  } catch (error) {
+    if (!(error instanceof ConfigurationError)) throw error;
+    return { valid: false, options: {}, apiKey: undefined };
+  }
+}
+function parseAiEnvironment() {
   const options = optionsSchema.safeParse({
     model: value("OPENROUTER_MODEL"),
     embeddingModel: value("OPENROUTER_EMBEDDING_MODEL"),
@@ -30,7 +38,7 @@ function readAiEnvironment() {
     throw new ConfigurationError(
       "Invalid OpenRouter model, privacy, timeout, daily limit or API key configuration",
     );
-  return { apiKey, options: options.data };
+  return { valid: true, apiKey, options: options.data };
 }
 const value = (name: string) => {
   const raw = process.env[name];
@@ -311,6 +319,7 @@ export function getConfig() {
     maxPendingImageBytes: storageLimit("MAX_PENDING_IMAGE_BYTES", 200000000n)!,
     poolMax: integer("DATABASE_POOL_MAX", 10, 2, 1000),
     dimensions: integer("AI_EMBEDDING_DIMENSIONS", 768, 1, 4000),
+    explicitDimensions: value("AI_EMBEDDING_DIMENSIONS") !== undefined,
     injectedAuthSecret: value("BETTER_AUTH_SECRET"),
     get authSecret() {
       const secret = runtimeState().authSecret;

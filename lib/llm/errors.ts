@@ -22,6 +22,7 @@ export type Reason =
   | "provider-rate"
   | "provider-error"
   | "provider-refusal"
+  | "context-length"
   | "provider-input"
   | "data-policy"
   | "in-flight-budget"
@@ -36,6 +37,8 @@ export class AiError extends Error {
     readonly reason: Reason,
     readonly status: number | null = null,
     readonly retryAfterMs?: number,
+    readonly creditDetail?:
+      "account-credit" | "key-limit" | "request-exceeds-balance",
   ) {
     super(reason);
   }
@@ -71,7 +74,11 @@ export function responseError(
     error?: {
       message?: unknown;
       code?: unknown;
-      metadata?: { error_type?: unknown; limit_source?: unknown };
+      metadata?: {
+        error_type?: unknown;
+        limit_source?: unknown;
+        reason?: unknown;
+      };
     };
   };
   const err = envelope.error;
@@ -109,7 +116,19 @@ export function responseError(
           : undefined;
     return new AiError("in-flight-budget", code, ms);
   }
-  if (code === 402) return new AiError("provider-credit", code);
+  if (code === 402) {
+    const detail =
+      source === "openrouter_key_limit"
+        ? "key-limit"
+        : source === "openrouter_credits"
+          ? err?.metadata?.reason === "weight_exceeds_budget"
+            ? "request-exceeds-balance"
+            : "account-credit"
+          : undefined;
+    return new AiError("provider-credit", code, undefined, detail);
+  }
+  if (type === "context_length_exceeded" && [400, 413, 422].includes(code))
+    return new AiError("context-length", code);
   if (code === 429) return new AiError("provider-rate", code);
   if (
     code === 404 &&

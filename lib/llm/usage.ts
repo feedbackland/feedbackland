@@ -1,11 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { sql, type Transaction } from "kysely";
-import { db } from "../../db/db";
 import type { DB } from "../../db/schema";
 import { DomainError } from "../domain-error";
-import { requireAdmin, type Actor } from "../auth/authorization";
-import { lock, locks } from "../../db/locks";
+import { isDeepStrictEqual } from "node:util";
+import { deadline, withinTransaction, type Deadline } from "./deadline";
+import { log } from "../log";
+import type { Actor } from "../auth/authorization";
 import {
   consumeAiBudget,
   consumeRateLimit,
@@ -14,6 +15,9 @@ import { AiError, healthReason } from "./errors";
 import {
   issueSequence,
   observeHealth,
+  requireDispatch,
+  authorizeCheckActor,
+  type CheckTicket,
   type Identity,
   type Configuration,
 } from "./settings-store";
@@ -32,8 +36,9 @@ export type Admission = Identity & {
   sequence: string | null;
   day: string;
   diagnostic: boolean;
+  leaseEnd?: number;
 };
-export type CheckAction = { actor: Actor; intent: "test-again" | "configure" };
+
 export type Usage = {
   inputTokens?: number;
   outputTokens?: number;
@@ -44,24 +49,22 @@ export function dailyShare(config: Configuration, feature: Feature) {
     ? config.options.dailyCallLimit
     : Math.floor(config.options.dailyCallLimit * 0.8);
 }
-const ordinaryCheck = { limit: 10, windowSeconds: 60 };
-async function authorizeCheck(trx: Tx, actor: Actor) {
-  await lock(trx, locks.membership);
-  await requireAdmin(trx, actor);
-  if (
-    !(
-      await consumeRateLimit(
-        { key: "ai-check:user:" + actor.userId, ...ordinaryCheck },
-        trx,
-      )
-    ).allowed
-  )
-    throw new AiError("provider-rate", 429);
-}
-export async function admitMetadata(config: Configuration, actor?: Actor) {
-  await db.transaction().execute(async (trx) => {
-    if (actor) await authorizeCheck(trx, actor);
-    await issueSequence(trx, config, "chat", true);
+export async function admitMetadata(
+  config: Configuration,
+  actor?: Actor,
+  check?: CheckTicket,
+  wall = deadline(config.options.timeoutMs),
+  kind = "key",
+) {
+  await withinTransaction(wall, async (trx) => {
+    const admin = check?.action?.actor ?? actor;
+    if (admin) await authorizeCheckActor(trx, admin, !check);
+    const purpose = admin
+      ? "admin"
+      : check && kind === "key"
+        ? "check"
+        : "ordinary";
+    await requireDispatch(trx, config, purpose, check);
     if (
       !(
         await consumeRateLimit(
@@ -71,35 +74,58 @@ export async function admitMetadata(config: Configuration, actor?: Actor) {
       ).allowed
     )
       throw new AiError("provider-rate", 429);
+    await requireDispatch(trx, config, purpose, check);
   });
 }
 // P10 can bind its frozen chunk plan and this reservation in the same short
 // transaction. No credit is returned for abandoned or expired work.
 async function requireInsightLease(trx: Tx, run: Omit<Reservation, "id">) {
+  const observed = performance.now();
   const lease = await trx
     .selectFrom("job_lease")
-    .select("name")
+    .select(
+      sql<number>`extract(epoch from ("until"-clock_timestamp()))::float8 * 1000`.as(
+        "remainingMs",
+      ),
+    )
     .where("name", "=", "insight:" + run.runId)
     .where("holder", "=", run.owner)
     .where("fence", "=", run.fence)
     .where("until", ">", sql<Date>`clock_timestamp()`)
     .forShare()
     .executeTakeFirst();
-  if (!lease) throw new AiError("RESERVATION_EXPIRED");
+  if (!lease || lease.remainingMs <= 0)
+    throw new AiError("RESERVATION_EXPIRED");
+  return observed + lease.remainingMs;
 }
 export async function reserveInsightPlan(
   trx: Tx,
   config: Configuration,
   run: Omit<Reservation, "id">,
-  chunks: number,
+  plan: { snapshot: string; groups: string[][] },
 ) {
-  if (!Number.isSafeInteger(chunks) || chunks < 1 || chunks > 2000)
+  // Bind the request to repeatable input order before waiting for any locks.
+  const input = {
+    snapshot: plan.snapshot,
+    groups: plan.groups.map((group) => [...group]),
+  };
+  const chunks = input.groups.length;
+  const members = input.groups.flat();
+  if (
+    !input.snapshot ||
+    input.snapshot.length > 128 ||
+    !chunks ||
+    members.length > 2000 ||
+    input.groups.some((group) => !group.length || group.length > 200) ||
+    members.some((id) => !id || id.length > 128) ||
+    new Set(members).size !== members.length
+  )
     throw new AiError("invalid-input");
   await issueSequence(trx, config, "chat", true);
   await requireInsightLease(trx, run);
   const record = await trx
     .selectFrom("insight_reports")
-    .select(["stage", "reservationId", "requestPlan"])
+    .select(["stage", "reservationId", "requestPlan", "inputHash"])
     .where("id", "=", run.runId)
     .where("owner", "=", run.owner)
     .where("fence", "=", run.fence)
@@ -108,11 +134,19 @@ export async function reserveInsightPlan(
     .forUpdate()
     .executeTakeFirst();
   const count = chunks + (chunks > 1 ? 1 : 0);
-  if (!record) throw new AiError("RESERVATION_EXPIRED");
+  if (!record || (record.inputHash && record.inputHash !== input.snapshot))
+    throw new AiError("RESERVATION_EXPIRED");
+  const frozen = { ...input, chunks, merge: chunks > 1 };
+  if (
+    record.requestPlan &&
+    !isDeepStrictEqual(record.requestPlan, input) &&
+    !isDeepStrictEqual(record.requestPlan, frozen)
+  )
+    throw new AiError("RESERVATION_EXPIRED");
   if (
     record.stage === "admitted" &&
     record.reservationId &&
-    (record.requestPlan as { chunks?: number })?.chunks === chunks
+    isDeepStrictEqual(record.requestPlan, frozen)
   )
     return { ...run, id: record.reservationId };
   if (record.stage !== "admitting") throw new AiError("RESERVATION_EXPIRED");
@@ -127,9 +161,10 @@ export async function reserveInsightPlan(
       reservationDay: day,
       reservationCount: count,
       stage: "admitted",
-      requestPlan: { chunks, merge: chunks > 1 },
+      requestPlan: frozen,
     })
     .execute();
+  await requireInsightLease(trx, run);
   return { ...run, id };
 }
 async function spendReservation(
@@ -161,15 +196,21 @@ export async function beginAttempt(
   config: Configuration,
   feature: Feature,
   capability: Capability,
-  action?: CheckAction,
+  check?: CheckTicket,
   reservation?: Reservation,
+  wall: Deadline = deadline(config.options.timeoutMs),
 ): Promise<Admission> {
   try {
-    return await db.transaction().execute(async (trx) => {
-      if (action) {
-        if (feature !== "check") throw new AiError("invalid-input");
-        await authorizeCheck(trx, action.actor);
-      }
+    return await withinTransaction(wall, async (trx) => {
+      if (check && feature !== "check") throw new AiError("invalid-input");
+      const action = check?.action;
+      if (action) await authorizeCheckActor(trx, action.actor, false);
+      const purpose = action
+        ? "admin"
+        : feature === "check" && check
+          ? "check"
+          : "ordinary";
+      await requireDispatch(trx, config, purpose, check);
       if (
         (feature === "insights" && !reservation) ||
         (reservation && feature !== "insights")
@@ -201,7 +242,12 @@ export async function beginAttempt(
           }),
         )
         .execute();
+      await requireDispatch(trx, config, purpose, check);
+      const leaseEnd = reservation
+        ? await requireInsightLease(trx, reservation)
+        : undefined;
       return {
+        leaseEnd,
         token: config.token,
         revision: config.revision,
         feature,
@@ -212,8 +258,52 @@ export async function beginAttempt(
       };
     });
   } catch (error) {
+    wall.signal.throwIfAborted();
     if (error instanceof DomainError) throw new AiError("forbidden", 403);
     throw error instanceof AiError ? error : new AiError("limiter-error");
+  }
+}
+// Admission commits before network I/O. If cancellation or lease loss wins in
+// that small interval, undo exactly this undispatched attempt on its own day.
+export async function cancelUndispatched(
+  admission: Admission,
+  reservation?: Reservation,
+) {
+  try {
+    await withinTransaction(deadline(2000), async (trx) => {
+      if (reservation) {
+        await trx
+          .updateTable("insight_reports")
+          .where("id", "=", reservation.runId)
+          .where("reservationId", "=", reservation.id)
+          .where("owner", "=", reservation.owner)
+          .where("fence", "=", reservation.fence)
+          .set({ reservationCount: sql`"reservationCount"+1` })
+          .execute();
+      } else {
+        const prefix = admission.diagnostic
+          ? "ai:instance:day:diagnostic:"
+          : "ai:instance:day:";
+        await trx
+          .updateTable("rate_limit")
+          .where("key", "=", prefix + admission.day)
+          .where("count", ">", 0)
+          .set({ count: sql`count-1` })
+          .execute();
+      }
+      await trx
+        .updateTable("llm_usage")
+        .where("day", "=", sql<Date>`${admission.day}::date`)
+        .where("feature", "=", admission.feature)
+        .set({ calls: sql`calls-1`, uncostedCalls: sql`"uncostedCalls"-1` })
+        .execute();
+    });
+  } catch {
+    log(
+      "ai.admission-reversal-failed",
+      { name: admission.feature, stage: "accounting" },
+      "warn",
+    );
   }
 }
 function tokens(value: unknown) {
@@ -242,28 +332,42 @@ export async function finishAttempt(
   error?: AiError,
 ) {
   const cost = price(usage.cost);
-  await db
-    .updateTable("llm_usage")
-    .where("day", "=", sql<Date>`${admission.day}::date`)
-    .where("feature", "=", admission.feature)
-    .set({
-      errors: sql`errors+${error ? 1 : 0}`,
-      inputTokens: sql`"inputTokens"+${tokens(usage.inputTokens)}`,
-      outputTokens: sql`"outputTokens"+${tokens(usage.outputTokens)}`,
-      ...(cost === null
-        ? {}
-        : {
-            costUsd: sql`case when "costUsd"+${cost}::numeric < 100000000 then "costUsd"+${cost}::numeric else "costUsd" end`,
-            uncostedCalls: sql`"uncostedCalls"-case when "costUsd"+${cost}::numeric < 100000000 then 1 else 0 end`,
-          }),
-    })
-    .execute();
-  const reason = error ? healthReason(error) : null;
-  if (admission.sequence && (!error || reason))
-    await observeHealth(
-      admission,
-      admission.capability,
-      admission.sequence,
-      reason,
+  try {
+    await withinTransaction(deadline(1000), async (trx) => {
+      // Match admission's lock order: configuration, health, then usage.
+      const reason = error ? healthReason(error) : null;
+      if (admission.sequence && (!error || reason))
+        await observeHealth(
+          admission,
+          admission.capability,
+          admission.sequence,
+          reason,
+          trx,
+        );
+      await trx
+        .updateTable("llm_usage")
+        .where("day", "=", sql<Date>`${admission.day}::date`)
+        .where("feature", "=", admission.feature)
+        .set({
+          errors: sql`errors+${error ? 1 : 0}`,
+          inputTokens: sql`"inputTokens"+${tokens(usage.inputTokens)}`,
+          outputTokens: sql`"outputTokens"+${tokens(usage.outputTokens)}`,
+          ...(cost === null
+            ? {}
+            : {
+                costUsd: sql`case when "costUsd"+${cost}::numeric < 100000000 then "costUsd"+${cost}::numeric else "costUsd" end`,
+                uncostedCalls: sql`"uncostedCalls"-case when "costUsd"+${cost}::numeric < 100000000 then 1 else 0 end`,
+              }),
+        })
+        .execute();
+    });
+  } catch {
+    // Admission already recorded this attempt as uncosted. Rolling back all
+    // settlement writes preserves that record and the original provider result.
+    log(
+      "ai.settlement-failed",
+      { name: admission.feature, stage: "accounting" },
+      "warn",
     );
+  }
 }

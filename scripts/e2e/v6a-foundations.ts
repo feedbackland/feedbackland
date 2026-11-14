@@ -5,7 +5,7 @@ import { command, eventually } from "./run";
 
 const pgImage =
   "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11";
-export async function aiFoundations(runId: string) {
+export async function aiFoundations(runId: string, productionImage: string) {
   assert.match(runId, /^p07-\d+-[a-f0-9]+$/);
   const project = runId + "-ai",
     pg = project + "-pg",
@@ -44,6 +44,51 @@ export async function aiFoundations(runId: string) {
       () => docker("exec", pg, "pg_isready", "-h", "127.0.0.1"),
       (s) => s.includes("accepting connections"),
     );
+    await docker("exec", pg, "createdb", "-U", "postgres", "board_boot");
+    // The production entry point must keep the whole board available when
+    // optional AI configuration is invalid, even without a provider key.
+    for (const setting of [
+      "OPENROUTER_PRIVACY=typo",
+      "AI_TIMEOUT_MS=invalid",
+    ]) {
+      try {
+        await docker(
+          "run",
+          "-d",
+          "--name",
+          worker,
+          "--network",
+          project,
+          "-e",
+          "DATABASE_URL=postgres://postgres:" +
+            password +
+            "@database:5432/board_boot",
+          "-e",
+          "APP_URL=http://localhost:3000",
+          "-e",
+          setting,
+          productionImage,
+        );
+        await eventually(
+          () =>
+            docker(
+              "exec",
+              worker,
+              "node",
+              "-e",
+              "Promise.all(['/api/health','/','/setup'].map(async p=>(await fetch('http://127.0.0.1:3000'+p)).status)).then(s=>console.log(s.join(',')))",
+            ),
+          (status) => status === "200,200,200",
+        );
+        assert(
+          (await docker("logs", worker)).includes(
+            '"stage":"invalid-configuration"',
+          ),
+        );
+      } finally {
+        await docker("rm", "-f", worker).catch(() => {});
+      }
+    }
     await docker(
       "exec",
       pg,
@@ -127,7 +172,10 @@ export async function aiFoundations(runId: string) {
       .split(/\r?\n/)
       .find((line) => line.startsWith("P07_OUTCOME="));
     assert(summary, "Missing AI contracts result");
-    return JSON.parse(summary.slice("P07_OUTCOME=".length));
+    return {
+      ...JSON.parse(summary.slice("P07_OUTCOME=".length)),
+      invalidAiEnvironmentBoot: "privacy and timeout passed",
+    };
   } finally {
     await Promise.all(
       [worker, pg].map((n) => docker("rm", "-fv", n).catch(() => {})),
