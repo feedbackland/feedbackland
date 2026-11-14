@@ -59,7 +59,7 @@ export const MinimalTiptapEditor = ({
     if (!editor) return;
 
     if (value === "" || !value) {
-      editor.commands.clearContent();
+      if (!editor.isEmpty) editor.commands.clearContent();
       return;
     }
 

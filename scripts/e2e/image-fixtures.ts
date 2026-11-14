@@ -22,6 +22,18 @@ export const exifJpeg = Buffer.concat([
   Buffer.from("ffe1001645786966000049492a0008000000000000000000", "hex"),
   samples.jpeg.subarray(2),
 ]);
+export function orientedJpeg(orientation: number) {
+  const exif = Buffer.from(
+    "ffe1002245786966000049492a0008000000010012010300010000000000000000000000",
+    "hex",
+  );
+  exif.writeUInt16LE(orientation, 28);
+  return Buffer.concat([
+    samples.jpeg.subarray(0, 2),
+    exif,
+    samples.jpeg.subarray(2),
+  ]);
+}
 export const boundary = "P06-fixture";
 export const disposition =
   'Content-Disposition: form-data; name="file"; filename="image"';

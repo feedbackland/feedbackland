@@ -1,16 +1,43 @@
 "use client";
 import { useAuth } from "@/hooks/use-auth";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { Button } from "@/components/ui/button";
 import { Tiptap } from "@/components/ui/tiptap";
+import {
+  MAX_FEEDBACK_TEXT_LENGTH,
+  MAX_FEEDBACK_HTML_BYTES,
+} from "@/lib/feedback-text";
+import { imageId } from "@/lib/images/path";
 import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
+function draftError(html: string) {
+  if (!html) return "empty";
+  if (new TextEncoder().encode(html).length > MAX_FEEDBACK_HTML_BYTES)
+    return "Feedback formatting exceeds the size limit.";
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  for (const br of template.content.querySelectorAll("br"))
+    br.replaceWith("\n");
+  const text = template.content.textContent ?? "";
+  if (text.length > MAX_FEEDBACK_TEXT_LENGTH)
+    return "Feedback must be 10,000 characters or fewer.";
+  if (
+    !text.trim() &&
+    !Array.from(template.content.querySelectorAll("img")).some((img) =>
+      imageId(img.getAttribute("src") ?? ""),
+    )
+  )
+    return "empty";
+  return "";
+}
 export function FeedbackForm() {
   const { session, isLoaded } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
   const [description, setDescription] = useState("");
+  const validation = useMemo(() => draftError(description), [description]);
+  const canSubmit = !validation && !hasPendingUpload(description);
   const trpc = useTRPC(),
     cache = useQueryClient();
   const mutation = useMutation(
@@ -25,7 +52,7 @@ export function FeedbackForm() {
   );
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (description.trim() && !hasPendingUpload(description))
+    if (canSubmit && isLoaded && !mutation.isPending)
       mutation.mutate({ description, descriptionFormat: "html" });
   };
   return (
@@ -47,14 +74,12 @@ export function FeedbackForm() {
             ? `Posting as ${session.user.name}.`
             : "Post anonymously, or sign in to manage your feedback."}
         </p>
+        {validation && validation !== "empty" && (
+          <p role="alert">{validation}</p>
+        )}
         <Button
           type="submit"
-          disabled={
-            !isLoaded ||
-            !description.trim() ||
-            hasPendingUpload(description) ||
-            mutation.isPending
-          }
+          disabled={!isLoaded || !canSubmit || mutation.isPending}
         >
           Submit feedback
         </Button>

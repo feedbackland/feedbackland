@@ -1,4 +1,5 @@
 import * as React from "react";
+import { canCopyImage } from "@/lib/copy-text";
 import {
   Tooltip,
   TooltipContent,
@@ -101,9 +102,9 @@ const ActionItems: Array<{
 
 export const ImageActions: React.FC<ImageActionsProps> = React.memo(
   ({ isLink = false, ...actions }) => {
-    const secure = React.useSyncExternalStore(
+    const copyingAvailable = React.useSyncExternalStore(
       () => () => {},
-      () => window.isSecureContext,
+      canCopyImage,
       () => false,
     );
 
@@ -120,9 +121,10 @@ export const ImageActions: React.FC<ImageActionsProps> = React.memo(
       () =>
         ActionItems.filter(
           (item) =>
-            (isLink || !item.isLink) && (item.key !== "onCopy" || secure),
+            (isLink || !item.isLink) &&
+            (item.key !== "onCopy" || copyingAvailable),
         ),
-      [isLink, secure],
+      [isLink, copyingAvailable],
     );
 
     return (

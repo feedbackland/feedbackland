@@ -7,6 +7,7 @@ import { getConfig } from "../config";
 import { DomainError } from "../domain-error";
 import { BodyError } from "../http/limited-body";
 import { requireAdmin, type Actor } from "../auth/authorization";
+import { uploadTransaction, type UploadDeadline } from "./upload-deadline";
 import type { inspectImage } from "./container-limits";
 type Trx = Transaction<DB>;
 type Owner = { postId: string } | { commentId: string };
@@ -29,11 +30,15 @@ export async function imageUsage(connection: Kysely<DB>) {
 export async function storeImage(
   bytes: Buffer,
   metadata: ReturnType<typeof inspectImage>,
+  deadline?: UploadDeadline,
 ) {
   const config = getConfig();
-  return db.transaction().execute(async (trx) => {
-    await lock(trx, locks.images);
-    const usage = await imageUsage(trx),
+  const insert = async (
+    trx: Trx,
+    run = <T>(query: () => Promise<T>) => query(),
+  ) => {
+    await run(() => lock(trx, locks.images));
+    const usage = await run(() => imageUsage(trx)),
       size = BigInt(bytes.length);
     if (
       (config.maxImageStorageBytes !== undefined &&
@@ -41,12 +46,17 @@ export async function storeImage(
       BigInt(usage.pendingBytes) + size > config.maxPendingImageBytes
     )
       throw new BodyError(507, "IMAGE_STORAGE_FULL");
-    return trx
-      .insertInto("images")
-      .values({ ...metadata, bytes, byteSize: bytes.length })
-      .returning(["id", "width", "height"])
-      .executeTakeFirstOrThrow();
-  });
+    return run(() =>
+      trx
+        .insertInto("images")
+        .values({ ...metadata, bytes, byteSize: bytes.length })
+        .returning(["id", "width", "height"])
+        .executeTakeFirstOrThrow(),
+    );
+  };
+  return deadline
+    ? uploadTransaction(deadline, insert)
+    : db.transaction().execute(insert);
 }
 export async function validateImages(
   connection: Kysely<DB>,

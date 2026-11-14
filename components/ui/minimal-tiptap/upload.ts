@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/react";
-import { toast } from "sonner";
+import type { Transaction } from "@tiptap/pm/state";
 import { imageId } from "@/lib/images/path";
 import { clientRuntime } from "@/lib/client-runtime";
 export const MAX_SOURCE_BYTES = 25_000_000;
@@ -28,6 +28,7 @@ export async function uploadEditorImage(
 ) {
   if (clientRuntime.mutationsBlocked)
     throw new Error("Reload the board before uploading.");
+  signal?.throwIfAborted();
   const gif = await checkImageSource(file);
   let blob: Blob = file;
   if (!gif) {
@@ -95,7 +96,7 @@ export async function uploadEditorImage(
           ? "The upload limit was reached. Try again shortly."
           : response.status === 415
             ? "This image format or animation is unsupported."
-            : "Image upload failed. Re-attach the image and try again.",
+            : "Image upload failed. Try again.",
     );
   const result = await response.json();
   if (
@@ -118,61 +119,130 @@ export async function uploadEditorImage(
     height: Number(result.height),
   };
 }
-export function insertImages(
+type UploadJob = {
+  editor: Editor;
+  file: File;
+  src: string;
+  limit: () => number;
+  controller?: AbortController;
+  error?: string;
+};
+const jobs = new Map<string, UploadJob>();
+const queue: UploadJob[] = [];
+let running = 0;
+
+export function prepareImageUpload(
   editor: Editor,
-  files: File[],
-  pos: number,
-  maxBytes: number,
+  file: File,
+  limit: () => number,
 ) {
-  const entries = files.map((file) => ({
-    file,
-    src: URL.createObjectURL(file),
-  }));
-  const inserted = editor.commands.insertContentAt(
-    pos,
-    entries.map(({ src }) => ({ type: "image", attrs: { src } })),
+  const job = { editor, file, src: URL.createObjectURL(file), limit };
+  jobs.set(job.src, job);
+  // The insertion command dispatches synchronously. Wait until its transaction
+  // has landed before looking up the placeholder or starting any network work.
+  queueMicrotask(() => {
+    if (imagePosition(job) === undefined) forgetUpload(job);
+    else schedule(job);
+  });
+  return job.src;
+}
+function imagePosition({ editor, src }: UploadJob) {
+  let position: number | undefined;
+  if (!editor.isDestroyed)
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === "image" && node.attrs.src === src) position = pos;
+    });
+  return position;
+}
+function forgetUpload(job: UploadJob) {
+  if (!jobs.delete(job.src)) return;
+  job.controller?.abort();
+  const index = queue.indexOf(job);
+  if (index !== -1) queue.splice(index, 1);
+  URL.revokeObjectURL(job.src);
+}
+export function reconcileUploads(editor: Editor, destroyed = false) {
+  const missing = new Set(
+    [...jobs.values()].filter((job) => job.editor === editor),
   );
-  for (const { file, src } of entries) {
-    const controller = new AbortController();
-    const stop = () => controller.abort();
-    const position = () => {
-      let found: number | undefined;
-      if (!editor.isDestroyed)
-        editor.state.doc.descendants((node, pos) => {
-          if (node.type.name === "image" && node.attrs.src === src) found = pos;
-        });
-      return found;
-    };
-    const removed = () => {
-      if (position() === undefined) stop();
-    };
-    if (!inserted) {
-      URL.revokeObjectURL(src);
-      continue;
-    }
-    editor.on("destroy", stop);
-    editor.on("transaction", removed);
-    void uploadEditorImage(file, maxBytes, controller.signal)
-      .then((image) => {
-        const pos = position();
-        if (pos !== undefined && !controller.signal.aborted)
-          editor.view.dispatch(
-            editor.state.tr.setNodeMarkup(pos, undefined, image),
-          );
-      })
-      .catch((error) => {
-        if (controller.signal.aborted) return;
-        const pos = position();
-        if (pos !== undefined)
-          editor.view.dispatch(editor.state.tr.delete(pos, pos + 1));
-        toast.error(
-          error instanceof Error ? error.message : "Image upload failed.",
-        );
-      })
-      .finally(() => {
-        editor.off("destroy", stop);
-        editor.off("transaction", removed);
-        URL.revokeObjectURL(src);
-      });
+  if (!missing.size) return;
+  if (!destroyed)
+    editor.state.doc.descendants((node) => {
+      const job = node.type.name === "image" && jobs.get(node.attrs.src);
+      if (job) missing.delete(job);
+    });
+  for (const job of missing) forgetUpload(job);
+}
+// Undoing the removal of a canceled or failed upload cannot restore its File.
+// Drop those transient nodes in the same editor update, before forms see them.
+export function removeAbandonedUploads(tr: Transaction) {
+  const abandoned: number[] = [];
+  tr.doc.descendants((node, pos) => {
+    if (
+      node.type.name === "image" &&
+      typeof node.attrs.src === "string" &&
+      node.attrs.src.startsWith("blob:") &&
+      !jobs.has(node.attrs.src)
+    )
+      abandoned.push(pos);
+  });
+  if (!abandoned.length) return null;
+  for (const pos of abandoned.reverse()) tr.delete(pos, pos + 1);
+  return tr.setMeta("addToHistory", false);
+}
+function updatePlaceholder(
+  job: UploadJob,
+  attributes: Record<string, unknown>,
+) {
+  const pos = imagePosition(job);
+  if (pos === undefined) return;
+  const { editor } = job;
+  // Attribute steps leave document positions intact for undo/redo, even if the
+  // user has typed elsewhere since inserting the placeholder.
+  const tr = editor.state.tr;
+  for (const [name, value] of Object.entries(attributes)) {
+    tr.setNodeAttribute(pos, name, value);
+  }
+  editor.view.dispatch(tr.setMeta("addToHistory", false));
+}
+export function retryUpload(src: string) {
+  const job = jobs.get(src);
+  if (!job?.error || imagePosition(job) === undefined) return;
+  job.error = undefined;
+  updatePlaceholder(job, { uploadError: null });
+  schedule(job);
+}
+function schedule(job: UploadJob) {
+  if (!jobs.has(job.src)) return;
+  queue.push(job);
+  drainQueue();
+}
+function drainQueue() {
+  while (running < 2 && queue.length) {
+    const job = queue.shift()!;
+    running++;
+    void runUpload(job).finally(() => {
+      running--;
+      drainQueue();
+    });
+  }
+}
+async function runUpload(job: UploadJob) {
+  const controller = new AbortController();
+  job.controller = controller;
+  try {
+    const image = await uploadEditorImage(
+      job.file,
+      job.limit(),
+      controller.signal,
+    );
+    if (controller.signal.aborted) return;
+    // Undo removes the inserted image. Redo then carries the permanent
+    // attributes, never an already-revoked object URL.
+    updatePlaceholder(job, { ...image, uploadError: null });
+  } catch (error) {
+    if (controller.signal.aborted || !jobs.has(job.src)) return;
+    job.error = error instanceof Error ? error.message : "Image upload failed.";
+    updatePlaceholder(job, { uploadError: job.error });
   }
 }

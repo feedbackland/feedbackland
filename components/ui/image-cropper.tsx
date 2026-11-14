@@ -90,7 +90,9 @@ export function ImageCropper({
   imageSrc,
   onClose,
   onCrop,
+  committing,
 }: {
+  committing: boolean;
   open: boolean;
   imageSrc: string | null;
   onClose: () => void;
@@ -100,7 +102,7 @@ export function ImageCropper({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
-  const [cropError, setCropError] = useState(false);
+  const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
 
   function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
@@ -117,11 +119,13 @@ export function ImageCropper({
   async function handleOnCrop() {
     if (!completedCrop || !imgRef.current || processing) return;
     setProcessing(true);
-    setCropError(false);
+    setError("");
     try {
       await onCrop(await getCroppedImg(imgRef.current, completedCrop));
     } catch {
-      setCropError(true);
+      setError(
+        "The logo could not be cropped. Choose another image and try again.",
+      );
     } finally {
       setProcessing(false);
     }
@@ -138,7 +142,7 @@ export function ImageCropper({
         if (!isOpen) handleOnClose();
       }}
     >
-      <DialogContent className="">
+      <DialogContent closeDisabled={committing}>
         <DialogTitle className="sr-only">Upload logo</DialogTitle>
         <div className="mx-auto flex max-w-full items-center justify-center">
           <ReactCrop
@@ -154,18 +158,24 @@ export function ImageCropper({
               alt="Image Cropper"
               src={imageSrc || undefined}
               onLoad={onImageLoad}
+              onError={() => {
+                setCompletedCrop(undefined);
+                setError(
+                  "This browser could not decode the logo. Cancel and choose another image.",
+                );
+              }}
             />
           </ReactCrop>
         </div>
-        {cropError && <p role="alert">The logo could not be cropped.</p>}
+        {error && <p role="alert">{error}</p>}
         <DialogFooter className="">
           <DialogClose asChild>
             <Button
               size={"sm"}
-              type="reset"
+              type="button"
+              disabled={committing}
               className="w-fit"
               variant={"outline"}
-              onClick={handleOnClose}
             >
               <Trash2Icon className="mr-1.5 size-4" />
               Cancel

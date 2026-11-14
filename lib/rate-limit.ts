@@ -1,5 +1,11 @@
 import "server-only";
-import { checkRateLimit } from "@/queries/check-rate-limit";
+import { checkRateLimit, consumeRateLimit } from "@/queries/check-rate-limit";
+import {
+  uploadTransaction,
+  type UploadDeadline,
+} from "./images/upload-deadline";
+import { log, sqlstate } from "./log";
+import { BodyError } from "./http/limited-body";
 export { getClientIp } from "./client-ip";
 export const RATE_LIMITS = {
   feedbackCreate: {
@@ -83,9 +89,26 @@ export function enforceSearchLimit(ip: string) {
   ]);
 }
 
-export function enforceImageLimit(ip: string) {
-  return enforceInOrder([
-    { key: "images:ip:" + ip, ...RATE_LIMITS.images.ip },
-    { key: "images:instance", ...RATE_LIMITS.images.instance },
-  ]);
+export async function enforceImageLimit(ip: string, deadline: UploadDeadline) {
+  try {
+    return await uploadTransaction(deadline, async (trx, run) => {
+      const source = await run(() =>
+        consumeRateLimit(
+          { key: "images:ip:" + ip, ...RATE_LIMITS.images.ip },
+          trx,
+        ),
+      );
+      if (!source.allowed) return source;
+      return run(() =>
+        consumeRateLimit(
+          { key: "images:instance", ...RATE_LIMITS.images.instance },
+          trx,
+        ),
+      );
+    });
+  } catch (error) {
+    if (error instanceof BodyError) throw error;
+    log("rate-limit.unavailable", { sqlstate: sqlstate(error) }, "warn");
+    return { allowed: true };
+  }
 }

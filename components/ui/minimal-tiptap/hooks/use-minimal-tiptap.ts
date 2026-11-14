@@ -14,6 +14,7 @@ import MentionList from "@/components/ui/minimal-tiptap/components/mention-list"
 import {
   Link,
   Image,
+  setImageUploadLimit,
   HorizontalRule,
   CodeBlockLowlight,
   Selection,
@@ -26,8 +27,8 @@ import { cn } from "@/lib/utils";
 import { getOutput } from "../utils";
 import { useThrottle } from "../hooks/use-throttle";
 import { toast } from "sonner";
-import { useCallback } from "react";
-import { insertImages, MAX_SOURCE_BYTES } from "../upload";
+import { useCallback, useLayoutEffect } from "react";
+import { MAX_SOURCE_BYTES } from "../upload";
 import { useSettings } from "@/hooks/use-settings";
 import DOMPurify from "dompurify";
 
@@ -43,7 +44,7 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   onCreate?: () => void;
 }
 
-const createExtensions = (placeholder: string, maxBytes: number) => [
+const createExtensions = (placeholder: string, maxImageBytes: number) => [
   StarterKit.configure({
     // Turned off because this list registers its own version of each below.
     // StarterKit bundles Link and Underline (see its dependencies), so leaving
@@ -88,8 +89,7 @@ const createExtensions = (placeholder: string, maxBytes: number) => [
       class: "tiptap-image",
     },
 
-    onToggle: (editor, files, pos) =>
-      insertImages(editor, files, pos, maxBytes),
+    maxImageBytes,
     onValidationError(errors) {
       errors.forEach((error) => {
         toast.error("Image validation error", {
@@ -124,9 +124,20 @@ const createExtensions = (placeholder: string, maxBytes: number) => [
   FileHandler.configure({
     allowedMimeTypes: ["image/*"],
     maxFileSize: MAX_SOURCE_BYTES,
-    onDrop: (editor, files, pos) => insertImages(editor, files, pos, maxBytes),
-    onPaste: (editor, files) =>
-      insertImages(editor, files, editor.state.selection.from, maxBytes),
+    onDrop: (editor, files, pos) => editor.commands.setImages(files, pos),
+    onPaste: (editor, files, slice, text) =>
+      editor
+        .chain()
+        .command(({ tr }) => {
+          // Keep ProseMirror's sanitized clipboard content and its files in one
+          // editor update and one undo event.
+          if (slice.size) tr.replaceSelection(slice);
+          else if (text) tr.insertText(text);
+          tr.setMeta("paste", true).setMeta("uiEvent", "paste");
+          return true;
+        })
+        .setImages(files)
+        .run(),
     onValidationError: (errors) => {
       errors.forEach((error) => {
         toast.error("Image validation error", {
@@ -309,6 +320,9 @@ export const useMinimalTiptapEditor = ({
     ...props,
   });
 
+  useLayoutEffect(() => {
+    if (editor) setImageUploadLimit(editor, capabilities.maxImageBytes);
+  }, [editor, capabilities.maxImageBytes]);
   return editor;
 };
 

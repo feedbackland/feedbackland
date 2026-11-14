@@ -78,6 +78,8 @@ export async function imageBrowser(
   artifact: string,
   lan = false,
 ) {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
   const title = lan ? "LAN attachment walkthrough" : "Attachment walkthrough";
   await page.getByRole("tab", { name: "Settings", exact: true }).click();
   await page.getByLabel("Choose a logo").setInputFiles({
@@ -264,6 +266,7 @@ export async function imageBrowser(
   await page.getByText("Unattached uploads reclaimed.").waitFor();
   assert.equal((await fetch(base + kept.url)).status, 200);
   assert.equal((await fetch(base + removed.url)).status, 404);
+  assert.deepEqual(errors, []);
   return {
     logoUrl,
     imageUrl,

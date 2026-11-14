@@ -4,6 +4,9 @@ import { sql } from "kysely";
 import { eventually } from "./run";
 import { getPool, db } from "../../db/db";
 import { locks } from "../../db/locks";
+import { uploadDeadline } from "../../lib/images/upload-deadline";
+import { BodyError } from "../../lib/http/limited-body";
+import { enforceImageLimit } from "../../lib/rate-limit";
 import { inspectImage } from "../../lib/images/container-limits";
 import {
   managePendingImages,
@@ -17,6 +20,74 @@ import { createCommentQuery } from "../../queries/create-comment";
 import { deleteCommentQuery } from "../../queries/delete-comment";
 import { updateSettingsQuery } from "../../queries/update-settings";
 import { samples } from "./image-fixtures";
+// Ordinary maintenance can hold either the quota lock or a rate-counter row.
+// Both must honor the same request budget and settle before the slot is reused.
+async function deadlineContracts() {
+  const pool = getPool();
+  const holder = await pool.connect();
+  const ip = "deadline-fixture";
+  const count = async () =>
+    Number((await holder.query("select count(*) as n from images")).rows[0].n);
+  try {
+    await enforceImageLimit(ip, uploadDeadline(new AbortController().signal));
+    const before = await count();
+    await holder.query("begin");
+    await holder.query("select pg_advisory_xact_lock($1::bigint)", [
+      locks.images.toString(),
+    ]);
+    await holder.query("select key from rate_limit where key=$1 for update", [
+      "images:instance",
+    ]);
+    const insert = (signal: AbortSignal, ms: number) =>
+      storeImage(
+        samples.png,
+        inspectImage(samples.png),
+        uploadDeadline(signal, ms),
+      );
+    const timedOut = (e: unknown) => e instanceof BodyError && e.status === 408;
+    await assert.rejects(insert(new AbortController().signal, 300), timedOut);
+    await assert.rejects(
+      enforceImageLimit(ip, uploadDeadline(new AbortController().signal, 300)),
+      timedOut,
+    );
+    const disconnect = new AbortController();
+    const interrupted = assert.rejects(
+      insert(disconnect.signal, 2000),
+      (e: unknown) => e instanceof BodyError && e.status === 400,
+    );
+    try {
+      await eventually(
+        () =>
+          holder.query(
+            "select count(*) as n from pg_locks where locktype='advisory' and not granted and objid=($1::bigint & 4294967295)::oid",
+            [locks.images.toString()],
+          ),
+        (v) => Number(v.rows[0].n) > 0,
+        5000,
+      );
+    } finally {
+      disconnect.abort();
+      await holder.query("rollback");
+      await interrupted;
+    }
+    await holder.query("rollback");
+    assert.equal(await count(), before);
+    assert(
+      (
+        await enforceImageLimit(
+          ip,
+          uploadDeadline(new AbortController().signal),
+        )
+      ).allowed,
+    );
+    await insert(new AbortController().signal, 5000);
+    assert.equal(await count(), before + 1);
+  } finally {
+    await holder.query("rollback");
+    holder.release();
+  }
+}
+
 async function contracts() {
   const actor = await db
     .selectFrom("auth_session")
@@ -81,6 +152,7 @@ async function contracts() {
     assert(!(await exists(ref.imageId)));
     return;
   }
+  await deadlineContracts();
   const preflight = await upload(),
     holder = await getPool().connect();
   try {

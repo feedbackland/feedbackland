@@ -4,6 +4,7 @@ import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { Controlled as Zoom } from "react-medium-image-zoom";
 import { ImageActions } from "./image-actions";
 import { useImageActions } from "../hooks/use-image-actions";
+import { retryUpload } from "../../../upload";
 import { imageId } from "@/lib/images/path";
 export function ImageViewBlock({ editor, node, deleteNode }: NodeViewProps) {
   const { src, width, height, alt } = node.attrs;
@@ -13,7 +14,20 @@ export function ImageViewBlock({ editor, node, deleteNode }: NodeViewProps) {
   return (
     <NodeViewWrapper className="group/node-image relative">
       {pending ? (
-        <span role="status">Uploading image…</span>
+        node.attrs.uploadError ? (
+          <span contentEditable={false}>
+            <span role="alert">{node.attrs.uploadError}</span>{" "}
+            <button
+              type="button"
+              className="underline"
+              onClick={() => retryUpload(src)}
+            >
+              Retry upload
+            </button>
+          </span>
+        ) : (
+          <span role="status">Uploading image…</span>
+        )
       ) : imageId(src) ? (
         <>
           <Zoom isZoomed={zoomed} onZoomChange={setZoomed}>

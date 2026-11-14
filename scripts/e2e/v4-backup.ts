@@ -9,8 +9,9 @@ import { Pool } from "pg";
 import { chromium } from "playwright";
 import { command, eventually, toolEnvironment } from "./run";
 import { submitSetup, fixturePassword } from "./setup-browser";
+import { attachmentInteractions } from "./attachment-interactions";
 import { imageBrowser } from "./image-browser";
-import { samples, exifJpeg } from "./image-fixtures";
+import { samples, orientedJpeg } from "./image-fixtures";
 import { sendImage, streamContracts } from "./image-http-contracts";
 type Check = (name: string, action: () => Promise<unknown>) => Promise<void>;
 const pgImage =
@@ -212,6 +213,20 @@ export async function phaseFive(
               JSON.stringify(state),
           );
         });
+        // Each walkthrough represents a separate board's normal usage. Reset
+        // only the disposable board's image rate counters between scenarios.
+        const clearImageRates = () =>
+          pool.query("delete from rate_limit where key like 'images:%'");
+        await clearImageRates();
+        const checks = await browser.newPage({
+          storageState: await page.context().storageState(),
+        });
+        try {
+          await attachmentInteractions(checks, app.base);
+        } finally {
+          await checks.close();
+        }
+        await clearImageRates();
         imagePath = result.imageUrl;
         logoPath = result.logoUrl;
         // Bind an ephemeral port on this host's private interface. Only the local browser can relay through it.
@@ -270,10 +285,48 @@ export async function phaseFive(
       }
     });
     await check("images/public-cache-exif-and-authorization", async () => {
+      assert(
+        (await docker("logs", app.name)).includes(
+          '"event":"boot.image-storage","stage":"enabled"',
+        ),
+        "Missing enabled storage status at startup",
+      );
+      const exifJpeg = orientedJpeg(6);
       const posted = await sendImage(app.base, exifJpeg);
       assert.equal(posted.status, 201);
-      const { id, url } = await posted.json();
+      const { id, url, width, height } = await posted.json();
+      assert.deepEqual([width, height], [1, 2]);
       const result = await fetch(app.base + url);
+      const head = await fetch(app.base + url, { method: "HEAD" });
+      assert.equal(head.status, 200);
+      for (const key of [
+        "content-type",
+        "content-length",
+        "etag",
+        "content-security-policy",
+        "cache-control",
+        "content-disposition",
+        "x-content-type-options",
+      ])
+        assert.equal(head.headers.get(key), result.headers.get(key), key);
+      assert.equal((await head.arrayBuffer()).byteLength, 0);
+      assert.equal(
+        (
+          await fetch(app.base + url, {
+            method: "HEAD",
+            headers: { "if-none-match": head.headers.get("etag")! },
+          })
+        ).status,
+        304,
+      );
+      assert.equal(
+        (
+          await fetch(app.base + "/api/images/" + randomUUID(), {
+            method: "HEAD",
+          })
+        ).status,
+        404,
+      );
       assert.equal(result.headers.get("content-type"), "image/jpeg");
       assert.equal(result.headers.get("etag"), '"' + id + '"');
       assert.equal(result.headers.get("x-content-type-options"), "nosniff");
@@ -359,48 +412,86 @@ export async function phaseFive(
             .n,
         ),
         size = samples.png.length;
-      const env = [
-        "MAX_PENDING_IMAGE_BYTES=" + size,
-        "MAX_IMAGE_STORAGE_BYTES=" + (bytes + 2 * size),
-      ];
-      const [a, b] = await Promise.all([
-        startApp("qa", "postgres", env),
-        startApp("qb", "postgres", env),
-      ]);
-      const race = async () => {
-        const replies = await Promise.all([
-          sendImage(a.base),
-          sendImage(b.base),
+      const usage = async () =>
+        (
+          await pool.query<{ total: number; pending: number }>(
+            'select coalesce(sum("byteSize"),0)::int as total, coalesce(sum("byteSize") filter (where not exists (select 1 from image_ref r where r."imageId"=i.id) and not exists (select 1 from settings s where s."logoImageId"=i.id)),0)::int as pending from images i',
+          )
+        ).rows[0];
+      assert.deepEqual(await usage(), { total: bytes, pending: 0 });
+      async function raceQuota(
+        label: string,
+        pendingLimit: number,
+        totalLimit: number,
+        initialTotal: number,
+      ) {
+        const env = [
+          "MAX_PENDING_IMAGE_BYTES=" + pendingLimit,
+          "MAX_IMAGE_STORAGE_BYTES=" + totalLimit,
+        ];
+        const [a, b] = await Promise.all([
+          startApp(label + "-a", "postgres", env),
+          startApp(label + "-b", "postgres", env),
         ]);
-        assert.deepEqual(replies.map((r) => r.status).sort(), [201, 507]);
-        return (await replies.find((r) => r.status === 201)!.json())
-          .url as string;
-      };
-      const attach = async (path: string) => {
-        const r = await fetch(a.base + "/api/feedback/create", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ description: '<img src="' + path + '">' }),
-        });
-        assert.equal(r.status, 201);
-        return (await r.json()).id as string;
-      };
-      const first = await race();
-      await attach(first);
-      const second = await race();
-      assert.equal((await sendImage(a.base)).status, 507);
-      await attach(second);
-      assert.equal((await sendImage(b.base)).status, 507);
-      assert.equal(
-        Number(
-          (await pool.query('select sum("byteSize") as n from images')).rows[0]
-            .n,
-        ),
-        bytes + 2 * size,
-      );
+        try {
+          const replies = await Promise.all([
+            sendImage(a.base),
+            sendImage(b.base),
+          ]);
+          assert.deepEqual(
+            replies.map((r) => r.status).sort(),
+            [201, 507],
+            label,
+          );
+          const accepted = await replies.find((r) => r.status === 201)!.json();
+          assert.deepEqual(
+            await usage(),
+            { total: initialTotal + size, pending: size },
+            label,
+          );
+          const post = await fetch(a.base + "/api/feedback/create", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              description: '<img src="' + accepted.url + '">',
+            }),
+          });
+          assert.equal(post.status, 201);
+          assert.deepEqual(
+            await usage(),
+            { total: initialTotal + size, pending: 0 },
+            label,
+          );
+          if (label === "total")
+            assert.equal((await sendImage(b.base)).status, 507);
+        } finally {
+          await Promise.all([docker("stop", a.name), docker("stop", b.name)]);
+        }
+      }
+      // Each race has space for both candidates under the other quota.
+      await raceQuota("pending", size, bytes + 3 * size, bytes);
+      await raceQuota("total", 2 * size, bytes + 2 * size, bytes + size);
       await worker("postgres", "detach", { MAX_PENDING_IMAGE_BYTES: "0" });
-      await Promise.all([docker("stop", a.name), docker("stop", b.name)]);
-      return { concurrentReplicas: 2, rejectedPendingAndTotal: true };
+      const disabled = await startApp("disabled", "postgres", [
+        "MAX_PENDING_IMAGE_BYTES=0",
+      ]);
+      try {
+        assert(
+          (await docker("logs", disabled.name)).includes(
+            '"event":"boot.image-storage","stage":"disabled"',
+          ),
+          "Missing disabled storage status at startup",
+        );
+        assert.equal((await sendImage(disabled.base)).status, 507);
+        assert.equal((await fetch(disabled.base + imagePath)).status, 200);
+      } finally {
+        await docker("stop", disabled.name);
+      }
+      return {
+        concurrentReplicas: 2,
+        independentPendingAndTotalRaces: true,
+        disabledUploads: true,
+      };
     });
     const orphan = await sendImage(app.base);
     assert.equal(orphan.status, 201);
@@ -414,12 +505,77 @@ export async function phaseFive(
     assert(
       expected.refs.length >= 3 && expected.logo && expected.images.length >= 4,
     );
+    // Exercise the actual operator command, including its failure path after
+    // source identity has succeeded. The last good restore point must survive.
+    await docker(
+      "cp",
+      "scripts/backup-board.sh",
+      database + ":/tmp/backup-board.sh",
+    );
     await docker(
       "exec",
       database,
       "sh",
       "-ec",
-      'umask 077; pg_dump -U postgres -Fc -Z 6 -f /private/board.dump postgres; test "$(stat -c %a /private/board.dump)" = 600',
+      "umask 077; printf '%s\\n' '[source]' 'host=/var/run/postgresql' 'dbname=postgres' 'user=postgres' '[limited]' 'host=/var/run/postgresql' 'dbname=postgres' 'user=backup_probe' > /private/services",
+    );
+    const backup = (service: string, title: string) =>
+      docker(
+        "exec",
+        "-e",
+        "PGSERVICEFILE=/private/services",
+        database,
+        "sh",
+        "/tmp/backup-board.sh",
+        "service",
+        service,
+        title,
+        "/private",
+      );
+    const archive = await backup("source", "Fixture board");
+    assert.match(archive, /^\/private\/board-[a-zA-Z0-9-]+$/);
+    const inventory = JSON.parse(
+      await docker("exec", database, "cat", archive + "/source.json"),
+    );
+    assert.equal(inventory.database, "postgres");
+    assert.equal(inventory.board, "Fixture board");
+    assert(inventory.setupAt && inventory.checkedAt && inventory.vectorSchema);
+    const checksum = await docker(
+      "exec",
+      database,
+      "cat",
+      archive + "/sha256.txt",
+    );
+    await assert.rejects(
+      backup("source", "Different fixture board"),
+      /expected configured board/,
+    );
+    await pool.query(
+      "create role backup_probe login; grant select on public.settings to backup_probe",
+    );
+    await assert.rejects(backup("limited", "Fixture board"), /pg_dump: error/);
+    assert.equal(
+      await docker(
+        "exec",
+        database,
+        "sh",
+        "-ec",
+        "find /private -mindepth 1 -maxdepth 1 -type d",
+      ),
+      archive,
+    );
+    assert.equal(
+      await docker("exec", database, "cat", archive + "/sha256.txt"),
+      checksum,
+    );
+    await docker(
+      "exec",
+      database,
+      "sh",
+      "-ec",
+      'cd "$1"; sha256sum -c sha256.txt; test "$(stat -c %a feedbackland.dump)" = 600; test "$(stat -c %a .)" = 700',
+      "sh",
+      archive,
     );
     for (const target of ["same_schema", "relocated"]) {
       await check("backup/restore-" + target, async () => {
@@ -442,7 +598,7 @@ export async function phaseFive(
           "--exit-on-error",
           "-d",
           target,
-          "/private/board.dump",
+          archive + "/feedbackland.dump",
         );
         const actual = await snapshot(restored);
         assert.deepEqual(actual, expected);

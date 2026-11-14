@@ -38,7 +38,11 @@ function validateHeaders(bytes: Buffer) {
   )
     throw invalid();
 }
-export async function readImagePart(request: Request, maxFile: number) {
+export async function readImagePart(
+  request: Request,
+  maxFile: number,
+  wall = 30_000,
+) {
   const type = request.headers.get("content-type") ?? "";
   const match =
     /^multipart\/form-data\s*;\s*boundary=(?:"([^"]+)"|([^;\s]+))\s*$/i.exec(
@@ -127,7 +131,7 @@ export async function readImagePart(request: Request, maxFile: number) {
     )
       throw invalid();
   };
-  await readBody(request, max, scanPart);
+  await readBody(request, max, scanPart, { wall, idle: 5_000 });
   if (!fileEnd || length === scan + 1) throw invalid();
   return buffer.subarray(fileStart, fileEnd);
 }

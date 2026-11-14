@@ -12,6 +12,7 @@ import {
   boundary,
   disposition,
   exifJpeg,
+  orientedJpeg,
   multipart,
   samples,
 } from "./image-fixtures";
@@ -208,6 +209,10 @@ function containers() {
     );
   }
   assert.equal(inspectImage(exifJpeg).contentType, "image/jpeg");
+  for (let orientation = 1; orientation <= 8; orientation++) {
+    const { width, height } = inspectImage(orientedJpeg(orientation));
+    assert.deepEqual([width, height], orientation >= 5 ? [1, 2] : [2, 1]);
+  }
   assert.throws(() => inspectImage(Buffer.from("<svg/>")), status(415));
   for (const type of ["acTL", "fcTL", "fdAT"])
     assert.throws(

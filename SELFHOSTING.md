@@ -231,38 +231,44 @@ Keep the archive private. Store a separate protected copy of your configuration,
 including any injected `BETTER_AUTH_SECRET`, provider credentials and mail
 settings. Keep both copies outside the database volume.
 
-On the host, choose a new private directory for each backup. The following
-example uses a POSIX shell and the PostgreSQL 18 tools in the database container.
+Use the backup helper from this checkout in a POSIX shell. Give it the exact title shown on the board and an existing private destination on the host. It makes a new directory per run, checks the source board, reads back the full custom-format archive and records its SHA-256. A failed run leaves earlier backups available.
+
+For the bundled database, use the same Compose project, directory and Compose files that started the board. The helper reads the running app's database coordinates and selects that project's database service. Substitute your own project and title below.
 
 ```sh
-umask 077
-mkdir -m 700 board-backup
-docker compose exec -T db pg_dump -U postgres -d feedbackland -Fc -Z 6 > board-backup/feedbackland.dump
-docker compose exec -T db pg_restore -l < board-backup/feedbackland.dump > board-backup/contents.txt
-docker compose exec -T db psql -U postgres -d feedbackland -Atc "SELECT extnamespace::regnamespace FROM pg_extension WHERE extname='vector'"
+project=feedbackland-p04-demo
+archive=$(sh scripts/backup-board.sh compose "$project" 'My feedback board' "$HOME/private-backups") || exit 1
+cat "$archive/source.json"
 ```
 
-Keep the archive only after the dump and inventory commands succeed. Use a
-binary-safe shell for redirection. To restore, use an empty, private target
-database with compatible PostgreSQL and pgvector versions. Use a restore client
-at least as new as the dump client. In the example below, the target is a fresh
-database in the same Compose database service, and the source uses `public`
-for pgvector.
+For an external database or a custom connection, configure a private libpq service in `pg_service.conf` with the host, port, database, role and TLS settings from the app's effective `DATABASE_URL`. Supply the password through a protected passfile. Use compatible PostgreSQL client tools on the host. Verify the endpoint and database independently against the running deployment, especially when cloned boards share a title.
 
 ```sh
-docker compose exec -T db createdb -U postgres feedbackland_restore
-docker compose exec -T db pg_restore -U postgres -d feedbackland_restore --no-owner --no-privileges --no-comments --single-transaction --exit-on-error < board-backup/feedbackland.dump
+archive=$(sh scripts/backup-board.sh service feedbackland-source 'My feedback board' "$HOME/private-backups") || exit 1
+cat "$archive/source.json"
 ```
 
-If the target already provides pgvector in a different schema, have the
-extension owner move it to the source schema **before** running the restore
-(e.g. `ALTER EXTENSION vector SET SCHEMA public`). For a custom source schema
-that you had to pre-create, inspect the archive list and omit only that schema's
-already-created entry with `pg_restore --use-list`. Stop if relocation is
-unavailable. Check row counts, attachment SHA-256 hashes and the logo against
-the source. Start the intended app version privately against the restored database
-with the original configuration and verify sign-in with an existing account
-before switching traffic. An attachment increases the size of every full backup.
+Check the database, board title, setup timestamp and vector schema in that inventory before accepting the archive. The backup contains PostgreSQL's consistent snapshot at dump time. For a **planned cutover**, put the source in maintenance, drain requests and stop every writer, including app replicas, background jobs and other database clients. Take the final dump through the verified libpq service while the apps are stopped. Keep writers stopped until the destination is verified and traffic has switched. Record source table counts, image IDs and SHA-256 hashes, image references and the logo during that same quiet interval. Keep the source database for rollback.
+
+For **incident recovery**, record which archive and recovery time you selected. Changes after that snapshot require separate recovery. Use a fresh target and the inventory from that recovery point. Verify the archive checksum after copying it and before restoring.
+
+```sh
+(cd "$archive" && sha256sum -c sha256.txt) || exit 1
+```
+
+On macOS use `shasum -a 256 -c sha256.txt`. Restore into a new private database on the intended cluster, using compatible PostgreSQL and pgvector versions and a restore client at least as new as the dump client. For the bundled service on the selected project, this example assumes the source vector schema is `public` and the target database name is unused.
+
+```sh
+(
+  set -eu
+  docker compose -p "$project" exec -T db createdb -U postgres feedbackland_restore
+  docker compose -p "$project" exec -T db pg_restore -U postgres -d feedbackland_restore --no-owner --no-privileges --no-comments --single-transaction --exit-on-error < "$archive/feedbackland.dump"
+)
+```
+
+For an external target, create a new empty database and a separate protected libpq service pointing to it. Verify its endpoint and database, then run `pg_restore --dbname='service=feedbackland-restore' --no-owner --no-privileges --no-comments --single-transaction --exit-on-error < "$archive/feedbackland.dump"`.
+
+If the target already provides pgvector in a different schema, have the extension owner move it to the recorded source schema before running the restore. If you created that schema on the target, use the archive inventory with `pg_restore --use-list` and omit only that schema's already-created entry. Stop if relocation is unavailable. Compare counts, hashes, references and the logo before starting the app or housekeeping. Set the restored app's `DATABASE_URL` to the new database, restore the original secrets and start it privately. Verify an existing account can sign in and that its attachments render before switching traffic.
 
 ---
 

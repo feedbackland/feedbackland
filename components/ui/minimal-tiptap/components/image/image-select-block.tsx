@@ -27,7 +27,7 @@ export const ImageSelectBlock = ({
       const files = e.target.files;
       if (!files?.length) return;
 
-      editor.commands.setImages(Array.from(files, (file) => ({ src: file })));
+      editor.commands.setImages(Array.from(files));
       e.target.value = "";
 
       editor.commands.focus();

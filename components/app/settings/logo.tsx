@@ -15,40 +15,62 @@ export function Logo() {
   const { query } = useAdminSettings(),
     { capabilities } = useSettings(),
     update = useUpdateSettings();
-  const [draft, setDraft] = useState<{ url: string; revision: string } | null>(
-    null,
-  );
+  const [draft, setDraft] = useState<{
+    url: string;
+    revision: string;
+    controller: AbortController;
+  } | null>(null);
   const selection = useRef(0);
+  const committing = useRef(false);
   const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [savingSettings, setSavingSettings] = useState(false);
   useEffect(
     () => () => {
-      if (draft) URL.revokeObjectURL(draft.url);
+      if (draft) {
+        draft.controller.abort();
+        URL.revokeObjectURL(draft.url);
+      }
     },
     [draft],
+  );
+  useEffect(
+    () => () => {
+      selection.current++;
+    },
+    [],
   );
   if (!query.data) return null;
   const { logoImageId, revision } = query.data;
   async function save(file: Blob) {
-    if (!draft) return;
+    if (!draft || draft.controller.signal.aborted) return;
     setBusy(true);
     setError("");
     try {
       const { id } = await uploadEditorImage(
         new File([file], "logo.png", { type: "image/png" }),
         capabilities.maxImageBytes,
+        draft.controller.signal,
       );
+      draft.controller.signal.throwIfAborted();
+      committing.current = true;
+      setSavingSettings(true);
       await update.mutateAsync({
         logoImageId: id,
         expectedRevision: draft.revision,
       });
     } catch {
+      if (draft.controller.signal.aborted) return;
       setError(
         "Could not save the logo. Check the upload limit and current settings, then try again.",
       );
     } finally {
-      setDraft(null);
-      setBusy(false);
+      if (!draft.controller.signal.aborted) {
+        setDraft(null);
+        setBusy(false);
+        committing.current = false;
+        setSavingSettings(false);
+      }
     }
   }
   return (
@@ -77,7 +99,11 @@ export function Logo() {
               await checkImageSource(file);
               if (current === selection.current) {
                 setError("");
-                setDraft({ url: URL.createObjectURL(file), revision });
+                setDraft({
+                  url: URL.createObjectURL(file),
+                  revision,
+                  controller: new AbortController(),
+                });
               }
             } catch (error) {
               if (current === selection.current)
@@ -115,7 +141,13 @@ export function Logo() {
         <ImageCropper
           open
           imageSrc={draft.url}
-          onClose={() => setDraft(null)}
+          committing={savingSettings}
+          onClose={() => {
+            if (committing.current) return;
+            draft.controller.abort();
+            setBusy(false);
+            setDraft(null);
+          }}
           onCrop={save}
         />
       )}

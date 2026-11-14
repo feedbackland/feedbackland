@@ -258,12 +258,17 @@ export function inspectImage(bytes: Buffer) {
     type = "webp";
   } else throw new BodyError(415, "INVALID_IMAGE");
   try {
-    const { width, height, type: detected } = imageSize(bytes);
+    const { width, height, orientation, type: detected } = imageSize(bytes);
     requireValid(type === detected);
     canvas(width, height);
+    const rotated =
+      type === "jpg" &&
+      orientation !== undefined &&
+      orientation >= 5 &&
+      orientation <= 8;
     return {
-      width,
-      height,
+      width: rotated ? height : width,
+      height: rotated ? width : height,
       contentType: type === "jpg" ? "image/jpeg" : "image/" + type,
     };
   } catch {

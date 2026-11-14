@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 import { imageId } from "@/lib/images/path";
-export async function GET(
+async function serveImage(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -28,11 +28,12 @@ export async function GET(
     return (await query.select("id").executeTakeFirst())
       ? new Response(null, { status: 304, headers })
       : missing();
-  const image = await query
-    .select(["bytes", "contentType", "byteSize"])
+  const metadata = query.select(["contentType", "byteSize"]);
+  const image = await metadata
+    .$if(request.method !== "HEAD", (q) => q.select("bytes"))
     .executeTakeFirst();
   if (!image) return missing();
-  return new Response(new Uint8Array(image.bytes), {
+  return new Response(image.bytes ? new Uint8Array(image.bytes) : null, {
     headers: {
       ...headers,
       "Content-Type": image.contentType,
@@ -40,3 +41,4 @@ export async function GET(
     },
   });
 }
+export { serveImage as GET, serveImage as HEAD };
