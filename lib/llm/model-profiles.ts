@@ -24,6 +24,7 @@ const supported = new Set([
   "openai/text-embedding-3-small",
   "openai/text-embedding-3-large",
 ]);
+export const supportsEmbeddingModel = (model: string) => supported.has(model);
 let tokenizer: Tiktoken | undefined;
 export function prepareEmbedding(model: string, text: string, query = false) {
   if (!supported.has(model))

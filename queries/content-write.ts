@@ -13,6 +13,7 @@ import {
 } from "../lib/llm/content";
 import { lockContentConfiguration } from "../lib/llm/settings-store";
 import { revision } from "../lib/revision";
+import { scheduleEmbedding, postEmbeddingText } from "../lib/llm/embeddings";
 import { validateReplyParent } from "./reply-parent";
 
 type Target =
@@ -86,12 +87,19 @@ export async function prepareContent(input: Write) {
   );
   return { ...input, ...moderation };
 }
-export async function commitContent<T extends { id: string; revision: string }>(
+export async function commitContent<
+  T extends {
+    id: string;
+    revision: string;
+    plainText?: string;
+    title?: string;
+  },
+>(
   input: Awaited<ReturnType<typeof prepareContent>>,
   ownerKind: "post" | "comment",
   write: (trx: Transaction<DB>) => Promise<T>,
 ) {
-  return contentTransaction(input.signal, async (trx) => {
+  const committed = await contentTransaction(input.signal, async (trx) => {
     if (input.actor) await lock(trx, locks.membership);
     await lock(trx, locks.images);
     await lockContentConfiguration(trx, input.config);
@@ -112,4 +120,15 @@ export async function commitContent<T extends { id: string; revision: string }>(
     checkContentRequest(input.signal);
     return row;
   });
+  if (typeof committed.plainText === "string")
+    scheduleEmbedding({
+      kind: ownerKind,
+      id: committed.id,
+      revision: committed.revision,
+      text:
+        ownerKind === "post"
+          ? postEmbeddingText(committed.title ?? "", committed.plainText)
+          : committed.plainText,
+    });
+  return committed;
 }

@@ -8,6 +8,7 @@ export type VectorMetadata = {
   version: string;
   dimensions: number;
   kind: "vector" | "halfvec";
+  indexesValid?: boolean;
 };
 export type RuntimeState = {
   aiConfigGeneration?: number;
@@ -39,6 +40,20 @@ export type RuntimeState = {
   };
   setupComplete?: boolean;
   vector?: VectorMetadata;
+  vectorEpoch?: string;
+  embeddingProbe?: {
+    identity: string;
+    ready: boolean;
+    reason: string;
+    attempt: number;
+    next: number;
+    expected?: number;
+    actual?: number;
+    checked?: string;
+    pending?: Promise<void>;
+  };
+  activeEmbeddingWrites?: Set<Promise<void>>;
+  aiMaintenance?: { stop: () => Promise<void> };
   sweepTimer?: ReturnType<typeof setTimeout>;
 };
 const key = Symbol.for("feedbackland.runtime");

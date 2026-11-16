@@ -12,6 +12,7 @@ export const optionsSchema = z
     embeddingModel: model,
     privacy: z.enum(["deny", "zdr", "allow"]),
     vision: z.boolean(),
+    searchMaxDistance: z.number().finite().min(0).max(2),
     timeoutMs: z.number().int().min(1000).max(120000),
     dailyCallLimit: z.number().int().min(10).max(1_000_000),
   })
@@ -23,6 +24,7 @@ export const defaults: Options = {
   embeddingModel: "openai/text-embedding-3-small",
   privacy: "deny",
   vision: true,
+  searchMaxDistance: 0.55,
   timeoutMs: 15000,
   dailyCallLimit: 5000,
 };

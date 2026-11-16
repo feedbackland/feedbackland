@@ -1,12 +1,35 @@
 import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
 
 async function main() {
+  if (process.env.P09_COLD_OUTAGE === "1") {
+    // Keep the fixture address on the internal network without opening its TLS port.
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("Provider startup was never requested")),
+        300_000,
+      );
+      process.once("SIGHUP", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      console.log("Content fixture waiting to listen");
+    });
+  }
   const fixture = await mockOpenRouter("0.0.0.0");
   const defaults = fixture.handler;
   const releaseVision = Promise.withResolvers<void>();
   process.on("SIGUSR2", releaseVision.resolve);
   let visionCalls = 0;
+  let embeddingsOffline = false;
+  process.on("SIGHUP", () => {
+    embeddingsOffline = !embeddingsOffline;
+    console.log("Embedding fixture offline " + embeddingsOffline);
+  });
   fixture.handler = async (request) => {
+    if (request.url === "/api/v1/embeddings") {
+      console.log("Embedding fixture width " + Number(request.body.dimensions));
+      if (embeddingsOffline) return json(request.response, { error: {} }, 503);
+    }
     if (request.url !== "/api/v1/chat/completions") return defaults(request);
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);

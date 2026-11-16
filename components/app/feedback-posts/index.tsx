@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchState } from "../search-state";
 import { useFeedbackPosts } from "@/hooks/use-feedback-posts";
 import { FeedbackPostCompact } from "@/components/app/feedback-post/compact";
 import { Spinner } from "@/components/ui/spinner";
@@ -12,9 +13,8 @@ import { useAtom, useAtomValue } from "jotai";
 import { useIsDrawerEmbed } from "@/providers/embed";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { cn, isUuidV4 } from "@/lib/utils";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { FeedbackPostsEmpty } from "./empty";
-import { Separator } from "@/components/ui/separator";
 
 function isInViewport(el: Element) {
   if (!(el instanceof HTMLElement)) return false;
@@ -44,7 +44,7 @@ export function FeedbackPosts() {
 
   const { searchValue, orderBy, status } = feedbackPostsState;
 
-  const isSearchActive = !!(searchValue?.length > 0);
+  const isSearchActive = !!searchValue.trim();
 
   const {
     query: {
@@ -52,9 +52,17 @@ export function FeedbackPosts() {
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
+      isFetching,
+      refetch,
+      errorUpdatedAt,
+      isFetchNextPageError,
       isPending,
       isError,
+      error,
     },
+    sessionError,
+    sessionErrorAt,
+    restartSearch,
   } = useFeedbackPosts({
     enabled: true,
     orderBy,
@@ -79,6 +87,24 @@ export function FeedbackPosts() {
     Array.isArray(posts) &&
     posts?.length === 0;
 
+  const lastPage = data?.pages.at(-1);
+  useEffect(() => {
+    if (
+      isSearchActive &&
+      lastPage?.feedbackPosts.length === 0 &&
+      hasNextPage &&
+      !isFetching &&
+      !isError
+    )
+      void fetchNextPage();
+  }, [
+    isSearchActive,
+    lastPage,
+    hasNextPage,
+    isFetching,
+    isError,
+    fetchNextPage,
+  ]);
   const { ref } = useInView({
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
@@ -111,7 +137,10 @@ export function FeedbackPosts() {
   }, [isDrawerEmbed, postIdToScrollIntoView, isScrolledIntoView, isPending]);
 
   const hasPosts =
-    !isPending && !isError && Array.isArray(posts) && posts.length > 0;
+    !isPending &&
+    (!isError || isSearchActive) &&
+    Array.isArray(posts) &&
+    posts.length > 0;
 
   const hasNoPosts =
     !isPending &&
@@ -142,9 +171,24 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {isPending && <FeedbackPostsLoading />}
+      {isPending && !sessionError && <FeedbackPostsLoading />}
 
-      {isError && (
+      {isSearchActive && (
+        <SearchState
+          search={data?.pages[0]?.search}
+          error={sessionError ?? (isError ? error : undefined)}
+          errorAt={sessionErrorAt ?? errorUpdatedAt}
+          onRetry={
+            sessionError
+              ? restartSearch
+              : () => {
+                  void (isFetchNextPageError ? fetchNextPage() : refetch());
+                }
+          }
+          onRestart={restartSearch}
+        />
+      )}
+      {isError && !isSearchActive && (
         <div className="text-destructive py-4 text-center">
           Error loading posts
         </div>
@@ -152,12 +196,13 @@ export function FeedbackPosts() {
 
       {isPlatformEmpty && <FeedbackPostsEmpty />}
 
-      {isSearchEmpty && (
-        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-          Search is unavailable in this preview. Exact and semantic search
-          arrive in the search milestone.
-        </div>
-      )}
+      {isSearchEmpty &&
+        !hasNextPage &&
+        data?.pages[0]?.search?.status !== "pending" && (
+          <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+            No feedback matches your search.
+          </div>
+        )}
 
       {hasNoPosts && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">
@@ -194,10 +239,9 @@ export function FeedbackPosts() {
               </span>
             </div>
           )}
-
-          <div ref={ref} className="h-1 w-full" />
         </div>
       )}
+      {hasNextPage && !isError && <div ref={ref} className="h-1 w-full" />}
     </div>
   );
 }

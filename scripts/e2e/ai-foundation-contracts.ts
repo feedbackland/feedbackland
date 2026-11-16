@@ -45,6 +45,7 @@ import {
   secondKey,
 } from "../mock-llm";
 import { eventually } from "./run";
+import { durableSearchContracts } from "./durable-search";
 import { contentContracts } from "./content-ai-contracts";
 import { accountingRegressions } from "./ai-accounting-regressions";
 import { transportRegressions } from "./ai-transport-regressions";
@@ -924,6 +925,7 @@ async function main() {
     await accountingRegressions(mock, account);
     console.log("P08_CONTENT_CONTRACTS");
     const content = await contentContracts(mock, account);
+    const search = await durableSearchContracts(mock, account);
     const sinks = [
       await db.selectFrom("moderation_event").selectAll().execute(),
       await db.selectFrom("ai_settings").select("lastCheck").execute(),
@@ -954,6 +956,7 @@ async function main() {
       "P07_OUTCOME=" +
         JSON.stringify({
           content,
+          search,
           transport: "verified TLS",
           identity: "passed",
           accounting: "passed",

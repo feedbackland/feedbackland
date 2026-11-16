@@ -1,6 +1,6 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, splitLink } from "@trpc/client";
 import { useEffect, useRef, useState } from "react";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import type { AppRouter } from "@/trpc";
@@ -25,41 +25,51 @@ export function TRPCClientProvider({
         defaultOptions: { queries: { staleTime: 30_000, gcTime: 600_000 } },
       }),
   );
-  const [trpcClient] = useState(() =>
-    createTRPCClient<AppRouter>({
+  const [trpcClient] = useState(() => {
+    const transport = (methodOverride?: "POST") =>
+      httpBatchLink<AppRouter>({
+        methodOverride,
+        transformer: superjson,
+        url: "/api/trpc",
+        headers: () => {
+          const token = surface === "drawer" ? getEmbeddedToken() : null;
+          return {
+            ...(surface === "drawer"
+              ? { "x-feedbackland-scope": "embedded" }
+              : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          };
+        },
+        fetch: (url, options) => {
+          if (
+            !methodOverride &&
+            options?.method?.toUpperCase() === "POST" &&
+            clientRuntime.mutationsBlocked
+          )
+            throw new Error(
+              "A new version is available; reload before making changes",
+            );
+          return fetch(url, {
+            ...options,
+            credentials: surface === "drawer" ? "omit" : "include",
+            signal: options?.signal
+              ? AbortSignal.any([options.signal, abort.signal])
+              : abort.signal,
+          });
+        },
+      });
+    return createTRPCClient<AppRouter>({
       links: [
-        httpBatchLink({
-          transformer: superjson,
-          url: "/api/trpc",
-          headers: () => {
-            const token = surface === "drawer" ? getEmbeddedToken() : null;
-            return {
-              ...(surface === "drawer"
-                ? { "x-feedbackland-scope": "embedded" }
-                : {}),
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            };
-          },
-          fetch: (url, options) => {
-            if (
-              options?.method?.toUpperCase() === "POST" &&
-              clientRuntime.mutationsBlocked
-            )
-              throw new Error(
-                "A new version is available; reload before making changes",
-              );
-            return fetch(url, {
-              ...options,
-              credentials: surface === "drawer" ? "omit" : "include",
-              signal: options?.signal
-                ? AbortSignal.any([options.signal, abort.signal])
-                : abort.signal,
-            });
-          },
+        splitLink({
+          condition: (op) =>
+            (op.path === "getFeedbackPosts" || op.path === "getActivityFeed") &&
+            !!(op.input as { searchValue?: string } | undefined)?.searchValue,
+          true: transport("POST"),
+          false: transport(),
         }),
       ],
-    }),
-  );
+    });
+  });
   useEffect(() => {
     disposing.current = false;
     return () => {

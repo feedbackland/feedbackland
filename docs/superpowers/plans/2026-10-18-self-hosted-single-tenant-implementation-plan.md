@@ -577,11 +577,11 @@ stored content remains valid keyless content. **Next:** P09.
 backfill/rebuild store, `lib/search/sessions.ts`, board/activity search and
 housekeeping. Wire epoch checks to the existing vector metadata helper.
 
-- [ ] Implement tokenizer profiles and batch caps; first-dispatch generation
+- [x] Implement tokenizer profiles and batch caps; first-dispatch generation
       initialization; revision/epoch-fenced vector writes and all-replica width refresh.
-- [ ] Run independent renewable maintenance leadership with no overlapping
+- [x] Run independent renewable maintenance leadership with no overlapping
       ticks; credit eligibility cannot depend on successful embeddings.
-- [ ] Materialize ordered search sessions, exact unindexed tier, bounded TTL/
+- [x] Materialize ordered search sessions, exact unindexed tier, bounded TTL/
       capacity/row payload, shared page reads and explicit restart semantics.
 
 **Exit:** V8 real-vector topologies/order; V13; V21 rebuild/stale-write/tokenizer/

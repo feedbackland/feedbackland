@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 import { editorRegressions } from "./content-editor-regressions";
 import { samples } from "./image-fixtures";
 import { submitSetup } from "./setup-browser";
 import { eventually, toolEnvironment } from "./run";
 
-export async function contentBrowser(base: string, setupCode: string) {
+export async function contentBrowser<T>(
+  base: string,
+  setupCode: string,
+  afterSetup: (page: Page) => Promise<T>,
+) {
   const browser = await chromium.launch({
     env: toolEnvironment() as Record<string, string>,
   });
@@ -13,6 +17,7 @@ export async function contentBrowser(base: string, setupCode: string) {
     const context = await browser.newContext();
     const page = await context.newPage();
     await submitSetup(page, base, setupCode);
+    const search = await afterSetup(page);
     const submit = (description: string) =>
       fetch(base + "/api/feedback/create", {
         method: "POST",
@@ -108,7 +113,11 @@ export async function contentBrowser(base: string, setupCode: string) {
     await improve.waitFor();
     assert.equal(await editor.innerText(), "Drawer edit made while waiting.");
     await editorRegressions(page, base);
-    return "Editor revision, pending submissions and keyless transitions, public submit, refusal, outage, Activity and System, board attachments and concurrent drawer edit passed";
+    return {
+      search,
+      content:
+        "Editor revision, pending submissions and keyless transitions, public submit, refusal, outage, Activity and System, board attachments and concurrent drawer edit passed",
+    };
   } finally {
     await browser.close();
   }

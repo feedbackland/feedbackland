@@ -1,4 +1,5 @@
 import "server-only";
+import { requireLease, type Lease } from "../jobs/leases";
 import { randomUUID } from "node:crypto";
 import { sql, type Transaction } from "kysely";
 import type { DB } from "../../db/schema";
@@ -56,10 +57,12 @@ export async function admitMetadata(
   check?: CheckTicket,
   wall = deadline(config.options.timeoutMs),
   kind = "key",
+  lease?: Lease,
 ) {
   return withinTransaction(
     wall,
     async (trx) => {
+      if (lease) await requireLease(trx, lease);
       const admin = check?.action?.actor ?? actor;
       const user = admin
         ? await authorizeCheckActor(trx, admin, !check)
@@ -76,9 +79,10 @@ export async function admitMetadata(
       );
       if (!instance.allowed) throw new AiError("provider-rate", 429);
       await requireDispatch(trx, config, purpose, check);
-      return user ? [user, instance] : [instance];
+      const leaseEnd = lease ? await requireLease(trx, lease) : undefined;
+      return { windows: user ? [user, instance] : [instance], leaseEnd };
     },
-    cancelUndispatchedMetadata,
+    (receipt) => cancelUndispatchedMetadata(receipt.windows),
   );
 }
 export async function cancelUndispatchedMetadata(
@@ -227,11 +231,13 @@ export async function beginAttempt(
   check?: CheckTicket,
   reservation?: Reservation,
   wall: Deadline = deadline(config.options.timeoutMs),
+  lease?: Lease,
 ): Promise<Admission> {
   try {
     return await withinTransaction(
       wall,
       async (trx) => {
+        if (lease) await requireLease(trx, lease);
         if (check && feature !== "check") throw new AiError("invalid-input");
         const action = check?.action;
         if (action) await authorizeCheckActor(trx, action.actor, false);
@@ -284,7 +290,9 @@ export async function beginAttempt(
         await requireDispatch(trx, config, purpose, check);
         const leaseEnd = reservation
           ? await requireInsightLease(trx, reservation)
-          : undefined;
+          : lease
+            ? await requireLease(trx, lease)
+            : undefined;
         return {
           leaseEnd,
           token: config.token,

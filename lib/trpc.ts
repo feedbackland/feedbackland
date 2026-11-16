@@ -14,6 +14,7 @@ export type RequestContext = {
   sessionId: string | null;
   canAdminister: boolean;
   ip: string;
+  method?: string;
   signal?: AbortSignal;
   headers?: Headers;
   responseHeaders?: Headers;
@@ -37,6 +38,7 @@ export const createContext = async ({
     sessionId: session?.session.id ?? null,
     canAdminister: canAdministerSession(session),
     ip: getClientIp(req.headers),
+    method: req.method,
     signal: req.signal,
     headers: authHeaders,
     responseHeaders: headers,
@@ -50,6 +52,10 @@ const t = initTRPC.context<RequestContext>().create({
       ...shape,
       data: {
         ...shape.data,
+        ...(error.cause instanceof DomainError &&
+        error.cause.retryAfterSeconds !== undefined
+          ? { retryAfterSeconds: error.cause.retryAfterSeconds }
+          : {}),
         ...(error.cause instanceof DomainError && error.cause.resetsAt
           ? { resetsAt: error.cause.resetsAt, contentCode: error.cause.message }
           : {}),

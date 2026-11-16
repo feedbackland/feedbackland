@@ -23,10 +23,10 @@
 
 ## Run it yourself
 
-> **Implementation status** — P07 includes setup, password and social sign-in,
-> recovery, comments, voting, administration and PostgreSQL-backed attachments.
-> P07 adds OpenRouter transport and usage accounting. User-facing AI features,
-> search and release packaging are scheduled for later milestones.
+> **Implementation status** — P09 includes setup, sign-in and recovery, comments,
+> voting, administration, PostgreSQL-backed attachments, moderation and draft improvements.
+> Board and admin search work without a provider key. A verified embedding model enables
+> semantic search, automatic indexing and an operator-controlled rebuild.
 > This branch is a development milestone. Use only a new disposable database.
 > See the [contributor checks](SELFHOSTING.md#run-it-with-docker).
 

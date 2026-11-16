@@ -30,6 +30,7 @@ import {
 import {
   configuration,
   capabilityFailure,
+  usableCheckedKey,
   type Configuration,
   type CheckTicket,
 } from "./settings-store";
@@ -90,6 +91,7 @@ const provider = createOpenAICompatible({
 globalThis.AI_SDK_DEFAULT_PROVIDER = provider;
 globalThis.AI_SDK_LOG_WARNINGS = false;
 type Controls = {
+  lease?: import("../jobs/leases").Lease;
   signal?: AbortSignal;
   check?: CheckTicket;
   reservation?: Reservation;
@@ -169,10 +171,7 @@ async function ready(
   if (config.unreadable) throw new AiError("key-unreadable");
   if (!config.apiKey) throw new AiError("AI_NOT_CONFIGURED");
   if (!diagnostic) {
-    if (
-      config.check &&
-      ["invalid", "management", "expired"].includes(config.check.key)
-    )
+    if (!usableCheckedKey(config))
       throw new UnavailableCapability("provider-auth");
     const failure = await capabilityFailure(
       config,
@@ -212,6 +211,7 @@ async function execute<T>(
         end: wall.end,
         check: controls.check,
         reservation: controls.reservation,
+        lease: controls.lease,
         usage: {},
       };
       let failure: AiError | undefined;
@@ -423,6 +423,13 @@ function checkFinish(raw: string | undefined, reason: string) {
   if (raw === "error" || reason === "error")
     throw new AiError("provider-error");
 }
+// Leave room for envelope and usage fields in each bounded provider response.
+export function embeddingRequestLimit(dimensions: number) {
+  return Math.max(
+    1,
+    Math.floor((MODEL_RESPONSE_BYTES - 16384) / (dimensions * 25 + 128)),
+  );
+}
 export async function callEmbeddings(
   feature: "embed-write" | "embed-query" | "backfill" | "probe" | "check",
   items: readonly string[],
@@ -449,10 +456,7 @@ export async function callEmbeddings(
   const dimensions = snapshot.config.dimensions;
   // A finite IEEE-754 number uses at most 24 JSON characters, plus its comma.
   // Leave room for the provider envelope, per-row indexes and usage metadata.
-  const perRequest = Math.max(
-    1,
-    Math.floor((MODEL_RESPONSE_BYTES - 16384) / (dimensions * 25 + 128)),
-  );
+  const perRequest = embeddingRequestLimit(dimensions);
   const result: (number[] | null)[] = items.map(() => null);
   for (let offset = 0; offset < entries.length; offset += perRequest) {
     const batch = entries.slice(offset, offset + perRequest);
@@ -491,6 +495,7 @@ export async function readProviderMetadata(
   actor?: Actor,
   external?: AbortSignal,
   check?: CheckTicket,
+  lease?: import("../jobs/leases").Lease,
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
@@ -503,7 +508,7 @@ export async function readProviderMetadata(
     );
     signal = wall.signal;
     signal.throwIfAborted();
-    return await metadata(config, kind, actor, wall, check);
+    return await metadata(config, kind, actor, wall, check, lease);
   } catch (error) {
     const failure = safeError(error, signal);
     logFailure(failure, "metadata");

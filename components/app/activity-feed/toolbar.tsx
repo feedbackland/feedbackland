@@ -72,6 +72,7 @@ export function ActivityFeedToolbar({
         Unscreened
       </Toggle>
       <ActivityFeedSearchInput
+        value={state.searchValue}
         onDebouncedChange={handleSearch}
         className="order-last min-w-0 sm:order-2 sm:w-auto sm:flex-1"
       />

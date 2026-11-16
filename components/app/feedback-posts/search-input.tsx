@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { searchInputValue } from "@/lib/search/text";
 import { useDebounce, useKey, useClickAway } from "react-use";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { feedbackPostsStateAtom } from "@/lib/atoms";
 
 export const FeedbackPostsSearchInput = ({
@@ -23,8 +24,8 @@ export const FeedbackPostsSearchInput = ({
 }) => {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const setFeedbackPostsState = useSetAtom(feedbackPostsStateAtom);
-  const [inputValue, setInputValue] = useState("");
+  const [state, setFeedbackPostsState] = useAtom(feedbackPostsStateAtom);
+  const [inputValue, setInputValue] = useState(state.searchValue);
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,25 +36,23 @@ export const FeedbackPostsSearchInput = ({
     () => {
       setFeedbackPostsState((prev) => ({
         ...prev,
-        searchValue: inputValue.length >= 2 ? inputValue : "",
+        searchValue: searchInputValue(inputValue),
       }));
     },
     delay,
     [inputValue],
   );
 
-  useClickAway(inputContainerRef, () => {
-    if (!inputValue?.length) close();
-  });
-
-  useKey("Escape", () => {
-    close();
-  });
-
   const close = () => {
     setInputValue("");
     setIsFocused(false);
   };
+
+  useClickAway(inputContainerRef, () => {
+    if (!inputValue?.length) close();
+  });
+
+  useKey("Escape", close);
 
   useEffect(() => {
     if (isFocused) {

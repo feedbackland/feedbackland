@@ -13,7 +13,7 @@ import type { DB } from "../../db/schema";
 import { getPool } from "../../db/db";
 import { locks, lock } from "../../db/locks";
 import { migrations } from "../../db/migrations";
-import { discoverVector } from "../../db/vector";
+import { discoverVector, physicalVector } from "../../db/vector";
 import { getConfig, neutraliseAuthEnv, validateCode } from "../config";
 import { runtimeState } from "../runtime-state";
 import { log, sqlstate } from "../log";
@@ -108,7 +108,13 @@ export async function migrateAndSeed(
         }
       }
       await sql`set local lock_timeout = '30s'`.execute(trx);
-      const metadata = await discoverVector(trx, config.dimensions);
+      // An upgraded database keeps its physical width until an explicit rebuild.
+      // A newly requested width must not turn optional AI into a boot dependency.
+      const existing = await physicalVector(trx);
+      const metadata = await discoverVector(
+        trx,
+        existing?.dimensions ?? config.dimensions,
+      );
       // Migrations need the observed type, before requests can run. Cleared on
       // rollback; the boot promise gates every Next request until publication.
       state.vector = metadata;
@@ -172,34 +178,10 @@ export async function migrateAndSeed(
         }
         log("boot.migrations-complete", { count: result.results?.length ?? 0 });
       }
-      const columns = await sql<{
-        dimensions: number;
-        kind: string;
-      }>`select a.atttypmod as dimensions,t.typname as kind from pg_attribute a join pg_type t on t.oid=a.atttypid where a.attrelid in ('feedback'::regclass,'comment'::regclass) and a.attname='embedding'`.execute(
-        trx,
-      );
-      if (
-        columns.rows.length !== 2 ||
-        columns.rows.some(
-          (row) =>
-            !["vector", "halfvec"].includes(row.kind) ||
-            row.dimensions < 1 ||
-            row.dimensions > 4000,
-        ) ||
-        columns.rows.some(
-          (row) =>
-            row.dimensions !== columns.rows[0].dimensions ||
-            row.kind !== columns.rows[0].kind,
-        )
-      )
-        throw new Error(
-          "Embedding columns disagree; restore a consistent database",
-        );
-      const observed = {
-        ...metadata,
-        dimensions: columns.rows[0].dimensions,
-        kind: columns.rows[0].kind as "vector" | "halfvec",
-      };
+      const physical = await physicalVector(trx);
+      if (!physical)
+        log("ai.index-unavailable", { stage: "column-mismatch" }, "warn");
+      const observed = physical ?? metadata;
       state.vector = observed;
       const seeded = await seed(
         trx,
@@ -411,5 +393,7 @@ export function boot() {
       console.info(`Setup code (keep private): ${result.generatedSetupCode}`);
     const { startHousekeeping } = await import("../housekeeping");
     startHousekeeping();
+    const { startMaintenance } = await import("../jobs/maintenance");
+    startMaintenance();
   })());
 }

@@ -28,6 +28,10 @@ function parseAiEnvironment() {
   const options = optionsSchema.safeParse({
     model: value("OPENROUTER_MODEL"),
     embeddingModel: value("OPENROUTER_EMBEDDING_MODEL"),
+    searchMaxDistance:
+      value("AI_SEARCH_MAX_DISTANCE") === undefined
+        ? undefined
+        : Number(value("AI_SEARCH_MAX_DISTANCE")),
     privacy: value("OPENROUTER_PRIVACY"),
     timeoutMs:
       value("AI_TIMEOUT_MS") === undefined

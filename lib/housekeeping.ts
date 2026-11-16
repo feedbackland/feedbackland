@@ -74,6 +74,9 @@ export async function sweep(hourly = true) {
   try {
     await db.transaction().execute(async (trx) => {
       await sql`set local statement_timeout='5s'`.execute(trx);
+      await sql`update search_session set status='failed' where status='pending' and "createdAt"<clock_timestamp()-interval '3 minutes'`.execute(
+        trx,
+      );
       await sql`update insight_reports set status='failed', stage='complete', error='stale-run', "finishedAt"=clock_timestamp(), "inputSnapshot"=null where status='running' and "heartbeatAt"<clock_timestamp()-interval '5 minutes'`.execute(
         trx,
       );

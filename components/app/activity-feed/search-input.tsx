@@ -9,22 +9,25 @@ import {
 } from "@/components/ui/input-group";
 import { SearchIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { searchInputValue } from "@/lib/search/text";
 import { useDebounce } from "react-use";
 
 export const ActivityFeedSearchInput = ({
   onDebouncedChange,
+  value,
   delay = 500,
   className,
 }: {
   onDebouncedChange: (value: string) => void;
+  value: string;
   delay?: number;
   className?: React.ComponentProps<"div">["className"];
 }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(value);
 
   useDebounce(
     () => {
-      onDebouncedChange(inputValue.length >= 2 ? inputValue : "");
+      onDebouncedChange(searchInputValue(inputValue));
     },
     delay,
     [inputValue],

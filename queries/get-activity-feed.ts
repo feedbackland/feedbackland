@@ -2,7 +2,8 @@ import "server-only";
 
 import { db } from "@/db/db";
 import { sql } from "kysely";
-import { vectorDistance } from "@/db/vector";
+import { searchPage, type SearchCursor } from "@/lib/search/sessions";
+import { DomainError } from "@/lib/domain-error";
 import {
   ActivityFeedItem,
   FeedbackCategories,
@@ -23,6 +24,11 @@ export async function getActivityFeedQuery({
   searchValue,
   unseenOnly,
   unscreenedOnly = false,
+  sessionId,
+  capability,
+  searchCursor,
+  ip,
+  signal,
 }: {
   userId: string;
   page: number;
@@ -35,211 +41,232 @@ export async function getActivityFeedQuery({
   searchValue: string;
   unseenOnly: boolean;
   unscreenedOnly?: boolean;
+  sessionId?: string | null;
+  capability?: string;
+  searchCursor?: SearchCursor;
+  ip?: string;
+  signal?: AbortSignal;
 }) {
-  try {
-    const offset = (page - 1) * pageSize;
-    searchValue = Array.from(searchValue).slice(0, 200).join("");
-    if (searchValue.trim())
-      return {
-        items: [],
-        totalItemsCount: 0,
-        totalPages: 0,
-        currentPage: page,
-      };
-    const isSearching = false,
-      maxDistance = 0.4,
-      searchVector: number[] = [];
-    let feedbackQuery = db
-      .selectFrom("feedback")
-      .leftJoin("user", "feedback.authorId", "user.id");
+  if (searchCursor && !searchValue.trim())
+    throw new DomainError("CONFLICT", "SEARCH_RESTART_REQUIRED");
+  const result = searchValue.trim()
+    ? await searchPage({
+        surface: "activity",
+        userId,
+        actor: { userId, sessionId },
+        filters: {
+          orderBy,
+          status,
+          categories,
+          excludeFeedback,
+          excludeComments,
+          unseenOnly,
+          unscreenedOnly,
+        },
+        text: searchValue,
+        limit: pageSize,
+        capability,
+        cursor: searchCursor,
+        ip,
+        signal,
+      })
+    : undefined;
+  const offset = result ? 0 : (page - 1) * pageSize;
+  let feedbackQuery = db
+    .selectFrom("feedback")
+    .leftJoin("user", "feedback.authorId", "user.id");
 
-    if (status) {
-      feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
-    }
+  if (!result && status) {
+    feedbackQuery = feedbackQuery.where("feedback.status", "=", status);
+  }
 
-    if (categories && categories.length > 0) {
-      feedbackQuery = feedbackQuery.where(
-        "feedback.category",
-        "in",
-        categories,
-      );
-    }
+  if (!result && categories && categories.length > 0) {
+    feedbackQuery = feedbackQuery.where("feedback.category", "in", categories);
+  }
 
-    const feedbackCTE = feedbackQuery.select([
-      "feedback.id",
-      "feedback.id as postId",
-      sql<string | null>`null`.as("commentId"),
-      "feedback.createdAt",
-      "feedback.title",
-      "feedback.moderationState",
+  const feedbackCTE = feedbackQuery.select([
+    "feedback.id",
+    "feedback.id as postId",
+    sql<string | null>`null`.as("commentId"),
+    "feedback.createdAt",
+    "feedback.title",
+    "feedback.moderationState",
+    (eb) =>
+      eb
+        .selectFrom("moderation_event")
+        .select("reason")
+        .whereRef("moderation_event.postId", "=", "feedback.id")
+        .whereRef("moderation_event.contentRevision", "=", "feedback.revision")
+        .as("moderationReason"),
+    "feedback.description as content",
+    "feedback.upvotes",
+    "feedback.category",
+    "feedback.status",
+    sql<string>`'post'`.as("type"),
+    (eb) =>
+      eb
+        .selectFrom("comment")
+        .select(eb.fn.countAll<string>().as("commentCount"))
+        .whereRef("comment.postId", "=", "feedback.id")
+        .where("comment.content", "not like", "Updated status to%")
+        .as("commentCount"),
+    "user.id as authorId",
+    "user.name as authorName",
+    "user.image as authorImage",
+    sql<null>`null`.as("distance"),
+  ]);
+
+  const commentsCTE = db
+    .selectFrom("comment")
+    .innerJoin("feedback", "comment.postId", "feedback.id")
+    .leftJoin("user", "comment.authorId", "user.id")
+    .$if(!result && !unscreenedOnly, (q) =>
+      q.where("comment.content", "not like", "Updated status to%"),
+    )
+    .select([
+      "comment.id",
+      "comment.postId",
+      "comment.id as commentId",
+      "comment.createdAt",
+      "feedback.title as title",
+      "comment.moderationState",
       (eb) =>
         eb
           .selectFrom("moderation_event")
           .select("reason")
-          .whereRef("moderation_event.postId", "=", "feedback.id")
-          .whereRef(
-            "moderation_event.contentRevision",
-            "=",
-            "feedback.revision",
-          )
+          .whereRef("moderation_event.commentId", "=", "comment.id")
+          .whereRef("moderation_event.contentRevision", "=", "comment.revision")
           .as("moderationReason"),
-      "feedback.description as content",
-      "feedback.upvotes",
-      "feedback.category",
-      "feedback.status",
-      sql<string>`'post'`.as("type"),
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll<string>().as("commentCount"))
-          .whereRef("comment.postId", "=", "feedback.id")
-          .where("comment.content", "not like", "Updated status to%")
-          .as("commentCount"),
+      "comment.content",
+      "comment.upvotes",
+      sql<FeedbackCategory | null>`null`.as("category"),
+      sql<FeedbackStatus | null>`null`.as("status"),
+      sql<string>`'comment'`.as("type"),
+      sql<string>`'0'`.as("commentCount"),
       "user.id as authorId",
       "user.name as authorName",
       "user.image as authorImage",
-      ...(isSearching
-        ? [
-            vectorDistance(sql.ref("feedback.embedding"), searchVector).as(
-              "distance",
-            ),
-          ]
-        : [sql<null>`null`.as("distance")]),
+      sql<null>`null`.as("distance"),
     ]);
 
-    const commentsCTE = db
-      .selectFrom("comment")
-      .innerJoin("feedback", "comment.postId", "feedback.id")
-      .leftJoin("user", "comment.authorId", "user.id")
-      .$if(!unscreenedOnly, (q) =>
-        q.where("comment.content", "not like", "Updated status to%"),
-      )
-      .select([
-        "comment.id",
-        "comment.postId",
-        "comment.id as commentId",
-        "comment.createdAt",
-        "feedback.title as title",
-        "comment.moderationState",
-        (eb) =>
-          eb
-            .selectFrom("moderation_event")
-            .select("reason")
-            .whereRef("moderation_event.commentId", "=", "comment.id")
-            .whereRef(
-              "moderation_event.contentRevision",
-              "=",
-              "comment.revision",
-            )
-            .as("moderationReason"),
-        "comment.content",
-        "comment.upvotes",
-        sql<FeedbackCategory | null>`null`.as("category"),
-        sql<FeedbackStatus | null>`null`.as("status"),
-        sql<string>`'comment'`.as("type"),
-        sql<string>`'0'`.as("commentCount"),
-        "user.id as authorId",
-        "user.name as authorName",
-        "user.image as authorImage",
-        ...(isSearching
-          ? [
-              vectorDistance(sql.ref("comment.embedding"), searchVector).as(
-                "distance",
-              ),
-            ]
-          : [sql<null>`null`.as("distance")]),
-      ]);
+  let activityQuery = db.selectFrom(
+    feedbackCTE.unionAll(commentsCTE).as("activity"),
+  );
 
-    let activityQuery = db.selectFrom(
-      feedbackCTE.unionAll(commentsCTE).as("activity"),
-    );
-
-    if (status) {
-      // status is a post-only concept ⇒ only feedback records
-      activityQuery = db.selectFrom(feedbackCTE.as("activity"));
-    }
-
-    if (excludeFeedback) {
-      activityQuery = db.selectFrom(commentsCTE.as("activity"));
-    } else if (excludeComments) {
-      activityQuery = db.selectFrom(feedbackCTE.as("activity"));
-    }
-
-    if (unscreenedOnly)
-      activityQuery = activityQuery.where("activity.moderationState", "in", [
-        "unscreened",
-        "screened-text",
-      ]);
-    let orderedQuery = activityQuery.selectAll("activity");
-
-    if (!isSearching) {
-      if (orderBy === "newest") {
-        orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
-      } else if (orderBy === "upvotes") {
-        orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
-      } else if (orderBy === "comments") {
-        orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
-      } else {
-        orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
-      }
-    }
-
-    if (isSearching) {
-      orderedQuery = orderedQuery
-        .where("activity.distance", "<", maxDistance)
-        .orderBy("activity.distance")
-        .orderBy("activity.createdAt", "desc");
-    }
-
-    // Every sort above is on a non-unique column, and this feed pages by
-    // OFFSET. Postgres does not promise any particular order within a tie, so
-    // two requests for two different pages could order the same tie group
-    // differently and the admin would silently lose one item and see another
-    // twice. upvotes is the worst case: a whole board collapses into a handful
-    // of tie groups. activity.id is unique across the union — post ids and
-    // comment ids are both uuids — so ordering by it last makes the sort total
-    // and the page boundaries reproducible.
-    orderedQuery = orderedQuery.orderBy("activity.id", "desc");
-
-    let joinedQuery = orderedQuery.leftJoin("activity_seen", (join) =>
-      join
-        .onRef("activity.id", "=", "activity_seen.itemId")
-        .on("activity_seen.userId", "=", userId),
-    );
-
-    if (unseenOnly) {
-      joinedQuery = joinedQuery.where("activity_seen.userId", "is", null);
-    }
-
-    const finalQuery = joinedQuery
-      .selectAll()
-      .select((eb) => [
-        eb("activity_seen.userId", "is not", null).as("isSeen"),
-        eb.fn.count("activity.id").over().as("totalItemsCount"),
-      ])
-      .limit(pageSize)
-      .offset(offset);
-
-    const results = await finalQuery.execute();
-
-    const items = results;
-    const totalItemsCount =
-      results.length > 0 ? Number(results[0].totalItemsCount) : 0;
-    const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
-      ({ totalItemsCount: windowCount, isSeen, ...rest }) => {
-        void windowCount; // The page count belongs to the response, outside each item.
-        return { ...rest, isSeen: Boolean(isSeen) };
-      },
-    );
-    const totalPages = Math.ceil(totalItemsCount / pageSize);
-
-    return {
-      items: itemsWithoutTotalCount,
-      totalItemsCount,
-      totalPages,
-      currentPage: page,
-    };
-  } catch (error) {
-    throw error;
+  if (!result && status) {
+    // status is a post-only concept ⇒ only feedback records
+    activityQuery = db.selectFrom(feedbackCTE.as("activity"));
   }
+
+  if (!result && excludeFeedback) {
+    activityQuery = db.selectFrom(commentsCTE.as("activity"));
+  } else if (!result && excludeComments) {
+    activityQuery = db.selectFrom(feedbackCTE.as("activity"));
+  }
+
+  if (!result && unscreenedOnly)
+    activityQuery = activityQuery.where("activity.moderationState", "in", [
+      "unscreened",
+      "screened-text",
+    ]);
+  if (result) {
+    const posts = result.entries
+        .filter((e) => e[0] === "post")
+        .map((e) => e[1]),
+      comments = result.entries
+        .filter((e) => e[0] === "comment")
+        .map((e) => e[1]);
+    activityQuery = activityQuery.where((eb) =>
+      eb.or([
+        ...(posts.length
+          ? [
+              eb.and([
+                eb("activity.type", "=", "post"),
+                eb("activity.id", "in", posts),
+              ]),
+            ]
+          : []),
+        ...(comments.length
+          ? [
+              eb.and([
+                eb("activity.type", "=", "comment"),
+                eb("activity.id", "in", comments),
+              ]),
+            ]
+          : []),
+      ]),
+    );
+  }
+  let orderedQuery = activityQuery.selectAll("activity");
+
+  if (!result) {
+    if (orderBy === "newest") {
+      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+    } else if (orderBy === "upvotes") {
+      orderedQuery = orderedQuery.orderBy("activity.upvotes", "desc");
+    } else if (orderBy === "comments") {
+      orderedQuery = orderedQuery.orderBy("activity.commentCount", "desc");
+    } else {
+      orderedQuery = orderedQuery.orderBy("activity.createdAt", "desc");
+    }
+  }
+
+  // Every sort above is on a non-unique column, and this feed pages by
+  // OFFSET. Postgres does not promise any particular order within a tie, so
+  // two requests for two different pages could order the same tie group
+  // differently and the admin would silently lose one item and see another
+  // twice. upvotes is the worst case: a whole board collapses into a handful
+  // of tie groups. activity.id is unique across the union — post ids and
+  // comment ids are both uuids — so ordering by it last makes the sort total
+  // and the page boundaries reproducible.
+  orderedQuery = orderedQuery.orderBy("activity.id", "desc");
+
+  let joinedQuery = orderedQuery.leftJoin("activity_seen", (join) =>
+    join
+      .onRef("activity.id", "=", "activity_seen.itemId")
+      .on("activity_seen.userId", "=", userId),
+  );
+
+  if (!result && unseenOnly) {
+    joinedQuery = joinedQuery.where("activity_seen.userId", "is", null);
+  }
+
+  const finalQuery = joinedQuery
+    .selectAll()
+    .select((eb) => [
+      eb("activity_seen.userId", "is not", null).as("isSeen"),
+      eb.fn.count("activity.id").over().as("totalItemsCount"),
+    ])
+    .limit(pageSize)
+    .offset(offset);
+
+  const results = await finalQuery.execute();
+
+  const items = results;
+  const totalItemsCount =
+    result?.search.total ??
+    (results.length > 0 ? Number(results[0].totalItemsCount) : 0);
+  const itemsWithoutTotalCount: ActivityFeedItem[] = items.map(
+    ({ totalItemsCount: windowCount, isSeen, ...rest }) => {
+      void windowCount; // The page count belongs to the response, outside each item.
+      return { ...rest, isSeen: Boolean(isSeen) };
+    },
+  );
+  const totalPages = Math.ceil(totalItemsCount / pageSize);
+  const byId = new Map(
+    itemsWithoutTotalCount.map((row) => [row.type + row.id, row]),
+  );
+
+  return {
+    items: result
+      ? result.entries.flatMap(([kind, id]) => byId.get(kind + id) ?? [])
+      : itemsWithoutTotalCount,
+    totalItemsCount,
+    totalPages,
+    currentPage: result
+      ? Math.floor((searchCursor?.nextOrdinal ?? 0) / pageSize) + 1
+      : page,
+    search: result?.search,
+    nextSearchCursor: result?.nextCursor,
+  };
 }

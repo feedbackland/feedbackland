@@ -3,6 +3,8 @@
 import { useAtom } from "jotai";
 import { activtyFeedStateAtom } from "@/lib/atoms";
 import { FeedbackCategories } from "@/lib/typings";
+import { useEffect } from "react";
+import { SearchState } from "../search-state";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { useInView } from "react-intersection-observer";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,7 +18,7 @@ export function ActivityFeedList() {
   const { category, orderBy, status, searchValue, unseenOnly, unscreenedOnly } =
     state;
 
-  const isSearchActive = searchValue.length > 0;
+  const isSearchActive = !!searchValue.trim();
 
   // Map the single-select category onto the existing query params.
   let categories: FeedbackCategories = null;
@@ -35,10 +37,18 @@ export function ActivityFeedList() {
       data,
       isPending,
       isError,
+      error,
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
+      isFetching,
+      refetch,
+      errorUpdatedAt,
+      isFetchNextPageError,
     },
+    sessionError,
+    sessionErrorAt,
+    restartSearch,
   } = useActivityFeed({
     enabled: true,
     pageSize: 20,
@@ -53,11 +63,29 @@ export function ActivityFeedList() {
   });
 
   const items = data?.pages.flatMap((page) => page.items) ?? [];
-  const isLoaded = !isPending && !isError;
+  const isLoaded = !isPending && (!isError || !!(searchValue && data));
   const hasItems = items.length > 0;
   const isEmpty = isLoaded && !hasItems;
   const hasFilter = category !== "all" || status !== null || unscreenedOnly;
 
+  const lastPage = data?.pages.at(-1);
+  useEffect(() => {
+    if (
+      isSearchActive &&
+      lastPage?.items.length === 0 &&
+      hasNextPage &&
+      !isFetching &&
+      !isError
+    )
+      void fetchNextPage();
+  }, [
+    isSearchActive,
+    lastPage,
+    hasNextPage,
+    isFetching,
+    isError,
+    fetchNextPage,
+  ]);
   const { ref } = useInView({
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
@@ -79,9 +107,24 @@ export function ActivityFeedList() {
 
   return (
     <div className="border-border bg-background overflow-hidden rounded-lg border shadow-xs">
-      {isPending && <ActivityFeedLoading />}
+      {isPending && !sessionError && <ActivityFeedLoading />}
 
-      {isError && (
+      {isSearchActive && (
+        <SearchState
+          search={data?.pages[0]?.search}
+          error={sessionError ?? (isError ? error : undefined)}
+          errorAt={sessionErrorAt ?? errorUpdatedAt}
+          onRetry={
+            sessionError
+              ? restartSearch
+              : () => {
+                  void (isFetchNextPageError ? fetchNextPage() : refetch());
+                }
+          }
+          onRestart={restartSearch}
+        />
+      )}
+      {isError && !isSearchActive && (
         <div className="p-4">
           <Error
             title="Could not load activity"
@@ -90,9 +133,13 @@ export function ActivityFeedList() {
         </div>
       )}
 
-      {isEmpty && isSearchActive && (
-        <ActivityFeedEmpty variant="search" onReset={resetSearch} />
-      )}
+      {isEmpty &&
+        isSearchActive &&
+        !hasNextPage &&
+        data?.pages[0]?.search?.status !== "pending" &&
+        !isError && (
+          <ActivityFeedEmpty variant="search" onReset={resetSearch} />
+        )}
       {isEmpty && !isSearchActive && unseenOnly && (
         <ActivityFeedEmpty variant="caught-up" onReset={resetUnseen} />
       )}
@@ -115,9 +162,9 @@ export function ActivityFeedList() {
               <span className="text-sm">Loading more activity...</span>
             </div>
           )}
-          <div ref={ref} className="h-1 w-full" />
         </>
       )}
+      {hasNextPage && !isError && <div ref={ref} className="h-1 w-full" />}
     </div>
   );
 }

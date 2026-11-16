@@ -3,7 +3,8 @@ import type { Kysely, Selectable, Transaction } from "kysely";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getConfig } from "../config";
-import { runtimeState } from "../runtime-state";
+import { runtimeState, type VectorMetadata } from "../runtime-state";
+import { physicalVector } from "../../db/vector";
 import { log } from "../log";
 import { DomainError } from "../domain-error";
 import { openSecret, sealSecret } from "../secret-box";
@@ -14,6 +15,7 @@ import { AiError, type Reason } from "./errors";
 import type { Capability } from "./constants";
 import type { DB, AiSettings } from "../../db/schema";
 import { sql } from "kysely";
+import { requireLease, type Lease } from "../jobs/leases";
 import { db } from "../../db/db";
 import { contentTransaction } from "../../db/content-transaction";
 import { consumeRateLimitWindow } from "../../queries/check-rate-limit";
@@ -54,13 +56,14 @@ const recordedCheck = checkSchema.extend({
   configToken: z.string(),
   sequence: z.string().optional(),
 });
-function resolve(row: Row, secret: string) {
+function resolve(row: Row, secret: string, physicalWidth?: number) {
   const {
     llm,
     dimensions: requestedDimensions,
     explicitDimensions,
   } = getConfig();
-  const dimensions = runtimeState().vector?.dimensions ?? requestedDimensions;
+  const dimensions =
+    physicalWidth ?? runtimeState().vector?.dimensions ?? requestedDimensions;
   const saved = optionsSchema.safeParse(row.options);
   const valid = llm.valid && saved.success;
   const stored = saved.data ?? {};
@@ -99,7 +102,13 @@ function resolve(row: Row, secret: string) {
         row.indexEpoch,
         explicitDimensions ? requestedDimensions : dimensions,
         dimensions,
-        ...(Object.keys(defaults) as (keyof Options)[]).map((k) => options[k]),
+        // Preserve the installed P07/P08 identity when using the new default.
+        ...(Object.keys(defaults) as (keyof Options)[])
+          .filter((k) => k !== "searchMaxDistance")
+          .map((k) => options[k]),
+        ...(options.searchMaxDistance === defaults.searchMaxDistance
+          ? []
+          : ["search-distance", options.searchMaxDistance]),
       ]),
     );
   const token = configToken(valid);
@@ -137,6 +146,13 @@ function resolve(row: Row, secret: string) {
   };
 }
 export type Configuration = ReturnType<typeof resolve>;
+export function usableCheckedKey(config: Configuration) {
+  return (
+    !config.check ||
+    !["invalid", "management", "expired"].includes(config.check.key)
+  );
+}
+export { invalidate as invalidateConfiguration };
 const clearResults = {
   creditWaitUntil: null,
   creditWaitConfigToken: null,
@@ -144,6 +160,80 @@ const clearResults = {
 };
 const currentRow = (connection: Kysely<DB>) =>
   connection.selectFrom("ai_settings").where("id", "=", 1).selectAll();
+function indexFields(row: Row, physical: VectorMetadata | null) {
+  return {
+    config: resolve(row, getConfig().authSecret, physical?.dimensions),
+    epoch: row.indexEpoch,
+    storedFingerprint: row.indexFingerprint,
+    physical,
+  };
+}
+export async function lockedIndexSettings(
+  trx: Transaction<DB>,
+  exclusive: boolean,
+) {
+  // Serialize the catalog read with generation initialization and both-table rebuilds.
+  const query = currentRow(trx);
+  const row = await (
+    exclusive ? query.forUpdate() : query.forShare()
+  ).executeTakeFirstOrThrow();
+  return indexFields(row, await physicalVector(trx));
+}
+type IndexFingerprint = {
+  model: string;
+  dimensions: number;
+  generation: string;
+};
+export async function advanceIndexGeneration(
+  trx: Transaction<DB>,
+  fingerprint: IndexFingerprint,
+  physical: VectorMetadata,
+  previous: Configuration,
+) {
+  const row = await trx
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .set({ indexEpoch: sql`"indexEpoch"+1`, indexFingerprint: fingerprint })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  const next = resolve(row, getConfig().authSecret, physical.dimensions);
+  // Only the embedding generation changed under this lock. Keep credential
+  // and chat observations with their original timestamps and sequences.
+  const saved = await trx
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .set({
+      effectiveConfigToken: next.token,
+      lastCheck: previous.check
+        ? { ...previous.check, configToken: next.token, search: "untested" }
+        : null,
+      creditWaitConfigToken:
+        row.creditWaitConfigToken === previous.token
+          ? next.token
+          : row.creditWaitConfigToken,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  return indexFields(saved, physical);
+}
+export async function matchesIndexGeneration(
+  trx: Transaction<DB>,
+  epoch: string,
+  expected?: { token: string; fingerprint: IndexFingerprint },
+) {
+  let query = trx
+    .selectFrom("ai_settings")
+    .select("id")
+    .where("id", "=", 1)
+    .where("indexEpoch", "=", epoch);
+  if (expected)
+    query = query
+      .where("effectiveConfigToken", "=", expected.token)
+      .where(
+        sql<boolean>`"indexFingerprint"=${JSON.stringify(expected.fingerprint)}::jsonb`,
+      );
+  return !!(await query.forShare().executeTakeFirst());
+}
 // A published revision must reflect the configuration used to screen it,
 // including a keyless preflight on another replica.
 export async function lockContentConfiguration(
@@ -277,8 +367,9 @@ async function replaceToken(
   row: Row,
   check?: Check,
   secret = getConfig().authSecret,
+  physicalWidth?: number,
 ) {
-  const value = resolve(row, secret);
+  const value = resolve(row, secret, physicalWidth);
   await trx
     .updateTable("ai_settings")
     .set({
@@ -476,8 +567,10 @@ export async function beginCheck(
   config: Configuration,
   action?: CheckAction,
   wall: Deadline = deadline(config.options.timeoutMs),
+  lease?: Lease,
 ): Promise<CheckTicket> {
   return withinTransaction(wall, async (trx) => {
+    if (lease) await requireLease(trx, lease);
     if (action) await authorizeCheckActor(trx, action.actor, true);
     if (
       !(await rowFence(trx, config).select("id").forUpdate().executeTakeFirst())
@@ -538,25 +631,49 @@ export async function requireDispatch(
     .executeTakeFirst();
   if (!wait) throw new AiError("AI_NOT_CONFIGURED");
 }
-export async function saveCheck(identity: CheckTicket, result: Check) {
+export async function saveCheck(
+  identity: CheckTicket,
+  result: Check,
+  owner?: { lease: Lease; signal: AbortSignal },
+) {
   const value = checkedResult(result);
-  const updated = await db
-    .updateTable("ai_settings")
-    .where("id", "=", 1)
-    .where("revision", "=", identity.revision)
-    .where("effectiveConfigToken", "=", identity.token)
-    .where("checkSequence", "=", identity.sequence)
-    .set({
-      lastCheck: {
-        ...value,
-        sequence: identity.sequence,
-        configToken: identity.token,
-        at: new Date().toISOString(),
-      },
-    })
-    .executeTakeFirst();
+  const updated = await contentTransaction(owner?.signal, async (trx) => {
+    if (owner) await requireLease(trx, owner.lease);
+    const written = await trx
+      .updateTable("ai_settings")
+      .where("id", "=", 1)
+      .where("revision", "=", identity.revision)
+      .where("effectiveConfigToken", "=", identity.token)
+      .where("checkSequence", "=", identity.sequence)
+      .set({
+        lastCheck: {
+          ...value,
+          sequence: identity.sequence,
+          configToken: identity.token,
+          at: new Date().toISOString(),
+        },
+      })
+      .executeTakeFirst();
+    if (owner) await requireLease(trx, owner.lease);
+    return written;
+  });
   invalidate();
   return updated.numUpdatedRows === 1n;
+}
+export function pendingCreditCheck(config: Identity, signal: AbortSignal) {
+  return contentTransaction(signal, (trx) =>
+    rowFence(trx, config)
+      .select("creditWaitUntil")
+      .where("enabled", "is", null)
+      .where("creditWaitConfigToken", "=", config.token)
+      .where("creditWaitUntil", ">", sql<Date>`clock_timestamp()`)
+      .executeTakeFirst(),
+  );
+}
+export function unhealthyCapabilities(config: Identity, signal: AbortSignal) {
+  return contentTransaction(signal, (trx) =>
+    failingHealth(trx, config).select("capability").execute(),
+  );
 }
 export async function beginCreditWait(identity: CheckTicket) {
   const config = await configuration();
@@ -590,10 +707,12 @@ export async function completeCreditWait(
   keyDigest: string,
   until: Date,
   result: Check,
+  lease?: Lease,
 ) {
   const check = checkedResult(result);
   if (check.key !== "valid" || check.chat !== "passed") return null;
   const enabled = await db.transaction().execute(async (trx) => {
+    if (lease) await requireLease(trx, lease);
     const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
     const config = resolve(row, getConfig().authSecret);
     if (
@@ -622,7 +741,10 @@ export async function completeCreditWait(
       })
       .returningAll()
       .executeTakeFirst();
-    return next ? replaceToken(trx, next, check) : null;
+    if (!next) return null;
+    const saved = await replaceToken(trx, next, check);
+    if (lease) await requireLease(trx, lease);
+    return saved;
   });
   invalidate();
   return enabled;
@@ -680,27 +802,30 @@ export async function observeHealth(
     })
     .execute();
 }
+function failingHealth(connection: Kysely<DB>, id: Identity) {
+  return connection
+    .selectFrom("ai_health")
+    .where("configToken", "=", id.token)
+    .where(
+      "failingSince",
+      "<",
+      sql<Date>`clock_timestamp()-interval '15 minutes'`,
+    )
+    .where(
+      "lastFailureAt",
+      ">",
+      sql<Date>`clock_timestamp()-interval '10 minutes'`,
+    );
+}
 export async function capabilityFailure(
   id: Identity,
   capability: Capability,
   signal?: AbortSignal,
 ) {
   const read = (connection: Kysely<DB>) =>
-    connection
-      .selectFrom("ai_health")
+    failingHealth(connection, id)
       .select("lastReason")
-      .where("configToken", "=", id.token)
       .where("capability", "=", capability)
-      .where(
-        "failingSince",
-        "<",
-        sql<Date>`clock_timestamp()-interval '15 minutes'`,
-      )
-      .where(
-        "lastFailureAt",
-        ">",
-        sql<Date>`clock_timestamp()-interval '10 minutes'`,
-      )
       .executeTakeFirst();
   return signal ? contentTransaction(signal, read) : read(db);
 }

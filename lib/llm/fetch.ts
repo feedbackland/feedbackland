@@ -1,4 +1,5 @@
 import "server-only";
+import { validCosineVector } from "../vector-values";
 import { z } from "zod";
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
@@ -9,7 +10,12 @@ import {
   type Feature,
 } from "./constants";
 import { privacyRouting } from "./defaults";
-import { AiError, responseError, safeError } from "./errors";
+import {
+  AiError,
+  EmbeddingWidthError,
+  responseError,
+  safeError,
+} from "./errors";
 import {
   beginAttempt,
   cancelUndispatched,
@@ -35,6 +41,7 @@ export type Dispatch = {
   end: number;
   check?: CheckTicket;
   reservation?: Reservation;
+  lease?: import("../jobs/leases").Lease;
   admission?: Admission;
   error?: AiError;
   usage: Usage;
@@ -203,6 +210,7 @@ export const providerFetch: typeof fetch = async (input, init) => {
       ctx.check,
       ctx.reservation,
       ctx,
+      ctx.lease,
     );
     try {
       checkDeadline(ctx);
@@ -248,16 +256,20 @@ export const providerFetch: typeof fetch = async (input, init) => {
       for (const entry of data.data) {
         const { index, embedding } = object(entry);
         if (
+          Array.isArray(embedding) &&
+          embedding.length !== ctx.config.dimensions
+        )
+          throw new EmbeddingWidthError(
+            ctx.config.dimensions,
+            embedding.length,
+          );
+        if (
           typeof index !== "number" ||
           !Number.isInteger(index) ||
           index < 0 ||
           index >= count ||
           sorted[index] !== undefined ||
-          !Array.isArray(embedding) ||
-          embedding.length !== ctx.config.dimensions ||
-          embedding.some(
-            (value) => typeof value !== "number" || !Number.isFinite(value),
-          )
+          !validCosineVector(embedding, ctx.config.dimensions)
         )
           throw new AiError("invalid-response");
         sorted[index] = entry;
@@ -318,12 +330,22 @@ export async function metadata(
   actor: Actor | undefined,
   wall: Deadline,
   check?: CheckTicket,
+  lease?: import("../jobs/leases").Lease,
 ): Promise<KeyInfo | ModelInfo[]> {
   if (!Object.hasOwn(metadataPaths, kind) || !config.apiKey)
     throw new AiError("invalid-input");
-  const windows = await admitMetadata(config, actor, check, wall, kind);
+  const { windows, leaseEnd } = await admitMetadata(
+    config,
+    actor,
+    check,
+    wall,
+    kind,
+    lease,
+  );
   try {
     checkDeadline(wall);
+    if (leaseEnd !== undefined && performance.now() >= leaseEnd)
+      throw new AiError("RESERVATION_EXPIRED");
   } catch (error) {
     void cancelUndispatchedMetadata(windows);
     throw error;

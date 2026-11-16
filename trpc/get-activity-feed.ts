@@ -1,20 +1,21 @@
 import "server-only";
 import { z } from "zod/v4";
+import { requireSearchBody } from "@/lib/search/transport";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedQuery } from "@/queries/get-activity-feed";
-import { enforceSearchLimit } from "@/lib/rate-limit";
-import { TRPCError } from "@trpc/server";
+import { DomainError } from "@/lib/domain-error";
 import {
   feedbackCategoriesSchema,
   feedbackOrderBySchema,
   feedbackStatusSchema,
+  searchCursorSchema,
+  searchCapabilitySchema,
 } from "@/lib/schemas";
-
 export const getActivityFeed = adminProcedure
   .input(
     z.object({
-      cursor: z.number().min(1).nullish(),
-      pageSize: z.number().min(1).max(100),
+      cursor: z.union([z.number().int().min(1), searchCursorSchema]).nullish(),
+      pageSize: z.number().int().min(1).max(100),
       orderBy: feedbackOrderBySchema,
       status: feedbackStatusSchema,
       categories: feedbackCategoriesSchema,
@@ -23,51 +24,33 @@ export const getActivityFeed = adminProcedure
       searchValue: z.string().trim().max(500),
       unseenOnly: z.boolean(),
       unscreenedOnly: z.boolean().default(false),
+      capability: searchCapabilitySchema.optional(),
     }),
   )
   .query(
     async ({
-      input: {
-        cursor,
-        pageSize,
-        orderBy,
-        status,
-        categories,
-        excludeFeedback,
-        excludeComments,
-        searchValue,
-        unseenOnly,
-        unscreenedOnly,
-      },
-      ctx: { userId, ip },
+      input: { cursor, ...input },
+      ctx: { userId, sessionId, ip, signal, method },
     }) => {
-      const page = cursor ?? 1;
-      if (searchValue && !(await enforceSearchLimit(ip)).allowed)
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-
-      const { items, totalItemsCount, totalPages, currentPage } =
-        await getActivityFeedQuery({
-          userId,
-          page,
-          pageSize,
-          orderBy,
-          status,
-          categories,
-          excludeFeedback,
-          excludeComments,
-          searchValue,
-          unseenOnly,
-          unscreenedOnly,
-        });
-
-      const nextCursor = currentPage < totalPages ? currentPage + 1 : undefined;
-
+      requireSearchBody(method, { ...input, cursor });
+      if (input.searchValue && typeof cursor === "number")
+        throw new DomainError("CONFLICT", "SEARCH_RESTART_REQUIRED");
+      const { nextSearchCursor, ...result } = await getActivityFeedQuery({
+        ...input,
+        page: typeof cursor === "number" ? cursor : 1,
+        searchCursor: cursor && typeof cursor === "object" ? cursor : undefined,
+        userId,
+        sessionId,
+        ip,
+        signal,
+      });
       return {
-        items,
-        totalItemsCount,
-        totalPages,
-        currentPage,
-        nextCursor,
+        ...result,
+        nextCursor: result.search
+          ? nextSearchCursor
+          : result.currentPage < result.totalPages
+            ? result.currentPage + 1
+            : undefined,
       };
     },
   );
