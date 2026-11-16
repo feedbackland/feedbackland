@@ -18,5 +18,11 @@ export function validCosineVector(
     const stored = half && Math.abs(value) <= 2 ** -25 ? 0 : Math.fround(value);
     squaredNorm += Math.fround(stored * stored);
   }
-  return squaredNorm >= 2 ** -126 && Number.isFinite(Math.fround(squaredNorm));
+  // Different SIMD accumulation orders can round upward near the maximum.
+  // Reserve one float32 relative rounding unit per addition for every order.
+  const maxFloat32 = (2 - 2 ** -23) * 2 ** 127;
+  return (
+    squaredNorm >= 2 ** -126 &&
+    squaredNorm <= maxFloat32 * (1 - width * 2 ** -23)
+  );
 }

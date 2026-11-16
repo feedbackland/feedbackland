@@ -42,18 +42,16 @@ export const FeedbackPostsSearchInput = ({
     [inputValue],
   );
 
-  useClickAway(inputContainerRef, () => {
-    if (!inputValue?.length) close();
-  });
-
-  useKey("Escape", () => {
-    close();
-  });
-
   const close = () => {
     setInputValue("");
     setIsFocused(false);
   };
+
+  useClickAway(inputContainerRef, () => {
+    if (!inputValue?.length) close();
+  });
+
+  useKey("Escape", close);
 
   useEffect(() => {
     if (isFocused) {

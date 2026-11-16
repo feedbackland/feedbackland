@@ -604,6 +604,10 @@ async function qualityAndRepair() {
         ["comment", "post", "post"],
       );
     }
+    const nearOverflow = Math.fround(
+      Math.sqrt(((2 - 2 ** -23) * 2 ** 127) / 768),
+    );
+    assert(!validCosineVector(Array(768).fill(nearOverflow), 768));
     for (const n of [1e-30, 1e30]) {
       const vector = [n, 0, 0];
       assert(!validCosineVector(vector, 3));

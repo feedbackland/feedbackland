@@ -1,3 +1,4 @@
+import "server-only";
 import { TRPCError } from "@trpc/server";
 
 export function requireSearchBody(
