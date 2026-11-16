@@ -88,6 +88,15 @@ export function enforceRewriteLimit(ip: string) {
     { key: "rewrite:instance", ...RATE_LIMITS.rewrite.instance },
   ]);
 }
+export function enforceSearchEmbeddingLimit(ip: string) {
+  return enforceInOrder([
+    { key: "search-embedding:ip:" + ip, ...RATE_LIMITS.searchEmbedding.ip },
+    {
+      key: "search-embedding:instance",
+      ...RATE_LIMITS.searchEmbedding.instance,
+    },
+  ]);
+}
 export function enforceSearchLimit(ip: string) {
   return enforceInOrder([
     { key: "search-text:ip:" + ip, ...RATE_LIMITS.searchText.ip },

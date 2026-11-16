@@ -15,6 +15,7 @@ import { vectorDistance, vectorMetadata } from "../../db/vector";
 import { sweep } from "../../lib/housekeeping";
 import { checkRateLimit } from "../../queries/check-rate-limit";
 import { readSurfaces } from "./v8-search";
+import { semanticCandidates, materialize } from "../../lib/search/candidates";
 import { rpcContracts } from "./rpc-contracts";
 let outboundHttp = 0;
 const originalFetch = globalThis.fetch;
@@ -129,6 +130,36 @@ async function schemaAssertions() {
     .where("id", "=", row.id)
     .executeTakeFirstOrThrow();
   assert.equal(distance.distance, 0);
+  await db.transaction().execute(async (trx) => {
+    const comment = await trx
+      .insertInto("comment")
+      .values({
+        postId: row.id,
+        content: "Vector",
+        plainText: "Vector",
+        moderationState: "disabled",
+        embedding: JSON.stringify(vector),
+      })
+      .returning("id")
+      .executeTakeFirstOrThrow();
+    await sql`set local enable_seqscan=off`.execute(trx);
+    const scope = {
+      surface: "activity" as const,
+      userId: "fixture",
+      filters: { status: null, orderBy: "newest" as const },
+    };
+    const semantic = { vector, physical: vectorMetadata(), maxDistance: 0.55 };
+    const candidates = semanticCandidates(scope, semantic, 1001)!;
+    const plan = JSON.stringify(
+      (await sql`explain (format json) ${candidates}`.execute(trx)).rows,
+    );
+    for (const name of ["feedback_embedding_idx", "comment_embedding_idx"])
+      assert(plan.includes(name), name);
+    const result = await materialize(trx, scope, "Vector", semantic);
+    assert(result.results.some((e) => e[1] === row.id && e[2] === 0));
+    assert(result.results.some((e) => e[1] === comment.id && e[2] === 0));
+    await trx.deleteFrom("comment").where("id", "=", comment.id).execute();
+  });
   if (vectorMetadata().schema !== "public")
     await assert.rejects(
       sql`select embedding <=> ${JSON.stringify(vector)} from feedback`.execute(

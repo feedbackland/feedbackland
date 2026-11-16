@@ -3,6 +3,7 @@
 import { useAtom } from "jotai";
 import { activtyFeedStateAtom } from "@/lib/atoms";
 import { FeedbackCategories } from "@/lib/typings";
+import { SearchState } from "../search-state";
 import { useActivityFeed } from "@/hooks/use-activity-feed";
 import { useInView } from "react-intersection-observer";
 import { Spinner } from "@/components/ui/spinner";
@@ -35,10 +36,12 @@ export function ActivityFeedList() {
       data,
       isPending,
       isError,
+      error,
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
     },
+    restartSearch,
   } = useActivityFeed({
     enabled: true,
     pageSize: 20,
@@ -53,7 +56,7 @@ export function ActivityFeedList() {
   });
 
   const items = data?.pages.flatMap((page) => page.items) ?? [];
-  const isLoaded = !isPending && !isError;
+  const isLoaded = !isPending && (!isError || !!(searchValue && data));
   const hasItems = items.length > 0;
   const isEmpty = isLoaded && !hasItems;
   const hasFilter = category !== "all" || status !== null || unscreenedOnly;
@@ -81,7 +84,14 @@ export function ActivityFeedList() {
     <div className="border-border bg-background overflow-hidden rounded-lg border shadow-xs">
       {isPending && <ActivityFeedLoading />}
 
-      {isError && (
+      {isSearchActive && (
+        <SearchState
+          search={data?.pages[0]?.search}
+          error={isError ? error?.message : undefined}
+          onRestart={restartSearch}
+        />
+      )}
+      {isError && !isSearchActive && (
         <div className="p-4">
           <Error
             title="Could not load activity"
@@ -90,9 +100,12 @@ export function ActivityFeedList() {
         </div>
       )}
 
-      {isEmpty && isSearchActive && (
-        <ActivityFeedEmpty variant="search" onReset={resetSearch} />
-      )}
+      {isEmpty &&
+        isSearchActive &&
+        data?.pages[0]?.search?.status !== "pending" &&
+        !isError && (
+          <ActivityFeedEmpty variant="search" onReset={resetSearch} />
+        )}
       {isEmpty && !isSearchActive && unseenOnly && (
         <ActivityFeedEmpty variant="caught-up" onReset={resetUnseen} />
       )}

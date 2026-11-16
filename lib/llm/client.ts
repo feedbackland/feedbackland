@@ -90,6 +90,7 @@ const provider = createOpenAICompatible({
 globalThis.AI_SDK_DEFAULT_PROVIDER = provider;
 globalThis.AI_SDK_LOG_WARNINGS = false;
 type Controls = {
+  lease?: import("../jobs/leases").Lease;
   signal?: AbortSignal;
   check?: CheckTicket;
   reservation?: Reservation;
@@ -212,6 +213,7 @@ async function execute<T>(
         end: wall.end,
         check: controls.check,
         reservation: controls.reservation,
+        lease: controls.lease,
         usage: {},
       };
       let failure: AiError | undefined;
@@ -491,6 +493,7 @@ export async function readProviderMetadata(
   actor?: Actor,
   external?: AbortSignal,
   check?: CheckTicket,
+  lease?: import("../jobs/leases").Lease,
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
@@ -503,7 +506,7 @@ export async function readProviderMetadata(
     );
     signal = wall.signal;
     signal.throwIfAborted();
-    return await metadata(config, kind, actor, wall, check);
+    return await metadata(config, kind, actor, wall, check, lease);
   } catch (error) {
     const failure = safeError(error, signal);
     logFailure(failure, "metadata");

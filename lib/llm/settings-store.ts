@@ -14,6 +14,7 @@ import { AiError, type Reason } from "./errors";
 import type { Capability } from "./constants";
 import type { DB, AiSettings } from "../../db/schema";
 import { sql } from "kysely";
+import { requireLease, type Lease } from "../jobs/leases";
 import { db } from "../../db/db";
 import { contentTransaction } from "../../db/content-transaction";
 import { consumeRateLimitWindow } from "../../queries/check-rate-limit";
@@ -54,13 +55,14 @@ const recordedCheck = checkSchema.extend({
   configToken: z.string(),
   sequence: z.string().optional(),
 });
-function resolve(row: Row, secret: string) {
+function resolve(row: Row, secret: string, physicalWidth?: number) {
   const {
     llm,
     dimensions: requestedDimensions,
     explicitDimensions,
   } = getConfig();
-  const dimensions = runtimeState().vector?.dimensions ?? requestedDimensions;
+  const dimensions =
+    physicalWidth ?? runtimeState().vector?.dimensions ?? requestedDimensions;
   const saved = optionsSchema.safeParse(row.options);
   const valid = llm.valid && saved.success;
   const stored = saved.data ?? {};
@@ -99,7 +101,13 @@ function resolve(row: Row, secret: string) {
         row.indexEpoch,
         explicitDimensions ? requestedDimensions : dimensions,
         dimensions,
-        ...(Object.keys(defaults) as (keyof Options)[]).map((k) => options[k]),
+        // Preserve the installed P07/P08 identity when using the new default.
+        ...(Object.keys(defaults) as (keyof Options)[])
+          .filter((k) => k !== "searchMaxDistance")
+          .map((k) => options[k]),
+        ...(options.searchMaxDistance === defaults.searchMaxDistance
+          ? []
+          : ["search-distance", options.searchMaxDistance]),
       ]),
     );
   const token = configToken(valid);
@@ -137,6 +145,11 @@ function resolve(row: Row, secret: string) {
   };
 }
 export type Configuration = ReturnType<typeof resolve>;
+export {
+  resolve as configurationForRow,
+  invalidate as invalidateConfiguration,
+  replaceToken as replaceIndexToken,
+};
 const clearResults = {
   creditWaitUntil: null,
   creditWaitConfigToken: null,
@@ -277,8 +290,9 @@ async function replaceToken(
   row: Row,
   check?: Check,
   secret = getConfig().authSecret,
+  physicalWidth?: number,
 ) {
-  const value = resolve(row, secret);
+  const value = resolve(row, secret, physicalWidth);
   await trx
     .updateTable("ai_settings")
     .set({
@@ -590,10 +604,12 @@ export async function completeCreditWait(
   keyDigest: string,
   until: Date,
   result: Check,
+  lease?: Lease,
 ) {
   const check = checkedResult(result);
   if (check.key !== "valid" || check.chat !== "passed") return null;
   const enabled = await db.transaction().execute(async (trx) => {
+    if (lease) await requireLease(trx, lease);
     const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
     const config = resolve(row, getConfig().authSecret);
     if (
@@ -622,7 +638,10 @@ export async function completeCreditWait(
       })
       .returningAll()
       .executeTakeFirst();
-    return next ? replaceToken(trx, next, check) : null;
+    if (!next) return null;
+    const saved = await replaceToken(trx, next, check);
+    if (lease) await requireLease(trx, lease);
+    return saved;
   });
   invalidate();
   return enabled;

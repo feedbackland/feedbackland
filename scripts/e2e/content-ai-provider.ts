@@ -6,7 +6,16 @@ async function main() {
   const releaseVision = Promise.withResolvers<void>();
   process.on("SIGUSR2", releaseVision.resolve);
   let visionCalls = 0;
+  let embeddingsOffline = false;
+  process.on("SIGHUP", () => {
+    embeddingsOffline = !embeddingsOffline;
+    console.log("Embedding fixture offline " + embeddingsOffline);
+  });
   fixture.handler = async (request) => {
+    if (request.url === "/api/v1/embeddings") {
+      console.log("Embedding fixture width " + Number(request.body.dimensions));
+      if (embeddingsOffline) return json(request.response, { error: {} }, 503);
+    }
     if (request.url !== "/api/v1/chat/completions") return defaults(request);
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);

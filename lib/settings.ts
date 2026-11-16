@@ -1,4 +1,5 @@
 import "server-only";
+import { embeddingsAvailable } from "./llm/embeddings";
 import { cache } from "react";
 import { connection } from "next/server";
 import { headers } from "next/headers";
@@ -30,7 +31,7 @@ export async function publicSettings(
     buildIdentity: `${identity.artifactId}:${identity.architecture}`,
     capabilities: {
       chat: !!settings.setupCompletedAt && (await canImproveDraft()),
-      embeddings: false,
+      embeddings: !!settings.setupCompletedAt && (await embeddingsAvailable()),
       ...auth,
       maxImageBytes: getConfig().maxImageBytes,
     },

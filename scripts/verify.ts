@@ -57,7 +57,7 @@ async function main() {
           checks: rows,
           futurePhases:
             phase >= 6
-              ? "Search, background AI jobs and AI configuration controls are scheduled for later milestones."
+              ? "Background insights and AI configuration controls are scheduled for later milestones."
               : phase >= 5
                 ? "AI and search are scheduled for later phases."
                 : phase >= 4
@@ -100,8 +100,9 @@ async function main() {
     if (phase >= 4) await phaseFour(image, runId, directory, check);
     if (phase >= 5) await phaseFive(image, runId, directory, check);
     if (phase >= 6)
-      await check("V11/V12/V20/V21 OpenRouter and content moderation", () =>
-        aiFoundations(runId, image),
+      await check(
+        "V8/V11/V12/V13/V20/V21 OpenRouter, content and durable search",
+        () => aiFoundations(runId, image),
       );
     await save("passed");
   } catch (error) {

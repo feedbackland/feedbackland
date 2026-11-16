@@ -73,6 +73,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/redeem-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/retry-oidc-discovery.ts` | `trpc/index.ts` |
 | `trpc/rewrite-feedback.ts` | `trpc/index.ts` |
+| `trpc/search-index.ts` | `trpc/index.ts` |
 | `trpc/set-activities-seen.ts` | `trpc/index.ts` |
 | `trpc/set-all-activities-seen.ts` | `trpc/index.ts` |
 | `trpc/set-insight-status.ts` | `trpc/index.ts` |

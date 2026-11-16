@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { command, eventually } from "./run";
 import { firstKey } from "../mock-llm";
 import { productionVision } from "./content-vision-http";
+import { replicaSearch } from "./replica-search";
 import { contentBrowser } from "./content-ai-browser";
 
 const pgImage =
@@ -16,6 +17,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
     certs = project + "-certs",
     provider = project + "-provider",
     web = project + "-web",
+    peer = project + "-peer",
     relay = project + "-relay",
     ingress = project + "-ingress";
   const docker = (...args: string[]) =>
@@ -269,35 +271,38 @@ export async function aiFoundations(runId: string, productionImage: string) {
       (s) => s.includes("Content fixture ready"),
     );
     const setup = randomBytes(32).toString("hex");
-    await docker(
-      "run",
-      "-d",
-      "--name",
-      web,
-      "--memory",
-      "512m",
-      "--memory-swap",
-      "512m",
-      "-e",
-      "AI_TIMEOUT_MS=30000",
-      "--network",
-      project,
-      "--network-alias",
-      "board",
-      "-v",
-      certs + ":/certs:ro",
-      "-e",
-      "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
-      "-e",
-      "OPENROUTER_API_KEY=" + firstKey,
-      "-e",
-      "SETUP_CODE=" + setup,
-      "-e",
-      "DATABASE_URL=postgres://postgres:" +
-        password +
-        "@database:5432/board_content",
-      productionImage,
-    );
+    const startWeb = (name: string, alias: string) =>
+      docker(
+        "run",
+        "-d",
+        "--name",
+        name,
+        "--memory",
+        "512m",
+        "--memory-swap",
+        "512m",
+        "-e",
+        "AI_TIMEOUT_MS=30000",
+        ...(name === peer ? ["-e", "DATABASE_POOL_MAX=2"] : []),
+        "--network",
+        project,
+        "--network-alias",
+        alias,
+        "-v",
+        certs + ":/certs:ro",
+        "-e",
+        "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
+        "-e",
+        "OPENROUTER_API_KEY=" + firstKey,
+        "-e",
+        "SETUP_CODE=" + setup,
+        "-e",
+        "DATABASE_URL=postgres://postgres:" +
+          password +
+          "@database:5432/board_content",
+        productionImage,
+      );
+    await startWeb(web, "board");
     // The browser reaches only the board port through this TCP relay. The board,
     // fixture and database remain on a private network without an Internet route.
     await docker("network", "create", ingress);
@@ -310,10 +315,12 @@ export async function aiFoundations(runId: string, productionImage: string) {
       ingress,
       "-p",
       "127.0.0.1::3000",
+      "-p",
+      "127.0.0.1::3001",
       image,
       "node",
       "-e",
-      "const net=require('node:net');net.createServer(client=>{const board=net.connect(3000,'board');board.on('error',()=>client.destroy());client.on('error',()=>board.destroy());client.on('close',()=>board.destroy());board.on('close',()=>client.destroy());client.pipe(board).pipe(client)}).listen(3000)",
+      "const net=require('node:net');for(const [port,host] of [[3000,'board'],[3001,'board-peer']])net.createServer(client=>{const board=net.connect(3000,host);board.on('error',()=>client.destroy());client.on('error',()=>board.destroy());client.on('close',()=>board.destroy());board.on('close',()=>client.destroy());client.pipe(board).pipe(client)}).listen(port)",
     );
     await docker("network", "connect", project, relay);
     const port = (await docker("port", relay, "3000/tcp")).match(
@@ -327,7 +334,18 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     const browserResult = await contentBrowser(base, setup);
     const vision = await productionVision(base, project, docker);
-    const logs = await docker("logs", web);
+    await startWeb(peer, "board-peer");
+    const peerPort = (await docker("port", relay, "3001/tcp")).match(
+      /^127\.0\.0\.1:(\d+)$/,
+    )?.[1];
+    assert(peerPort);
+    const searchReplicas = await replicaSearch(
+      base,
+      "http://localhost:" + peerPort,
+      project,
+      docker,
+    );
+    const logs = (await docker("logs", web)) + (await docker("logs", peer));
     assert(
       !logs.includes("P07_PRIVATE_") &&
         !logs.includes(password) &&
@@ -336,13 +354,14 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     return {
       browser: browserResult,
+      searchReplicas,
       productionVision: vision,
       ...JSON.parse(summary.slice("P07_OUTCOME=".length)),
       invalidAiEnvironmentBoot: "privacy and timeout passed",
     };
   } finally {
     await Promise.all(
-      [worker, relay, web, provider, pg].map((n) =>
+      [worker, relay, peer, web, provider, pg].map((n) =>
         docker("rm", "-fv", n).catch(() => {}),
       ),
     );

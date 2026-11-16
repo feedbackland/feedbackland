@@ -39,6 +39,19 @@ export type RuntimeState = {
   };
   setupComplete?: boolean;
   vector?: VectorMetadata;
+  vectorEpoch?: string;
+  embeddingProbe?: {
+    identity: string;
+    ready: boolean;
+    reason: string;
+    attempt: number;
+    next: number;
+    expected?: number;
+    actual?: number;
+    checked?: string;
+    pending?: Promise<void>;
+  };
+  aiMaintenance?: { stop: () => Promise<void> };
   sweepTimer?: ReturnType<typeof setTimeout>;
 };
 const key = Symbol.for("feedbackland.runtime");

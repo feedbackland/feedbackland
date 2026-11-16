@@ -92,8 +92,10 @@ export async function readSurfaces(actor: Actor) {
     cursor: null,
     orderBy: "newest",
     status: null,
-    searchValue: "fixture",
+    searchValue: "Cursor precision",
     userId: null,
   });
-  assert.deepEqual(search.feedbackPosts, []);
+  assert.equal(search.search?.mode, "exact");
+  assert.equal(search.feedbackPosts.length, 2);
+  assert(search.feedbackPosts.every((p) => p.title === "Cursor precision"));
 }

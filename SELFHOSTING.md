@@ -2,13 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P08 includes transactional boot, one-time setup,
+> **Implementation status:** P09 includes transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
 > recovery are available. Posts, comments and logos can include images stored in PostgreSQL.
 > Optional OpenRouter moderation, generated post titles and draft improvements are available.
-> Search, insights, automated backups and one-click release packaging are later milestones.
+> Board and Activity search support exact text and optional semantic matching. Insights, automated backups and one-click release packaging are later milestones.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
@@ -95,7 +95,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P08 contributor verification (development only)**
+**P09 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -277,6 +277,10 @@ If the target already provides pgvector in a different schema, have the extensio
 
 Set `OPENROUTER_API_KEY` to screen new and edited feedback and comments, generate post titles and categories, and enable **Improve my draft**. Draft improvements send text only and preserve attached images. Without a key, posting and editing work, posts use the first sentence as their title, and the draft button is hidden.
 
+The board and admin Activity feed support exact text search without an AI key. With a verified embedding model, a new search can also find related items. Later pages use the same ten-minute database snapshot across replicas. A search holds at most 1,000 results; exact matches on items still waiting for an embedding remain visible. If a snapshot expires or the index generation changes, **Start a new search** keeps the query. Provider outages or an exhausted budget leave existing pages usable.
+
+**Admin → System → Search index** shows the physical width, provider verification and indexing progress. Updating the model, even at the same width, requires an explicit rebuild. Review the affected rows and estimated batches before confirming. Rebuilds clear existing vectors, can briefly block writes and retire semantic search snapshots. When `AI_EMBEDDING_DIMENSIONS` is set it fixes the rebuild width. A single renewable maintenance worker indexes pending items under the shared daily allowance. Failed provider calls back off, and editing an item makes a previously skipped revision eligible again.
+
 For new posts, the board asks for a title and category within the discretionary budget. Moderation evaluates the feedback and any eligible attachments and separately approves the proposed heading. If the heading is unavailable or unapproved, the board uses the first sentence of the feedback. A status change and its system-generated history entry are saved together.
 
 A moderation refusal leaves the submission in the editor. A provider outage allows publication and records the reason. **Activity → Unscreened** lists the current revisions that lack full screening, including attachments that received text-only screening. **System → Moderation coverage** shows the current count and the number of distinct surviving items published without full screening in the last 24 hours. At the board’s full daily allowance, anonymous submissions receive HTTP 429 with `code: "DAILY_LIMIT"` and an ISO `resetsAt` at the next UTC midnight. The board displays that instant in the viewer’s timezone. Cross-origin clients can read the `Retry-After` header. Signed-in submissions can still be published with a coverage event. A busy screening worker asks the author to retry in five seconds.
@@ -285,6 +289,7 @@ A moderation refusal leaves the submission in the editor. A provider outage allo
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | Unset | Credential for requests to OpenRouter. Keep it in your server environment. |
 | `OPENROUTER_MODEL` | `google/gemini-3.8-flash` | Chat model ID. |
+| `AI_SEARCH_MAX_DISTANCE` | `0.55` | Maximum cosine distance for semantic candidates, from 0 to 2. Smaller values narrow the results. |
 | `OPENROUTER_EMBEDDING_MODEL` | `openai/text-embedding-3-small` | The small and large OpenAI text-embedding-3 models have tokenizer profiles. `none` disables embedding calls. |
 | `OPENROUTER_PRIVACY` | `deny` | `deny` requests providers that decline data collection. `zdr` also requires zero data retention. `allow` permits collection. |
 | `AI_TIMEOUT_MS` | `15000` | Request timeout in milliseconds, from 1,000 through 120,000. |
@@ -441,7 +446,7 @@ own Postgres. Two things it needs:
 
 Everything here is optional — your board already works without any of it —
 and each is covered in the sections that follow this guide as they land.
-The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P08.
+The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P09.
 
 - **Add the widget** — drop a feedback button into your own app.
 - **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.

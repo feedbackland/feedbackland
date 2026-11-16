@@ -1,3 +1,4 @@
+import { getSearchIndex, rebuildSearchIndex } from "./search-index";
 import { getSettings } from "./get-settings";
 import { updateSettings } from "./update-settings";
 import { router } from "@/lib/trpc";
@@ -40,6 +41,8 @@ import { getAuthStatus } from "./get-auth-status";
 
 import { getImageUsage, reclaimPendingImages } from "./reclaim-pending-images";
 export const appRouter = router({
+  getSearchIndex,
+  rebuildSearchIndex,
   getImageUsage,
   reclaimPendingImages,
   updateSettings,

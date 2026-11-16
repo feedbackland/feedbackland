@@ -25,6 +25,15 @@ const handler = async (req: Request) => {
   const context = await createTRPCContext({ req });
   return fetchRequestHandler({
     endpoint: "/api/trpc",
+    allowMethodOverride:
+      req.method === "POST" &&
+      new URL(req.url).pathname
+        .split("/")
+        .at(-1)!
+        .split(",")
+        .every(
+          (path) => path === "getFeedbackPosts" || path === "getActivityFeed",
+        ),
     req,
     router: appRouter,
     createContext: () => context,

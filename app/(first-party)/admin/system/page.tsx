@@ -1,3 +1,4 @@
+import { SearchIndex } from "./search-index";
 import { ModerationCoverage } from "./moderation";
 import { AuthStatus } from "./status";
 import { ImageStorage } from "./images";
@@ -8,6 +9,7 @@ export default function SystemPage() {
       <AuthStatus />
       <ImageStorage />
       <ModerationCoverage />
+      <SearchIndex />
     </main>
   );
 }

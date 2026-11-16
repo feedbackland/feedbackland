@@ -43,6 +43,14 @@ export class AiError extends Error {
     super(reason);
   }
 }
+export class EmbeddingWidthError extends AiError {
+  constructor(
+    readonly expected: number,
+    readonly actual: number,
+  ) {
+    super("invalid-response");
+  }
+}
 export class DailyBudgetError extends AiError {
   readonly resetsAt: string;
   readonly retryAfterSeconds: number;
