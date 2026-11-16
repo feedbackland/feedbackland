@@ -75,18 +75,25 @@ export async function coldSearchRecovery(
   assert(exact.feedbackPosts.some((p: { id: string }) => p.id === post.id));
   await page.goto(base + "/admin/system");
   await page.getByText(/Waiting for the embedding provider/).waitFor();
-  await docker("kill", "--signal=HUP", project + "-provider");
   const restored = Date.now();
+  await docker("kill", "--signal=HUP", project + "-provider");
+  await eventually(
+    () => docker("logs", project + "-provider"),
+    (logs) => logs.includes("Content fixture ready"),
+    10_000,
+  );
   await page.goto(base + "/admin/system");
   await page
     .getByText(/Semantic search is available/)
-    .waitFor({ timeout: 180_000 });
+    .waitFor({ timeout: Math.max(1, 180_000 - (Date.now() - restored)) });
   await eventually(
     () =>
       query(`select embedding is not null from feedback where id='${post.id}'`),
     (v) => v === "t",
     Math.max(1, 180_000 - (Date.now() - restored)),
   );
+  const recoveryMs = Date.now() - restored;
+  assert(recoveryMs <= 180_000, "Provider recovery exceeded three minutes");
   assert.equal((await status()).state, "verified");
   await query(`delete from feedback where id='${post.id}'`);
   await routeAndEmptyStates(page, base, query, ticket);
@@ -106,6 +113,11 @@ export async function coldSearchRecovery(
   } finally {
     await query(`update rate_limit set count=${spent} where key='${dayKey}'`);
   }
+  return {
+    setupAndPostDuringOutage: true,
+    fallback: "exact",
+    recoveredAndIndexedMs: recoveryMs,
+  };
 }
 
 async function routeAndEmptyStates(

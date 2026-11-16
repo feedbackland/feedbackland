@@ -358,7 +358,17 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     await eventually(
       () => docker("logs", provider),
-      (s) => s.includes("Content fixture ready"),
+      (s) => s.includes("Content fixture waiting to listen"),
+    );
+    assert.equal(
+      await docker(
+        "exec",
+        provider,
+        "node",
+        "-e",
+        "const s=require('node:net').connect(443,'127.0.0.1');s.once('connect',()=>{s.destroy();process.exitCode=1});s.once('error',e=>{if(e.code==='ECONNREFUSED')console.log(e.code);else process.exitCode=1})",
+      ),
+      "ECONNREFUSED",
     );
     const setup = randomBytes(32).toString("hex");
     const startWeb = (name: string, alias: string) =>
@@ -446,7 +456,8 @@ export async function aiFoundations(runId: string, productionImage: string) {
       "Private marker in production logs",
     );
     return {
-      browser: browserResult,
+      browser: browserResult.content,
+      coldProviderRecovery: browserResult.search,
       legacyPgvector: "0.7.4 HNSW on both tables, ordered 400 and exact tail",
       searchRegressions: "passed",
       searchReplicas,
