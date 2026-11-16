@@ -1,4 +1,5 @@
 "use client";
+import { contentMessage } from "@/lib/content-message";
 
 import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export function FeedbackPostEdit({
     "idle" | "pending" | "success" | "error"
   >("idle");
 
+  const [draftRevision] = useState(expectedRevision);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -97,7 +99,7 @@ export function FeedbackPostEdit({
 
     updatePost.mutate({
       postId,
-      expectedRevision,
+      expectedRevision: draftRevision,
       title,
       description,
     });
@@ -106,6 +108,8 @@ export function FeedbackPostEdit({
   return (
     <Form {...form}>
       <form
+        inert={updatePost.isPending}
+        aria-busy={updatePost.isPending}
         onSubmit={handleSubmit(onSubmit)}
         className={cn("w-full space-y-6", className)}
       >
@@ -140,6 +144,7 @@ export function FeedbackPostEdit({
               <FormItem>
                 <FormControl>
                   <Tiptap
+                    disabled={updatePost.isPending}
                     value={field?.value || null}
                     onChange={(value) => field.onChange(value)}
                   />
@@ -163,7 +168,7 @@ export function FeedbackPostEdit({
             Save
           </Button>
 
-          <Button onClick={onClose} variant="outline" size="sm">
+          <Button type="button" onClick={onClose} variant="outline" size="sm">
             Cancel
           </Button>
         </div>
@@ -171,11 +176,10 @@ export function FeedbackPostEdit({
         {formState === "error" && (
           <Error
             title="Could not save changes"
-            description={
-              updatePost.error?.data?.code === "BAD_REQUEST"
-                ? updatePost.error?.message
-                : "Could not save the changes. Try again."
-            }
+            description={contentMessage(
+              updatePost.error,
+              "Could not save the changes. Try again.",
+            )}
           />
         )}
       </form>

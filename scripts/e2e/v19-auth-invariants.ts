@@ -122,10 +122,12 @@ export async function membershipAndReplies() {
   const post = await createFeedbackPostQuery({
     description: "Parent fixture.",
     authorId: invited.userId,
+    sessionId: invited.sessionId,
   });
   const other = await createFeedbackPostQuery({
     description: "Other fixture.",
     authorId: null,
+    sessionId: null,
   });
   let parent: string | null = null;
   for (let depth = 0; depth <= 8; depth++) {
@@ -134,6 +136,7 @@ export async function membershipAndReplies() {
       parentCommentId: parent,
       content: `Depth ${depth}`,
       authorId: invited.userId,
+      sessionId: invited.sessionId,
     });
     parent = row.id;
   }
@@ -143,6 +146,7 @@ export async function membershipAndReplies() {
       parentCommentId: parent,
       content: "Too deep",
       authorId: invited.userId,
+      sessionId: invited.sessionId,
     }),
     /INVALID_REPLY_PARENT/,
   );
@@ -152,6 +156,7 @@ export async function membershipAndReplies() {
       parentCommentId: parent,
       content: "Wrong post",
       authorId: invited.userId,
+      sessionId: invited.sessionId,
     }),
     /INVALID_REPLY_PARENT/,
   );

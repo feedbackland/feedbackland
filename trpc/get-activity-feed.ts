@@ -22,6 +22,7 @@ export const getActivityFeed = adminProcedure
       excludeComments: z.boolean(),
       searchValue: z.string().trim().max(500),
       unseenOnly: z.boolean(),
+      unscreenedOnly: z.boolean().default(false),
     }),
   )
   .query(
@@ -36,6 +37,7 @@ export const getActivityFeed = adminProcedure
         excludeComments,
         searchValue,
         unseenOnly,
+        unscreenedOnly,
       },
       ctx: { userId, ip },
     }) => {
@@ -55,6 +57,7 @@ export const getActivityFeed = adminProcedure
           excludeComments,
           searchValue,
           unseenOnly,
+          unscreenedOnly,
         });
 
       const nextCursor = currentPage < totalPages ? currentPage + 1 : undefined;

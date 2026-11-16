@@ -88,23 +88,25 @@ export type VisionAsset = {
   height: number;
   load: (signal: AbortSignal) => Promise<Uint8Array>;
 };
+export function visionEligible(a: Omit<VisionAsset, "id" | "load">) {
+  return (
+    ["image/png", "image/jpeg", "image/webp"].includes(a.contentType) &&
+    Number.isInteger(a.byteSize) &&
+    a.byteSize > 0 &&
+    a.byteSize <= 1_000_000 &&
+    Number.isSafeInteger(a.width) &&
+    Number.isSafeInteger(a.height) &&
+    a.width > 0 &&
+    a.height > 0 &&
+    a.width * a.height <= 4_000_000
+  );
+}
 export function planVision(assets: readonly VisionAsset[]) {
   const unique = new Map<string, VisionAsset>();
   let total = 0;
   for (const a of assets) {
     if (unique.has(a.id)) continue;
-    if (
-      unique.size >= 4 ||
-      !["image/png", "image/jpeg", "image/webp"].includes(a.contentType) ||
-      !Number.isInteger(a.byteSize) ||
-      a.byteSize < 1 ||
-      a.byteSize > 1_000_000 ||
-      !Number.isSafeInteger(a.width) ||
-      !Number.isSafeInteger(a.height) ||
-      a.width < 1 ||
-      a.height < 1 ||
-      a.width * a.height > 4_000_000
-    )
+    if (unique.size >= 4 || !visionEligible(a))
       throw new AiError("invalid-input");
     unique.set(a.id, a);
     total += a.byteSize;

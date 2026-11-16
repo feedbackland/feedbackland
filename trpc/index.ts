@@ -32,6 +32,7 @@ import { getAdminInvite } from "./get-admin-invite";
 import { setAllActivitiesSeen } from "./set-all-activities-seen";
 import { updateUser } from "./update-user";
 import { getUserSession } from "./get-user-session";
+import { getModerationCoverage } from "./get-moderation-coverage";
 import { rewriteFeedback } from "./rewrite-feedback";
 import { createPasswordResetLink } from "./create-password-reset-link";
 import { retryOidcDiscovery } from "./retry-oidc-discovery";
@@ -75,6 +76,7 @@ export const appRouter = router({
   updateUser,
   getUserSession,
   rewriteFeedback,
+  getModerationCoverage,
   createPasswordResetLink,
   retryOidcDiscovery,
   getAuthStatus,

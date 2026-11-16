@@ -2,13 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P07 includes transactional boot, one-time setup,
+> **Implementation status:** P08 includes transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
 > recovery are available. Posts, comments and logos can include images stored in PostgreSQL.
-> The OpenRouter client and accounting are available internally. User-facing AI,
-> search, automated backups and one-click release packaging are later milestones.
+> Optional OpenRouter moderation, generated post titles and draft improvements are available.
+> Search, insights, automated backups and one-click release packaging are later milestones.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
@@ -95,7 +95,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P07 contributor verification (development only)**
+**P08 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -275,7 +275,11 @@ If the target already provides pgvector in a different schema, have the extensio
 
 ## AI configuration in this development milestone
 
-P07 adds the server-side OpenRouter client, configuration store and usage accounting. Public posting, editing and the widget continue to work without a key. Moderation, generated titles, semantic search, insights, Ask AI and the admin controls are scheduled in later milestones.
+Set `OPENROUTER_API_KEY` to screen new and edited feedback and comments, generate post titles and categories, and enable **Improve my draft**. Draft improvements send text only and preserve attached images. Without a key, posting and editing work, posts use the first sentence as their title, and the draft button is hidden.
+
+For new posts, the board asks for a title and category within the discretionary budget. Moderation evaluates the feedback and any eligible attachments and separately approves the proposed heading. If the heading is unavailable or unapproved, the board uses the first sentence of the feedback. A status change and its system-generated history entry are saved together.
+
+A moderation refusal leaves the submission in the editor. A provider outage allows publication and records the reason. **Activity → Unscreened** lists the current revisions that lack full screening, including attachments that received text-only screening. **System → Moderation coverage** shows the current count and the number of distinct surviving items published without full screening in the last 24 hours. At the board’s full daily allowance, anonymous submissions receive HTTP 429 with `code: "DAILY_LIMIT"` and an ISO `resetsAt` at the next UTC midnight. The board displays that instant in the viewer’s timezone. Cross-origin clients can read the `Retry-After` header. Signed-in submissions can still be published with a coverage event. A busy screening worker asks the author to retry in five seconds.
 
 | Environment setting | Default | Effect |
 | --- | --- | --- |
@@ -437,7 +441,7 @@ own Postgres. Two things it needs:
 
 Everything here is optional — your board already works without any of it —
 and each is covered in the sections that follow this guide as they land.
-The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P07.
+The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P08.
 
 - **Add the widget** — drop a feedback button into your own app.
 - **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.

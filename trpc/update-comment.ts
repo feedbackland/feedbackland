@@ -19,5 +19,6 @@ export const updateComment = userProcedure
       ...input,
       userId: ctx.userId,
       sessionId: ctx.sessionId,
+      signal: ctx.signal,
     });
   });

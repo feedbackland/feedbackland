@@ -21,5 +21,6 @@ export const updateFeedbackPost = userProcedure
       ...input,
       userId: ctx.userId,
       sessionId: ctx.sessionId,
+      signal: ctx.signal,
     });
   });

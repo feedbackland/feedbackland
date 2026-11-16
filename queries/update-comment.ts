@@ -1,34 +1,31 @@
 import "server-only";
-import { DomainError } from "@/lib/domain-error";
 import { sql } from "kysely";
-import { replaceImageRefs, validateImages } from "@/lib/images/store";
-import { db } from "@/db/db";
-import { lock, locks } from "@/db/locks";
-import { authorizeContentWrite, type Actor } from "@/lib/auth/authorization";
-import { revision } from "@/lib/revision";
+import type { Actor } from "@/lib/auth/authorization";
 import { textContent } from "@/lib/utils-server";
+import { prepareContent, commitContent } from "./content-write";
 export async function updateCommentQuery(
   input: Actor & {
     commentId: string;
     content: string;
     expectedRevision: string;
+    signal?: AbortSignal;
   },
 ) {
   const text = textContent(input.content);
-  await validateImages(db, text.imageIds);
-  return db.transaction().execute(async (trx) => {
-    await lock(trx, locks.membership);
-    const admin = await authorizeContentWrite(trx, input);
-    await lock(trx, locks.images);
-    const row = await trx
-      .selectFrom("comment")
-      .select("authorId")
-      .where("id", "=", input.commentId)
-      .forUpdate()
-      .executeTakeFirstOrThrow();
-    if (!admin && row.authorId !== input.userId)
-      throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
-    const result = await trx
+  const write = await prepareContent({
+    actor: input,
+    target: {
+      kind: "edit",
+      table: "comment",
+      id: input.commentId,
+      expectedRevision: input.expectedRevision,
+    },
+    text: text.plainText,
+    imageIds: text.imageIds,
+    signal: input.signal,
+  });
+  return commitContent(write, "comment", (trx) =>
+    trx
       .updateTable("comment")
       .set({
         content: text.content,
@@ -37,14 +34,11 @@ export async function updateCommentQuery(
         updatedAt: sql`clock_timestamp()`,
         embedding: null,
         embeddingSkipped: false,
-        moderationState: "disabled",
+        moderationState: write.coverage.state,
       })
       .where("id", "=", input.commentId)
-      .where("revision", "=", revision(input.expectedRevision))
+      .where("revision", "=", input.expectedRevision)
       .returningAll()
-      .executeTakeFirst();
-    if (!result) throw new DomainError("CONFLICT", "CONFLICT");
-    await replaceImageRefs(trx, { commentId: result.id }, text.imageIds);
-    return result;
-  });
+      .executeTakeFirstOrThrow(),
+  );
 }

@@ -12,6 +12,7 @@ const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Expose-Headers": "Retry-After",
   "Access-Control-Max-Age": "86400",
   "Cache-Control": "no-store",
 };
@@ -55,15 +56,27 @@ export async function POST(request: Request) {
     const { id } = await createFeedbackPostQuery({
       description: input.description,
       authorId: null,
+      sessionId: null,
+      signal: request.signal,
     });
     return Response.json({ id }, { status: 201, headers: cors });
   } catch (error) {
     return Response.json(
+      error instanceof DomainError && error.resetsAt
+        ? { code: error.message, resetsAt: error.resetsAt }
+        : {
+            error:
+              error instanceof DomainError
+                ? error.message
+                : "CONTENT_UNAVAILABLE",
+          },
       {
-        error:
-          error instanceof DomainError ? error.message : "CONTENT_UNAVAILABLE",
+        status: error instanceof DomainError ? error.status : 500,
+        headers:
+          error instanceof DomainError && error.retryAfterSeconds
+            ? { ...cors, "Retry-After": String(error.retryAfterSeconds) }
+            : cors,
       },
-      { status: error instanceof DomainError ? 400 : 500, headers: cors },
     );
   }
 }

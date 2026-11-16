@@ -1,33 +1,31 @@
 import "server-only";
-import { replaceImageRefs, validateImages } from "@/lib/images/store";
-import { lock, locks } from "@/db/locks";
-import { db } from "@/db/db";
 import { textContent } from "@/lib/utils-server";
-import { validateReplyParent } from "./reply-parent";
+import { prepareContent, commitContent } from "./content-write";
 export async function createCommentQuery({
   content,
   authorId,
+  sessionId,
   postId,
   parentCommentId,
+  signal,
 }: {
   content: string;
   authorId: string;
+  sessionId: string | null | undefined;
   postId: string;
   parentCommentId: string | null;
+  signal?: AbortSignal;
 }) {
   const text = textContent(content);
-  await validateImages(db, text.imageIds);
-  await validateReplyParent(db, postId, parentCommentId);
-  return db.transaction().execute(async (trx) => {
-    await lock(trx, locks.images);
-    await trx
-      .selectFrom("feedback")
-      .select("id")
-      .where("id", "=", postId)
-      .forKeyShare()
-      .executeTakeFirstOrThrow();
-    await validateReplyParent(trx, postId, parentCommentId);
-    const row = await trx
+  const input = await prepareContent({
+    actor: { userId: authorId, sessionId },
+    target: { kind: "reply", postId, parentCommentId },
+    text: text.plainText,
+    imageIds: text.imageIds,
+    signal,
+  });
+  return commitContent(input, "comment", (trx) =>
+    trx
       .insertInto("comment")
       .values({
         content: text.content,
@@ -36,11 +34,9 @@ export async function createCommentQuery({
         postId,
         parentCommentId,
         revision: "1",
-        moderationState: "disabled",
+        moderationState: input.coverage.state,
       })
       .returningAll()
-      .executeTakeFirstOrThrow();
-    await replaceImageRefs(trx, { commentId: row.id }, text.imageIds);
-    return row;
-  });
+      .executeTakeFirstOrThrow(),
+  );
 }

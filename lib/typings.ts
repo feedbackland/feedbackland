@@ -33,6 +33,8 @@ export type Admin = {
 };
 
 export type ActivityFeedItem = {
+  moderationState: string;
+  moderationReason: string | null;
   id: string;
   postId: string;
   commentId: string | null;

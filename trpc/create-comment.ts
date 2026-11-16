@@ -16,19 +16,17 @@ export const createComment = userProcedure
   .mutation(
     async ({
       input: { postId, parentCommentId, content },
-      ctx: { userId },
+      ctx: { userId, sessionId, signal },
     }) => {
-      try {
-        if (!(await enforceContentLimit("commentCreate", userId)).allowed)
-          throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-        return await createCommentQuery({
-          content,
-          authorId: userId,
-          postId,
-          parentCommentId,
-        });
-      } catch (error) {
-        throw error;
-      }
+      if (!(await enforceContentLimit("commentCreate", userId)).allowed)
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+      return await createCommentQuery({
+        content,
+        authorId: userId,
+        sessionId,
+        signal,
+        postId,
+        parentCommentId,
+      });
     },
   );

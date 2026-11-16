@@ -11,12 +11,14 @@ export const activtyFeedStateAtom = atomWithReset<{
   status: FeedbackStatus;
   category: "all" | "idea" | "issue" | "general feedback" | "comments";
   unseenOnly: boolean;
+  unscreenedOnly: boolean;
 }>({
   searchValue: "",
   orderBy: "newest",
   status: null,
   category: "all",
   unseenOnly: false,
+  unscreenedOnly: false,
 });
 
 export const feedbackPostsStateAtom = atomWithReset<{

@@ -1,3 +1,5 @@
+import { migrateAndSeed } from "../../lib/boot";
+import { runtimeState } from "../../lib/runtime-state";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { sql } from "kysely";
@@ -89,6 +91,7 @@ async function deadlineContracts() {
 }
 
 async function contracts() {
+  runtimeState().authSecret = (await migrateAndSeed()).authSecret;
   const actor = await db
     .selectFrom("auth_session")
     .innerJoin("user", "user.id", "auth_session.userId")
@@ -99,7 +102,11 @@ async function contracts() {
   const upload = () => storeImage(samples.png, inspectImage(samples.png));
   const img = (id: string) => '<img src="/api/images/' + id + '">';
   const post = (id: string) =>
-    createFeedbackPostQuery({ description: img(id), authorId: actor.userId });
+    createFeedbackPostQuery({
+      description: img(id),
+      authorId: actor.userId,
+      sessionId: actor.sessionId,
+    });
   const exists = async (id: string) =>
     !!(await db
       .selectFrom("images")
@@ -133,7 +140,7 @@ async function contracts() {
     const { id } = await db
       .selectFrom("feedback")
       .innerJoin("image_ref", "image_ref.postId", "feedback.id")
-      .where("feedback.title", "=", "Image attachment")
+      .where("feedback.title", "=", "Untitled feedback")
       .select("feedback.id")
       .executeTakeFirstOrThrow();
     const ref = await db
@@ -186,12 +193,14 @@ async function contracts() {
     nested = await upload();
   const c = await createCommentQuery({
     authorId: actor.userId,
+    sessionId: actor.sessionId,
     postId: p.id,
     parentCommentId: null,
     content: img(shared.id),
   });
   await createCommentQuery({
     authorId: actor.userId,
+    sessionId: actor.sessionId,
     postId: p.id,
     parentCommentId: c.id,
     content: img(nested.id),
@@ -217,7 +226,7 @@ async function contracts() {
       description: "removed",
       expectedRevision: "9999",
     }),
-    /CONFLICT/,
+    { code: "CONFLICT", message: "CONTENT_CHANGED" },
   );
   assert.equal(
     (
@@ -279,6 +288,7 @@ async function contracts() {
     parentCommentId: null,
     content: img(childImage.id),
     authorId: actor.userId,
+    sessionId: actor.sessionId,
   });
   await deleteFeedbackPostQuery({ ...actor, postId: root.id });
   assert(!(await exists(parentImage.id)));

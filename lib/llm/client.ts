@@ -29,12 +29,17 @@ import {
 } from "./defaults";
 import {
   configuration,
-  failingCapability,
+  capabilityFailure,
   type Configuration,
   type CheckTicket,
 } from "./settings-store";
 import { finishAttempt, type Reservation } from "./usage";
-import { AiError, safeError, logFailure } from "./errors";
+import {
+  AiError,
+  UnavailableCapability,
+  safeError,
+  logFailure,
+} from "./errors";
 import {
   prepareChat,
   planVision,
@@ -88,6 +93,7 @@ type Controls = {
   signal?: AbortSignal;
   check?: CheckTicket;
   reservation?: Reservation;
+  content?: { config: Configuration; wall: Deadline };
 };
 function acquire(kind: "model" | "vision" | "metadata") {
   const work = (runtimeState().aiWork ??= { model: 0, vision: 0, metadata: 0 });
@@ -107,6 +113,13 @@ function duration(feature: Feature | "metadata", timeout: number) {
   if (feature === "ask-ai") return 180000;
   return timeout;
 }
+export function initialAiTimeout() {
+  return (
+    getConfig().llm.options.timeoutMs ??
+    runtimeState().aiConfig?.value.options.timeoutMs ??
+    defaults.timeoutMs
+  );
+}
 async function ready(
   feature: Feature | "metadata",
   cap: Capability,
@@ -114,23 +127,26 @@ async function ready(
   metadataAdmin = false,
 ) {
   const start = performance.now();
-  const knownTimeout =
-    getConfig().llm.options.timeoutMs ??
-    runtimeState().aiConfig?.value.options.timeoutMs ??
-    defaults.timeoutMs;
-  const initial = deadline(
-    feature === "ask-ai" ? knownTimeout : duration(feature, knownTimeout),
-    controls.signal,
-    start,
-  );
-  const config = await configuration(initial.signal).catch((error) => {
-    throw safeError(error, initial.signal);
-  });
-  const wall = deadline(
-    duration(feature, config.options.timeoutMs),
-    controls.signal,
-    start,
-  );
+  const knownTimeout = initialAiTimeout();
+  const initial =
+    controls.content?.wall ??
+    deadline(
+      feature === "ask-ai" ? knownTimeout : duration(feature, knownTimeout),
+      controls.signal,
+      start,
+    );
+  const config =
+    controls.content?.config ??
+    (await configuration(initial.signal).catch((error) => {
+      throw safeError(error, initial.signal);
+    }));
+  const wall =
+    controls.content?.wall ??
+    deadline(
+      duration(feature, config.options.timeoutMs),
+      controls.signal,
+      start,
+    );
   const readiness =
     feature === "ask-ai"
       ? deadline(config.options.timeoutMs, controls.signal, start)
@@ -138,6 +154,7 @@ async function ready(
   checkDeadline(readiness);
   const diagnostic =
     feature === "check" || feature === "metadata" || feature === "probe";
+  if (!diagnostic && config.keyless) throw new AiError("AI_NOT_CONFIGURED");
   if (!config.valid) throw new AiError("AI_UNAVAILABLE");
   if (config.diverged) throw new AiError("CONFIGURATION_DIVERGED");
   const admin = metadataAdmin || !!controls.check?.action;
@@ -151,15 +168,21 @@ async function ready(
     throw new AiError("AI_NOT_CONFIGURED");
   if (config.unreadable) throw new AiError("key-unreadable");
   if (!config.apiKey) throw new AiError("AI_NOT_CONFIGURED");
-  if (
-    !diagnostic &&
-    ((config.check &&
-      ["invalid", "management", "expired"].includes(config.check.key)) ||
-      (await failingCapability(config, cap, readiness.signal).catch((error) => {
-        throw safeError(error, readiness.signal);
-      })))
-  )
-    throw new AiError("AI_UNAVAILABLE");
+  if (!diagnostic) {
+    if (
+      config.check &&
+      ["invalid", "management", "expired"].includes(config.check.key)
+    )
+      throw new UnavailableCapability("provider-auth");
+    const failure = await capabilityFailure(
+      config,
+      cap,
+      readiness.signal,
+    ).catch((error) => {
+      throw safeError(error, readiness.signal);
+    });
+    if (failure) throw new UnavailableCapability(failure.lastReason);
+  }
   return { config, wall };
 }
 
@@ -171,7 +194,8 @@ async function execute<T>(
   operation: (ctx: Dispatch) => Promise<T>,
   snapshot?: { config: Configuration; wall: Deadline },
 ) {
-  let release: (() => void) | undefined, signal: AbortSignal | undefined;
+  let release: (() => void) | undefined;
+  let signal = controls.content?.wall.signal ?? controls.signal;
   try {
     release = acquire(vision ? "vision" : "model");
     const { config, wall } =
@@ -244,11 +268,12 @@ function setUsage(ctx: Dispatch, usage: LanguageModelUsage) {
     cost: usage.raw?.cost ?? ctx.usage.cost,
   };
 }
-export async function callChat(
+export async function callChat<T = never>(
   feature: ChatFeature,
   input: ChatInput,
   controls: Controls & {
     images?: readonly VisionAsset[];
+    validateText?: (text: string) => T;
     onText?: (delta: string) => void;
   } = {},
 ) {
@@ -359,22 +384,34 @@ export async function callChat(
     const result = await generateText(args);
     setUsage(ctx, result.steps[0].usage);
     checkFinish(result.rawFinishReason, result.finishReason);
-    if (feature === "moderation")
-      validateModeration(result.text, result.finishReason);
-    return { text: result.text, omitted: prepared.omitted };
+    if (
+      (feature === "title" || feature === "rewrite") &&
+      result.finishReason !== "stop"
+    )
+      throw new AiError("invalid-response");
+    if (feature === "moderation") {
+      const moderation = parseModeration(result.text, result.finishReason);
+      return { text: result.text, omitted: prepared.omitted, moderation };
+    }
+    return {
+      text: result.text,
+      omitted: prepared.omitted,
+      value: controls.validateText?.(result.text),
+    };
   });
 }
 const verdict = z.object({
   isInappropriate: z.boolean(),
   confidenceScore: z.number().min(0).max(1),
+  titleApproved: z.boolean().optional().catch(false),
 });
-function validateModeration(text: string, finish: string) {
+function parseModeration(text: string, finish: string) {
   const cleaned = text
     .trim()
     .replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1");
   try {
-    if (finish === "stop" && verdict.safeParse(JSON.parse(cleaned)).success)
-      return;
+    const parsed = verdict.safeParse(JSON.parse(cleaned));
+    if (finish === "stop" && parsed.success) return parsed.data;
   } catch {
     /* Return only the fixed classification. */
   }

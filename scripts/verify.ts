@@ -57,7 +57,7 @@ async function main() {
           checks: rows,
           futurePhases:
             phase >= 6
-              ? "Content AI, search, jobs and the admin controls are scheduled for later milestones."
+              ? "Search, background AI jobs and AI configuration controls are scheduled for later milestones."
               : phase >= 5
                 ? "AI and search are scheduled for later phases."
                 : phase >= 4
@@ -100,7 +100,7 @@ async function main() {
     if (phase >= 4) await phaseFour(image, runId, directory, check);
     if (phase >= 5) await phaseFive(image, runId, directory, check);
     if (phase >= 6)
-      await check("V12/V20/V21 OpenRouter foundations", () =>
+      await check("V11/V12/V20/V21 OpenRouter and content moderation", () =>
         aiFoundations(runId, image),
       );
     await save("passed");

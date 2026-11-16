@@ -471,15 +471,20 @@ async function main() {
     (await chat(request("/api/chat", {}, { cookie: agedCookie }))).status,
     403,
   );
+  const userContext = await createContext({
+    req: request("/api/trpc", {}, { cookie: userCookie }),
+  });
   const post = await createFeedbackPostQuery({
     description: "Other user's content",
     authorId: user.json.user.id,
+    sessionId: userContext.sessionId,
   });
   const comment = await createCommentQuery({
     postId: post.id,
     parentCommentId: null,
     content: "Other comment",
     authorId: user.json.user.id,
+    sessionId: userContext.sessionId,
   });
   const edits = [
     [
@@ -518,6 +523,7 @@ async function main() {
       "getActivityFeed",
       "getInsights",
       "getActivityFeedMetaData",
+      "getModerationCoverage",
       "getFeedbackPostCount",
     ]) {
       const { GET } = await import("../../app/api/trpc/[trpc]/route");
@@ -528,15 +534,20 @@ async function main() {
       );
       assert.equal(response.status, 403, path);
     }
+    const author = await createContext({
+      req: request("/api/trpc", {}, credential),
+    });
     const ownPost = await createFeedbackPostQuery({
       description: "Scope does not remove authorship",
       authorId: admin[0].id,
+      sessionId: author.sessionId,
     });
     const ownComment = await createCommentQuery({
       postId: ownPost.id,
       parentCommentId: null,
       content: "Own comment",
       authorId: admin[0].id,
+      sessionId: author.sessionId,
     });
     await rpc(
       "updateFeedbackPost",
@@ -584,12 +595,14 @@ async function main() {
   const target = await createFeedbackPostQuery({
     description: "Revocation target",
     authorId: user.json.user.id,
+    sessionId: userContext.sessionId,
   });
   const targetComment = await createCommentQuery({
     postId: target.id,
     parentCommentId: null,
     content: "Revocation comment",
     authorId: user.json.user.id,
+    sessionId: userContext.sessionId,
   });
   const staleActor = { userId: admin[0].id, sessionId: context.sessionId! };
   await db
@@ -626,6 +639,7 @@ async function main() {
   const own = await createFeedbackPostQuery({
     description: "Own revoked target",
     authorId: admin[0].id,
+    sessionId: staleActor.sessionId,
   });
   await db
     .deleteFrom("auth_session")
@@ -643,9 +657,6 @@ async function main() {
     /Sign in/,
   );
   // Invite redemption requires the same young, unexpired first-party credential.
-  const userContext = await createContext({
-    req: request("/api/trpc", {}, { cookie: userCookie }),
-  });
   const userActor = {
     userId: user.json.user.id,
     sessionId: userContext.sessionId!,

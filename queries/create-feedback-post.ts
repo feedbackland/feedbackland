@@ -1,43 +1,43 @@
 import "server-only";
-import { replaceImageRefs, validateImages } from "@/lib/images/store";
-import { lock, locks } from "@/db/locks";
-import { db } from "@/db/db";
 import { plainTextContent, feedbackPostHtmlContent } from "@/lib/utils-server";
+import { prepareContent, commitContent } from "./content-write";
+
 export async function createFeedbackPostQuery({
   description,
   authorId,
+  sessionId,
   descriptionFormat = "html",
+  signal,
 }: {
   description: string;
   authorId: string | null;
+  sessionId: string | null | undefined;
   descriptionFormat?: "html" | "plain-text";
+  signal?: AbortSignal;
 }) {
   const text =
     descriptionFormat === "plain-text"
       ? plainTextContent(description)
       : feedbackPostHtmlContent(description);
-  const title = Array.from(
-    text.plainText.match(/^.*?[.!?](?:\s|$)/u)?.[0].trim() ?? text.plainText,
-  )
-    .slice(0, 80)
-    .join("");
-  await validateImages(db, text.imageIds);
-  return db.transaction().execute(async (trx) => {
-    await lock(trx, locks.images);
-    const row = await trx
+  const input = await prepareContent({
+    actor: authorId === null ? null : { userId: authorId, sessionId },
+    target: { kind: "new-post" },
+    text: text.plainText,
+    imageIds: text.imageIds,
+    signal,
+  });
+  return commitContent(input, "post", (trx) =>
+    trx
       .insertInto("feedback")
       .values({
-        title: title || "Image attachment",
+        ...input.labels,
         description: text.content,
         plainText: text.plainText,
         authorId,
-        category: "general feedback",
         revision: "1",
-        moderationState: "disabled",
+        moderationState: input.coverage.state,
       })
       .returningAll()
-      .executeTakeFirstOrThrow();
-    await replaceImageRefs(trx, { postId: row.id }, text.imageIds);
-    return row;
-  });
+      .executeTakeFirstOrThrow(),
+  );
 }

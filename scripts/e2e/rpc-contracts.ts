@@ -94,6 +94,7 @@ export async function rpcContracts(actor: Actor) {
   const post = await createFeedbackPostQuery({
     description: "RPC post",
     authorId: actor.userId,
+    sessionId: actor.sessionId,
   });
   const edit = {
     postId: post.id,
@@ -124,6 +125,7 @@ export async function rpcContracts(actor: Actor) {
   const comment = await createCommentQuery({
     postId: post.id,
     authorId: actor.userId,
+    sessionId: actor.sessionId,
     parentCommentId: null,
     content: "RPC comment",
   });
@@ -266,7 +268,11 @@ export async function rpcContracts(actor: Actor) {
     anonymous,
   );
   await assert.rejects(
-    createFeedbackPostQuery({ description: '<img src="x">', authorId: null }),
+    createFeedbackPostQuery({
+      description: '<img src="x">',
+      authorId: null,
+      sessionId: null,
+    }),
     /Content is empty/,
   );
 

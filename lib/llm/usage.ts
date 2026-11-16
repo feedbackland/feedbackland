@@ -9,9 +9,10 @@ import { log } from "../log";
 import type { Actor } from "../auth/authorization";
 import {
   consumeAiBudget,
+  attemptAiBudget,
   consumeRateLimitWindow,
 } from "../../queries/check-rate-limit";
-import { AiError, healthReason } from "./errors";
+import { AiError, DailyBudgetError, healthReason } from "./errors";
 import {
   issueSequence,
   observeHealth,
@@ -251,15 +252,24 @@ export async function beginAttempt(
           capability,
           feature === "check" || feature === "probe",
         );
-        let day = reservation
-          ? await spendReservation(trx, config, reservation)
-          : await consumeAiBudget(dailyShare(config, feature), 1, trx);
         let diagnostic = false;
-        if (!day && action?.intent === "test-again") {
-          day = await consumeAiBudget(40, 1, trx, true);
-          diagnostic = !!day;
+        let day: string;
+        if (reservation) {
+          day = await spendReservation(trx, config, reservation);
+        } else {
+          let budget = await attemptAiBudget(
+            dailyShare(config, feature),
+            1,
+            trx,
+          );
+          if (!budget?.allowed && action?.intent === "test-again") {
+            budget = await attemptAiBudget(40, 1, trx, true);
+            diagnostic = true;
+          }
+          if (!budget) throw new AiError("AI_PAUSED");
+          if (!budget.allowed) throw new DailyBudgetError(budget);
+          day = budget.day;
         }
-        if (!day) throw new AiError("AI_PAUSED");
         // If the worker dies after dispatch, retain an explicitly uncosted call.
         await trx
           .insertInto("llm_usage")

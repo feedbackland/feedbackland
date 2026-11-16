@@ -43,6 +43,24 @@ export class AiError extends Error {
     super(reason);
   }
 }
+export class DailyBudgetError extends AiError {
+  readonly resetsAt: string;
+  readonly retryAfterSeconds: number;
+  constructor(window: { day: string; now: Date }) {
+    super("AI_PAUSED");
+    const reset = Date.parse(window.day + "T00:00:00Z") + 86400_000;
+    this.resetsAt = new Date(reset).toISOString();
+    this.retryAfterSeconds = Math.max(
+      1,
+      Math.ceil((reset - window.now.getTime()) / 1000),
+    );
+  }
+}
+export class UnavailableCapability extends AiError {
+  constructor(readonly lastReason: string | null) {
+    super("AI_UNAVAILABLE");
+  }
+}
 export function safeError(error: unknown, signal?: AbortSignal): AiError {
   if (error instanceof AiError) return error;
   if (error instanceof DomainError && error.code === "FORBIDDEN")

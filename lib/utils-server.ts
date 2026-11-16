@@ -17,7 +17,12 @@ export class ContentInputError extends DomainError {
     super("BAD_REQUEST", message);
   }
 }
+export function validateDatabaseText(text: string) {
+  if (text.includes("\u0000") || !text.isWellFormed())
+    throw new ContentInputError("INVALID_CONTENT_INPUT");
+}
 export function plainTextContent(text: string) {
+  validateDatabaseText(text);
   if (text.length > MAX_FEEDBACK_TEXT_LENGTH)
     throw new ContentInputError("Feedback exceeds the text length limit");
   if (!text.trim()) throw new ContentInputError("Content is empty");
@@ -88,6 +93,7 @@ export function textContent(
   maxBytes = 48_000,
   maxTextLength = Infinity,
 ) {
+  validateDatabaseText(html);
   if (
     Buffer.byteLength(html, "utf8") > maxBytes ||
     /<\s*(svg|video|audio|iframe|object)\b/i.test(html)

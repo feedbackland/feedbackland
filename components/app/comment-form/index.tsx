@@ -1,4 +1,5 @@
 "use client";
+import { contentMessage } from "@/lib/content-message";
 
 import { encode } from "he";
 import { Button } from "@/components/ui/button";
@@ -103,9 +104,7 @@ export function CommentForm({
       },
       onError: (error) => {
         setErrormessage(
-          error.data?.code === "BAD_REQUEST"
-            ? error.message
-            : "Something went wrong. Please try again.",
+          contentMessage(error, "Could not save the changes. Try again."),
         );
       },
     }),
@@ -122,7 +121,7 @@ export function CommentForm({
       return;
     }
 
-    if (hasPendingUpload(value)) return;
+    if (saveComment.isPending || hasPendingUpload(value)) return;
     const content = value;
 
     saveComment.mutate({
@@ -160,7 +159,11 @@ export function CommentForm({
         }}
       />
       <div ref={elementRef} className={cn("flex flex-col gap-2", className)}>
-        <div className="relative flex items-start gap-2">
+        <div
+          inert={saveComment.isPending}
+          aria-busy={saveComment.isPending}
+          className="relative flex items-start gap-2"
+        >
           {showCloseButton && (
             <Button
               type="submit"
@@ -175,6 +178,7 @@ export function CommentForm({
           )}
 
           <Tiptap
+            disabled={saveComment.isPending}
             placeholder={`Add a comment...`}
             value={value}
             onChange={onChange}

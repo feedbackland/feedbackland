@@ -12,6 +12,7 @@ export async function revisions(actor: Actor) {
   const post = await createFeedbackPostQuery({
     description: "First sentence. Second sentence!",
     authorId: actor.userId,
+    sessionId: actor.sessionId,
   });
   assert.equal(post.title, "First sentence.");
   assert.equal(post.revision, "1");
@@ -38,7 +39,7 @@ export async function revisions(actor: Actor) {
         (result) => result.status === "rejected",
       ) as PromiseRejectedResult
     ).reason.message,
-    "CONFLICT",
+    "CONTENT_CHANGED",
   );
   const vector = JSON.stringify(
     Array.from({ length: vectorMetadata().dimensions }, (_, i) =>
@@ -92,6 +93,7 @@ export async function revisions(actor: Actor) {
   );
   const comment = await createCommentQuery({
     authorId: actor.userId,
+    sessionId: actor.sessionId,
     postId: post.id,
     parentCommentId: null,
     content: "Before",

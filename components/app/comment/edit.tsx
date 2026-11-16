@@ -1,4 +1,5 @@
 "use client";
+import { contentMessage } from "@/lib/content-message";
 
 import { hasPendingUpload } from "@/components/ui/minimal-tiptap/upload";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export function CommentEdit({
     "idle" | "pending" | "success" | "error"
   >("idle");
 
+  const [draftRevision] = useState(expectedRevision);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -86,7 +88,7 @@ export function CommentEdit({
 
     updateComment.mutate({
       commentId,
-      expectedRevision,
+      expectedRevision: draftRevision,
       content,
     });
   };
@@ -94,6 +96,8 @@ export function CommentEdit({
   return (
     <Form {...form}>
       <form
+        inert={updateComment.isPending}
+        aria-busy={updateComment.isPending}
         onSubmit={handleSubmit(onSubmit)}
         className={cn("w-full space-y-4", className)}
       >
@@ -106,6 +110,7 @@ export function CommentEdit({
               <FormItem>
                 <FormControl>
                   <Tiptap
+                    disabled={updateComment.isPending}
                     value={field?.value || null}
                     onChange={(value) => field.onChange(value)}
                   />
@@ -129,7 +134,7 @@ export function CommentEdit({
             Save
           </Button>
 
-          <Button onClick={onClose} variant="outline" size="sm">
+          <Button type="button" onClick={onClose} variant="outline" size="sm">
             Cancel
           </Button>
         </div>
@@ -137,11 +142,10 @@ export function CommentEdit({
         {formState === "error" && (
           <Error
             title="Could not save changes"
-            description={
-              updateComment.error?.data?.code === "BAD_REQUEST"
-                ? updateComment.error?.message
-                : "Could not save the changes. Try again."
-            }
+            description={contentMessage(
+              updateComment.error,
+              "Could not save the changes. Try again.",
+            )}
           />
         )}
       </form>
