@@ -91,6 +91,7 @@ export function FeedbackPostFull({
       <div>
         {isEditing ? (
           <FeedbackPostEdit
+            key={postId}
             expectedRevision={revision}
             postId={postId}
             title={title}

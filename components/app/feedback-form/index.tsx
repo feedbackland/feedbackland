@@ -4,7 +4,7 @@ import { contentMessage } from "@/lib/content-message";
 import { applyDraftText, draftText } from "./draft";
 import { useAuth } from "@/hooks/use-auth";
 import { SignUpInDialog } from "@/components/app/sign-up-in/dialog";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/providers/trpc-client";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ export function FeedbackForm() {
   const { capabilities } = useSettings();
   const [signInOpen, setSignInOpen] = useState(false);
   const [description, setDescription] = useState("");
+  const [rewriteSource, setRewriteSource] = useState<string | null>(null);
+  const rewriteGeneration = useRef(0);
   const validation = useMemo(() => draftError(description), [description]);
   const canSubmit = !validation && !hasPendingUpload(description);
   const rewriteText = useMemo(
@@ -52,8 +54,11 @@ export function FeedbackForm() {
     cache = useQueryClient();
   const mutation = useMutation(
     trpc.createFeedbackPost.mutationOptions({
-      onSuccess() {
-        setDescription("");
+      onSuccess(_row, submitted) {
+        setDescription((current) =>
+          current === submitted.description ? "" : current,
+        );
+        setRewriteSource(null);
         void cache.invalidateQueries({
           queryKey: trpc.getFeedbackPosts.queryKey().slice(0, 1),
         });
@@ -61,11 +66,21 @@ export function FeedbackForm() {
     }),
   );
   const rewrite = useMutation(trpc.rewriteFeedback.mutationOptions());
+  const { reset: resetRewrite } = rewrite;
+  useEffect(() => {
+    if (!capabilities.chat) {
+      rewriteGeneration.current++;
+      resetRewrite();
+    }
+  }, [capabilities.chat, resetRewrite]);
   const improve = async () => {
     const original = description;
     if (!canRewrite || rewrite.isPending || mutation.isPending) return;
+    setRewriteSource(original);
+    const generation = rewriteGeneration.current;
     try {
       const result = await rewrite.mutateAsync({ description: rewriteText });
+      if (generation !== rewriteGeneration.current) return;
       setDescription((current) =>
         current === original
           ? applyDraftText(original, result.description)
@@ -92,7 +107,10 @@ export function FeedbackForm() {
           ariaLabel="Your feedback"
           placeholder="Share your feedback…"
           value={description}
-          onChange={setDescription}
+          onChange={(value) => {
+            if (value !== description) setRewriteSource(null);
+            setDescription(value);
+          }}
         />
         <p className="text-muted-foreground text-xs">
           {session
@@ -120,14 +138,16 @@ export function FeedbackForm() {
             {rewrite.isPending ? "Improving draft…" : "Improve my draft"}
           </Button>
         )}
-        {rewrite.isError && (
-          <p role="alert">
-            {contentMessage(
-              rewrite.error,
-              "Could not improve this draft. Please try again.",
-            )}
-          </p>
-        )}
+        {capabilities.chat &&
+          rewrite.isError &&
+          rewriteSource === description && (
+            <p role="alert">
+              {contentMessage(
+                rewrite.error,
+                "Could not improve this draft. Please try again.",
+              )}
+            </p>
+          )}
         {isLoaded && !session && (
           <Button
             type="button"

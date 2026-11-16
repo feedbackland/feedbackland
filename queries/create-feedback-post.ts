@@ -1,6 +1,5 @@
 import "server-only";
 import { plainTextContent, feedbackPostHtmlContent } from "@/lib/utils-server";
-import { labelFeedback } from "@/lib/llm/content";
 import { prepareContent, commitContent } from "./content-write";
 
 export async function createFeedbackPostQuery({
@@ -27,12 +26,11 @@ export async function createFeedbackPostQuery({
     imageIds: text.imageIds,
     signal,
   });
-  const labels = await labelFeedback(text.plainText, input.coverage, signal);
   return commitContent(input, "post", (trx) =>
     trx
       .insertInto("feedback")
       .values({
-        ...labels,
+        ...input.labels,
         description: text.content,
         plainText: text.plainText,
         authorId,

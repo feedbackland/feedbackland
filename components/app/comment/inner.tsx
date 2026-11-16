@@ -89,6 +89,7 @@ export function CommentInner({
             </>
           ) : (
             <CommentEdit
+              key={id}
               expectedRevision={revision}
               postId={postId}
               commentId={id}

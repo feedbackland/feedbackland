@@ -1,7 +1,10 @@
 import "server-only";
 import { sql } from "kysely";
 import type { Actor } from "@/lib/auth/authorization";
-import { feedbackPostHtmlContent } from "@/lib/utils-server";
+import {
+  feedbackPostHtmlContent,
+  validateDatabaseText,
+} from "@/lib/utils-server";
 import { prepareContent, commitContent } from "./content-write";
 export async function updateFeedbackPostQuery(
   input: Actor & {
@@ -12,6 +15,7 @@ export async function updateFeedbackPostQuery(
     signal?: AbortSignal;
   },
 ) {
+  validateDatabaseText(input.title);
   const text = feedbackPostHtmlContent(input.description);
   const write = await prepareContent({
     actor: input,

@@ -18,6 +18,7 @@ import { updateFeedbackPostQuery } from "../../queries/update-feedback-post";
 import { updateCommentQuery } from "../../queries/update-comment";
 import { getActivityFeedQuery } from "../../queries/get-activity-feed";
 import { getModerationCoverageQuery } from "../../queries/get-moderation-coverage";
+import { contentRegressions } from "./content-regressions";
 import { seedUser } from "./v19-auth-invariants";
 import { eventually } from "./run";
 import {
@@ -34,6 +35,7 @@ type Mock = Awaited<ReturnType<typeof mockOpenRouter>>;
 const allowed = JSON.stringify({
   isInappropriate: false,
   confidenceScore: 0.99,
+  titleApproved: true,
 });
 const labels = { title: "Clear fixture title", category: "idea" };
 const success: Handler = ({ response, body }) => {
@@ -290,7 +292,8 @@ export async function contentContracts(mock: Mock, admin: Actor) {
       );
     eventPost = await edit(eventPost.revision);
     eventComment = await editComment(eventComment.revision);
-    assert.equal(mock.requests - count, 4);
+    // One optional title proposal plus moderation for each of the four writes.
+    assert.equal(mock.requests - count, 5);
     for (const row of [created, reply, eventPost, eventComment]) {
       assert.equal(row.moderationState, "unscreened");
       const event = await db
@@ -582,7 +585,9 @@ export async function contentContracts(mock: Mock, admin: Actor) {
   const paused = await submit("Over limit");
   assert.equal(paused.status, 429);
   assert(Number(paused.headers.get("retry-after")) > 0);
-  assert.deepEqual(await paused.json(), { error: "DAILY_LIMIT" });
+  const resume = await paused.json();
+  assert.equal(resume.code, "DAILY_LIMIT");
+  assert.match(resume.resetsAt, /T00:00:00\.000Z$/);
   const signed = await post("Signed in after limit", owner);
   assert.equal(signed.moderationState, "unscreened");
   assert.equal(
@@ -632,8 +637,10 @@ export async function contentContracts(mock: Mock, admin: Actor) {
       db,
     );
   }
+  const regressions = await contentRegressions(mock, admin, owner);
   mock.reset();
   return {
+    regressions,
     requests: mock.requests - before,
     coverage: "four write paths",
     races: "authority, revision, configuration and cancellation",

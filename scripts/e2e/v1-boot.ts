@@ -274,7 +274,12 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         );
         assert.deepEqual(
           rows.map((row) => row.name),
-          ["0001_init", "0002_password_recovery", "0003_ai_dispatch"],
+          [
+            "0001_init",
+            "0002_password_recovery",
+            "0003_ai_dispatch",
+            "0004_moderation_coverage",
+          ],
         );
         assert.equal(
           (

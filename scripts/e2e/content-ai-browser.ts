@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
+import { editorRegressions } from "./content-editor-regressions";
 import { samples } from "./image-fixtures";
 import { submitSetup } from "./setup-browser";
 import { eventually, toolEnvironment } from "./run";
@@ -9,7 +10,8 @@ export async function contentBrowser(base: string, setupCode: string) {
     env: toolEnvironment() as Record<string, string>,
   });
   try {
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
     await submitSetup(page, base, setupCode);
     const submit = (description: string) =>
       fetch(base + "/api/feedback/create", {
@@ -105,7 +107,8 @@ export async function contentBrowser(base: string, setupCode: string) {
     }
     await improve.waitFor();
     assert.equal(await editor.innerText(), "Drawer edit made while waiting.");
-    return "Public submit, refusal, outage, Activity and System, board attachments and concurrent drawer edit passed";
+    await editorRegressions(page, base);
+    return "Editor revision, pending submissions and keyless transitions, public submit, refusal, outage, Activity and System, board attachments and concurrent drawer edit passed";
   } finally {
     await browser.close();
   }

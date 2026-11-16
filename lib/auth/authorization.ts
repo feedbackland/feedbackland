@@ -8,7 +8,7 @@ export type Actor = { userId: string; sessionId?: string | null };
 // the membership lock when a mutation depends on administrative authority.
 async function actorRow(trx: Kysely<DB>, actor: Actor, hold = false) {
   if (!actor.sessionId) return undefined;
-  let query = trx
+  const query = trx
     .selectFrom("auth_session")
     .innerJoin("user", "user.id", "auth_session.userId")
     .where("auth_session.id", "=", actor.sessionId)
@@ -22,11 +22,21 @@ async function actorRow(trx: Kysely<DB>, actor: Actor, hold = false) {
       "user.role",
       sql<Date>`clock_timestamp()`.as("now"),
     ]);
-  if (hold) query = query.forShare(["auth_session", "user"]);
-  return query.executeTakeFirst();
+  if (!hold) return query.executeTakeFirst();
+  const row = await query.forShare(["auth_session", "user"]).executeTakeFirst();
+  if (!row) return undefined;
+  // Volatile select expressions can run before PostgreSQL obtains the row lock.
+  const { rows } = await sql<{
+    now: Date;
+  }>`select clock_timestamp() as now`.execute(trx);
+  return { ...row, now: rows[0].now };
 }
-export async function canAdminister(trx: Kysely<DB>, actor: Actor) {
-  const row = await actorRow(trx, actor);
+export async function canAdminister(
+  trx: Kysely<DB>,
+  actor: Actor,
+  hold = false,
+) {
+  const row = await actorRow(trx, actor, hold);
   return (
     !!row &&
     canAdministerSession(
@@ -48,8 +58,12 @@ export async function authorizeContentWrite(
     row.now.getTime(),
   );
 }
-export async function requireAdmin(trx: Kysely<DB>, actor: Actor) {
-  if (!(await canAdminister(trx, actor)))
+export async function requireAdmin(
+  trx: Kysely<DB>,
+  actor: Actor,
+  hold = false,
+) {
+  if (!(await canAdminister(trx, actor, hold)))
     throw new DomainError(
       "FORBIDDEN",
       "Sign in again with a first-party administrator session",

@@ -1,6 +1,6 @@
 import "server-only";
 import type { Kysely, Transaction } from "kysely";
-import { db } from "../db/db";
+import { contentTransaction } from "../db/content-transaction";
 import type { DB } from "../db/schema";
 import { lock, locks } from "../db/locks";
 import { authorizeContentWrite, type Actor } from "../lib/auth/authorization";
@@ -38,7 +38,7 @@ async function verify(
 ) {
   const admin =
     actor && (await authorizeContentWrite(connection, actor, final));
-  if (target.kind === "new-post") return;
+  if (target.kind === "new-post") return false;
   if (target.kind === "reply") {
     let post = connection
       .selectFrom("feedback")
@@ -52,7 +52,7 @@ async function verify(
       target.postId,
       target.parentCommentId,
     );
-    return;
+    return false;
   }
   const expected = revision(target.expectedRevision);
   let owner = connection
@@ -66,16 +66,23 @@ async function verify(
     throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
   if (row.revision !== expected)
     throw new DomainError("CONFLICT", "CONTENT_CHANGED");
+  return row.authorId !== actor.userId;
 }
 export async function prepareContent(input: Write) {
   checkContentRequest(input.signal);
-  await verify(db, input, false);
-  const images = await validateImages(db, input.imageIds);
+  const images =
+    !input.actor && input.target.kind === "new-post" && !input.imageIds.length
+      ? []
+      : await contentTransaction(input.signal, async (trx) => {
+          await verify(trx, input, false);
+          return validateImages(trx, input.imageIds);
+        });
   const moderation = await screenContent(
     input.text,
     images,
     input.actor !== null,
     input.signal,
+    input.target.kind === "new-post",
   );
   return { ...input, ...moderation };
 }
@@ -84,17 +91,24 @@ export async function commitContent<T extends { id: string; revision: string }>(
   ownerKind: "post" | "comment",
   write: (trx: Transaction<DB>) => Promise<T>,
 ) {
-  return db.transaction().execute(async (trx) => {
+  return contentTransaction(input.signal, async (trx) => {
     if (input.actor) await lock(trx, locks.membership);
     await lock(trx, locks.images);
     await lockContentConfiguration(trx, input.config);
-    await verify(trx, input, true);
+    const requiresAdmin = await verify(trx, input, true);
     checkContentRequest(input.signal);
     const row = await write(trx);
     const owner =
       ownerKind === "post" ? { postId: row.id } : { commentId: row.id };
     await replaceImageRefs(trx, owner, input.imageIds);
     await recordCoverage(trx, owner, row.revision, input.coverage);
+    // The membership and session rows remain locked. Time can still advance
+    // during owner, reference or event writes. Roll them all back on expiry.
+    if (input.actor) {
+      const admin = await authorizeContentWrite(trx, input.actor);
+      if (requiresAdmin && !admin)
+        throw new DomainError("FORBIDDEN", "UNAUTHORIZED");
+    }
     checkContentRequest(input.signal);
     return row;
   });

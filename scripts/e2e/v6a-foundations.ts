@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 import { command, eventually } from "./run";
 import { firstKey } from "../mock-llm";
+import { productionVision } from "./content-vision-http";
 import { contentBrowser } from "./content-ai-browser";
 
 const pgImage =
@@ -55,6 +56,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
     // optional AI configuration is invalid, even without a provider key.
     for (const setting of [
       "OPENROUTER_PRIVACY=typo",
+      undefined, // establish the identity of a healthy keyless board before restarting
       "AI_TIMEOUT_MS=invalid",
     ]) {
       try {
@@ -63,6 +65,10 @@ export async function aiFoundations(runId: string, productionImage: string) {
           "-d",
           "--name",
           worker,
+          "--mount",
+          "type=bind,src=" +
+            resolve("scripts/e2e/keyless-content-http.mjs") +
+            ",dst=/tmp/keyless-content-http.mjs,readonly",
           "--network",
           project,
           "-e",
@@ -71,8 +77,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
             "@database:5432/board_boot",
           "-e",
           "APP_URL=http://localhost:3000",
-          "-e",
-          setting,
+          ...(setting ? ["-e", setting] : []),
           productionImage,
         );
         await eventually(
@@ -86,11 +91,57 @@ export async function aiFoundations(runId: string, productionImage: string) {
             ),
           (status) => status === "200,200,200",
         );
-        assert(
-          (await docker("logs", worker)).includes(
-            '"stage":"invalid-configuration"',
-          ),
+        const bootSql = (statement: string) =>
+          docker(
+            "exec",
+            pg,
+            "psql",
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-U",
+            "postgres",
+            "-d",
+            "board_boot",
+            "-Atqc",
+            statement,
+          );
+        await bootSql(
+          'update settings set "setupCompletedAt"=clock_timestamp() where id=1',
         );
+        try {
+          await docker("exec", worker, "node", "/tmp/keyless-content-http.mjs");
+          assert.equal(
+            (
+              await bootSql(
+                `select count(*) from feedback where "moderationState" <> 'disabled'`,
+              )
+            ).trim(),
+            "0",
+          );
+          assert.equal(
+            (await bootSql("select count(*) from moderation_event")).trim(),
+            "0",
+          );
+        } finally {
+          await bootSql(
+            'update settings set "setupCompletedAt"=null where id=1',
+          );
+        }
+        if (setting)
+          assert(
+            (await docker("logs", worker)).includes(
+              '"stage":"invalid-configuration"',
+            ),
+          );
+        else
+          assert.equal(
+            (
+              await bootSql(
+                'select ("effectiveConfigToken" is not null) from ai_settings where id=1',
+              )
+            ).trim(),
+            "t",
+          );
       } finally {
         await docker("rm", "-f", worker).catch(() => {});
       }
@@ -223,6 +274,12 @@ export async function aiFoundations(runId: string, productionImage: string) {
       "-d",
       "--name",
       web,
+      "--memory",
+      "512m",
+      "--memory-swap",
+      "512m",
+      "-e",
+      "AI_TIMEOUT_MS=30000",
       "--network",
       project,
       "--network-alias",
@@ -256,7 +313,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
       image,
       "node",
       "-e",
-      "const net=require('node:net');net.createServer(client=>{const board=net.connect(3000,'board');board.on('error',()=>client.destroy());client.on('error',()=>board.destroy());client.pipe(board).pipe(client)}).listen(3000)",
+      "const net=require('node:net');net.createServer(client=>{const board=net.connect(3000,'board');board.on('error',()=>client.destroy());client.on('error',()=>board.destroy());client.on('close',()=>board.destroy());board.on('close',()=>client.destroy());client.pipe(board).pipe(client)}).listen(3000)",
     );
     await docker("network", "connect", project, relay);
     const port = (await docker("port", relay, "3000/tcp")).match(
@@ -269,6 +326,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
       (s) => s === 200,
     );
     const browserResult = await contentBrowser(base, setup);
+    const vision = await productionVision(base, project, docker);
     const logs = await docker("logs", web);
     assert(
       !logs.includes("P07_PRIVATE_") &&
@@ -278,6 +336,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     return {
       browser: browserResult,
+      productionVision: vision,
       ...JSON.parse(summary.slice("P07_OUTCOME=".length)),
       invalidAiEnvironmentBoot: "privacy and timeout passed",
     };

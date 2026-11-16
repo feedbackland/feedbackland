@@ -1,6 +1,6 @@
 import "server-only";
 import { sql } from "kysely";
-import { db } from "../../db/db";
+import { contentTransaction } from "../../db/content-transaction";
 import {
   configuration,
   failingCapability,
@@ -8,21 +8,19 @@ import {
 } from "./settings-store";
 import { dailyShare } from "./usage";
 
-export async function hasBudget(
+export async function contentBudget(
   config: Configuration,
   feature: "moderation" | "rewrite",
   signal?: AbortSignal,
 ) {
-  const row = await db
-    .selectFrom("rate_limit")
-    .select("count")
-    .where(
-      "key",
-      "=",
-      sql<string>`'ai:instance:day:' || to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD')`,
-    )
-    .executeTakeFirst({ signal });
-  return (row?.count ?? 0) < dailyShare(config, feature);
+  const result = await contentTransaction(signal, (trx) =>
+    sql<{ now: Date; day: string; allowed: boolean }>`
+    with instant as (select clock_timestamp() as at),
+      today as (select at, to_char(at at time zone 'UTC','YYYY-MM-DD') as day from instant)
+    select at as now, day, coalesce(r.count,0) < ${dailyShare(config, feature)} as allowed from today
+    left join rate_limit r on r.key = 'ai:instance:day:' || day`.execute(trx),
+  );
+  return result.rows[0];
 }
 export async function canImproveDraft() {
   try {
@@ -39,7 +37,7 @@ export async function canImproveDraft() {
     )
       return false;
     return (
-      (await hasBudget(config, "rewrite", signal)) &&
+      (await contentBudget(config, "rewrite", signal)).allowed &&
       !(await failingCapability(config, "chat", signal))
     );
   } catch {

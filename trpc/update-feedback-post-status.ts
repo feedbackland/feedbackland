@@ -5,26 +5,7 @@ import { updateFeedbackPostStatusQuery } from "@/queries/update-feedback-post-st
 import { feedbackStatusSchema } from "@/lib/schemas";
 
 export const updateFeedbackPostStatus = adminProcedure
-  .input(
-    z.object({
-      postId: z.uuid(),
-      status: feedbackStatusSchema,
-    }),
-  )
-  .mutation(
-    async ({ input: { postId, status }, ctx: { userId, sessionId } }) => {
-      try {
-        const updatedPost = await updateFeedbackPostStatusQuery({
-          postId,
-          userId,
-
-          sessionId,
-          status,
-        });
-
-        return updatedPost;
-      } catch (error) {
-        throw error;
-      }
-    },
+  .input(z.object({ postId: z.uuid(), status: feedbackStatusSchema }))
+  .mutation(({ input, ctx: { userId, sessionId, signal } }) =>
+    updateFeedbackPostStatusQuery({ ...input, userId, sessionId, signal }),
   );

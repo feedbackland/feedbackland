@@ -8,6 +8,7 @@ type DomainErrorCode =
   | "NOT_FOUND"
   | "TOO_MANY_REQUESTS"
   | "PRECONDITION_FAILED"
+  | "SERVICE_UNAVAILABLE"
   | "CLIENT_CLOSED_REQUEST";
 
 const statusByCode: Record<DomainErrorCode, number> = {
@@ -19,6 +20,7 @@ const statusByCode: Record<DomainErrorCode, number> = {
   PRECONDITION_FAILED: 412,
   TOO_MANY_REQUESTS: 429,
   CLIENT_CLOSED_REQUEST: 499,
+  SERVICE_UNAVAILABLE: 503,
 };
 
 export class DomainError extends Error {
@@ -30,6 +32,7 @@ export class DomainError extends Error {
     public readonly code: DomainErrorCode,
     message: string,
     public readonly retryAfterSeconds?: number,
+    public readonly resetsAt?: string,
   ) {
     super(message);
     this.name = "DomainError";

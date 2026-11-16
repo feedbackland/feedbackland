@@ -10,10 +10,18 @@ export class ConfigurationError extends Error {}
 
 function readAiEnvironment() {
   try {
-    return parseAiEnvironment();
+    return {
+      ...parseAiEnvironment(),
+      keySupplied: !!value("OPENROUTER_API_KEY"),
+    };
   } catch (error) {
     if (!(error instanceof ConfigurationError)) throw error;
-    return { valid: false, options: {}, apiKey: undefined };
+    return {
+      valid: false,
+      options: {},
+      apiKey: undefined,
+      keySupplied: !!value("OPENROUTER_API_KEY"),
+    };
   }
 }
 function parseAiEnvironment() {

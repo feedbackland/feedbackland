@@ -15,6 +15,7 @@ import type { Capability } from "./constants";
 import type { DB, AiSettings } from "../../db/schema";
 import { sql } from "kysely";
 import { db } from "../../db/db";
+import { contentTransaction } from "../../db/content-transaction";
 import { consumeRateLimitWindow } from "../../queries/check-rate-limit";
 import { deadline, withinTransaction, type Deadline } from "./deadline";
 export async function ensureAiSettingsRow(trx: Kysely<DB>) {
@@ -86,20 +87,33 @@ function resolve(row: Row, secret: string) {
     valid &&
     row.enabled !== false &&
     (!!llm.apiKey || (row.enabled === true && !!row.apiKey));
-  const token = digest(
-    JSON.stringify([
-      row.configGeneration,
-      row.revision,
-      valid,
-      row.enabled,
-      configured,
-      keyDigest,
-      row.indexEpoch,
-      explicitDimensions ? requestedDimensions : dimensions,
-      dimensions,
-      ...(Object.keys(defaults) as (keyof Options)[]).map((k) => options[k]),
-    ]),
-  );
+  const configToken = (validOptions: boolean) =>
+    digest(
+      JSON.stringify([
+        row.configGeneration,
+        row.revision,
+        validOptions,
+        row.enabled,
+        configured,
+        keyDigest,
+        row.indexEpoch,
+        explicitDimensions ? requestedDimensions : dimensions,
+        dimensions,
+        ...(Object.keys(defaults) as (keyof Options)[]).map((k) => options[k]),
+      ]),
+    );
+  const token = configToken(valid);
+  // An invalid optional setting can also follow a healthy, keyless boot.
+  // A peer with a real key has a different credential digest and identity.
+  const emptyCredentials =
+    !llm.keySupplied &&
+    !(row.enabled === true && (row.apiKey || row.apiKeyDigest));
+  const keyless =
+    row.enabled === false ||
+    (emptyCredentials &&
+      (!row.effectiveConfigToken ||
+        row.effectiveConfigToken === token ||
+        (!valid && row.effectiveConfigToken === configToken(true))));
   const checked = recordedCheck.safeParse(row.lastCheck);
   const check =
     checked.success && checked.data.configToken === token ? checked.data : null;
@@ -107,6 +121,7 @@ function resolve(row: Row, secret: string) {
     token,
     revision: row.revision,
     configured,
+    keyless,
     options,
     dimensions,
     valid,
@@ -229,7 +244,11 @@ export async function configuration(
     return state.aiConfig.value;
   const generation = state.aiConfigGeneration,
     started = performance.now();
-  const row = await currentRow(db).executeTakeFirst({ signal });
+  const row = signal
+    ? await contentTransaction(signal, (trx) =>
+        currentRow(trx).executeTakeFirst(),
+      )
+    : await currentRow(db).executeTakeFirst();
   if (!row) throw new AiError("AI_NOT_CONFIGURED");
   const value = resolve(row, getConfig().authSecret);
   if (generation === state.aiConfigGeneration)
@@ -661,27 +680,36 @@ export async function observeHealth(
     })
     .execute();
 }
+export async function capabilityFailure(
+  id: Identity,
+  capability: Capability,
+  signal?: AbortSignal,
+) {
+  const read = (connection: Kysely<DB>) =>
+    connection
+      .selectFrom("ai_health")
+      .select("lastReason")
+      .where("configToken", "=", id.token)
+      .where("capability", "=", capability)
+      .where(
+        "failingSince",
+        "<",
+        sql<Date>`clock_timestamp()-interval '15 minutes'`,
+      )
+      .where(
+        "lastFailureAt",
+        ">",
+        sql<Date>`clock_timestamp()-interval '10 minutes'`,
+      )
+      .executeTakeFirst();
+  return signal ? contentTransaction(signal, read) : read(db);
+}
 export async function failingCapability(
   id: Identity,
   capability: Capability,
   signal?: AbortSignal,
 ) {
-  return !!(await db
-    .selectFrom("ai_health")
-    .select("capability")
-    .where("configToken", "=", id.token)
-    .where("capability", "=", capability)
-    .where(
-      "failingSince",
-      "<",
-      sql<Date>`clock_timestamp()-interval '15 minutes'`,
-    )
-    .where(
-      "lastFailureAt",
-      ">",
-      sql<Date>`clock_timestamp()-interval '10 minutes'`,
-    )
-    .executeTakeFirst({ signal }));
+  return !!(await capabilityFailure(id, capability, signal));
 }
 
 export async function sweepHealth() {
