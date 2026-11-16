@@ -1,21 +1,21 @@
 import "server-only";
-import { sql, type Selectable, type Transaction } from "kysely";
+import { sql, type Transaction } from "kysely";
 import { z } from "zod/v4";
 import { db } from "../../db/db";
 import { contentTransaction } from "../../db/content-transaction";
-import { physicalVector } from "../../db/vector";
 import { locks, lock } from "../../db/locks";
-import type { DB, AiSettings } from "../../db/schema";
+import type { DB } from "../../db/schema";
 import { validCosineVector } from "../vector-values";
 import { getConfig } from "../config";
 import { DomainError } from "../domain-error";
 import { requireAdmin, type Actor } from "../auth/authorization";
-import { runtimeState, type VectorMetadata } from "../runtime-state";
+import { runtimeState } from "../runtime-state";
 import { requireLease, type Lease } from "../jobs/leases";
 import {
-  configurationForRow,
+  advanceIndexGeneration,
+  lockedIndexSettings,
+  matchesIndexGeneration,
   invalidateConfiguration,
-  replaceIndexToken,
 } from "./settings-store";
 import { supportsEmbeddingModel } from "./model-profiles";
 import { AiError } from "./errors";
@@ -25,21 +25,19 @@ const fingerprintSchema = z.object({
   dimensions: z.number().int().min(1).max(4000),
   generation: z.string().regex(/^[1-9][0-9]*$/),
 });
-export type Fingerprint = z.infer<typeof fingerprintSchema>;
 export type IndexRow = {
   kind: "post" | "comment";
   id: string;
   revision: string;
   text: string;
 };
-type Settings = Selectable<AiSettings>;
-function describe(row: Settings, physical: VectorMetadata | null) {
-  const config = configurationForRow(
-    row,
-    getConfig().authSecret,
-    physical?.dimensions,
-  );
-  const fingerprint = fingerprintSchema.safeParse(row.indexFingerprint).data;
+function describe({
+  config,
+  epoch,
+  storedFingerprint,
+  physical,
+}: Awaited<ReturnType<typeof lockedIndexSettings>>) {
+  const fingerprint = fingerprintSchema.safeParse(storedFingerprint).data;
   let reason: string | null = null;
   if (
     !config.valid ||
@@ -54,13 +52,13 @@ function describe(row: Settings, physical: VectorMetadata | null) {
     reason = "UNSUPPORTED_EMBEDDING_TOKENIZER";
   else if (
     config.widthMismatch ||
-    (row.indexFingerprint &&
+    (storedFingerprint &&
       (!fingerprint ||
         fingerprint.model !== config.options.embeddingModel ||
         fingerprint.dimensions !== physical.dimensions))
   )
     reason = "rebuild-required";
-  return { config, epoch: row.indexEpoch, fingerprint, physical, reason };
+  return { config, epoch, fingerprint, physical, reason };
 }
 export type IndexSnapshot = ReturnType<typeof describe>;
 function publish(snapshot: IndexSnapshot) {
@@ -79,36 +77,17 @@ function publish(snapshot: IndexSnapshot) {
 }
 async function readIndex(create: boolean, signal?: AbortSignal) {
   return contentTransaction(signal, async (trx) => {
-    const query = trx.selectFrom("ai_settings").selectAll().where("id", "=", 1);
-    const row = await (
-      create ? query.forUpdate() : query.forShare()
-    ).executeTakeFirstOrThrow();
-    const physical = await physicalVector(trx);
-    const snapshot = describe(row, physical);
-    if (!create || snapshot.reason || row.indexFingerprint || !physical)
+    const settings = await lockedIndexSettings(trx, create);
+    const { physical } = settings;
+    const snapshot = describe(settings);
+    if (!create || snapshot.reason || settings.storedFingerprint || !physical)
       return snapshot;
     const fingerprint = {
       model: snapshot.config.options.embeddingModel,
       dimensions: physical.dimensions,
       generation: "1",
     };
-    const updated = await trx
-      .updateTable("ai_settings")
-      .set({ indexEpoch: sql`"indexEpoch"+1`, indexFingerprint: fingerprint })
-      .where("id", "=", 1)
-      .returningAll()
-      .executeTakeFirstOrThrow();
-    const identity = await replaceIndexToken(
-      trx,
-      updated,
-      undefined,
-      getConfig().authSecret,
-      physical.dimensions,
-    );
-    return describe(
-      { ...updated, effectiveConfigToken: identity.token, lastCheck: null },
-      physical,
-    );
+    return describe(await advanceIndexGeneration(trx, fingerprint, physical));
   });
 }
 export async function indexSnapshot(initialize = false, signal?: AbortSignal) {
@@ -121,18 +100,13 @@ export async function indexSnapshot(initialize = false, signal?: AbortSignal) {
 export async function guardIndex(trx: Transaction<DB>, index: IndexSnapshot) {
   if (!index.fingerprint || !index.physical || index.reason)
     throw new AiError("STALE_CONFIGURATION");
-  const row = await trx
-    .selectFrom("ai_settings")
-    .select("id")
-    .where("id", "=", 1)
-    .where("effectiveConfigToken", "=", index.config.token)
-    .where("indexEpoch", "=", index.epoch)
-    .where(
-      sql<boolean>`"indexFingerprint"=${JSON.stringify(index.fingerprint)}::jsonb`,
-    )
-    .forShare()
-    .executeTakeFirst();
-  if (!row) throw new AiError("STALE_CONFIGURATION");
+  if (
+    !(await matchesIndexGeneration(trx, index.epoch, {
+      token: index.config.token,
+      fingerprint: index.fingerprint,
+    }))
+  )
+    throw new AiError("STALE_CONFIGURATION");
 }
 export async function writeVectors(
   index: IndexSnapshot,
@@ -203,21 +177,15 @@ export async function rebuildIndex(
     await sql`set local statement_timeout='120s'`.execute(trx);
     await lock(trx, locks.membership);
     await requireAdmin(trx, actor, true);
-    const row = await trx
-      .selectFrom("ai_settings")
-      .selectAll()
-      .where("id", "=", 1)
-      .forUpdate()
-      .executeTakeFirstOrThrow();
-    const physical = await physicalVector(trx),
-      before = describe(row, physical);
+    const before = describe(await lockedIndexSettings(trx, true));
+    const { physical } = before;
     if (!physical)
       throw new DomainError(
         "PRECONDITION_FAILED",
         "INDEX_COLUMNS_INCONSISTENT",
       );
     if (
-      expected.epoch !== row.indexEpoch ||
+      expected.epoch !== before.epoch ||
       expected.token !== before.config.token ||
       before.config.diverged
     )
@@ -260,24 +228,13 @@ export async function rebuildIndex(
         BigInt(before.fingerprint?.generation ?? "0") + 1n
       ).toString(),
     };
-    const next = await trx
-      .updateTable("ai_settings")
-      .set({ indexEpoch: sql`"indexEpoch"+1`, indexFingerprint: fingerprint })
-      .where("id", "=", 1)
-      .returningAll()
-      .executeTakeFirstOrThrow();
-    const identity = await replaceIndexToken(
-      trx,
-      next,
-      undefined,
-      env.authSecret,
-      n,
-    );
+    const updated = await advanceIndexGeneration(trx, fingerprint, {
+      ...physical,
+      kind,
+      dimensions: n,
+    });
     await requireAdmin(trx, actor);
-    return describe(
-      { ...next, effectiveConfigToken: identity.token, lastCheck: null },
-      { ...physical, kind, dimensions: n },
-    );
+    return describe(updated);
   });
   publish(snapshot);
   return { epoch: snapshot.epoch, dimensions: n };

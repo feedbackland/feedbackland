@@ -16,6 +16,7 @@ import {
 import { usableIndex, recordEmbeddingFailure } from "../llm/embeddings";
 import { callEmbeddings } from "../llm/client";
 import { deadline } from "../llm/deadline";
+import { matchesIndexGeneration } from "../llm/settings-store";
 import { enforceSearchEmbeddingLimit, enforceSearchLimit } from "../rate-limit";
 import { materialize, type SearchScope, type StoredResult } from "./candidates";
 
@@ -123,18 +124,11 @@ export async function searchPage(request: Request) {
       stored.userId !== scope.userId
     )
       throw restart();
-    if (stored.mode === "semantic") {
-      if (
-        !(await trx
-          .selectFrom("ai_settings")
-          .select("id")
-          .where("id", "=", 1)
-          .where("indexEpoch", "=", stored.epoch)
-          .forShare()
-          .executeTakeFirst())
-      )
-        throw restart();
-    }
+    if (
+      stored.mode === "semantic" &&
+      (!stored.epoch || !(await matchesIndexGeneration(trx, stored.epoch)))
+    )
+      throw restart();
     return page(stored, capability, ordinal, request.limit);
   }
   const initial = await contentTransaction(request.signal, existing);

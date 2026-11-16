@@ -3,7 +3,8 @@ import type { Kysely, Selectable, Transaction } from "kysely";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getConfig } from "../config";
-import { runtimeState } from "../runtime-state";
+import { runtimeState, type VectorMetadata } from "../runtime-state";
+import { physicalVector } from "../../db/vector";
 import { log } from "../log";
 import { DomainError } from "../domain-error";
 import { openSecret, sealSecret } from "../secret-box";
@@ -145,11 +146,7 @@ function resolve(row: Row, secret: string, physicalWidth?: number) {
   };
 }
 export type Configuration = ReturnType<typeof resolve>;
-export {
-  resolve as configurationForRow,
-  invalidate as invalidateConfiguration,
-  replaceToken as replaceIndexToken,
-};
+export { invalidate as invalidateConfiguration };
 const clearResults = {
   creditWaitUntil: null,
   creditWaitConfigToken: null,
@@ -157,6 +154,71 @@ const clearResults = {
 };
 const currentRow = (connection: Kysely<DB>) =>
   connection.selectFrom("ai_settings").where("id", "=", 1).selectAll();
+function indexFields(row: Row, physical: VectorMetadata | null) {
+  return {
+    config: resolve(row, getConfig().authSecret, physical?.dimensions),
+    epoch: row.indexEpoch,
+    storedFingerprint: row.indexFingerprint,
+    physical,
+  };
+}
+export async function lockedIndexSettings(
+  trx: Transaction<DB>,
+  exclusive: boolean,
+) {
+  // Serialize the catalog read with generation initialization and both-table rebuilds.
+  const query = currentRow(trx);
+  const row = await (
+    exclusive ? query.forUpdate() : query.forShare()
+  ).executeTakeFirstOrThrow();
+  return indexFields(row, await physicalVector(trx));
+}
+type IndexFingerprint = {
+  model: string;
+  dimensions: number;
+  generation: string;
+};
+export async function advanceIndexGeneration(
+  trx: Transaction<DB>,
+  fingerprint: IndexFingerprint,
+  physical: VectorMetadata,
+) {
+  const row = await trx
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .set({ indexEpoch: sql`"indexEpoch"+1`, indexFingerprint: fingerprint })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  const identity = await replaceToken(
+    trx,
+    row,
+    undefined,
+    getConfig().authSecret,
+    physical.dimensions,
+  );
+  return indexFields(
+    { ...row, effectiveConfigToken: identity.token, lastCheck: null },
+    physical,
+  );
+}
+export async function matchesIndexGeneration(
+  trx: Transaction<DB>,
+  epoch: string,
+  expected?: { token: string; fingerprint: IndexFingerprint },
+) {
+  let query = trx
+    .selectFrom("ai_settings")
+    .select("id")
+    .where("id", "=", 1)
+    .where("indexEpoch", "=", epoch);
+  if (expected)
+    query = query
+      .where("effectiveConfigToken", "=", expected.token)
+      .where(
+        sql<boolean>`"indexFingerprint"=${JSON.stringify(expected.fingerprint)}::jsonb`,
+      );
+  return !!(await query.forShare().executeTakeFirst());
+}
 // A published revision must reflect the configuration used to screen it,
 // including a keyless preflight on another replica.
 export async function lockContentConfiguration(
@@ -571,6 +633,30 @@ export async function saveCheck(identity: CheckTicket, result: Check) {
     .executeTakeFirst();
   invalidate();
   return updated.numUpdatedRows === 1n;
+}
+export function pendingCreditCheck(config: Identity, signal: AbortSignal) {
+  return contentTransaction(signal, (trx) =>
+    rowFence(trx, config)
+      .select("creditWaitUntil")
+      .where("enabled", "is", null)
+      .where("creditWaitConfigToken", "=", config.token)
+      .where("creditWaitUntil", ">", sql<Date>`clock_timestamp()`)
+      .executeTakeFirst(),
+  );
+}
+export function unhealthyCapabilities(config: Identity, signal: AbortSignal) {
+  return contentTransaction(signal, (trx) =>
+    trx
+      .selectFrom("ai_health")
+      .select("capability")
+      .where("configToken", "=", config.token)
+      .where(
+        "failingSince",
+        "<",
+        sql<Date>`clock_timestamp()-interval '15 minutes'`,
+      )
+      .execute(),
+  );
 }
 export async function beginCreditWait(identity: CheckTicket) {
   const config = await configuration();

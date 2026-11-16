@@ -1,6 +1,4 @@
 import "server-only";
-import { sql } from "kysely";
-import { db } from "../../db/db";
 import { runtimeState } from "../runtime-state";
 import { log, sqlstate } from "../log";
 import { acquireLease, type OwnedLease } from "./leases";
@@ -11,7 +9,12 @@ import {
   usableIndex,
 } from "../llm/embeddings";
 import { indexSnapshot, type IndexSnapshot } from "../llm/search-index";
-import { beginCheck, completeCreditWait } from "../llm/settings-store";
+import {
+  beginCheck,
+  completeCreditWait,
+  pendingCreditCheck,
+  unhealthyCapabilities,
+} from "../llm/settings-store";
 import { callChat, callEmbeddings, readProviderMetadata } from "../llm/client";
 import { AiError } from "../llm/errors";
 import { deadline } from "../llm/deadline";
@@ -30,14 +33,7 @@ export async function maintenanceDiagnostics(
     return;
   const { signal, lease } = owner;
   if (!config.configured) {
-    const wait = await db
-      .selectFrom("ai_settings")
-      .select("creditWaitUntil")
-      .where("id", "=", 1)
-      .where("enabled", "is", null)
-      .where("creditWaitConfigToken", "=", config.token)
-      .where("creditWaitUntil", ">", sql<Date>`clock_timestamp()`)
-      .executeTakeFirst();
+    const wait = await pendingCreditCheck(config, signal);
     if (!wait?.creditWaitUntil || !config.keyDigest) return;
     const check = await beginCheck(
       config,
@@ -73,16 +69,7 @@ export async function maintenanceDiagnostics(
     );
     return;
   }
-  const unhealthy = await db
-    .selectFrom("ai_health")
-    .select("capability")
-    .where("configToken", "=", config.token)
-    .where(
-      "failingSince",
-      "<",
-      sql<Date>`clock_timestamp()-interval '15 minutes'`,
-    )
-    .execute();
+  const unhealthy = await unhealthyCapabilities(config, signal);
   for (const { capability } of unhealthy) {
     if (capability === "chat")
       await callChat(
