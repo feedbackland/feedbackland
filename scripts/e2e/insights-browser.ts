@@ -78,9 +78,10 @@ export async function insightsBrowser(
       exact: true,
     });
     await regenerate.waitFor();
-    const theme = page
-      .getByText("Improve board navigation", { exact: true })
-      .first();
+    const theme = page.getByRole("heading", {
+      level: 3,
+      name: /^Improve board navigation(?:\s*new)?$/i,
+    });
     await theme.waitFor();
     await page
       .getByRole("button", { name: /show what this analysis did/i })
