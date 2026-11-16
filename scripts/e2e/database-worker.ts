@@ -15,7 +15,11 @@ import { vectorDistance, vectorMetadata } from "../../db/vector";
 import { sweep } from "../../lib/housekeeping";
 import { checkRateLimit } from "../../queries/check-rate-limit";
 import { readSurfaces } from "./v8-search";
-import { semanticCandidates, materialize } from "../../lib/search/candidates";
+import {
+  semanticCandidates,
+  materialize,
+  prepareSemanticScan,
+} from "../../lib/search/candidates";
 import { rpcContracts } from "./rpc-contracts";
 let outboundHttp = 0;
 const originalFetch = globalThis.fetch;
@@ -149,7 +153,8 @@ async function schemaAssertions() {
       filters: { status: null, orderBy: "newest" as const },
     };
     const semantic = { vector, physical: vectorMetadata(), maxDistance: 0.55 };
-    const candidates = semanticCandidates(scope, semantic, 1001)!;
+    const cap = await prepareSemanticScan(trx, semantic.physical.version);
+    const candidates = semanticCandidates(scope, semantic, cap + 1)!;
     const plan = JSON.stringify(
       (await sql`explain (format json) ${candidates}`.execute(trx)).rows,
     );

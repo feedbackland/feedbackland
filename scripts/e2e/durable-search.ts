@@ -26,7 +26,11 @@ import {
 import { acquireLease, requireLease } from "../../lib/jobs/leases";
 import { maintenanceDiagnostics } from "../../lib/jobs/maintenance";
 import { searchPage } from "../../lib/search/sessions";
-import { semanticCandidates } from "../../lib/search/candidates";
+import {
+  materialize,
+  prepareSemanticScan,
+  semanticCandidates,
+} from "../../lib/search/candidates";
 import { createFeedbackPostQuery } from "../../queries/create-feedback-post";
 import { createCommentQuery } from "../../queries/create-comment";
 import { updateFeedbackPostQuery } from "../../queries/update-feedback-post";
@@ -183,10 +187,20 @@ export async function durableSearchContracts(mock: Mock, admin: Actor) {
   await sql`analyze feedback`.execute(db);
   await db.transaction().execute(async (trx) => {
     await sql`set local enable_seqscan=off`.execute(trx);
+    const cap = await prepareSemanticScan(trx, a.physical!.version);
+    const scan = await sql<{
+      ordering: string;
+      budget: string;
+    }>`select current_setting('hnsw.iterative_scan') as ordering,
+      current_setting('hnsw.max_scan_tuples') as budget`.execute(trx);
+    assert.deepEqual(scan.rows[0], {
+      ordering: "strict_order",
+      budget: "20000",
+    });
     const compiled = semanticCandidates(
       { ...query, filters: { ...filters, status: "planned" } },
       { physical: a.physical!, vector: [1, 1, 1], maxDistance: 0.55 },
-      1001,
+      cap + 1,
     )!;
     const plan = await sql`explain (format json) ${compiled}`.execute(trx);
     assert.match(JSON.stringify(plan.rows), /feedback_embedding_idx/);
@@ -284,6 +298,23 @@ export async function durableSearchContracts(mock: Mock, admin: Actor) {
   });
   assert.equal(bounded.search.total, 1000);
   assert(bounded.search.truncated);
+  await db.transaction().execute(async (trx) => {
+    // Exercise the pre-0.8 query path on this server using its non-iterative scan.
+    await sql`update feedback set embedding=('[1,'||(1+substring(title from '[0-9]+$')::float/2000)||',1]')::vector,"embeddingSkipped"=false where title like 'Truncation fixture %'`.execute(
+      trx,
+    );
+    const legacy = await materialize(trx, query, "No lexical match", {
+      vector: [1, 1, 1],
+      physical: { ...a.physical!, version: "0.7.4" },
+      maxDistance: 0.55,
+    });
+    const mode = await sql<{
+      ef: string;
+    }>`select current_setting('hnsw.ef_search') as ef`.execute(trx);
+    assert.equal(mode.rows[0].ef, "400");
+    assert.equal(legacy.results.length, 400);
+    assert(legacy.truncated);
+  });
   await sql`delete from feedback where title like \'Truncation fixture %\'`.execute(
     db,
   );

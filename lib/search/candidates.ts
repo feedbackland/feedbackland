@@ -30,10 +30,19 @@ export type Candidate = {
 };
 export type StoredResult = [Candidate["kind"], string, number | null];
 export const resultLimit = 1000;
-export const iterative = (version: string) => {
+export async function prepareSemanticScan(
+  trx: Transaction<DB>,
+  version: string,
+) {
   const [major, minor] = version.split(".").map(Number);
-  return major > 0 || minor >= 8;
-};
+  if (major > 0 || minor >= 8) {
+    await sql`select set_config('hnsw.iterative_scan','strict_order',true),
+      set_config('hnsw.max_scan_tuples','20000',true)`.execute(trx);
+    return resultLimit;
+  }
+  await sql`set local hnsw.ef_search=400`.execute(trx);
+  return 400;
+}
 type Semantic = {
   vector: number[];
   physical: VectorMetadata;
@@ -98,33 +107,45 @@ export async function materialize(
   const candidates: Candidate[] = [];
   let truncated = false;
   if (semantic) {
-    const modern = iterative(semantic.physical.version);
-    if (modern)
-      await sql`set local hnsw.iterative_scan='strict_order'`.execute(trx);
-    else await sql`set local hnsw.ef_search=400`.execute(trx);
-    const cap = modern ? resultLimit : 400;
+    const cap = await prepareSemanticScan(trx, semantic.physical.version);
     const query = semanticCandidates(scope, semantic, cap + 1);
     if (query) {
       const { rows } = await query.execute(trx);
-      truncated = rows.length > cap || (!modern && rows.length === cap);
+      truncated =
+        rows.length > cap || (cap < resultLimit && rows.length === cap);
       candidates.push(...rows.slice(0, cap));
     }
   }
   const pattern = "%" + text.replace(/[\\%_]/g, (c) => "\\" + c) + "%";
   const room = resultLimit - candidates.length;
+  // The semantic tail is chronological. A wholly exact session honors the list's selected sort.
+  const tieBreak = semantic ? sql`kind,id` : sql`id desc,kind`;
   const exact = sources(scope).map((kind) => {
     const table = sql.table(kind === "post" ? "feedback" : "comment");
     const match =
       kind === "post"
         ? sql`(i.title ilike ${pattern} or i."plainText" ilike ${pattern})`
         : sql`i."plainText" ilike ${pattern}`;
-    return sql`(select ${sql.lit(kind)}::text as kind,i.id,i."createdAt",null::double precision as distance from ${table} i
+    let sortKey = sql`i."createdAt"`;
+    if (!semantic && scope.filters.orderBy === "upvotes")
+      sortKey = sql`i.upvotes`;
+    if (!semantic && scope.filters.orderBy === "comments") {
+      const visible =
+        scope.surface === "activity"
+          ? sql`and c.content not like 'Updated status to%'`
+          : sql``;
+      sortKey =
+        kind === "comment"
+          ? sql`0::bigint`
+          : sql`(select count(*) from comment c where c."postId"=i.id ${visible})`;
+    }
+    return sql`(select ${sql.lit(kind)}::text as kind,i.id,${sortKey} as sort_key,null::double precision as distance from ${table} i
       where ${conditions(kind, scope)} and ${match} ${semantic ? sql`and (i.embedding is null or i."embeddingSkipped")` : sql``}
-      order by i."createdAt" desc,i.id limit ${room + 1})`;
+      order by sort_key desc,${tieBreak} limit ${room + 1})`;
   });
   if (exact.length) {
     const { rows } =
-      await sql<Candidate>`select * from (${sql.join(exact, sql` union all `)}) matches order by "createdAt" desc,kind,id limit ${room + 1}`.execute(
+      await sql<Candidate>`select * from (${sql.join(exact, sql` union all `)}) matches order by sort_key desc,${tieBreak} limit ${room + 1}`.execute(
         trx,
       );
     truncated ||= rows.length > room;
