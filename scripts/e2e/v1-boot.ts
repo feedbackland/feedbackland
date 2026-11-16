@@ -617,7 +617,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
         "updateSettings",
         "createComment",
         "deleteAdmin",
-        "generateInsights",
+        "startInsightsRun",
       ]) {
         const response = await fetch(`${url}/api/trpc/${endpoint}`, {
           method: "POST",

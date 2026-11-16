@@ -11,7 +11,7 @@ import { openSecret, sealSecret } from "../secret-box";
 import { lock, locks } from "../../db/locks";
 import { requireAdmin, type Actor } from "../auth/authorization";
 import { defaults, optionsSchema, keySchema, type Options } from "./defaults";
-import { AiError, type Reason } from "./errors";
+import { AiError, UnavailableCapability, type Reason } from "./errors";
 import type { Capability } from "./constants";
 import type { DB, AiSettings } from "../../db/schema";
 import { sql } from "kysely";
@@ -151,6 +151,23 @@ export function usableCheckedKey(config: Configuration) {
     !config.check ||
     !["invalid", "management", "expired"].includes(config.check.key)
   );
+}
+export async function insightConfiguration(trx: Transaction<DB>) {
+  const row = await currentRow(trx).forShare().executeTakeFirstOrThrow();
+  const config = resolve(row, getConfig().authSecret);
+  if (config.keyless) throw new AiError("AI_NOT_CONFIGURED");
+  if (!config.valid) throw new AiError("AI_UNAVAILABLE");
+  if (config.diverged) throw new AiError("CONFIGURATION_DIVERGED");
+  if (config.unreadable) throw new AiError("key-unreadable");
+  if (!config.configured || !config.apiKey)
+    throw new AiError("AI_NOT_CONFIGURED");
+  if (!usableCheckedKey(config)) throw new AiError("provider-auth");
+  const failure = await failingHealth(trx, config)
+    .select("lastReason")
+    .where("capability", "=", "chat")
+    .executeTakeFirst();
+  if (failure) throw new UnavailableCapability(failure.lastReason);
+  return config;
 }
 export { invalidate as invalidateConfiguration };
 const clearResults = {

@@ -59,6 +59,9 @@ const t = initTRPC.context<RequestContext>().create({
         ...(error.cause instanceof DomainError && error.cause.resetsAt
           ? { resetsAt: error.cause.resetsAt, contentCode: error.cause.message }
           : {}),
+        ...(error.cause instanceof DomainError && error.cause.reason
+          ? { reason: error.cause.reason }
+          : {}),
         zodError:
           error.cause instanceof ZodError ? z.flattenError(error.cause) : null,
       },

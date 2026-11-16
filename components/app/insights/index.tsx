@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { InsightJobStatus } from "./job-status";
 import { Error } from "@/components/ui/error";
-import { Spinner } from "@/components/ui/spinner";
 import { useInsights } from "@/hooks/use-insights";
 import { useGenerateInsights } from "@/hooks/use-generate-insights";
 import { InsightsHeader } from "./header";
@@ -25,21 +24,12 @@ export function Insights() {
   const {
     query: { data, isPending, isError },
   } = useInsights();
-  const generate = useGenerateInsights();
+  const job = useGenerateInsights();
 
   const insights = useMemo(() => data?.insights ?? [], [data?.insights]);
   const run = data?.run ?? null;
 
-  const handleGenerate = () => {
-    generate.mutate(undefined, {
-      onSuccess: () =>
-        toast.success("Insights updated", { position: "top-right" }),
-      onError: (error) =>
-        toast.error(error.message || "The analysis didn't finish.", {
-          position: "top-right",
-        }),
-    });
-  };
+  const handleGenerate = () => job.start.mutate();
 
   // The whole insights is in memory, so search runs over every insight rather
   // than over whatever happened to be loaded.
@@ -69,7 +59,7 @@ export function Insights() {
     );
   }
 
-  const isGenerating = generate.isPending;
+  const { isGenerating } = job;
   const openPostCount = data?.openPostCount ?? 0;
 
   if (insights.length === 0) {
@@ -78,9 +68,8 @@ export function Insights() {
         {/* No action up here: the empty state below is the call to action, and
             when there is no feedback at all there is nothing to act on. */}
         <InsightsHeader hasRun={!!run} />
-        {isGenerating ? (
-          <InsightsLoading showHeader={false} />
-        ) : openPostCount === 0 ? (
+        <InsightJobStatus job={job} />
+        {isGenerating ? null : openPostCount === 0 ? (
           <InsightsNoFeedback />
         ) : (
           <InsightsFirstRun
@@ -101,18 +90,7 @@ export function Insights() {
         isGenerating={isGenerating}
       />
 
-      {isGenerating && (
-        <div
-          role="status"
-          className="border-border bg-muted/40 text-muted-foreground mb-4 flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm"
-        >
-          <Spinner className="size-4 shrink-0" />
-          <span>
-            Reading your feedback. What&apos;s below stays put until the new
-            insights are ready.
-          </span>
-        </div>
-      )}
+      <InsightJobStatus job={job} />
 
       {insights.length >= SEARCH_THRESHOLD && (
         <InsightsSearch

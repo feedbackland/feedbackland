@@ -1,98 +1,89 @@
 import "server-only";
+import { sql, type Transaction } from "kysely";
+import type { DB } from "@/db/schema";
+import { MOMENTUM_HALF_LIFE_DAYS, MOMENTUM_WINDOW_DAYS } from "@/lib/insights";
+import type { FeedbackCategory } from "@/lib/typings";
 
-import { db } from "@/db/db";
-import { sql } from "kysely";
-import { MOMENTUM_WINDOW_DAYS } from "@/lib/insights";
-
-/**
- * Status-change comments are written by the admin panel itself
- * (hooks/use-update-status.ts). They are not user signal, so they must not
- * inflate an insight's comment count or its momentum.
- */
-const STATUS_COMMENT_PREFIX = "Updated status to%";
-
-/**
- * Everything the insights generator needs, in three round trips:
- * the open posts, who upvoted them and when, and how many posts exist in total
- * (so the run can be honest about what it did and did not read).
- *
- * Posts that are done or declined are left out: the insights is what is still
- * open, and excluding them is also what lets a finished insight drop off the
- * board on the next run.
- */
-export const getInsightsInputs = async ({}: Record<string, never>) => {
-  const windowStart = sql<Date>`now() - ${sql.raw(
-    `interval '${MOMENTUM_WINDOW_DAYS} days'`,
-  )}`;
-
-  const postsPromise = db
-    .selectFrom("feedback")
-    .where((eb) =>
-      eb.or([
-        eb("feedback.status", "is", null),
-        eb("feedback.status", "not in", ["done", "declined"]),
-      ]),
-    )
-    .select([
-      "feedback.id",
-      "feedback.title",
-      "feedback.description",
-      "feedback.upvotes",
-      "feedback.category",
-      "feedback.createdAt",
-      "feedback.authorId",
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll<string>().as("count"))
-          .whereRef("comment.postId", "=", "feedback.id")
-          .where("comment.content", "not like", STATUS_COMMENT_PREFIX)
-          .as("commentCount"),
-      (eb) =>
-        eb
-          .selectFrom("comment")
-          .select(eb.fn.countAll<string>().as("count"))
-          .whereRef("comment.postId", "=", "feedback.id")
-          .where("comment.content", "not like", STATUS_COMMENT_PREFIX)
-          .where("comment.createdAt", ">=", windowStart)
-          .as("recentCommentCount"),
-    ])
-    .orderBy("feedback.createdAt", "desc")
-    .execute();
-
-  // One row per upvote, so an insight can count distinct people rather than
-  // summing per-post totals (the same user upvoting three duplicates of the
-  // same request is one person asking, not three).
-  const upvotesPromise = db
-    .selectFrom("user_upvote")
-    .innerJoin("feedback", "feedback.id", "user_upvote.contentId")
-    .select([
-      "user_upvote.contentId",
-      "user_upvote.userId",
-      "user_upvote.createdAt",
-    ])
-    .execute();
-
-  const totalPromise = db
-    .selectFrom("feedback")
-    .select((eb) => eb.fn.countAll<string>().as("count"))
-    .executeTakeFirst();
-
-  try {
-    const [posts, upvotes, total] = await Promise.all([
-      postsPromise,
-      upvotesPromise,
-      totalPromise,
-    ]);
-
-    return {
-      posts,
-      upvotes,
-      postsTotal: Number(total?.count ?? 0),
-    };
-  } catch (error) {
-    throw new Error("Feedback query failed");
-  }
+export type InsightPost = {
+  id: string;
+  title: string;
+  description: string;
+  category: FeedbackCategory;
+  created: number;
+  upvotes: number;
+  comments: number;
+  recentComments: number;
+  recentVotes: number;
+  voteMomentum: number;
+  lastVote: number | null;
 };
+export type InsightSnapshot = {
+  at: number;
+  posts: InsightPost[];
+  // People with the same set of post ordinals contribute once to each cluster.
+  audience: [number[], number][];
+};
+const maxSnapshotBytes = 2 * 1024 * 1024;
 
-export type InsightsInputs = Awaited<ReturnType<typeof getInsightsInputs>>;
+export async function getInsightsInputs(trx: Transaction<DB>) {
+  let limit = 2000;
+  for (;;) {
+    // One statement freezes text, votes, comments and totals at one MVCC snapshot.
+    // Size the individual JSONB members before aggregating or transferring them.
+    const {
+      rows: [row],
+    } = await sql<{
+      snapshot: InsightSnapshot | null;
+      total: number;
+      bytes: number;
+      n: number;
+    }>`
+      with newest as materialized (
+        select id, left(title,160) as title, left("plainText",700) as description,
+          category,"createdAt","authorId",upvotes
+        from feedback where status is null or status not in ('done','declined')
+        order by "createdAt" desc,id limit ${limit}
+      ), posts as materialized (
+        select *, row_number() over(order by "createdAt" desc,id)::int as ordinal from newest
+      ), votes as materialized (
+        select p.ordinal,v."userId",v."createdAt" from posts p join user_upvote v on v."contentId"=p.id
+      ), memberships as (
+        select array_agg(distinct ordinal order by ordinal) as ordinals from (
+          select ordinal,"userId" as person from votes union all
+          select ordinal,"authorId" from posts where "authorId" is not null
+        ) support group by person
+      ), audience as materialized (
+        select jsonb_build_array(ordinals,count(*)) as item from memberships group by ordinals
+      ), demand as (
+        select ordinal, count(*) filter(where "createdAt">=statement_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day') as recent,
+          sum(power(2::double precision,-greatest(0,extract(epoch from (statement_timestamp()-"createdAt")))::double precision / ${86400 * MOMENTUM_HALF_LIFE_DAYS})) as momentum,
+          max("createdAt") as latest from votes group by ordinal
+      ), entries as materialized (
+        select p.ordinal,jsonb_build_object('id',p.id,'title',p.title,'description',p.description,'category',p.category,
+          'created',floor(extract(epoch from p."createdAt")*1000),'upvotes',p.upvotes,
+          'comments',c.total,'recentComments',c.recent,'recentVotes',coalesce(d.recent,0),
+          'voteMomentum',coalesce(d.momentum,0),'lastVote',floor(extract(epoch from d.latest)*1000)) as item
+        from posts p left join demand d using(ordinal)
+        cross join lateral (select count(*) as total,
+          count(*) filter(where "createdAt">=statement_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day') as recent
+          from comment where "postId"=p.id and content not like 'Updated status to%') c
+      ), size as (
+        select (100+coalesce((select sum(octet_length(item::text)+2) from entries),0)
+          +coalesce((select sum(octet_length(item::text)+2) from audience),0))::float8 as bytes
+      )
+      select bytes,(select count(*)::float8 from feedback) as total,(select count(*)::int from entries) as n,
+        case when bytes<=${maxSnapshotBytes} then jsonb_build_object(
+          'at',floor(extract(epoch from statement_timestamp())*1000),
+          'posts',coalesce((select jsonb_agg(item order by ordinal) from entries),'[]'),
+          'audience',coalesce((select jsonb_agg(item order by item) from audience),'[]')) end as snapshot
+      from size`.execute(trx);
+    if (row.snapshot) return { snapshot: row.snapshot, total: row.total };
+    // A single bounded post has only one audience cohort, regardless of its votes.
+    if (row.n <= 1)
+      throw new Error("Insight snapshot exceeded its storage bound");
+    limit = Math.max(
+      1,
+      Math.min(row.n - 1, Math.floor((row.n * maxSnapshotBytes) / row.bytes)),
+    );
+  }
+}

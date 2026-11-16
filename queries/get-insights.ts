@@ -56,99 +56,108 @@ const asSignals = (value: unknown): InsightSignals | null => {
 };
 
 export const getInsightsQuery = async (): Promise<Insights> => {
-  const insightsPromise = db
-    .selectFrom("insights")
-    .selectAll()
-    .where("insights.isArchived", "=", false)
-    .orderBy("insights.priority", "desc")
-    .orderBy("insights.reach", "desc")
-    .orderBy("insights.id", "desc")
-    .execute();
+  return db
+    .transaction()
+    .setIsolationLevel("repeatable read")
+    .execute(async (trx) => {
+      const rows = await trx
+        .selectFrom("insights")
+        .selectAll()
+        .where("isArchived", "=", false)
+        .orderBy("priority", "desc")
+        .orderBy("reach", "desc")
+        .orderBy("id")
+        .execute();
+      const runRow = await trx
+        .selectFrom("insight_reports")
+        .select([
+          "createdAt",
+          "postsTotal",
+          "postsAnalyzed",
+          "postsClustered",
+          "insightCount",
+          "newInsightCount",
+          "archivedInsightCount",
+          "model",
+        ])
+        .where("status", "=", "succeeded")
+        .orderBy("id", "desc")
+        .limit(1)
+        .executeTakeFirst();
+      const postIds = [...new Set(rows.flatMap((row) => row.ids))];
+      const posts = postIds.length
+        ? await trx
+            .selectFrom("feedback")
+            .select(["id", "status"])
+            .where("id", "in", postIds)
+            .execute()
+        : [];
+      const statusByPost = new Map(posts.map((p) => [p.id, p.status]));
+      const count = await trx
+        .selectFrom("feedback")
+        .select((eb) => eb.fn.countAll<string>().as("n"))
+        .where((eb) =>
+          eb.or([
+            eb("status", "is", null),
+            eb("status", "not in", ["done", "declined"]),
+          ]),
+        )
+        .executeTakeFirstOrThrow();
+      const openPostCount = Number(count.n);
+      const rollUpStatus = (postIds: string[]) => {
+        const statuses = postIds
+          .filter((id) => statusByPost.has(id))
+          .map((id) => statusByPost.get(id) ?? null);
 
-  const runPromise = db
-    .selectFrom("insight_reports")
-    .selectAll()
-    .orderBy("insight_reports.createdAt", "desc")
-    .limit(1)
-    .executeTakeFirst();
+        if (statuses.length === 0)
+          return { status: null, isMixedStatus: false };
 
-  // Every post's current status, so each insight's status can be rolled up from
-  // the live board instead of from a copy that goes stale the moment someone
-  // changes a status anywhere else. Also supplies the open-post count for the
-  // first-run button, using the generator's own filter.
-  const postsPromise = db
-    .selectFrom("feedback")
-    .select(["feedback.id", "feedback.status"])
-    .execute();
+        const first = statuses[0];
+        const unanimous = statuses.every((status) => status === first);
 
-  try {
-    const [rows, runRow, posts] = await Promise.all([
-      insightsPromise,
-      runPromise,
-      postsPromise,
-    ]);
-
-    const statusByPost = new Map(posts.map((post) => [post.id, post.status]));
-
-    const openPostCount = posts.filter(
-      (post) => post.status !== "done" && post.status !== "declined",
-    ).length;
-
-    const rollUpStatus = (postIds: string[]) => {
-      const statuses = postIds
-        .filter((id) => statusByPost.has(id))
-        .map((id) => statusByPost.get(id) ?? null);
-
-      if (statuses.length === 0) return { status: null, isMixedStatus: false };
-
-      const first = statuses[0];
-      const unanimous = statuses.every((status) => status === first);
-
-      return {
-        status: unanimous ? first : (null as FeedbackStatus),
-        isMixedStatus: !unanimous,
+        return {
+          status: unanimous ? first : (null as FeedbackStatus),
+          isMixedStatus: !unanimous,
+        };
       };
-    };
 
-    const insights: Insight[] = rows.map((row) => {
-      const postIds = row.ids ?? [];
+      const insights: Insight[] = rows.map((row) => {
+        const postIds = row.ids ?? [];
 
-      return {
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        postIds,
-        priority: num(row.priority),
-        reach: num(row.reach),
-        momentum: num(row.momentum),
-        upvotes: num(row.upvotes),
-        commentCount: num(row.commentCount),
-        effort: asEffort(row.effort),
-        ...rollUpStatus(postIds),
-        category: row.category,
-        signals: asSignals(row.signals),
-        firstSeenAt: row.firstSeenAt,
-        lastSeenAt: row.lastSeenAt,
-        // An insight that has only ever been seen in one run is new in that run.
-        isNew: row.firstSeenAt.getTime() === row.lastSeenAt.getTime(),
-      };
+        return {
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          postIds,
+          priority: num(row.priority),
+          reach: num(row.reach),
+          momentum: num(row.momentum),
+          upvotes: num(row.upvotes),
+          commentCount: num(row.commentCount),
+          effort: asEffort(row.effort),
+          ...rollUpStatus(postIds),
+          category: row.category,
+          signals: asSignals(row.signals),
+          firstSeenAt: row.firstSeenAt,
+          lastSeenAt: row.lastSeenAt,
+          // An insight that has only ever been seen in one run is new in that run.
+          isNew: row.firstSeenAt.getTime() === row.lastSeenAt.getTime(),
+        };
+      });
+
+      const run: InsightsRun | null = runRow
+        ? {
+            createdAt: runRow.createdAt,
+            postsTotal: num(runRow.postsTotal),
+            postsAnalyzed: num(runRow.postsAnalyzed),
+            postsClustered: num(runRow.postsClustered),
+            insightCount: num(runRow.insightCount),
+            newInsightCount: num(runRow.newInsightCount),
+            archivedInsightCount: num(runRow.archivedInsightCount),
+            model: runRow.model,
+          }
+        : null;
+
+      return { insights, run, openPostCount };
     });
-
-    const run: InsightsRun | null = runRow
-      ? {
-          createdAt: runRow.createdAt,
-          postsTotal: num(runRow.postsTotal),
-          postsAnalyzed: num(runRow.postsAnalyzed),
-          postsClustered: num(runRow.postsClustered),
-          insightCount: num(runRow.insightCount),
-          newInsightCount: num(runRow.newInsightCount),
-          archivedInsightCount: num(runRow.archivedInsightCount),
-          model: runRow.model,
-        }
-      : null;
-
-    return { insights, run, openPostCount };
-  } catch (error) {
-    throw error;
-  }
 };

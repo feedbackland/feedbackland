@@ -1,4 +1,5 @@
 import "server-only";
+import { expireInsights } from "../../queries/expire-insights";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { Client } from "pg";
 import {
@@ -266,9 +267,7 @@ async function seed(trx: Transaction<DB>, aiSchemaReady: boolean) {
     .set({ setupCode, setupCodeGenerated })
     .where("id", "=", 1)
     .execute();
-  await sql`update insight_reports set status='failed', stage='complete', error='stale-run', "finishedAt"=clock_timestamp(), "inputSnapshot"=null where status='running' and "heartbeatAt"<clock_timestamp()-interval '5 minutes'`.execute(
-    trx,
-  );
+  await expireInsights(trx);
   return {
     authSecret,
     aiAligned,

@@ -112,8 +112,8 @@ export function InsightsRunStrip({ run }: { run: InsightsRun }) {
           <p className="text-muted-foreground border-t pt-2.5 text-[11px] leading-relaxed">
             {skipped > 0 ? (
               <>
-                {skipped} closed or lower-signal posts were left out of this
-                run.{" "}
+                {skipped} closed posts or posts outside the input limit were
+                left out of this run.{" "}
               </>
             ) : null}
             An insight drops off once the feedback behind it is marked done or

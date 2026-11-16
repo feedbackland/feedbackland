@@ -14,6 +14,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/delete-admin.ts` | `trpc/delete-admin.ts` |
 | `queries/delete-comment.ts` | `trpc/delete-comment.ts` |
 | `queries/delete-feedback-post.ts` | `trpc/delete-feedback-post.ts` |
+| `queries/expire-insights.ts` | `lib/boot/index.ts`, `lib/housekeeping.ts`, `lib/jobs/insights.ts` |
 | `queries/get-activity-feed-meta-data.ts` | `trpc/get-activity-feed-meta-data.ts` |
 | `queries/get-activity-feed.ts` | `trpc/get-activity-feed.ts` |
 | `queries/get-admin-invite.ts` | `trpc/get-admin-invite.ts` |
@@ -25,14 +26,14 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/get-feedback-post.ts` | `trpc/get-feedback-post.ts` |
 | `queries/get-feedback-posts-by-ids.ts` | `trpc/get-feedback-posts-by-ids.ts` |
 | `queries/get-feedback-posts.ts` | `trpc/get-feedback-posts.ts` |
-| `queries/get-insights-inputs.ts` | No active importer; retained typed/internal interface for a later milestone |
+| `queries/get-insights-inputs.ts` | `lib/jobs/insight-analysis.ts`, `lib/jobs/insights.ts` |
 | `queries/get-insights.ts` | `trpc/get-insights.ts` |
 | `queries/get-mentionable-users.ts` | `trpc/get-mentionable-users.ts` |
 | `queries/get-moderation-coverage.ts` | `trpc/get-moderation-coverage.ts` |
 | `queries/get-settings.ts` | `lib/settings.ts`, `queries/update-settings.ts`, `trpc/get-settings.ts` |
 | `queries/redeem-admin-invite.ts` | `trpc/redeem-admin-invite.ts` |
 | `queries/reply-parent.ts` | `queries/content-write.ts` |
-| `queries/save-insights.ts` | No active importer; retained typed/internal interface for a later milestone |
+| `queries/save-insights.ts` | `lib/jobs/insights.ts` |
 | `queries/set-activities-seen.ts` | `trpc/set-activities-seen.ts` |
 | `queries/set-all-activities-seen.ts` | `trpc/set-all-activities-seen.ts` |
 | `queries/set-insight-status.ts` | `trpc/set-insight-status.ts` |
@@ -51,7 +52,6 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/delete-admin.ts` | `trpc/index.ts` |
 | `trpc/delete-comment.ts` | `trpc/index.ts` |
 | `trpc/delete-feedback-post.ts` | `trpc/index.ts` |
-| `trpc/generate-insights.ts` | `trpc/index.ts` |
 | `trpc/get-activity-feed-meta-data.ts` | `trpc/index.ts` |
 | `trpc/get-activity-feed.ts` | `trpc/index.ts` |
 | `trpc/get-admin-invite.ts` | `trpc/index.ts` |
@@ -63,6 +63,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-feedback-post.ts` | `trpc/index.ts` |
 | `trpc/get-feedback-posts-by-ids.ts` | `trpc/index.ts` |
 | `trpc/get-feedback-posts.ts` | `trpc/index.ts` |
+| `trpc/get-insights-run.ts` | `trpc/index.ts` |
 | `trpc/get-insights.ts` | `trpc/index.ts` |
 | `trpc/get-mentionable-users.ts` | `trpc/index.ts` |
 | `trpc/get-moderation-coverage.ts` | `trpc/index.ts` |
@@ -78,6 +79,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/set-activities-seen.ts` | `trpc/index.ts` |
 | `trpc/set-all-activities-seen.ts` | `trpc/index.ts` |
 | `trpc/set-insight-status.ts` | `trpc/index.ts` |
+| `trpc/start-insights-run.ts` | `trpc/index.ts` |
 | `trpc/update-comment.ts` | `trpc/index.ts` |
 | `trpc/update-feedback-post-status.ts` | `trpc/index.ts` |
 | `trpc/update-feedback-post.ts` | `trpc/index.ts` |

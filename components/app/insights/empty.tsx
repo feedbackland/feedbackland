@@ -54,10 +54,11 @@ export function InsightsFirstRun({
         </EmptyMedia>
         <EmptyTitle>See what your feedback adds up to</EmptyTitle>
         <EmptyDescription>
-          All {postCount} open {postCount === 1 ? "post" : "posts"} get read and
-          grouped with the ones asking for the same thing, then ranked by how
-          many people are behind each theme, how fast it is growing, and how
-          much the problem hurts.
+          There {postCount === 1 ? "is" : "are"} {postCount} open{" "}
+          {postCount === 1 ? "post" : "posts"}. The analysis groups recent
+          feedback by what people are asking for, then ranks themes by how many
+          people are behind each theme, how fast it is growing, and how much the
+          problem hurts.
         </EmptyDescription>
       </EmptyHeader>
 

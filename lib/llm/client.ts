@@ -154,6 +154,8 @@ async function ready(
       ? deadline(config.options.timeoutMs, controls.signal, start)
       : wall;
   checkDeadline(readiness);
+  if (controls.reservation && controls.reservation.configToken !== config.token)
+    throw new AiError("STALE_CONFIGURATION");
   const diagnostic =
     feature === "check" || feature === "metadata" || feature === "probe";
   if (!diagnostic && config.keyless) throw new AiError("AI_NOT_CONFIGURED");
@@ -385,7 +387,9 @@ export async function callChat<T = never>(
     setUsage(ctx, result.steps[0].usage);
     checkFinish(result.rawFinishReason, result.finishReason);
     if (
-      (feature === "title" || feature === "rewrite") &&
+      (feature === "title" ||
+        feature === "rewrite" ||
+        feature === "insights") &&
       result.finishReason !== "stop"
     )
       throw new AiError("invalid-response");
