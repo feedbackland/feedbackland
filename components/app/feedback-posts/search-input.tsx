@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { searchInputValue } from "@/lib/search/text";
 import { useDebounce, useKey, useClickAway } from "react-use";
 import {
   Tooltip,
@@ -35,7 +36,7 @@ export const FeedbackPostsSearchInput = ({
     () => {
       setFeedbackPostsState((prev) => ({
         ...prev,
-        searchValue: inputValue.length >= 2 ? inputValue : "",
+        searchValue: searchInputValue(inputValue),
       }));
     },
     delay,

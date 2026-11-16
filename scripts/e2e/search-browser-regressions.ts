@@ -273,6 +273,27 @@ async function browserRegressions(
   await field.fill(prefix + "two");
   await delay(800);
   assert.equal(await sessions(), after);
+  // Equivalent spelling must keep both the UI threshold and the snapshot stable.
+  await field.fill("e\u0301");
+  await delay(750);
+  assert.equal(await sessions(), after);
+  await field.fill("é");
+  await delay(750);
+  assert.equal(await sessions(), after);
+  await field.fill("Cafe\u0301");
+  await page
+    .getByText("No feedback matches your search.", { exact: true })
+    .waitFor();
+  assert.equal(Number(await sessions()), Number(after) + 1);
+  await field.fill("Café");
+  await delay(750);
+  assert.equal(Number(await sessions()), Number(after) + 1);
+  await page.getByRole("button", { name: "Planned", exact: true }).click();
+  await eventually(
+    async () => Number(await sessions()),
+    (n) => n === Number(after) + 2,
+  );
+  assert.equal(await field.inputValue(), "Café");
 
   for (const surface of ["board", "activity"] as const) {
     for (const removeAll of [false, true]) {
@@ -333,6 +354,64 @@ async function browserRegressions(
       await page.unrouteAll({ behavior: "wait" });
       await query(`delete from feedback where title like '${phrase} %'`);
     }
+  }
+  // Retry the exact failed continuation and keep the rows already on screen.
+  const phrase = "Page throttle fixture";
+  await query(
+    `insert into feedback(title,description,"plainText","moderationState") select '${phrase} '||n,'body','body','screened' from generate_series(1,35)n`,
+  );
+  await page.goto(base);
+  let continuations = 0;
+  const pattern = "**/api/trpc/getFeedbackPosts**";
+  await page.route(pattern, async (route) => {
+    const body = route.request().postData();
+    if (!body?.includes(phrase) || !body.includes('"nextOrdinal":20'))
+      return route.continue();
+    if (++continuations > 1) return route.continue();
+    await route.fulfill({
+      status: 429,
+      json: [
+        {
+          error: {
+            json: {
+              message: "RATE_LIMITED",
+              code: -32000,
+              data: {
+                code: "TOO_MANY_REQUESTS",
+                httpStatus: 429,
+                retryAfterSeconds: 1,
+              },
+            },
+          },
+        },
+      ],
+    });
+  });
+  try {
+    await field.fill(phrase);
+    const cards = page.locator("[data-post-id]").filter({ hasText: phrase });
+    await cards.first().waitFor();
+    const firstId = await cards.first().getAttribute("data-post-id");
+    await cards.last().evaluate((el) => {
+      el.scrollIntoView({ block: "start" });
+      for (let p = el.parentElement; p; p = p.parentElement)
+        if (p.scrollHeight > p.clientHeight) p.scrollTop = p.scrollHeight;
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    const retry = page.getByRole("button", { name: "Try again" });
+    await retry.waitFor();
+    assert.equal(await cards.count(), 20);
+    assert.equal(await field.inputValue(), phrase);
+    await retry.click();
+    await eventually(
+      () => cards.count(),
+      (count) => count === 35,
+    );
+    assert.equal(continuations, 2);
+    assert.equal(await cards.first().getAttribute("data-post-id"), firstId);
+  } finally {
+    await page.unroute(pattern);
+    await query(`delete from feedback where title like '${phrase} %'`);
   }
   // Render the ordinary client error contract, including a timed retry.
   await page.goto(base + "/admin/activity");

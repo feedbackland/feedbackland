@@ -242,8 +242,15 @@ export async function replicaSearch(
     await restart.waitFor();
     assert.equal(await cards.first().getAttribute("data-post-id"), displayed);
     assert.equal(await field.inputValue(), "P09 replica");
+    const sessionsBeforeRestart = Number(
+      await query("select count(*) from search_session"),
+    );
     await restart.click();
     await restart.waitFor({ state: "hidden" });
+    await eventually(
+      async () => Number(await query("select count(*) from search_session")),
+      (n) => n === sessionsBeforeRestart + 1,
+    );
     assert.equal(await field.inputValue(), "P09 replica");
     const old = await rpc(context.request, b, "getFeedbackPosts", {
       ...input,

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/input-group";
 import { SearchIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { searchInputValue } from "@/lib/search/text";
 import { useDebounce } from "react-use";
 
 export const ActivityFeedSearchInput = ({
@@ -26,7 +27,7 @@ export const ActivityFeedSearchInput = ({
 
   useDebounce(
     () => {
-      onDebouncedChange(inputValue.length >= 2 ? inputValue : "");
+      onDebouncedChange(searchInputValue(inputValue));
     },
     delay,
     [inputValue],
