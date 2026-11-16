@@ -5,8 +5,8 @@ import { contentTransaction } from "../../db/content-transaction";
 import { runtimeState } from "../runtime-state";
 import { log } from "../log";
 import type { Lease } from "../jobs/leases";
-import { callEmbeddings } from "./client";
-import { configuration } from "./settings-store";
+import { callEmbeddings, embeddingRequestLimit } from "./client";
+import { usableCheckedKey } from "./settings-store";
 import { deadline } from "./deadline";
 import { AiError, EmbeddingWidthError } from "./errors";
 import { prepareEmbedding } from "./model-profiles";
@@ -26,20 +26,17 @@ export function probeInfo(index: IndexSnapshot) {
 }
 export function usableIndex(index: IndexSnapshot) {
   return (
-    !index.reason && !!index.fingerprint && probeInfo(index)?.ready === true
+    !index.reason &&
+    !!index.fingerprint &&
+    usableCheckedKey(index.config) &&
+    probeInfo(index)?.ready === true
   );
 }
 export async function embeddingsAvailable() {
   const probe = runtimeState().embeddingProbe;
   if (!probe?.ready) return false;
   try {
-    const config = await configuration(AbortSignal.timeout(1500));
-    return (
-      config.token === probe.identity &&
-      config.configured &&
-      !config.diverged &&
-      !config.widthMismatch
-    );
+    return usableIndex(await indexSnapshot(false, AbortSignal.timeout(1500)));
   } catch {
     return false;
   }
@@ -56,6 +53,7 @@ export function disableProfile(index: IndexSnapshot, reason: string) {
     reason,
     attempt: 0,
     next: Infinity,
+    checked: probeInfo(index)?.checked,
   };
 }
 export function recordEmbeddingFailure(index: IndexSnapshot, error: unknown) {
@@ -74,9 +72,16 @@ export function recordEmbeddingFailure(index: IndexSnapshot, error: unknown) {
       "warn",
     );
   } else if (
-    !["provider-auth", "provider-credit", "provider-rate"].includes(
-      error.reason,
-    )
+    ![
+      "provider-auth",
+      "provider-credit",
+      "provider-rate",
+      "provider-error",
+      "timeout",
+      "invalid-response",
+      "response-too-large",
+      "data-policy",
+    ].includes(error.reason)
   )
     return;
   if (probe.ready) {
@@ -84,12 +89,20 @@ export function recordEmbeddingFailure(index: IndexSnapshot, error: unknown) {
     probe.reason =
       error instanceof EmbeddingWidthError
         ? "provider-width-mismatch"
-        : error.reason;
+        : [
+              "provider-error",
+              "timeout",
+              "invalid-response",
+              "response-too-large",
+            ].includes(error.reason)
+          ? "unverified"
+          : error.reason;
     probe.next = performance.now() + retryDelay(++probe.attempt);
   }
 }
 export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
-  if (index.reason || !index.fingerprint) return;
+  if (index.reason || !index.fingerprint || !usableCheckedKey(index.config))
+    return;
   const state = runtimeState();
   const probe = probeInfo(index) ?? {
     identity: index.config.token,
@@ -99,6 +112,7 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
     next: 0,
   };
   if (probe.pending) return probe.pending;
+  if (probe.reason === "profile-context-length") return;
   const passed =
     index.config.check?.search === "passed" ? index.config.check.at : undefined;
   if (passed && probe.checked !== passed) {
@@ -129,7 +143,16 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
     } catch (error) {
       if (state.embeddingProbe !== probe || signal?.aborted) return;
       probe.ready = false;
-      probe.reason = error instanceof AiError ? error.reason : "unverified";
+      probe.reason =
+        error instanceof AiError &&
+        ![
+          "provider-error",
+          "timeout",
+          "invalid-response",
+          "response-too-large",
+        ].includes(error.reason)
+          ? error.reason
+          : "unverified";
       if (error instanceof EmbeddingWidthError) {
         probe.reason = "provider-width-mismatch";
         probe.expected = error.expected;
@@ -140,7 +163,11 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
           "warn",
         );
       }
-      probe.next = performance.now() + retryDelay(++probe.attempt);
+      if (error instanceof AiError && error.reason === "context-length") {
+        disableProfile(index, "profile-context-length");
+      } else {
+        probe.next = performance.now() + retryDelay(++probe.attempt);
+      }
     } finally {
       delete probe.pending;
     }
@@ -176,6 +203,17 @@ export async function embedCommitted(row: IndexRow, signal?: AbortSignal) {
       "warn",
     );
   }
+}
+// The committed row is the durable queue. Limit best-effort immediate work
+// so a busy process cannot accumulate content or hold up write responses.
+export function scheduleEmbedding(row: IndexRow) {
+  const state = runtimeState();
+  if (!state.embeddingProbe?.ready) return;
+  const active = (state.activeEmbeddingWrites ??= new Set());
+  if (active.size >= 2) return;
+  const work = embedCommitted(row);
+  active.add(work);
+  void work.finally(() => active.delete(work));
 }
 export function postEmbeddingText(title: string, plainText: string) {
   return plainText.trim() ? title + "\n" + plainText : "";
@@ -217,24 +255,46 @@ export async function backfillBatch(
   }
   async function send(items: IndexRow[]): Promise<number> {
     wall.signal.throwIfAborted();
+    const texts = items.map((row) => row.text);
+    const controls = {
+      lease,
+      signal: wall.signal,
+      content: { config: index.config, wall },
+    };
+    const attempt = async () => {
+      const vectors = await callEmbeddings("backfill", texts, controls);
+      return writeVectors(index, items, vectors, wall.signal, lease);
+    };
     try {
-      const vectors = await callEmbeddings(
-        "backfill",
-        items.map((row) => row.text),
-        { lease, signal: wall.signal, content: { config: index.config, wall } },
-      );
-      return await writeVectors(index, items, vectors, wall.signal, lease);
+      return await attempt();
     } catch (error) {
-      if (!(error instanceof AiError)) throw error;
-      recordEmbeddingFailure(index, error);
-      if (error.reason !== "provider-input") throw error;
-      if (items.length === 1)
-        return writeVectors(index, items, [null], wall.signal, lease);
-      const half = Math.floor(items.length / 2);
-      return (
-        (await send(items.slice(0, half))) + (await send(items.slice(half)))
-      );
+      if (!(error instanceof AiError) || error.reason !== "provider-input")
+        throw error;
     }
+    // An unclassified 4xx can be a global provider/configuration error.
+    // Verify a known-good control before isolating or skipping any content.
+    await callEmbeddings("backfill", ["Feedbackland index check"], controls);
+    if (items.length === 1) {
+      try {
+        return await attempt();
+      } catch (error) {
+        if (!(error instanceof AiError) || error.reason !== "provider-input")
+          throw error;
+        return writeVectors(index, items, [null], wall.signal, lease);
+      }
+    }
+    const half = Math.floor(items.length / 2);
+    return (await send(items.slice(0, half))) + (await send(items.slice(half)));
   }
-  return batch.length ? send(batch) : 0;
+  let written = 0;
+  const size = embeddingRequestLimit(index.config.dimensions);
+  try {
+    for (let start = 0; start < batch.length; start += size) {
+      written += await send(batch.slice(start, start + size));
+    }
+  } catch (error) {
+    recordEmbeddingFailure(index, error);
+    throw error;
+  }
+  return written;
 }

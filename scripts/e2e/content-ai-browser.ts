@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 import { editorRegressions } from "./content-editor-regressions";
 import { samples } from "./image-fixtures";
 import { submitSetup } from "./setup-browser";
 import { eventually, toolEnvironment } from "./run";
 
-export async function contentBrowser(base: string, setupCode: string) {
+export async function contentBrowser(
+  base: string,
+  setupCode: string,
+  afterSetup: (page: Page) => Promise<void>,
+) {
   const browser = await chromium.launch({
     env: toolEnvironment() as Record<string, string>,
   });
@@ -13,6 +17,7 @@ export async function contentBrowser(base: string, setupCode: string) {
     const context = await browser.newContext();
     const page = await context.newPage();
     await submitSetup(page, base, setupCode);
+    await afterSetup(page);
     const submit = (description: string) =>
       fetch(base + "/api/feedback/create", {
         method: "POST",

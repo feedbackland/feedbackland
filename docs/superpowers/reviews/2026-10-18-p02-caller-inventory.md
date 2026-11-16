@@ -68,7 +68,8 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-moderation-coverage.ts` | `trpc/index.ts` |
 | `trpc/get-settings.ts` | `trpc/index.ts` |
 | `trpc/get-user-session.ts` | `trpc/index.ts` |
-| `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `providers/trpc-client.tsx` |
+| `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `hooks/use-search-session.ts`, `providers/trpc-client.tsx` |
+| `trpc/issue-search-capability.ts` | `trpc/index.ts` |
 | `trpc/reclaim-pending-images.ts` | `trpc/index.ts` |
 | `trpc/redeem-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/retry-oidc-discovery.ts` | `trpc/index.ts` |

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { chromium, type APIRequestContext } from "playwright";
 import { eventually, toolEnvironment } from "./run";
 import { fixturePassword } from "./setup-browser";
@@ -71,7 +71,24 @@ export async function replicaSearch(
       data: { email: "admin@fixture.invalid", password: fixturePassword },
     });
     assert.equal(signing.status(), 200);
-    const capability = randomBytes(32).toString("hex");
+    const ticket = async () => {
+      const response = await rpc(context.request, a, "issueSearchTicket", {
+        nonce: randomBytes(32).toString("hex"),
+      });
+      assert.equal(response.status(), 200);
+      return (await response.json()).result.data.json as string;
+    };
+    const snapshot = async (ticket: string) => {
+      const hash = createHash("sha256").update(ticket).digest("hex");
+      return (
+        JSON.parse(
+          await query(
+            `select results::text from search_session where "capabilityHash"='${hash}'`,
+          ),
+        ) as [string, string, number | null][]
+      ).map(([kind, id]) => [kind, id]);
+    };
+    const capability = await ticket();
     const input = {
       status: "planned",
       orderBy: "newest",
@@ -101,6 +118,32 @@ export async function replicaSearch(
     let result = await posts(a);
     assert.equal(result.search.mode, "semantic");
     assert(result.nextCursor);
+    const expected = await snapshot(capability);
+    const activityCap = await ticket();
+    const activity = async (base: string, cursor?: Cursor) => {
+      const response = await rpc(context.request, base, "getActivityFeed", {
+        pageSize: 19,
+        orderBy: "newest",
+        status: null,
+        categories: null,
+        excludeFeedback: false,
+        excludeComments: false,
+        unseenOnly: false,
+        searchValue: "P09 replica",
+        capability: activityCap,
+        cursor,
+      });
+      assert.equal(response.status(), 200);
+      return (await response.json()).result.data.json as {
+        items: { type: string; id: string }[];
+        nextCursor?: Cursor;
+        search: { mode: string };
+      };
+    };
+    let activityPage = await activity(a);
+    assert.equal(activityPage.search.mode, "semantic");
+    const expectedActivity = await snapshot(activityCap);
+    const activityIds = activityPage.items.map(({ type, id }) => [type, id]);
     const firstCursor = result.nextCursor;
     const ids = result.feedbackPosts.map((row) => row.id);
     await docker("kill", "--signal=HUP", provider);
@@ -119,7 +162,18 @@ export async function replicaSearch(
       }
       assert(ids.length >= 226);
       assert.equal(new Set(ids).size, ids.length);
-      assert.equal(await calls(), before + 1);
+      assert.deepEqual(
+        ids.map((id) => ["post", id]),
+        expected,
+      );
+      for (let n = 0; activityPage.nextCursor; n++) {
+        activityPage = await activity(n % 2 ? a : b, activityPage.nextCursor);
+        activityIds.push(
+          ...activityPage.items.map(({ type, id }) => [type, id]),
+        );
+      }
+      assert.deepEqual(activityIds, expectedActivity);
+      assert.equal(await calls(), before + 2);
       assert.equal(result.feedbackPosts.at(-1)?.title, "P09 replica exact");
       const deletion = (await posts(b, firstCursor)).feedbackPosts[0];
       assert.match(deletion.title, /^P09 replica item/);
@@ -128,11 +182,18 @@ export async function replicaSearch(
         `delete from feedback where id='${deletion.id}'::uuid and title like 'P09 replica item%'`,
       );
       const after = await posts(a, firstCursor);
+      assert.deepEqual(
+        after.feedbackPosts.map((p) => p.id),
+        expected
+          .slice(firstCursor.nextOrdinal, firstCursor.nextOrdinal + 19)
+          .map((row) => row[1])
+          .filter((id) => id !== deletion.id),
+      );
       assert.equal(after.feedbackPosts.length, 18);
       assert.equal(after.nextCursor?.nextOrdinal, 38);
       const fallback = await rpc(context.request, b, "getFeedbackPosts", {
         ...input,
-        capability: randomBytes(32).toString("hex"),
+        capability: await ticket(),
       });
       assert.equal(
         (await fallback.json()).result.data.json.search.mode,
@@ -211,14 +272,15 @@ export async function replicaSearch(
     );
     const fresh = await rpc(context.request, b, "getFeedbackPosts", {
       ...input,
-      capability: randomBytes(32).toString("hex"),
+      capability: await ticket(),
     });
     assert.equal(fresh.status(), 200);
     assert.equal((await fresh.json()).result.data.json.search.mode, "semantic");
     return {
       replicas: 2,
       ids: ids.length,
-      embeddingCallsForTraversal: 1,
+      embeddingCallsForTwoSearches: 2,
+      additionalCallsForTraversal: 0,
       widthBefore: 768,
       widthAfter: 1536,
       deletionAndRestart: "passed",

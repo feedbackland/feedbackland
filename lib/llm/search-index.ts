@@ -2,6 +2,7 @@ import "server-only";
 import { sql, type Transaction } from "kysely";
 import { z } from "zod/v4";
 import { db } from "../../db/db";
+import { discoverVector, physicalVector } from "../../db/vector";
 import { contentTransaction } from "../../db/content-transaction";
 import { locks, lock } from "../../db/locks";
 import type { DB } from "../../db/schema";
@@ -39,15 +40,16 @@ function describe({
 }: Awaited<ReturnType<typeof lockedIndexSettings>>) {
   const fingerprint = fingerprintSchema.safeParse(storedFingerprint).data;
   let reason: string | null = null;
-  if (
+  if (config.diverged) reason = "CONFIGURATION_DIVERGED";
+  else if (
     !config.valid ||
-    config.diverged ||
     !config.configured ||
     !config.apiKey ||
     config.options.embeddingModel === "none"
   )
     reason = "off";
   else if (!physical) reason = "column-mismatch";
+  else if (physical.indexesValid === false) reason = "rebuild-required";
   else if (!supportsEmbeddingModel(config.options.embeddingModel))
     reason = "UNSUPPORTED_EMBEDDING_TOKENIZER";
   else if (
@@ -87,7 +89,9 @@ async function readIndex(create: boolean, signal?: AbortSignal) {
       dimensions: physical.dimensions,
       generation: "1",
     };
-    return describe(await advanceIndexGeneration(trx, fingerprint, physical));
+    return describe(
+      await advanceIndexGeneration(trx, fingerprint, physical, snapshot.config),
+    );
   });
 }
 export async function indexSnapshot(initialize = false, signal?: AbortSignal) {
@@ -179,11 +183,6 @@ export async function rebuildIndex(
     await requireAdmin(trx, actor, true);
     const before = describe(await lockedIndexSettings(trx, true));
     const { physical } = before;
-    if (!physical)
-      throw new DomainError(
-        "PRECONDITION_FAILED",
-        "INDEX_COLUMNS_INCONSISTENT",
-      );
     if (
       expected.epoch !== before.epoch ||
       expected.token !== before.config.token ||
@@ -196,17 +195,17 @@ export async function rebuildIndex(
         "PRECONDITION_FAILED",
         "UNSUPPORTED_EMBEDDING_TOKENIZER",
       );
-    const [major, minor] = physical.version.split(".").map(Number);
+    const metadata = physical ?? (await discoverVector(trx, n));
+    const [major, minor] = metadata.version.split(".").map(Number);
     if (n > 2000 && major === 0 && minor < 7)
       throw new DomainError("BAD_REQUEST", "HALFVEC_UNAVAILABLE");
     const kind = n > 2000 ? "halfvec" : "vector";
     for (const table of ["feedback", "comment"] as const) {
-      if (n !== physical.dimensions) {
-        await sql`drop index ${sql.id(table + "_embedding_idx")}`.execute(trx);
-        await sql`alter table ${sql.table(table)} alter column embedding type ${sql.id(physical.schema, kind)}(${sql.lit(n)}) using null`.execute(
-          trx,
-        );
-        await sql`create index ${sql.id(table + "_embedding_idx")} on ${sql.table(table)} using hnsw(embedding ${sql.id(physical.schema, kind + "_cosine_ops")})`.execute(
+      await sql`drop index if exists ${sql.id(table + "_embedding_idx")}`.execute(
+        trx,
+      );
+      if (!physical || n !== physical.dimensions) {
+        await sql`alter table ${sql.table(table)} alter column embedding type ${sql.id(metadata.schema, kind)}(${sql.lit(n)}) using null`.execute(
           trx,
         );
       }
@@ -220,7 +219,16 @@ export async function rebuildIndex(
           ]),
         )
         .execute();
+      await sql`create index ${sql.id(table + "_embedding_idx")} on ${sql.table(table)} using hnsw(embedding ${sql.id(metadata.schema, kind + "_cosine_ops")})`.execute(
+        trx,
+      );
     }
+    const verified = await physicalVector(trx);
+    if (!verified?.indexesValid || verified.dimensions !== n)
+      throw new DomainError(
+        "PRECONDITION_FAILED",
+        "INDEX_COLUMNS_INCONSISTENT",
+      );
     const fingerprint = {
       model,
       dimensions: n,
@@ -228,11 +236,12 @@ export async function rebuildIndex(
         BigInt(before.fingerprint?.generation ?? "0") + 1n
       ).toString(),
     };
-    const updated = await advanceIndexGeneration(trx, fingerprint, {
-      ...physical,
-      kind,
-      dimensions: n,
-    });
+    const updated = await advanceIndexGeneration(
+      trx,
+      fingerprint,
+      verified,
+      before.config,
+    );
     await requireAdmin(trx, actor);
     return describe(updated);
   });

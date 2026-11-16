@@ -44,7 +44,7 @@ export function FeedbackPosts() {
 
   const { searchValue, orderBy, status } = feedbackPostsState;
 
-  const isSearchActive = !!(searchValue?.length > 0);
+  const isSearchActive = !!searchValue.trim();
 
   const {
     query: {
@@ -52,10 +52,16 @@ export function FeedbackPosts() {
       fetchNextPage,
       hasNextPage,
       isFetchingNextPage,
+      isFetching,
+      refetch,
+      errorUpdatedAt,
+      isFetchNextPageError,
       isPending,
       isError,
       error,
     },
+    sessionError,
+    sessionErrorAt,
     restartSearch,
   } = useFeedbackPosts({
     enabled: true,
@@ -81,6 +87,24 @@ export function FeedbackPosts() {
     Array.isArray(posts) &&
     posts?.length === 0;
 
+  const lastPage = data?.pages.at(-1);
+  useEffect(() => {
+    if (
+      isSearchActive &&
+      lastPage?.feedbackPosts.length === 0 &&
+      hasNextPage &&
+      !isFetching &&
+      !isError
+    )
+      void fetchNextPage();
+  }, [
+    isSearchActive,
+    lastPage,
+    hasNextPage,
+    isFetching,
+    isError,
+    fetchNextPage,
+  ]);
   const { ref } = useInView({
     onChange: (inView) => {
       if (inView && hasNextPage && !isFetchingNextPage) {
@@ -147,12 +171,20 @@ export function FeedbackPosts() {
         </div>
       )}
 
-      {isPending && <FeedbackPostsLoading />}
+      {isPending && !sessionError && <FeedbackPostsLoading />}
 
       {isSearchActive && (
         <SearchState
           search={data?.pages[0]?.search}
-          error={isError ? error?.message : undefined}
+          error={sessionError ?? (isError ? error : undefined)}
+          errorAt={sessionErrorAt ?? errorUpdatedAt}
+          onRetry={
+            sessionError
+              ? restartSearch
+              : () => {
+                  void (isFetchNextPageError ? fetchNextPage() : refetch());
+                }
+          }
           onRestart={restartSearch}
         />
       )}
@@ -164,12 +196,13 @@ export function FeedbackPosts() {
 
       {isPlatformEmpty && <FeedbackPostsEmpty />}
 
-      {isSearchEmpty && data?.pages[0]?.search?.status !== "pending" && (
-        <div className="text-muted-foreground py-5 text-center text-sm font-normal">
-          Search is unavailable in this preview. Exact and semantic search
-          arrive in the search milestone.
-        </div>
-      )}
+      {isSearchEmpty &&
+        !hasNextPage &&
+        data?.pages[0]?.search?.status !== "pending" && (
+          <div className="text-muted-foreground py-5 text-center text-sm font-normal">
+            No feedback matches your search.
+          </div>
+        )}
 
       {hasNoPosts && (
         <div className="text-muted-foreground py-5 text-center text-sm font-normal">
@@ -206,10 +239,9 @@ export function FeedbackPosts() {
               </span>
             </div>
           )}
-
-          <div ref={ref} className="h-1 w-full" />
         </div>
       )}
+      {hasNextPage && !isError && <div ref={ref} className="h-1 w-full" />}
     </div>
   );
 }

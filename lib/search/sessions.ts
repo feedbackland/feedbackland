@@ -1,9 +1,10 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
-import { sql, type Selectable, type Transaction } from "kysely";
-import { db } from "../../db/db";
+import { createHash } from "node:crypto";
+import { sql, type Kysely, type Transaction } from "kysely";
+import { canonicalSearchText } from "./text";
+import { searchExpiry } from "./capability";
 import { lock, locks } from "../../db/locks";
-import type { DB, SearchSession } from "../../db/schema";
+import type { DB } from "../../db/schema";
 import { contentTransaction } from "../../db/content-transaction";
 import { DomainError } from "../domain-error";
 import { validateDatabaseText } from "../utils-server";
@@ -40,32 +41,66 @@ async function admin(trx: Transaction<DB>, request: Request, hold = false) {
   }
 }
 function page(
-  row: Selectable<SearchSession>,
+  row: {
+    status: string;
+    mode: string;
+    truncated: boolean;
+    total: number;
+    entries: StoredResult[];
+  },
   capability: string,
   ordinal: number,
-  limit: number,
 ) {
   if (row.status === "failed") throw restart();
-  const results = row.results as StoredResult[];
-  if (ordinal > results.length) throw restart();
-  const next = Math.min(results.length, ordinal + limit);
+  if (ordinal > row.total) throw restart();
+  const next = ordinal + row.entries.length;
   return {
-    entries: results.slice(ordinal, next),
+    entries: row.entries,
     nextCursor:
-      next < results.length ? { capability, nextOrdinal: next } : undefined,
+      next < row.total ? { capability, nextOrdinal: next } : undefined,
     search: {
       capability,
       mode: row.mode as "exact" | "semantic",
       status: row.status as "ready" | "pending",
       truncated: row.truncated,
-      total: results.length,
+      total: row.total,
     },
   };
 }
+export function readStoredPage(
+  connection: Kysely<DB>,
+  id: string,
+  filters: string,
+  ordinal: number,
+  limit: number,
+) {
+  return connection
+    .selectFrom("search_session")
+    .select([
+      "status",
+      "mode",
+      "truncated",
+      "epoch",
+      "queryHash",
+      "surface",
+      "userId",
+    ])
+    .select([
+      sql<number>`jsonb_array_length(results)`.as("total"),
+      sql<
+        StoredResult[]
+      >`jsonb_path_query_array(results, ${`$[${ordinal} to ${ordinal + limit - 1}]`}::jsonpath)`.as(
+        "entries",
+      ),
+      sql<boolean>`filters=${filters}::jsonb and "expiresAt">clock_timestamp()`.as(
+        "compatible",
+      ),
+    ])
+    .where("capabilityHash", "=", id)
+    .executeTakeFirst();
+}
 export async function searchPage(request: Request) {
-  const text = Array.from(request.text.trim().normalize("NFC"))
-    .slice(0, 200)
-    .join("");
+  const text = canonicalSearchText(request.text);
   validateDatabaseText(text);
   if (
     !text ||
@@ -77,12 +112,10 @@ export async function searchPage(request: Request) {
   const ordinal = request.cursor?.nextOrdinal ?? 0;
   if (!Number.isInteger(ordinal) || ordinal < 0 || ordinal > 1000)
     throw restart();
-  const capability =
-    request.cursor?.capability ??
-    request.capability ??
-    randomBytes(32).toString("hex");
+  const capability = request.cursor?.capability ?? request.capability ?? "";
   if (
-    !/^[0-9a-f]{64}$/.test(capability) ||
+    !capability ||
+    capability.length > 144 ||
     (request.cursor && request.capability && request.capability !== capability)
   )
     throw restart();
@@ -106,16 +139,13 @@ export async function searchPage(request: Request) {
     throw new DomainError("BAD_REQUEST", "INVALID_SEARCH");
   async function existing(trx: Transaction<DB>) {
     await admin(trx, request);
-    const stored = await trx
-      .selectFrom("search_session")
-      .selectAll()
-      .select(
-        sql<boolean>`filters=${filters}::jsonb and "expiresAt">clock_timestamp()`.as(
-          "compatible",
-        ),
-      )
-      .where("capabilityHash", "=", id)
-      .executeTakeFirst();
+    const stored = await readStoredPage(
+      trx,
+      id,
+      filters,
+      ordinal,
+      request.limit,
+    );
     if (!stored) return;
     if (
       !stored.compatible ||
@@ -129,17 +159,35 @@ export async function searchPage(request: Request) {
       (!stored.epoch || !(await matchesIndexGeneration(trx, stored.epoch)))
     )
       throw restart();
-    return page(stored, capability, ordinal, request.limit);
+    return page(stored, capability, ordinal);
   }
-  const initial = await contentTransaction(request.signal, existing);
+  const initial = await contentTransaction(request.signal, async (trx) => {
+    const settings = await trx
+      .selectFrom("settings")
+      .select("setupCompletedAt")
+      .where("id", "=", 1)
+      .executeTakeFirstOrThrow();
+    if (!settings.setupCompletedAt)
+      throw new DomainError("FORBIDDEN", "SETUP_REQUIRED");
+    return existing(trx);
+  });
   if (initial) return initial;
-  if (request.cursor) throw restart();
+  const expiresAt = searchExpiry(capability);
+  if (request.cursor || !expiresAt) throw restart();
   if (request.ip && !(await enforceSearchLimit(request.ip)).allowed)
     throw new DomainError("TOO_MANY_REQUESTS", "RATE_LIMITED", 60);
   const claimed = await contentTransaction(request.signal, async (trx) => {
     await lock(trx, locks.search);
     const found = await existing(trx);
     if (found) return found;
+    const {
+      rows: [clock],
+    } = await sql<{
+      live: boolean;
+    }>`select ${expiresAt}::timestamptz > clock_timestamp() as live`.execute(
+      trx,
+    );
+    if (!clock.live) throw restart();
     await trx
       .deleteFrom("search_session")
       .where("expiresAt", "<=", sql<Date>`clock_timestamp()`)
@@ -154,6 +202,7 @@ export async function searchPage(request: Request) {
       .insertInto("search_session")
       .values({
         capabilityHash: id,
+        expiresAt,
         queryHash,
         filters: scope.filters,
         surface: scope.surface,
@@ -189,12 +238,9 @@ export async function searchPage(request: Request) {
       if (request.signal?.aborted) throw error;
     }
     request.signal?.throwIfAborted();
-    return await db
-      .transaction()
-      .setIsolationLevel("repeatable read")
-      .execute(async (trx) => {
-        await sql`set local statement_timeout='5s'`.execute(trx);
-        await sql`set local lock_timeout='5s'`.execute(trx);
+    return await contentTransaction(
+      request.signal,
+      async (trx) => {
         await admin(trx, request, true);
         if (semantic) await guardIndex(trx, semantic.index);
         const { results, truncated } = await materialize(
@@ -226,20 +272,31 @@ export async function searchPage(request: Request) {
             results: sql`${JSON.stringify(results)}::jsonb`,
             truncated,
           })
-          .returningAll()
+          .returning(["mode", "status", "truncated"])
           .executeTakeFirst();
         if (!row) throw restart();
         await admin(trx, request);
-        return page(row, capability, 0, request.limit);
-      });
+        return page(
+          {
+            ...row,
+            total: results.length,
+            entries: results.slice(0, request.limit),
+          },
+          capability,
+          0,
+        );
+      },
+      "repeatable read",
+    );
   } catch (error) {
-    await db
-      .updateTable("search_session")
-      .set({ status: "failed" })
-      .where("capabilityHash", "=", id)
-      .where("status", "=", "pending")
-      .execute()
-      .catch(() => {});
+    await contentTransaction(AbortSignal.timeout(250), (trx) =>
+      trx
+        .updateTable("search_session")
+        .set({ status: "failed" })
+        .where("capabilityHash", "=", id)
+        .where("status", "=", "pending")
+        .execute(),
+    ).catch(() => {});
     if (request.signal?.aborted)
       throw new DomainError("CLIENT_CLOSED_REQUEST", "REQUEST_CANCELLED");
     if (error instanceof DomainError) throw error;

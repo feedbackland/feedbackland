@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { searchTicket as cap } from "./search-ticket";
 import { setTimeout as delay } from "node:timers/promises";
 import { sql } from "kysely";
 import { db } from "../../db/db";
@@ -47,7 +47,7 @@ import {
 } from "../mock-llm";
 import type { Actor } from "../../lib/auth/authorization";
 type Mock = Awaited<ReturnType<typeof mockOpenRouter>>;
-const cap = () => randomBytes(32).toString("hex");
+
 const filters = { orderBy: "newest" as const, status: null };
 const query = {
   surface: "board" as const,
@@ -139,6 +139,7 @@ export async function durableSearchContracts(mock: Mock, admin: Actor) {
     parentCommentId: null,
     content: "Immediate reply",
   });
+  await Promise.all(runtimeState().activeEmbeddingWrites ?? []);
   await updateFeedbackPostQuery({
     ...admin,
     postId: postWrite.id,
@@ -152,6 +153,7 @@ export async function durableSearchContracts(mock: Mock, admin: Actor) {
     content: "Edited reply",
     expectedRevision: commentWrite.revision,
   });
+  await Promise.all(runtimeState().activeEmbeddingWrites ?? []);
   assert.equal(await usage(), starting + 4);
   for (const [table, id] of [
     ["feedback", postWrite.id],
@@ -591,6 +593,7 @@ export async function durableSearchContracts(mock: Mock, admin: Actor) {
       orderBy: "newest",
       status: null,
       searchValue: "Search needle",
+      capability: cap(),
       limit: 20,
     });
     assert.equal(ordinary.search?.mode, "exact");

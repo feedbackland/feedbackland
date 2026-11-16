@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { feedbackPostsStateAtom } from "@/lib/atoms";
 
 export const FeedbackPostsSearchInput = ({
@@ -23,8 +23,8 @@ export const FeedbackPostsSearchInput = ({
 }) => {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const setFeedbackPostsState = useSetAtom(feedbackPostsStateAtom);
-  const [inputValue, setInputValue] = useState("");
+  const [state, setFeedbackPostsState] = useAtom(feedbackPostsStateAtom);
+  const [inputValue, setInputValue] = useState(state.searchValue);
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

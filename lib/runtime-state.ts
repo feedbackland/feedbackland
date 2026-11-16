@@ -8,6 +8,7 @@ export type VectorMetadata = {
   version: string;
   dimensions: number;
   kind: "vector" | "halfvec";
+  indexesValid?: boolean;
 };
 export type RuntimeState = {
   aiConfigGeneration?: number;
@@ -51,6 +52,7 @@ export type RuntimeState = {
     checked?: string;
     pending?: Promise<void>;
   };
+  activeEmbeddingWrites?: Set<Promise<void>>;
   aiMaintenance?: { stop: () => Promise<void> };
   sweepTimer?: ReturnType<typeof setTimeout>;
 };

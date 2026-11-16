@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod/v4";
+import { requireSearchBody } from "@/lib/search/transport";
 import { adminProcedure } from "@/lib/trpc";
 import { getActivityFeedQuery } from "@/queries/get-activity-feed";
 import { DomainError } from "@/lib/domain-error";
@@ -29,8 +30,9 @@ export const getActivityFeed = adminProcedure
   .query(
     async ({
       input: { cursor, ...input },
-      ctx: { userId, sessionId, ip, signal },
+      ctx: { userId, sessionId, ip, signal, method },
     }) => {
+      requireSearchBody(method, { ...input, cursor });
       if (input.searchValue && typeof cursor === "number")
         throw new DomainError("CONFLICT", "SEARCH_RESTART_REQUIRED");
       const { nextSearchCursor, ...result } = await getActivityFeedQuery({

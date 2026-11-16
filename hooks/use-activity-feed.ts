@@ -31,10 +31,10 @@ export function useActivityFeed({
   unscreenedOnly?: boolean;
 }) {
   const trpc = useTRPC();
-  const session = useSearchSession(searchValue, [
+  const session = useSearchSession("activity", searchValue, [
     orderBy,
     status,
-    categories,
+    [...new Set(categories ?? [])].sort(),
     excludeFeedback,
     excludeComments,
     unseenOnly,
@@ -48,7 +48,7 @@ export function useActivityFeed({
       categories,
       excludeFeedback,
       excludeComments,
-      searchValue,
+      searchValue: session.text,
       unseenOnly,
       unscreenedOnly,
       capability: session.capability,
@@ -57,10 +57,10 @@ export function useActivityFeed({
       enabled: enabled && (!searchValue.trim() || !!session.capability),
       ...(searchValue.trim()
         ? {
-            staleTime: "static" as const,
+            staleTime: Infinity,
             retry: false,
             refetchOnWindowFocus: false,
-            refetchOnMount: false,
+            refetchOnMount: true,
             refetchOnReconnect: false,
           }
         : {}),
@@ -74,5 +74,11 @@ export function useActivityFeed({
   );
   const queryKey = trpcQuery.queryKey;
   const query = useInfiniteQuery(trpcQuery);
-  return { queryKey, query, restartSearch: session.restart };
+  return {
+    queryKey,
+    query,
+    sessionError: session.error,
+    sessionErrorAt: session.errorAt,
+    restartSearch: session.restart,
+  };
 }

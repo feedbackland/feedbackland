@@ -6,11 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 const descriptions: Record<string, string> = {
   off: "Exact text search is available.",
+  "key-unusable":
+    "The provider key needs attention. Exact search is available.",
+  CONFIGURATION_DIVERGED:
+    "This replica’s AI configuration differs from the active configuration. Align the replica settings.",
   verified: "Semantic search is available.",
   unverified: "Waiting for the embedding provider.",
   "rebuild-required": "Rebuild the index to use the configured model or width.",
   "column-mismatch":
-    "The two search columns have inconsistent types or dimensions.",
+    "The search columns disagree. Choose the intended dimensions and confirm a rebuild to repair both columns and indexes.",
   "provider-width-mismatch": "The provider returned a different vector width.",
   "profile-context-length":
     "The provider rejected an input inside the tokenizer limit.",
@@ -109,6 +113,7 @@ export function SearchIndex() {
                 !Number.isInteger(n) ||
                 n < 1 ||
                 n > 4000 ||
+                data.state === "CONFIGURATION_DIVERGED" ||
                 data.state === "UNSUPPORTED_EMBEDDING_TOKENIZER" ||
                 data.model === "none"
               }

@@ -13,10 +13,11 @@ import {
   beginCheck,
   completeCreditWait,
   pendingCreditCheck,
+  saveCheck,
   unhealthyCapabilities,
 } from "../llm/settings-store";
 import { callChat, callEmbeddings, readProviderMetadata } from "../llm/client";
-import { AiError } from "../llm/errors";
+import { AiError, safeError } from "../llm/errors";
 import { deadline } from "../llm/deadline";
 
 export async function maintenanceDiagnostics(
@@ -39,6 +40,7 @@ export async function maintenanceDiagnostics(
       config,
       undefined,
       deadline(config.options.timeoutMs, signal),
+      lease,
     );
     const key = await readProviderMetadata(
       "key",
@@ -70,20 +72,81 @@ export async function maintenanceDiagnostics(
     return;
   }
   const unhealthy = await unhealthyCapabilities(config, signal);
-  for (const { capability } of unhealthy) {
-    if (capability === "chat")
-      await callChat(
-        "check",
-        { system: "Reply with OK.", text: "Connection check" },
-        { lease, signal },
-      );
-    else if (capability === "embeddings" && !index.reason && index.fingerprint)
-      await callEmbeddings("probe", ["Search health check"], {
-        lease,
-        signal,
-        content: { config, wall: deadline(config.options.timeoutMs, signal) },
-      });
+  if (!unhealthy.length) return;
+  const check = await beginCheck(
+    config,
+    undefined,
+    deadline(config.options.timeoutMs, signal),
+    lease,
+  );
+  const result = {
+    key: config.check?.key ?? "unknown",
+    chat: config.check?.chat ?? "untested",
+    search: config.check?.search ?? "untested",
+  };
+  let canTest = false;
+  try {
+    const key = await readProviderMetadata(
+      "key",
+      undefined,
+      signal,
+      check,
+      lease,
+    );
+    if (Array.isArray(key)) throw new AiError("invalid-response");
+    result.key = key.management
+      ? "management"
+      : key.expired
+        ? "expired"
+        : "valid";
+    canTest = result.key === "valid" && key.remaining !== 0;
+  } catch (error) {
+    if (safeError(error, signal).reason === "provider-auth")
+      result.key = "invalid";
+    else throw error;
   }
+  for (const { capability } of unhealthy) {
+    signal.throwIfAborted();
+    const field = capability === "chat" ? "chat" : "search";
+    if (
+      !canTest ||
+      (field === "search" && (index.reason || !index.fingerprint))
+    ) {
+      result[field] = "untested";
+      continue;
+    }
+    try {
+      if (field === "chat") {
+        await callChat(
+          "check",
+          { system: "Reply with OK.", text: "Connection check" },
+          { check, lease, signal },
+        );
+      } else {
+        await callEmbeddings("check", ["Search health check"], {
+          check,
+          lease,
+          signal,
+          content: { config, wall: deadline(config.options.timeoutMs, signal) },
+        });
+      }
+      result[field] = "passed";
+    } catch (error) {
+      signal.throwIfAborted();
+      const { reason } = safeError(error, signal);
+      if (reason === "RESERVATION_EXPIRED" || reason === "STALE_CONFIGURATION")
+        throw error;
+      result[field] = [
+        "AI_PAUSED",
+        "AI_BUSY",
+        "limiter-error",
+        "in-flight-budget",
+      ].includes(reason)
+        ? "untested"
+        : "failed";
+    }
+  }
+  await saveCheck(check, result, owner);
 }
 export function startMaintenance() {
   const state = runtimeState();
@@ -101,6 +164,11 @@ export function startMaintenance() {
   async function local() {
     try {
       const index = await indexSnapshot(true, stop.signal);
+      if (owner && (index.config.diverged || !index.config.valid)) {
+        const invalid = owner;
+        owner = null;
+        await invalid.release();
+      }
       // Each replica probes independently. A slow request does not delay epoch polling or leadership.
       void probeIndex(index, stop.signal).catch(() => {});
     } catch (error) {
@@ -116,9 +184,18 @@ export function startMaintenance() {
         await owner.release();
         owner = null;
       }
+      const index = await indexSnapshot(false, stop.signal);
+      if (index.config.diverged || !index.config.valid) {
+        if (owner) {
+          const invalid = owner;
+          owner = null;
+          await invalid.release();
+        }
+        return;
+      }
       owner ??= await acquireLease("ai-maintenance");
       if (!owner || stop.signal.aborted) return;
-      const index = await indexSnapshot(false, owner.signal);
+      const currentOwner = owner;
       if (token !== index.config.token) {
         token = index.config.token;
         diagnosticsDue = 0;
@@ -128,7 +205,7 @@ export function startMaintenance() {
       if (performance.now() >= diagnosticsDue) {
         diagnosticsDue = performance.now() + 300000;
         try {
-          await maintenanceDiagnostics(index, owner);
+          await maintenanceDiagnostics(index, currentOwner);
         } catch (error) {
           log(
             "ai.maintenance-diagnostic",
@@ -139,7 +216,7 @@ export function startMaintenance() {
       }
       if (usableIndex(index) && performance.now() >= batchDue) {
         try {
-          await backfillBatch(index, owner.lease, owner.signal);
+          await backfillBatch(index, currentOwner.lease, currentOwner.signal);
           failures = 0;
         } catch (error) {
           batchDue = performance.now() + retryDelay(++failures);

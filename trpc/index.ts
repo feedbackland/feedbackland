@@ -40,7 +40,9 @@ import { retryOidcDiscovery } from "./retry-oidc-discovery";
 import { getAuthStatus } from "./get-auth-status";
 
 import { getImageUsage, reclaimPendingImages } from "./reclaim-pending-images";
+import { issueSearchTicket } from "./issue-search-capability";
 export const appRouter = router({
+  issueSearchTicket,
   getSearchIndex,
   rebuildSearchIndex,
   getImageUsage,

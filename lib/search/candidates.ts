@@ -95,7 +95,7 @@ export function semanticCandidates(
       where ${conditions(kind, scope)} and i.embedding is not null order by ${distance} limit ${limit})`;
   });
   if (!queries.length) return null;
-  return sql<Candidate>`select * from (${sql.join(queries, sql` union all `)}) candidates where distance<${semantic.maxDistance}
+  return sql<Candidate>`select * from (${sql.join(queries, sql` union all `)}) candidates where distance<=${semantic.maxDistance}
     order by distance,kind,id limit ${limit}`;
 }
 export async function materialize(
@@ -124,8 +124,8 @@ export async function materialize(
     const table = sql.table(kind === "post" ? "feedback" : "comment");
     const match =
       kind === "post"
-        ? sql`(i.title ilike ${pattern} or i."plainText" ilike ${pattern})`
-        : sql`i."plainText" ilike ${pattern}`;
+        ? sql`(normalize(i.title, NFC) ilike ${pattern} or normalize(i."plainText", NFC) ilike ${pattern})`
+        : sql`normalize(i."plainText", NFC) ilike ${pattern}`;
     let sortKey = sql`i."createdAt"`;
     if (!semantic && scope.filters.orderBy === "upvotes")
       sortKey = sql`i.upvotes`;

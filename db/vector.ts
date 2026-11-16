@@ -25,7 +25,14 @@ export async function physicalVector(
 ): Promise<VectorMetadata | null> {
   const { rows } =
     await sql<VectorMetadata>`select a.atttypmod as dimensions,t.typname as kind,n.nspname as schema,e.extversion as version
-    from pg_attribute a join pg_type t on a.atttypid=t.oid join pg_namespace n on n.oid=t.typnamespace
+     ,exists(select 1 from pg_index ix
+        join pg_class idx on idx.oid=ix.indexrelid join pg_am am on am.oid=idx.relam
+        join pg_opclass op on op.oid=ix.indclass[0]
+        where ix.indrelid=a.attrelid and ix.indisvalid and ix.indisready and ix.indnkeyatts=1
+          and ix.indnatts=1 and ix.indkey[0]=a.attnum and ix.indpred is null
+          and idx.relname=tbl.relname||'_embedding_idx' and am.amname='hnsw'
+          and op.opcnamespace=n.oid and op.opcname=t.typname||'_cosine_ops') as "indexesValid"
+    from pg_attribute a join pg_class tbl on tbl.oid=a.attrelid join pg_type t on a.atttypid=t.oid join pg_namespace n on n.oid=t.typnamespace
     join pg_extension e on e.extnamespace=n.oid and e.extname='vector'
     where a.attrelid in (to_regclass('feedback'),to_regclass('comment')) and a.attname='embedding' and not a.attisdropped`.execute(
       connection,
@@ -42,7 +49,7 @@ export async function physicalVector(
         row.dimensions === first.dimensions &&
         row.schema === first.schema,
     )
-    ? first
+    ? { ...first, indexesValid: rows.every((row) => row.indexesValid) }
     : null;
 }
 export async function discoverVector(

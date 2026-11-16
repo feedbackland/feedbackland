@@ -7,6 +7,7 @@ import {
   rebuildIndex,
 } from "@/lib/llm/search-index";
 import { probeInfo } from "@/lib/llm/embeddings";
+import { usableCheckedKey } from "@/lib/llm/settings-store";
 import { getConfig } from "@/lib/config";
 import { dailyShare } from "@/lib/llm/usage";
 export const getSearchIndex = adminProcedure.query(async ({ ctx }) => {
@@ -24,7 +25,11 @@ export const getSearchIndex = adminProcedure.query(async ({ ctx }) => {
     dimensions: index.physical?.dimensions ?? null,
     requested: env.explicitDimensions ? env.dimensions : null,
     observed: probe?.actual ?? null,
-    state: index.reason ?? probe?.reason ?? "unverified",
+    state:
+      index.reason ??
+      (!usableCheckedKey(index.config)
+        ? "key-unusable"
+        : (probe?.reason ?? "unverified")),
     dailyBudget: dailyShare(index.config, "backfill"),
     generation: index.fingerprint?.generation ?? null,
   };

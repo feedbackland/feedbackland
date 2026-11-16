@@ -1,3 +1,4 @@
+import { searchTicket } from "./search-ticket";
 import assert from "node:assert/strict";
 import { db } from "../../db/db";
 import { getFeedbackPostsQuery } from "../../queries/get-feedback-posts";
@@ -124,6 +125,7 @@ export async function readSurfaces(actor: Actor) {
       orderBy,
       status: null,
       searchValue: "Cursor precision",
+      capability: searchTicket(),
     });
     assert.equal(search.search?.mode, "exact");
     const recent = [newer.id, older.id],
@@ -143,6 +145,7 @@ export async function readSurfaces(actor: Actor) {
       excludeComments: false,
       unseenOnly: false,
       searchValue: "Cursor precision",
+      capability: searchTicket(),
     });
     assert.equal(activity.search?.mode, "exact");
     // The board counts status entries as comments. Activity excludes them when ranking posts.

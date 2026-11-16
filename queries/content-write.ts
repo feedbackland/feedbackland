@@ -13,7 +13,7 @@ import {
 } from "../lib/llm/content";
 import { lockContentConfiguration } from "../lib/llm/settings-store";
 import { revision } from "../lib/revision";
-import { embedCommitted, postEmbeddingText } from "../lib/llm/embeddings";
+import { scheduleEmbedding, postEmbeddingText } from "../lib/llm/embeddings";
 import { validateReplyParent } from "./reply-parent";
 
 type Target =
@@ -121,17 +121,14 @@ export async function commitContent<
     return row;
   });
   if (typeof committed.plainText === "string")
-    await embedCommitted(
-      {
-        kind: ownerKind,
-        id: committed.id,
-        revision: committed.revision,
-        text:
-          ownerKind === "post"
-            ? postEmbeddingText(committed.title ?? "", committed.plainText)
-            : committed.plainText,
-      },
-      input.signal,
-    );
+    scheduleEmbedding({
+      kind: ownerKind,
+      id: committed.id,
+      revision: committed.revision,
+      text:
+        ownerKind === "post"
+          ? postEmbeddingText(committed.title ?? "", committed.plainText)
+          : committed.plainText,
+    });
   return committed;
 }

@@ -6,8 +6,10 @@ async function main() {
   const releaseVision = Promise.withResolvers<void>();
   process.on("SIGUSR2", releaseVision.resolve);
   let visionCalls = 0;
-  let embeddingsOffline = false;
+  let coldOutage = process.env.P09_COLD_OUTAGE === "1";
+  let embeddingsOffline = coldOutage;
   process.on("SIGHUP", () => {
+    coldOutage = false;
     embeddingsOffline = !embeddingsOffline;
     console.log("Embedding fixture offline " + embeddingsOffline);
   });
@@ -16,6 +18,7 @@ async function main() {
       console.log("Embedding fixture width " + Number(request.body.dimensions));
       if (embeddingsOffline) return json(request.response, { error: {} }, 503);
     }
+    if (coldOutage) return json(request.response, { error: {} }, 503);
     if (request.url !== "/api/v1/chat/completions") return defaults(request);
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);

@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod/v4";
+import { requireSearchBody } from "@/lib/search/transport";
 import { publicProcedure } from "@/lib/trpc";
 import {
   feedbackOrderBySchema,
@@ -20,6 +21,7 @@ export const getFeedbackPosts = publicProcedure
       capability: searchCapabilitySchema.optional(),
     }),
   )
-  .query(({ input, ctx: { userId, ip, signal } }) =>
-    getFeedbackPostsQuery({ ...input, userId, ip, signal }),
-  );
+  .query(({ input, ctx: { userId, ip, signal, method } }) => {
+    requireSearchBody(method, input);
+    return getFeedbackPostsQuery({ ...input, userId, ip, signal });
+  });

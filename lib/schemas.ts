@@ -19,7 +19,9 @@ export const activityFeedTypeSchema = z.enum(["post", "comment"]).nullable();
 
 export const userRoleSchema = z.enum(["user", "admin"]);
 
-export const searchCapabilitySchema = z.string().regex(/^[0-9a-f]{64}$/);
+export const searchCapabilitySchema = z
+  .string()
+  .regex(/^[0-9a-f]{64}(?:\.\d{13}\.[0-9a-f]{64})?$/);
 export const searchCursorSchema = z.object({
   capability: searchCapabilitySchema,
   nextOrdinal: z.number().int().min(0).max(1000),

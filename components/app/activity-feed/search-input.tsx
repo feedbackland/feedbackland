@@ -13,14 +13,16 @@ import { useDebounce } from "react-use";
 
 export const ActivityFeedSearchInput = ({
   onDebouncedChange,
+  value,
   delay = 500,
   className,
 }: {
   onDebouncedChange: (value: string) => void;
+  value: string;
   delay?: number;
   className?: React.ComponentProps<"div">["className"];
 }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState(value);
 
   useDebounce(
     () => {

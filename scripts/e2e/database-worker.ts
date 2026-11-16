@@ -243,14 +243,14 @@ async function main() {
   console.error("database worker: membership/replies passed");
   await revisions(actor);
   console.error("database worker: revisions passed");
-  await readSurfaces(actor);
-  console.error("database worker: read surfaces passed");
   await db
     .updateTable("settings")
     .set({ setupCompletedAt: new Date() })
     .where("id", "=", 1)
     .execute();
   try {
+    await readSurfaces(actor);
+    console.error("database worker: read surfaces passed");
     await rpcContracts(actor);
   } finally {
     await db

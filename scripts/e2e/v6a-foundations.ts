@@ -5,6 +5,7 @@ import { command, eventually } from "./run";
 import { firstKey } from "../mock-llm";
 import { productionVision } from "./content-vision-http";
 import { replicaSearch } from "./replica-search";
+import { coldSearchRecovery } from "./search-browser-regressions";
 import { contentBrowser } from "./content-ai-browser";
 
 const pgImage =
@@ -14,6 +15,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
   const project = runId + "-ai",
     pg = project + "-pg",
     worker = project + "-worker",
+    legacy = project + "-legacy",
     certs = project + "-certs",
     provider = project + "-provider",
     web = project + "-web",
@@ -182,6 +184,48 @@ export async function aiFoundations(runId: string, productionImage: string) {
       "--mount",
       "type=bind,src=" + resolve(p) + ",dst=/app/" + p + ",readonly",
     ]);
+    await docker(
+      "run",
+      "-d",
+      "--name",
+      legacy,
+      "--network",
+      project,
+      "--network-alias",
+      "legacy-db",
+      "--tmpfs",
+      "/var/lib/postgresql/data",
+      "-e",
+      "POSTGRES_PASSWORD=" + password,
+      "pgvector/pgvector@sha256:a2e233e1a2453d70838f7b4e79bc9f80293e06683bd555a6182b5e8846bb3893",
+    );
+    await eventually(
+      () => docker("exec", legacy, "pg_isready", "-h", "127.0.0.1"),
+      (s) => s.includes("accepting connections"),
+    );
+    const legacyResult = await docker(
+      "run",
+      "--rm",
+      "--name",
+      worker,
+      "--network",
+      project,
+      ...mounts,
+      "-e",
+      "DATABASE_URL=postgres://postgres:" +
+        password +
+        "@legacy-db:5432/postgres",
+      "-e",
+      "AI_EMBEDDING_DIMENSIONS=3",
+      image,
+      "node",
+      "--conditions=react-server",
+      "--import",
+      "tsx",
+      "scripts/e2e/search-legacy.ts",
+    );
+    assert(legacyResult.includes("Legacy pgvector 0.7.4 verified"));
+    await docker("rm", "-fv", legacy);
     let output: string;
     try {
       output = await docker(
@@ -247,6 +291,50 @@ export async function aiFoundations(runId: string, productionImage: string) {
       .split(/\r?\n/)
       .find((line) => line.startsWith("P07_OUTCOME="));
     assert(summary, "Missing AI contracts result");
+    await docker(
+      "exec",
+      pg,
+      "createdb",
+      "-U",
+      "postgres",
+      "board_search_regressions",
+    );
+    const regressions = await docker(
+      "run",
+      "--rm",
+      "--name",
+      worker,
+      "--network",
+      project,
+      "--add-host",
+      "openrouter.ai:127.0.0.1",
+      "-v",
+      certs + ":/certs:ro",
+      ...mounts,
+      "-e",
+      "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
+      "-e",
+      "NODE_ENV=test",
+      "-e",
+      "DATABASE_URL=postgres://postgres:" +
+        password +
+        "@database:5432/board_search_regressions",
+      "-e",
+      "OPENROUTER_API_KEY=" + firstKey,
+      "-e",
+      "AI_EMBEDDING_DIMENSIONS=768",
+      "-e",
+      "AI_TIMEOUT_MS=120000",
+      "-e",
+      "DATABASE_POOL_MAX=2",
+      image,
+      "node",
+      "--conditions=react-server",
+      "--import",
+      "tsx",
+      "scripts/e2e/search-regressions.ts",
+    );
+    assert(regressions.includes("Search regressions passed"));
     await docker("exec", pg, "createdb", "-U", "postgres", "board_content");
     await docker(
       "run",
@@ -257,6 +345,8 @@ export async function aiFoundations(runId: string, productionImage: string) {
       project,
       "--network-alias",
       "openrouter.ai",
+      "-e",
+      "P09_COLD_OUTAGE=1",
       "-v",
       certs + ":/certs:ro",
       ...mounts,
@@ -332,7 +422,10 @@ export async function aiFoundations(runId: string, productionImage: string) {
       () => fetch(base + "/api/health").then((r) => r.status),
       (s) => s === 200,
     );
-    const browserResult = await contentBrowser(base, setup);
+    const bootReadyAt = Date.now();
+    const browserResult = await contentBrowser(base, setup, (page) =>
+      coldSearchRecovery(page, base, project, docker, bootReadyAt),
+    );
     const vision = await productionVision(base, project, docker);
     await startWeb(peer, "board-peer");
     const peerPort = (await docker("port", relay, "3001/tcp")).match(
@@ -354,6 +447,8 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     return {
       browser: browserResult,
+      legacyPgvector: "0.7.4 HNSW on both tables, ordered 400 and exact tail",
+      searchRegressions: "passed",
       searchReplicas,
       productionVision: vision,
       ...JSON.parse(summary.slice("P07_OUTCOME=".length)),
@@ -361,7 +456,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
     };
   } finally {
     await Promise.all(
-      [worker, relay, peer, web, provider, pg].map((n) =>
+      [worker, legacy, relay, peer, web, provider, pg].map((n) =>
         docker("rm", "-fv", n).catch(() => {}),
       ),
     );
