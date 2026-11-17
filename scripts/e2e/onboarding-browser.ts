@@ -223,6 +223,7 @@ export async function onboardingBrowser(f: Fixture) {
             },
             (x) => x.match,
             5600,
+            50,
           );
           return { elapsed: performance.now() - start, wire: response.wire };
         }),
