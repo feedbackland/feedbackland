@@ -264,21 +264,50 @@ export async function onboardingBrowser(f: Fixture) {
     await on(lanPage);
     await on(page);
     await popup.close();
-    step = "open and closed page credit checks";
+    step = "foreground credit polling";
     await lanPage.close();
     await peer.close();
+    const visiblePoll = () =>
+      page.waitForResponse(
+        (response) =>
+          response.status() === 200 &&
+          response.url().includes("changeAiKey") &&
+          !!response.request().postData()?.includes('"action":"credit"'),
+        { timeout: 65000 },
+      );
     await f.setCredit(false);
     await paste(page, fixtureKey);
     await heading(page, "AI: add credit").waitFor();
-    await f.setCredit(true);
+    // Observe a regular page check while credit is still absent. This prevents
+    // the leader's immediate check on a new configuration from passing this leg.
+    await visiblePoll();
+    await Promise.all([visiblePoll(), f.setCredit(true)]);
     await on(page);
+    step = "closed-page scheduled credit check";
+    const failedChecks = async () =>
+      Number(
+        await f.sql(
+          "select coalesce(sum(errors),0) from llm_usage where feature='check'",
+        ),
+      );
+    const baseline = await failedChecks();
     await f.setCredit(false);
     await paste(page, fixtureKey);
     await heading(page, "AI: add credit").waitFor();
     await page.close();
+    // The initial live check and the leader must each observe the unpaid
+    // account. Only the next scheduled leadership tick can enable it now.
+    await eventually(failedChecks, (n) => n >= baseline + 2, 320000);
+    assert.equal(
+      await f.sql("select enabled is null from ai_settings where id=1"),
+      "t",
+    );
     await f.setCredit(true);
     await eventually(
-      () => f.sql("select enabled from ai_settings where id=1"),
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return f.sql("select enabled from ai_settings where id=1");
+      },
       (r) => r === "t",
       320000,
     );
