@@ -94,7 +94,8 @@ export const getAiNoticeCounts = adminProcedure.query(({ ctx }) =>
     const state = await adminAiState(ctx, ctx.signal);
     return noticeCounts(
       ctx,
-      state.failures[0]?.failingSince ?? null,
+      state.failures.find((f) => f.capability === "chat")?.failingSince ??
+        (state.check?.chat === "failed" ? new Date(state.check.at) : null),
       ctx.signal,
     );
   }),

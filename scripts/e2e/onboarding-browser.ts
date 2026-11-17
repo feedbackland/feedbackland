@@ -178,6 +178,44 @@ export async function onboardingBrowser(f: Fixture) {
       "Keep this visitor draft",
     );
     await mounted(drawer);
+    step = "capability-specific failure and recovery";
+    const activity = await context.newPage();
+    await activity.goto(primary + "/admin/activity");
+    await f.sql(
+      `insert into ai_health("configToken",capability,"failingSince","lastFailureAt","lastReason") select "effectiveConfigToken",'embeddings',clock_timestamp()-interval '16 minutes',clock_timestamp(),'provider-rate' from ai_settings where id=1 on conflict("configToken",capability) do update set "failingSince"=excluded."failingSince","lastFailureAt"=excluded."lastFailureAt","lastReason"=excluded."lastReason"`,
+    );
+    const warning = link(peer, "AI needs attention");
+    await warning.waitFor({ timeout: 18000 });
+    assert(
+      await warning.evaluate((el) => el.classList.contains("text-destructive")),
+    );
+    await activity
+      .getByText(/Search has used exact words since/)
+      .waitFor({ timeout: 18000 });
+    assert(await improve.isVisible());
+    await mounted(drawer);
+    await f.sql(
+      `insert into ai_health("configToken",capability,"failingSince","lastFailureAt","lastReason") select "effectiveConfigToken",'chat',clock_timestamp()-interval '17 minutes',clock_timestamp(),'provider-rate' from ai_settings where id=1 on conflict("configToken",capability) do update set "failingSince"=excluded."failingSince","lastFailureAt"=excluded."lastFailureAt","lastReason"=excluded."lastReason"`,
+    );
+    await improve.waitFor({ state: "hidden", timeout: 18000 });
+    await activity
+      .getByText(/OpenRouter chat has been failing since/)
+      .waitFor({ timeout: 18000 });
+    await activity
+      .getByText("0 items were published without full screening.")
+      .waitFor();
+    await button(activity, "Not now").click();
+    await heading(activity, "OpenRouter needs attention").waitFor({
+      state: "hidden",
+    });
+    await f.sql(
+      `update ai_health set "failingSince"=null,"lastReason"=null,"lastSuccessAt"=clock_timestamp() where "configToken"=(select "effectiveConfigToken" from ai_settings where id=1)`,
+    );
+    await on(peer);
+    await improve.waitFor({ timeout: 18000 });
+    await mounted(peer);
+    await mounted(drawer);
+    await activity.close();
     step = "Keep off, retained key and undo";
     await button(page, "Turn off AI").click();
     await off(page);
@@ -278,6 +316,11 @@ export async function onboardingBrowser(f: Fixture) {
     await f.setCredit(false);
     await paste(page, fixtureKey);
     await heading(page, "AI: add credit").waitFor();
+    assert(
+      !(await link(page, "AI: add credit").evaluate((el) =>
+        el.classList.contains("text-destructive"),
+      )),
+    );
     // Observe a regular page check while credit is still absent. This prevents
     // the leader's immediate check on a new configuration from passing this leg.
     await visiblePoll();

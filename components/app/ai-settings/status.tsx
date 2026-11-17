@@ -16,6 +16,7 @@ import { useSettings } from "@/providers/settings";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { aiSettingsPath, issueText } from "@/lib/ai-onboarding-copy";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export type AiStatus = inferRouterOutputs<AppRouter>["getAiStatus"];
@@ -284,7 +285,15 @@ export function AiPill() {
   const { status, unavailable, error, message, removedKeyUrl } = useAiAdmin();
   return (
     <div className="my-3 flex flex-wrap items-center gap-3 text-sm">
-      <Link className="rounded-full border px-3 py-1" href={aiSettingsPath}>
+      <Link
+        className={cn(
+          "rounded-full border px-3 py-1",
+          !unavailable &&
+            status?.state === "attention" &&
+            "border-destructive text-destructive",
+        )}
+        href={aiSettingsPath}
+      >
         {unavailable
           ? "AI status unavailable"
           : status
@@ -341,16 +350,30 @@ export function ActivityAiNotice() {
                 : "Let the board do the sorting"}
           </h2>
           {broken ? (
-            <p>
-              {issueText(s.reason)}{" "}
-              {s.failures[0]?.failingSince &&
-                "Since " +
-                  new Date(s.failures[0].failingSince).toLocaleTimeString() +
-                  ". "}{" "}
-              {counts.data &&
-                counts.data.unscreened +
-                  " items were published without full screening."}
-            </p>
+            <div className="space-y-1">
+              {s.failures.length ? (
+                s.failures.map((f) => (
+                  <p key={f.capability}>
+                    {f.capability === "embeddings"
+                      ? "Search has used exact words"
+                      : "OpenRouter chat has been failing"}
+                    {f.failingSince &&
+                      " since " + new Date(f.failingSince).toLocaleTimeString()}
+                    . {issueText(f.lastReason)}
+                  </p>
+                ))
+              ) : (
+                <p>{issueText(s.reason)}</p>
+              )}
+              {(s.check?.chat === "failed" ||
+                s.failures.some((f) => f.capability === "chat")) &&
+                counts.data && (
+                  <p>
+                    {counts.data.unscreened} items were published without full
+                    screening.
+                  </p>
+                )}
+            </div>
           ) : (
             <p>
               Screen spam before publication, title and categorize posts, search
