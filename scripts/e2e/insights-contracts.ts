@@ -8,7 +8,11 @@ import { migrateAndSeed } from "../../lib/boot";
 import { runtimeState } from "../../lib/runtime-state";
 import { beginAttempt, cancelUndispatched } from "../../lib/llm/usage";
 import { DomainError } from "../../lib/domain-error";
-import { getInsightsRun, startInsightsRun } from "../../lib/jobs/insights";
+import {
+  getInsightsRun,
+  startInsightJob,
+  startInsightsRun,
+} from "../../lib/jobs/insights";
 import { insightChunks } from "../../lib/jobs/insight-analysis";
 import { getInsightsInputs } from "../../queries/get-insights-inputs";
 import { getInsightsQuery } from "../../queries/get-insights";
@@ -20,90 +24,24 @@ import {
   saveConfiguration,
 } from "../../lib/llm/settings-store";
 import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
-import { insightAnswer, insightRequest } from "./insights-fixture";
+import {
+  answerInsight,
+  insightAnswer,
+  insightRequest,
+} from "./insights-fixture";
 import { eventually } from "./run";
 
-const admin = { userId: "insight-admin", sessionId: "insight-session" };
+import {
+  admin,
+  report,
+  calls,
+  budget,
+  setBudget,
+  ended,
+  setup,
+  seed,
+} from "./insight-test-support";
 type Mock = Awaited<ReturnType<typeof mockOpenRouter>>;
-const report = (id: string) =>
-  db
-    .selectFrom("insight_reports")
-    .where("id", "=", id)
-    .selectAll()
-    .executeTakeFirstOrThrow();
-const calls = async () =>
-  Number(
-    (
-      await db
-        .selectFrom("llm_usage")
-        .where("feature", "=", "insights")
-        .select((e) => e.fn.sum("calls").as("n"))
-        .executeTakeFirstOrThrow()
-    ).n,
-  );
-const budget = async () =>
-  Number(
-    (
-      await db
-        .selectFrom("rate_limit")
-        .where("key", "like", "ai:instance:day:%")
-        .select("count")
-        .executeTakeFirst()
-    )?.count ?? 0,
-  );
-async function setBudget(count: number) {
-  await sql`insert into rate_limit(key,count,"windowStart") values('ai:instance:day:'||to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD'),${count},clock_timestamp()) on conflict(key) do update set count=excluded.count`.execute(
-    db,
-  );
-}
-async function ended(id: string, reason?: string) {
-  const row = await eventually(
-    () => report(id),
-    (r) => r.status !== "running",
-    15000,
-  );
-  assert.equal(row.status, reason ? "failed" : "succeeded", String(row.error));
-  assert.equal(row.error, reason ?? null);
-  assert.equal(row.inputSnapshot, null);
-  assert.equal(row.requestPlan, null);
-  assert(row.finishedAt);
-  assert.equal(row.stage, "complete");
-  return row;
-}
-async function setup() {
-  await db
-    .updateTable("settings")
-    .set({ setupCompletedAt: new Date() })
-    .execute();
-  for (const id of [admin.userId, "insight-voter"]) {
-    await db
-      .insertInto("user")
-      .values({
-        id,
-        email: id + "@example.invalid",
-        name: "Fixture",
-        emailVerified: true,
-        role: id === admin.userId ? "admin" : "user",
-      })
-      .execute();
-    await db
-      .insertInto("auth_session")
-      .values({
-        id: id === admin.userId ? admin.sessionId : id,
-        token: id,
-        userId: id,
-        scope: "first-party",
-        expiresAt: new Date(Date.now() + 600_000),
-        updatedAt: new Date(),
-      })
-      .execute();
-  }
-}
-async function seed(n: number) {
-  await sql`insert into feedback(title,description,"plainText","moderationState","authorId","createdAt") select 'Fixture '||n,'Body','Body','screened','insight-admin',statement_timestamp()-n*interval '1 second' from generate_series(1,${n}::int)n`.execute(
-    db,
-  );
-}
 async function sizeLimits(mock: Mock) {
   await seed(2005);
   await sql`insert into feedback(title,description,"plainText",status,"moderationState") values ('Closed fixture','Body','Body','done','screened'),('Declined fixture','Body','Body','declined','screened')`.execute(
@@ -150,7 +88,8 @@ async function sizeLimits(mock: Mock) {
   assert.equal(Number(wideDone.postsClustered), wide.snapshot.posts.length);
   assert.equal(mock.requests - before, 11 + chunks.length + 1);
   // Long quoted summaries exercise the UTF-8 merge cap and the 60-row output cap.
-  let summaries = 0;
+  let summaries = 0,
+    batch = 0;
   await setBudget(0);
   mock.handler = (wire) => {
     const { items, merge } = insightRequest(wire.body);
@@ -159,9 +98,10 @@ async function sizeLimits(mock: Mock) {
       chat(wire.response, 0.001, "stop", '{"groups":[]}');
       return;
     }
+    batch++;
     const insights = items.map((item) => ({
       ids: [item.id],
-      title: '"'.repeat(170),
+      title: '\"'.repeat(150) + batch + "-" + item.id,
       description: '"'.repeat(800),
       evidence: "界".repeat(190),
       severity: 45,
@@ -170,7 +110,7 @@ async function sizeLimits(mock: Mock) {
   };
   const maximum = await startInsightsRun(admin),
     row = await ended(maximum.id);
-  assert(summaries > 50 && summaries < 200);
+  assert.equal(summaries, 200);
   assert.equal(row.insightCount, "60");
   const {
     rows: [output],
@@ -192,7 +132,9 @@ async function sizeLimits(mock: Mock) {
   };
 }
 
-function held(mock: Mock) {
+function held(mock: Mock, holdMerge = false) {
+  const mergeEntered = Promise.withResolvers<void>(),
+    mergeRelease = Promise.withResolvers<void>();
   const entered = Promise.withResolvers<void>(),
     release = Promise.withResolvers<void>();
   const seen: string[][] = [];
@@ -202,6 +144,10 @@ function held(mock: Mock) {
     if (seen.length === 1) {
       entered.resolve();
       await release.promise;
+    }
+    if (holdMerge && merge) {
+      mergeEntered.resolve();
+      await mergeRelease.promise;
     }
     if (!wire.response.destroyed) await insightAnswer(wire);
   };
@@ -214,6 +160,8 @@ function held(mock: Mock) {
         }),
       ]),
     release: release.resolve,
+    mergeEntered: mergeEntered.promise,
+    releaseMerge: mergeRelease.resolve,
     seen,
   };
 }
@@ -257,7 +205,7 @@ async function concurrency(mock: Mock) {
   await setBudget(77);
   const previous = await getInsightsQuery(),
     before = await calls(),
-    gate = held(mock),
+    gate = held(mock, true),
     child = await spawnOwner();
   const cancel = new AbortController();
   try {
@@ -272,7 +220,7 @@ async function concurrency(mock: Mock) {
     const active = await report(remote);
     assert.equal(active.stage, "admitted");
     assert.equal(active.reservationCount, 2);
-    assert.equal(await budget(), 80);
+    assert.equal(await budget(remote), 80);
     assert.equal((await calls()) - before, 1);
     assert.deepEqual((await getInsightsQuery()).run, previous.run);
     const publicState = await getInsightsRun(admin, remote);
@@ -295,6 +243,9 @@ async function concurrency(mock: Mock) {
     await sql`delete from user_upvote where "userId"='insight-voter'`.execute(
       db,
     );
+    gate.release();
+    await gate.mergeEntered;
+    assert.equal((await report(remote)).reservationCount, 0);
     const started = Date.now();
     await delay(92_000);
     const after = await report(remote);
@@ -311,10 +262,10 @@ async function concurrency(mock: Mock) {
       .executeTakeFirstOrThrow();
     assert(expiry.until.getTime() > Date.now());
     assert.equal((await startInsightsRun(admin)).id, remote);
-    gate.release();
+    gate.releaseMerge();
     await ended(remote);
     assert.equal((await calls()) - before, 3);
-    assert.equal(await budget(), 80);
+    assert.equal(await budget(remote), 80);
     assert.deepEqual(
       gate.seen.map((g) => g.length),
       [200, 1, 1],
@@ -335,6 +286,7 @@ async function concurrency(mock: Mock) {
     };
   } finally {
     gate.release();
+    gate.releaseMerge();
     await child.kill();
   }
 }
@@ -381,6 +333,11 @@ async function rejectionCases(mock: Mock) {
   await sql`update insight_reports set "reservationDay"=(clock_timestamp() at time zone 'UTC')::date-1 where id=${run.id}`.execute(
     db,
   );
+  await sql`insert into rate_limit(key,count,"windowStart") values('ai:instance:day:'||to_char((clock_timestamp() at time zone 'UTC')::date-1,'YYYY-MM-DD'),55,clock_timestamp()-interval '1 day') on conflict(key) do update set count=55`.execute(
+    db,
+  );
+  assert.equal(await budget(run.id), 55);
+  assert.equal(await budget(), 3);
   gate.release();
   await ended(run.id, "RESERVATION_EXPIRED");
   assert.equal(gate.seen.length, 1);
@@ -425,7 +382,14 @@ async function rejectionCases(mock: Mock) {
       else await insightAnswer(request);
     };
     const run = await startInsightsRun(admin);
-    await ended(run.id, mode === "single" ? undefined : "invalid-response");
+    const terminal = await ended(
+      run.id,
+      mode === "single" || mode === "empty" ? undefined : "invalid-response",
+    );
+    if (mode === "empty") {
+      assert.equal(terminal.insightCount, "0");
+      assert.equal((await getInsightsQuery()).insights.length, 0);
+    }
     assert.equal(n, mode === "bad-index" ? 1 : 3);
     assert.equal(await budget(), 3);
   }
@@ -474,9 +438,10 @@ async function publishFailures(mock: Mock) {
       entered.resolve();
       await release.promise;
     }
-    if (!wire.response.destroyed) await insightAnswer(wire);
+    if (!wire.response.destroyed) answerInsight(wire, "Superseded theme");
   };
-  const old = await startInsightsRun(admin);
+  const { run: old, finished } = await startInsightJob(admin);
+  assert(finished);
   await Promise.race([
     entered.promise,
     delay(12000, undefined, { ref: false }).then(() => {
@@ -495,10 +460,8 @@ async function publishFailures(mock: Mock) {
     await ended(next.id);
     const latest = await getInsightsQuery();
     release.resolve();
-    await eventually(
-      async () => mock.active,
-      (n) => n === 0,
-    );
+    await finished;
+    assert.equal(latest.insights[0].title, "Improve board navigation");
     await ended(old.id, "stale-run");
     assert.deepEqual(await getInsightsQuery(), latest);
   } finally {

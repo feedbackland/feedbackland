@@ -16,6 +16,7 @@ import {
   insightConfiguration,
   requireDispatch,
 } from "@/lib/llm/settings-store";
+import { acquireInsightSlot, type InsightSlot } from "@/lib/llm/client";
 import { reserveInsightPlan } from "@/lib/llm/usage";
 import { log, sqlstate } from "@/lib/log";
 import { expireInsights } from "@/queries/expire-insights";
@@ -75,18 +76,29 @@ export async function getInsightsRun(
   });
 }
 
-async function createRun(trx: Transaction<DB>, actor: Actor) {
+async function createRun(
+  trx: Transaction<DB>,
+  actor: Actor,
+  priorId: string | undefined,
+  { snapshot, total }: Awaited<ReturnType<typeof getInsightsInputs>>,
+) {
   await requireAdmin(trx, actor, true);
   await lock(trx, locks.insights);
-  await expireInsights(trx);
-  const existing = await trx
+  // A concurrent start may even have finished while this caller prepared its snapshot.
+  const latest = await trx
     .selectFrom("insight_reports")
     .select(fields)
-    .where("status", "=", "running")
+    .orderBy("id", "desc")
+    .limit(1)
     .executeTakeFirst();
-  if (existing) return { run: publicRun(existing) } as const;
+  if (
+    latest &&
+    (latest.status === "running" ||
+      !priorId ||
+      BigInt(latest.id) > BigInt(priorId))
+  )
+    return { run: publicRun(latest) } as const;
   const config = await insightConfiguration(trx);
-  const { snapshot, total } = await getInsightsInputs(trx);
   if (!snapshot.posts.length)
     throw new DomainError("PRECONDITION_FAILED", "NO_OPEN_FEEDBACK");
   const input = JSON.stringify(snapshot),
@@ -113,9 +125,18 @@ async function createRun(trx: Transaction<DB>, actor: Actor) {
   return { run: publicRun(row), claim, config, snapshot, hash } as const;
 }
 
+function failureReason(error: unknown) {
+  return insightFailure(
+    error instanceof UnavailableCapability
+      ? (error.lastReason ?? error.reason)
+      : error instanceof AiError
+        ? error.reason
+        : null,
+  );
+}
 function reportError(error: unknown) {
   if (error instanceof DomainError) return error;
-  const reason = insightFailure(error instanceof AiError ? error.reason : null);
+  const reason = failureReason(error);
   if (error instanceof DailyBudgetError)
     return new DomainError(
       "TOO_MANY_REQUESTS",
@@ -133,21 +154,17 @@ function reportError(error: unknown) {
       "AI_UNAVAILABLE",
       undefined,
       undefined,
-      insightFailure(
-        error instanceof UnavailableCapability
-          ? (error.lastReason ?? "AI_UNAVAILABLE")
-          : reason,
-      ),
+      reason,
     );
   return new DomainError(
-    reason === "AI_NOT_CONFIGURED"
+    reason === "AI_NOT_CONFIGURED" || reason === "INSIGHT_PLAN_TOO_LARGE"
       ? "PRECONDITION_FAILED"
       : "SERVICE_UNAVAILABLE",
     reason,
   );
 }
 async function failRun(id: string, lease: Lease, error: unknown) {
-  const reason = insightFailure(error instanceof AiError ? error.reason : null);
+  const reason = failureReason(error);
   try {
     await contentTransaction(undefined, async (trx) => {
       await requireLease(trx, lease);
@@ -178,13 +195,64 @@ async function failRun(id: string, lease: Lease, error: unknown) {
   }
 }
 
-export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
-  const created = await contentTransaction(signal, (trx) =>
-    createRun(trx, actor),
-  ).catch((error) => {
+type PreparingSnapshot = {
+  controller: AbortController;
+  readers: number;
+  result: Promise<Awaited<ReturnType<typeof getInsightsInputs>>>;
+};
+let preparation: PreparingSnapshot | undefined;
+
+// Each replica has one board. Share an in-flight read between authorized starts so they
+// cannot fill the ordinary connection pool with identical aggregate queries.
+async function prepareSnapshot(signal?: AbortSignal) {
+  const cancelled = () =>
+    new DomainError("CLIENT_CLOSED_REQUEST", "REQUEST_CANCELLED");
+  if (signal?.aborted) throw cancelled();
+  if (!preparation) {
+    const controller = new AbortController();
+    const result = contentTransaction(
+      controller.signal,
+      getInsightsInputs,
+      "repeatable read",
+      60000,
+    );
+    const pending = { controller, readers: 0, result };
+    preparation = pending;
+    const clear = () => {
+      if (preparation === pending) preparation = undefined;
+    };
+    void result.then(clear, clear);
+  }
+  const pending = preparation;
+  pending.readers++;
+  const aborted = Promise.withResolvers<never>();
+  const onAbort = () => aborted.reject(cancelled());
+  signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await Promise.race([pending.result, aborted.promise]);
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+    if (--pending.readers === 0 && preparation === pending) {
+      preparation = undefined;
+      pending.controller.abort();
+    }
+  }
+}
+
+export async function startInsightJob(actor: Actor, signal?: AbortSignal) {
+  const created = await (async () => {
+    // Expiry commits before any AI-settings lock, including on a concurrent boot.
+    const prior = await getInsightsRun(actor, undefined, signal);
+    if (prior?.status === "running") return { run: prior } as const;
+    // Large boards prepare one coherent read without holding the singleton or configuration lock.
+    const input = await prepareSnapshot(signal);
+    return contentTransaction(signal, (trx) =>
+      createRun(trx, actor, prior?.id, input),
+    );
+  })().catch((error) => {
     throw reportError(error);
   });
-  if (!created.claim) return created.run;
+  if (!created.claim) return { run: created.run, finished: undefined };
   const { run, claim, config, snapshot, hash } = created;
   const owner = monitorLease(claim.lease, claim.expires, run.id);
   const shutdown = new AbortController();
@@ -192,7 +260,9 @@ export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
   process.once("SIGTERM", stop);
   process.once("SIGINT", stop);
   const workSignal = AbortSignal.any([owner.signal, shutdown.signal]);
+  let slot: InsightSlot | undefined;
   const finish = async () => {
+    slot?.release();
     process.off("SIGTERM", stop);
     process.off("SIGINT", stop);
     await owner
@@ -202,6 +272,8 @@ export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
       );
   };
   try {
+    const workerSlot = acquireInsightSlot();
+    slot = workerSlot;
     const chunks = insightChunks(snapshot.posts);
     const reservation = await contentTransaction(workSignal, async (trx) => {
       await requireAdmin(trx, actor, true);
@@ -217,12 +289,13 @@ export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
       );
     });
     // From this point the process owns the job independently of the HTTP request.
-    void (async () => {
+    const finished = (async () => {
       try {
         const insights = await analyseInsights(
           snapshot,
           chunks,
           reservation,
+          workerSlot,
           workSignal,
         );
         await saveInsightsQuery(reservation, config, insights, workSignal);
@@ -232,10 +305,14 @@ export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
         await finish();
       }
     })();
-    return { ...run, stage: "admitted" };
+    return { run: { ...run, stage: "admitted" }, finished };
   } catch (error) {
     await failRun(run.id, claim.lease, error);
     await finish();
     throw reportError(error);
   }
+}
+
+export async function startInsightsRun(actor: Actor, signal?: AbortSignal) {
+  return (await startInsightJob(actor, signal)).run;
 }

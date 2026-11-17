@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { ArrowBigUp, MessageSquareIcon } from "lucide-react";
-import { useFeedbackPostsByIds } from "@/hooks/use-feedback-posts-by-ids";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@/providers/trpc-client";
+import { Button } from "@/components/ui/button";
 import { useBoardHref } from "@/hooks/use-board-href";
 import { timeAgo } from "@/lib/time-ago";
 import { cn } from "@/lib/utils";
@@ -35,15 +37,22 @@ function EvidenceLoading() {
  */
 export function InsightEvidence({ insight }: { insight: Insight }) {
   const href = useBoardHref();
-  const {
-    query: { data: posts, isPending },
-  } = useFeedbackPostsByIds({ ids: insight.postIds, enabled: true });
-
-  const sorted = [...(posts ?? [])].sort((a, b) => {
-    const byUpvotes = Number(b.upvotes) - Number(a.upvotes);
-    if (byUpvotes !== 0) return byUpvotes;
-    return b.createdAt > a.createdAt ? 1 : b.createdAt < a.createdAt ? -1 : 0;
-  });
+  const trpc = useTRPC();
+  const client = useQueryClient();
+  const query = useInfiniteQuery(
+    trpc.getInsightEvidence.infiniteQueryOptions(
+      { insightId: insight.id, version: insight.version },
+      { getNextPageParam: (page) => page.nextCursor ?? undefined },
+    ),
+  );
+  const stale = query.error?.data?.code === "CONFLICT";
+  const retry = () =>
+    stale
+      ? client.invalidateQueries({ queryKey: trpc.getInsights.queryKey() })
+      : query.isFetchNextPageError
+        ? query.fetchNextPage()
+        : query.refetch();
+  const posts = query.data?.pages.flatMap((page) => page.posts) ?? [];
 
   return (
     <div className="space-y-3.5">
@@ -58,10 +67,10 @@ export function InsightEvidence({ insight }: { insight: Insight }) {
           The feedback behind this insight
         </div>
 
-        {isPending && <EvidenceLoading />}
+        {query.isPending && <EvidenceLoading />}
 
         <div className="divide-border divide-y">
-          {sorted.map((post) => (
+          {posts.map((post) => (
             <div key={post.id} className="py-2.5 first:pt-0 last:pb-0">
               <div className="flex items-start justify-between gap-3">
                 <Link
@@ -107,7 +116,27 @@ export function InsightEvidence({ insight }: { insight: Insight }) {
           ))}
         </div>
 
-        {!isPending && sorted.length === 0 && (
+        {query.isError && (
+          <div role="alert" className="text-sm">
+            {stale
+              ? "This report changed. Refresh your insights to see its current posts."
+              : "Could not load the feedback behind this insight."}{" "}
+            <button className="underline" onClick={() => void retry()}>
+              {stale ? "Refresh report" : "Try again"}
+            </button>
+          </div>
+        )}
+        {query.hasNextPage && !query.isFetchNextPageError && (
+          <Button
+            variant="outline"
+            size="sm"
+            loading={query.isFetchingNextPage}
+            onClick={() => void query.fetchNextPage()}
+          >
+            Show more posts
+          </Button>
+        )}
+        {query.isSuccess && posts.length === 0 && (
           <p className="text-muted-foreground text-xs">
             The posts behind this insight are no longer available. Regenerate to
             refresh the insights.

@@ -312,7 +312,20 @@ A run reads up to 2,000 of the newest open posts. It freezes up to 700 character
 
 Each batch holds up to 200 posts and 64,000 bytes of model input. A run with multiple batches needs one additional request to merge themes. Before the first call, the board reserves the entire plan within 80% of the shared daily AI allowance. An allowance too small for the plan is shown before any paid request. Usage counts the requests actually sent. Unused reservations expire at UTC midnight.
 
-If a provider request fails, the run ends. If the worker stops, the board marks the run failed after five minutes without a heartbeat. The previous report stays available, and an administrator can start a fresh run. Each fresh run needs its own reservation.
+The report shows identified supporters and anonymous post counts separately. For ranking, each anonymous post contributes one demand signal. Participation scores use up to the newest 1,024 votes and 1,024 discussion comments per post. The score details identify limited samples, and reach is displayed as a lower bound when votes were sampled. A run combines matching titles across all batches and sends up to 200 candidate themes to the final merge. Up to 60 themes appear in the report. Opening a theme loads its underlying posts in pages.
+
+If a provider request fails, the run ends. If the worker stops, the board marks the run failed after five minutes without a heartbeat. The previous report stays available, and an administrator can start a fresh run. Each fresh run needs its own reservation. If the full plan exceeds the daily share even on an unused day, increase `AI_DAILY_CALL_LIMIT` before restarting the analysis.
+
+#### Revert background insights to P09
+
+Stop every application replica and leave PostgreSQL running. From the P10 checkout, run the following once against the board database before starting P09. For an external database use the same file with `psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/ops/prepare-p09-insights-rollback.sql`.
+
+```sh
+docker compose stop app
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d feedbackland < scripts/ops/prepare-p09-insights-rollback.sql
+```
+
+The transaction fails interrupted work, clears temporary input and plans, and moves failed-run metadata to `insight_rollback_history`. P09 then reads the last successful summary, or shows its first-run state if there has been no success. Successful reports and daily usage remain available. The transaction can be run again after an interruption. Start the P09 application only after it commits.
 
 ---
 

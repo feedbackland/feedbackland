@@ -49,18 +49,26 @@ export async function saveInsightsQuery(
       throw new AiError("RESERVATION_EXPIRED");
     // The strongest overlap wins one-to-one. At most 59 other new themes can
     // claim an old ID, so 60 matches per candidate suffice even with long history.
-    const { rows } = await sql<Previous>`with incoming as (
-      select (n-1)::int as i,array(select jsonb_array_elements_text(member)) as ids
-      from jsonb_array_elements(${JSON.stringify(insights.map((v) => v.ids))}::jsonb) with ordinality t(member,n))
-      select g.i,c.* from incoming g cross join lateral (
-        select old.id,old.priority::float8,old.reach::float8,cardinality(old.ids) as "postCount",old."lastSeenAt" as seen,
-          (jsonb_typeof(old.signals)='object') as "hasSignals",
-          n::float8/(cardinality(old.ids)+cardinality(g.ids)-n) as similarity
-        from insights old cross join lateral(select count(*) as n from unnest(g.ids) a where a=any(old.ids)) gap
-        where old.ids && g.ids and (n::float8/(cardinality(old.ids)+cardinality(g.ids)-n)>=0.3
-          or (n>=2 and n::float8/least(cardinality(old.ids),cardinality(g.ids))>=0.6))
-        order by similarity desc,old."lastSeenAt" desc,old.id limit 60) c
-      order by c.similarity desc,g.i,c.seen desc,c.id`.execute(trx);
+    const { rows } = await sql<Previous>`
+      with incoming as (
+        select (n-1)::int as i, jsonb_array_length(ids) as size, ids
+        from jsonb_array_elements(${JSON.stringify(insights.map((v) => v.ids))}::jsonb) with ordinality t(ids,n)
+      ), overlap as (
+        select g.i,g.size,m."insightId",count(*)::int as n
+        from incoming g cross join lateral jsonb_array_elements_text(g.ids) p(id)
+        join insight_member m on m."postId"=p.id::uuid group by g.i,g.size,m."insightId"
+      ), candidates as (
+        select o.i,old.id,old.priority::float8,old.reach::float8,cardinality(old.ids) as "postCount",
+          old."lastSeenAt" as seen,jsonb_typeof(old.signals)='object' as "hasSignals",
+          n::float8/(cardinality(old.ids)+o.size-n) as similarity
+        from overlap o join insights old on old.id=o."insightId"
+        where n::float8/(cardinality(old.ids)+o.size-n)>=0.3
+          or (n>=2 and n::float8/least(cardinality(old.ids),o.size)>=0.6)
+      ), ranked as (
+        select *,row_number() over(partition by i order by similarity desc,seen desc,id) as rank from candidates
+      ) select * from ranked where rank<=60 order by similarity desc,i,seen desc,id`.execute(
+      trx,
+    );
     const matches = new Map<number, Previous>(),
       used = new Set<string>();
     for (const row of rows) {
@@ -120,7 +128,7 @@ export async function saveInsightsQuery(
     const archived = await trx
       .updateTable("insights")
       .where("isArchived", "=", false)
-      .where("id", "not in", published)
+      .$if(published.length > 0, (q) => q.where("id", "not in", published))
       .set({ isArchived: true })
       .executeTakeFirstOrThrow();
     const saved = await trx

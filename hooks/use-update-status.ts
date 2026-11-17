@@ -24,6 +24,12 @@ export function useUpdateStatus({ postId }: { postId: string }) {
         });
 
         queryClient.invalidateQueries({
+          queryKey: trpc.getInsights.queryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.getInsightEvidence.queryKey().slice(0, 1),
+        });
+        queryClient.invalidateQueries({
           queryKey: trpc.getFeedbackPostsByIds.queryKey().slice(0, 1),
         });
       },

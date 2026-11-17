@@ -90,7 +90,9 @@ const provider = createOpenAICompatible({
 });
 globalThis.AI_SDK_DEFAULT_PROVIDER = provider;
 globalThis.AI_SDK_LOG_WARNINGS = false;
+const heldInsightSlot = Symbol("held insight model slot");
 type Controls = {
+  [heldInsightSlot]?: true;
   lease?: import("../jobs/leases").Lease;
   signal?: AbortSignal;
   check?: CheckTicket;
@@ -110,6 +112,34 @@ function acquire(kind: "model" | "vision" | "metadata") {
     work[kind] -= amount;
   };
 }
+export function acquireInsightSlot() {
+  const release = acquire("model");
+  let active = true;
+  return {
+    chat<T>(
+      input: ChatInput,
+      reservation: Reservation,
+      signal: AbortSignal,
+      validateText: (text: string) => T,
+    ) {
+      if (!active) throw new AiError("RESERVATION_EXPIRED");
+      return callChat("insights", input, {
+        reservation,
+        signal,
+        validateText,
+        [heldInsightSlot]: true,
+      });
+    },
+    release() {
+      if (active) {
+        active = false;
+        release();
+      }
+    },
+  };
+}
+export type InsightSlot = ReturnType<typeof acquireInsightSlot>;
+
 function duration(feature: Feature | "metadata", timeout: number) {
   if (feature === "insights") return Math.min(6 * timeout, 180000);
   if (feature === "ask-ai") return 180000;
@@ -139,9 +169,11 @@ async function ready(
     );
   const config =
     controls.content?.config ??
-    (await configuration(initial.signal).catch((error) => {
-      throw safeError(error, initial.signal);
-    }));
+    (await configuration(initial.signal, !!controls.reservation).catch(
+      (error) => {
+        throw safeError(error, initial.signal);
+      },
+    ));
   const wall =
     controls.content?.wall ??
     deadline(
@@ -198,7 +230,8 @@ async function execute<T>(
   let release: (() => void) | undefined;
   let signal = controls.content?.wall.signal ?? controls.signal;
   try {
-    release = acquire(vision ? "vision" : "model");
+    if (!controls[heldInsightSlot])
+      release = acquire(vision ? "vision" : "model");
     const { config, wall } =
       snapshot ?? (await ready(feature, capability, controls));
     signal = wall.signal;

@@ -34,14 +34,17 @@ export function insightRequest(body: Record<string, unknown>) {
   } else items.forEach((item, i) => assert.equal(item.index, i));
   return { items, merge };
 }
-export const insightAnswer: Handler = ({ body, response }) => {
+export function answerInsight(
+  { body, response }: Parameters<Handler>[0],
+  title = "Improve board navigation",
+) {
   const { items, merge } = insightRequest(body);
   const result = merge
     ? { groups: items.length > 1 ? [items.map((p) => p.index)] : [] }
     : {
         insights: [
           {
-            title: "Improve board navigation",
+            title,
             description: "Make feedback easier to find.",
             evidence: "People requested easier navigation.",
             severity: 65,
@@ -52,4 +55,5 @@ export const insightAnswer: Handler = ({ body, response }) => {
         ],
       };
   chat(response, 0.001, "stop", JSON.stringify(result));
-};
+}
+export const insightAnswer: Handler = (wire) => answerInsight(wire);

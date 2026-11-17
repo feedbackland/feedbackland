@@ -185,17 +185,7 @@ export async function reserveInsightPlan(
     count,
     trx,
   );
-  if (!budget) {
-    const {
-      rows: [clock],
-    } = await sql<{
-      now: Date;
-      day: string;
-    }>`select at as now,to_char(at at time zone 'UTC','YYYY-MM-DD') as day from (select clock_timestamp() at) c`.execute(
-      trx,
-    );
-    throw new DailyBudgetError(clock);
-  }
+  if (!budget) throw new AiError("INSIGHT_PLAN_TOO_LARGE");
   if (!budget.allowed) throw new DailyBudgetError(budget);
   const day = budget.day;
   const id = randomUUID();

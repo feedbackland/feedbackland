@@ -13,7 +13,7 @@ import {
 } from "@/lib/insights";
 import { inputBytes } from "@/lib/llm/defaults";
 import { utf8Prefix } from "@/lib/llm/input-budgets";
-import { callChat } from "@/lib/llm/client";
+import type { InsightSlot } from "@/lib/llm/client";
 import { AiError } from "@/lib/llm/errors";
 import type { Reservation } from "@/lib/llm/usage";
 
@@ -95,90 +95,119 @@ export function insightChunks(posts: InsightPost[]) {
   return groups;
 }
 
+function combine(parts: Cluster[]): Cluster {
+  const lead = parts.reduce((a, b) => (a.severity >= b.severity ? a : b));
+  return {
+    ...lead,
+    ids: parts.flatMap((p) => p.ids),
+    confidence: Math.min(...parts.map((p) => p.confidence ?? 0.7)),
+    effort: parts.some((p) => p.effort === "l")
+      ? "l"
+      : parts.some((p) => p.effort === "m")
+        ? "m"
+        : lead.effort,
+  };
+}
+
+function readClusters(text: string, posts: InsightPost[]): Cluster[] {
+  const claimed = new Set<number>();
+  return parse(clustersSchema, text).insights.map((cluster) => {
+    const ids = cluster.ids.map((i) => {
+      if (i > posts.length || claimed.has(i))
+        throw new AiError("invalid-response");
+      claimed.add(i);
+      return posts[i - 1].id;
+    });
+    return { ...cluster, ids };
+  });
+}
+
+function mergeGroups(text: string, count: number) {
+  const { groups } = parse(groupsSchema, text);
+  const used = new Set<number>();
+  for (const group of groups)
+    for (const i of group) {
+      if (i >= count || used.has(i)) throw new AiError("invalid-response");
+      used.add(i);
+    }
+  return { groups, used };
+}
+
+function mergeSummaries(candidates: Cluster[]) {
+  // Reserve an equal share of serialized bytes for every selected candidate, including JSON escapes.
+  const share =
+    Math.floor(
+      (inputBytes.insights - Buffer.byteLength(mergePrompt) - 2) /
+        Math.max(1, candidates.length),
+    ) - 1;
+  return candidates.map((c, index) => {
+    let title = utf8Prefix(c.title, 160),
+      description = utf8Prefix(c.description, 125);
+    for (;;) {
+      const item = JSON.stringify({ index, title, description });
+      if (Buffer.byteLength(item) <= share) return item;
+      if (description)
+        description = utf8Prefix(
+          description,
+          Math.floor(Buffer.byteLength(description) / 2),
+        );
+      else title = utf8Prefix(title, Math.floor(Buffer.byteLength(title) / 2));
+    }
+  });
+}
+
 export async function analyseInsights(
   snapshot: InsightSnapshot,
   chunks: InsightPost[][],
   reservation: Reservation,
+  slot: InsightSlot,
   signal: AbortSignal,
 ) {
-  const clusters: Cluster[] = [];
-  const claimed = new Set<string>();
-  for (const group of chunks) {
-    const { value } = await callChat(
-      "insights",
-      { system: clusterPrompt, text: "[" + group.map(payload).join(",") + "]" },
-      {
-        signal,
-        reservation,
-        validateText: (text) => parse(clustersSchema, text),
-      },
+  const byTitle = new Map<string, Cluster[]>();
+  for (const posts of chunks) {
+    const result = await slot.chat(
+      { system: clusterPrompt, text: "[" + posts.map(payload).join(",") + "]" },
+      reservation,
+      signal,
+      (text) => readClusters(text, posts),
     );
-    for (const cluster of value!.insights) {
-      if (cluster.ids.some((id) => id > group.length))
-        throw new AiError("invalid-response");
-      const members = [
-        ...new Set(cluster.ids.map((id) => group[id - 1].id)),
-      ].filter((id) => !claimed.has(id));
-      if (!members.length) continue;
-      members.forEach((id) => claimed.add(id));
-      clusters.push({ ...cluster, ids: members });
+    for (const cluster of result.value!) {
+      const key = cluster.title
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/\s+/gu, " ")
+        .trim();
+      const group = byTitle.get(key);
+      if (group) group.push(cluster);
+      else byTitle.set(key, [cluster]);
     }
   }
-  if (chunks.length > 1) {
-    // Put the strongest themes first so a single merge can always stay within
-    // its reserved request, 200 items and 64 kB, even on the largest board.
-    clusters.sort(
-      (a, b) => b.ids.length - a.ids.length || b.severity - a.severity,
-    );
-    const summaries: string[] = [];
-    let bytes = Buffer.byteLength(mergePrompt) + 2;
-    for (const cluster of clusters.slice(0, 200)) {
-      const entry = JSON.stringify({
-        index: summaries.length,
-        title: utf8Prefix(cluster.title, 160),
-        description: utf8Prefix(cluster.description, 125),
-      });
-      bytes += Buffer.byteLength(entry) + (summaries.length ? 1 : 0);
-      if (bytes > inputBytes.insights) break;
-      summaries.push(entry);
-    }
-    const { value } = await callChat(
-      "insights",
-      { system: mergePrompt, text: "[" + summaries.join(",") + "]" },
-      {
-        signal,
-        reservation,
-        validateText: (text) => parse(groupsSchema, text),
-      },
-    );
-    const used = new Set<number>(),
-      merged: Cluster[] = [];
-    for (const indexes of value!.groups) {
-      const group = [...new Set(indexes)];
-      if (
-        group.length < 2 ||
-        group.some((i) => i >= summaries.length || used.has(i))
-      )
-        throw new AiError("invalid-response");
-      group.forEach((i) => used.add(i));
-      const parts = group.map((i) => clusters[i]);
-      const lead = parts.reduce((a, b) => (a.severity >= b.severity ? a : b));
-      merged.push({
-        ...lead,
-        ids: parts.flatMap((p) => p.ids),
-        confidence: Math.min(...parts.map((p) => p.confidence ?? 0.7)),
-        effort: parts.some((p) => p.effort === "l")
-          ? "l"
-          : parts.some((p) => p.effort === "m")
-            ? "m"
-            : lead.effort,
-      });
-    }
-    const remaining = clusters.filter((_, i) => !used.has(i));
-    clusters.splice(0, clusters.length, ...merged, ...remaining);
-  }
-  if (!clusters.length) throw new AiError("invalid-response");
-  return score(snapshot, clusters);
+  const clusters = Array.from(byTitle.values(), combine);
+  if (chunks.length === 1) return score(snapshot, clusters);
+  // Consolidate identical themes across the entire snapshot before selecting the strongest
+  // summaries. Only candidates actually represented in the one reserved merge can be published.
+  const candidates = clusters
+    .sort(
+      (a, b) =>
+        b.ids.length - a.ids.length ||
+        b.severity - a.severity ||
+        a.title.localeCompare(b.title),
+    )
+    .slice(0, 200);
+  const result = await slot.chat(
+    {
+      system: mergePrompt,
+      text: "[" + mergeSummaries(candidates).join(",") + "]",
+    },
+    reservation,
+    signal,
+    (text) => mergeGroups(text, candidates.length),
+  );
+  const { groups, used } = result.value!;
+  return score(snapshot, [
+    ...groups.map((group) => combine(group.map((i) => candidates[i]))),
+    ...candidates.filter((_, i) => !used.has(i)),
+  ]);
 }
 
 function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
@@ -190,10 +219,18 @@ function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
     c.ids.forEach((id) => owners.set(byId.get(id)!.ordinal, i)),
   );
   const reaches = clusters.map(() => 0);
-  for (const [ordinals, people] of snapshot.audience) {
-    const supported = new Set(ordinals.map((i) => owners.get(i)));
-    for (const cluster of supported)
-      if (cluster !== undefined) reaches[cluster] += people;
+  for (const [bits, people] of snapshot.audience) {
+    const supported = new Set<number>();
+    for (let pos = 0; pos < bits.length; pos++) {
+      const digit = parseInt(bits[pos], 16);
+      if (!digit) continue;
+      for (let bit = 0; bit < 4; bit++)
+        if (digit & (8 >> bit)) {
+          const owner = owners.get(pos * 4 + bit + 1);
+          if (owner !== undefined) supported.add(owner);
+        }
+    }
+    for (const cluster of supported) reaches[cluster] += people;
   }
   const day = 86400_000;
   const measured = clusters.map((cluster, i) => {
@@ -212,6 +249,9 @@ function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
       cluster,
       category,
       reach: reaches[i],
+      anonymousPosts: sum((p) => Number(p.anonymous)),
+      votesLimited: posts.some((p) => p.votesLimited),
+      commentsLimited: posts.some((p) => p.commentsLimited),
       raw: sum(
         (p) =>
           2 * 2 ** (-age(p) / MOMENTUM_HALF_LIFE_DAYS) +
@@ -228,12 +268,15 @@ function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
       ).toISOString(),
     };
   });
-  const maxReach = Math.max(1, ...reaches),
+  const maxReach = Math.max(
+      1,
+      ...measured.map((m) => m.reach + m.anonymousPosts),
+    ),
     maxMomentum = Math.max(0.0001, ...measured.map((m) => m.raw));
   return measured
     .map((m) => {
       const c = m.cluster,
-        reachScore = (100 * m.reach) / maxReach,
+        reachScore = (100 * (m.reach + m.anonymousPosts)) / maxReach,
         momentumScore = (100 * m.raw) / maxMomentum;
       const effortMultiplier = c.effort ? EFFORT_MULTIPLIER[c.effort] : 1;
       const priority = Math.round(
@@ -247,6 +290,9 @@ function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
       );
       const signals: InsightSignals = {
         reachScore: Math.round(reachScore),
+        anonymousPosts: m.anonymousPosts,
+        votesLimited: m.votesLimited,
+        commentsLimited: m.commentsLimited,
         momentumScore: Math.round(momentumScore),
         severityScore: Math.round(c.severity),
         effortMultiplier,
@@ -265,7 +311,15 @@ function score(snapshot: InsightSnapshot, clusters: Cluster[]) {
       return {
         title: c.title,
         description: c.description,
-        ids: c.ids,
+        ids: c.ids.toSorted((a, b) => {
+          const left = byId.get(a)!.p,
+            right = byId.get(b)!.p;
+          return (
+            right.upvotes - left.upvotes ||
+            right.created - left.created ||
+            a.localeCompare(b)
+          );
+        }),
         category: m.category,
         effort: c.effort ?? null,
         priority,

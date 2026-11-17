@@ -11,6 +11,9 @@ export type InsightPost = {
   category: FeedbackCategory;
   created: number;
   upvotes: number;
+  anonymous: boolean;
+  votesLimited: boolean;
+  commentsLimited: boolean;
   comments: number;
   recentComments: number;
   recentVotes: number;
@@ -20,9 +23,10 @@ export type InsightPost = {
 export type InsightSnapshot = {
   at: number;
   posts: InsightPost[];
-  // People with the same set of post ordinals contribute once to each cluster.
-  audience: [number[], number][];
+  // Hexadecimal membership bitmap, most significant bit first, and number of people.
+  audience: [string, number][];
 };
+export const participationLimit = 1024;
 const maxSnapshotBytes = 2 * 1024 * 1024;
 
 export async function getInsightsInputs(trx: Transaction<DB>) {
@@ -45,35 +49,47 @@ export async function getInsightsInputs(trx: Transaction<DB>) {
         order by "createdAt" desc,id limit ${limit}
       ), posts as materialized (
         select *, row_number() over(order by "createdAt" desc,id)::int as ordinal from newest
-      ), votes as materialized (
-        select p.ordinal,v."userId",v."createdAt" from posts p join user_upvote v on v."contentId"=p.id
+      ), sampled_votes as materialized (
+        select p.ordinal,v."userId",v."createdAt",v.position from posts p cross join lateral (
+          select sample.*,row_number() over(order by "createdAt" desc,"userId") as position from (
+            select "userId","createdAt" from user_upvote where "contentId"=p.id
+            order by "createdAt" desc,"userId" limit ${participationLimit + 1}
+          ) sample
+        ) v
+      ), votes as (
+        select * from sampled_votes where position<=${participationLimit}
       ), memberships as (
-        select array_agg(distinct ordinal order by ordinal) as ordinals from (
+        select bit_or(set_bit(repeat('0',${limit})::varbit,ordinal-1,1)) as bits from (
           select ordinal,"userId" as person from votes union all
           select ordinal,"authorId" from posts where "authorId" is not null
         ) support group by person
       ), audience as materialized (
-        select jsonb_build_array(ordinals,count(*)) as item from memberships group by ordinals
+        -- PostgreSQL's varbit wire format has a four-byte bit length followed by packed bits.
+        select jsonb_build_array(rtrim(encode(substring(varbit_send(bits) from 5),'hex'),'0'),count(*)) as item
+        from memberships group by bits
       ), demand as (
-        select ordinal, count(*) filter(where "createdAt">=statement_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day') as recent,
-          sum(power(2::double precision,-greatest(0,extract(epoch from (statement_timestamp()-"createdAt")))::double precision / ${86400 * MOMENTUM_HALF_LIFE_DAYS})) as momentum,
-          max("createdAt") as latest from votes group by ordinal
+        select ordinal, count(*) filter(where "createdAt">=transaction_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day' and position<=${participationLimit}) as recent,
+          sum(power(2::double precision,-greatest(0,extract(epoch from (transaction_timestamp()-"createdAt")))::double precision / ${86400 * MOMENTUM_HALF_LIFE_DAYS})) filter (where position<=${participationLimit}) as momentum,
+          count(*)>${participationLimit} as limited,max("createdAt") as latest from sampled_votes group by ordinal
       ), entries as materialized (
         select p.ordinal,jsonb_build_object('id',p.id,'title',p.title,'description',p.description,'category',p.category,
-          'created',floor(extract(epoch from p."createdAt")*1000),'upvotes',p.upvotes,
+          'anonymous',p."authorId" is null,'votesLimited',coalesce(d.limited,false),'commentsLimited',c.limited,'created',floor(extract(epoch from p."createdAt")*1000),'upvotes',p.upvotes,
           'comments',c.total,'recentComments',c.recent,'recentVotes',coalesce(d.recent,0),
           'voteMomentum',coalesce(d.momentum,0),'lastVote',floor(extract(epoch from d.latest)*1000)) as item
         from posts p left join demand d using(ordinal)
-        cross join lateral (select count(*) as total,
-          count(*) filter(where "createdAt">=statement_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day') as recent
-          from comment where "postId"=p.id and content not like 'Updated status to%') c
+        cross join lateral (
+          select least(count(*),${participationLimit}) as total,count(*)>${participationLimit} as limited,
+            least(count(*) filter(where "createdAt">=transaction_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day'),${participationLimit}) as recent
+          from (select "createdAt" from comment where "postId"=p.id and content not like 'Updated status to%'
+            order by "createdAt" desc,id limit ${participationLimit + 1}) recent_comments
+        ) c
       ), size as (
         select (100+coalesce((select sum(octet_length(item::text)+2) from entries),0)
           +coalesce((select sum(octet_length(item::text)+2) from audience),0))::float8 as bytes
       )
       select bytes,(select count(*)::float8 from feedback) as total,(select count(*)::int from entries) as n,
         case when bytes<=${maxSnapshotBytes} then jsonb_build_object(
-          'at',floor(extract(epoch from statement_timestamp())*1000),
+          'at',floor(extract(epoch from transaction_timestamp())*1000),
           'posts',coalesce((select jsonb_agg(item order by ordinal) from entries),'[]'),
           'audience',coalesce((select jsonb_agg(item order by item) from audience),'[]')) end as snapshot
       from size`.execute(trx);

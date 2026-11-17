@@ -24,6 +24,7 @@ import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
 import { startInsightsRun } from "./start-insights-run";
 import { getInsightsRun } from "./get-insights-run";
 import { getInsights } from "./get-insights";
+import { getInsightEvidence } from "./get-insight-evidence";
 import { setInsightStatus } from "./set-insight-status";
 import { createAdminInvite } from "./create-admin-invite";
 import { getAdmins } from "./get-admins";
@@ -74,6 +75,7 @@ export const appRouter = router({
   getInsightsRun,
   getInsights,
   setInsightStatus,
+  getInsightEvidence,
   createAdminInvite,
   deleteAdminInvite,
   getAdmins,

@@ -1,43 +1,44 @@
 import "server-only";
-
-import { db } from "@/db/db";
+import { DomainError } from "@/lib/domain-error";
+import type { Actor } from "@/lib/auth/authorization";
 import type { FeedbackStatus } from "@/lib/typings";
+import { changeFeedbackStatuses } from "./update-feedback-post-status";
 
-/**
- * Sets one status on every feedback post behind an insight.
- *
- * This is the only write the insights makes. Once an insight has been dealt
- * with, the admin says so here and all the feedback that produced it picks up
- * that status on the public board — instead of opening each post in turn.
- */
-export const setInsightStatusQuery = async ({
-  insightId,
-  status,
-}: {
-  insightId: string;
-  status: FeedbackStatus;
-}) => {
-  return await db.transaction().execute(async (trx) => {
-    const insight = await trx
+export async function setInsightStatusQuery(
+  input: Actor & {
+    insightId: string;
+    version: string;
+    status: FeedbackStatus;
+    signal?: AbortSignal;
+  },
+) {
+  const rows = await changeFeedbackStatuses(input, async (trx) => {
+    const theme = await trx
       .selectFrom("insights")
-      .select(["insights.ids"])
-      .where("insights.id", "=", insightId)
-      .executeTakeFirstOrThrow();
-
-    const postIds = insight.ids ?? [];
-
-    if (postIds.length === 0) return { insightId, status, postsUpdated: 0 };
-
-    const result = await trx
-      .updateTable("feedback")
-      .set({ status })
-      .where("feedback.id", "in", postIds)
+      .select("id")
+      .where("id", "=", input.insightId)
+      .where("version", "=", input.version)
+      .where("isArchived", "=", false)
+      .forShare()
       .executeTakeFirst();
-
-    return {
-      insightId,
-      status,
-      postsUpdated: Number(result.numUpdatedRows ?? 0),
-    };
+    if (!theme) throw new DomainError("CONFLICT", "INSIGHT_CHANGED");
+    const members = await trx
+      .selectFrom("insight_member")
+      .innerJoin("feedback as f", "f.id", "insight_member.postId")
+      .select(["postId", "f.status"])
+      .where("insightId", "=", theme.id)
+      .execute();
+    if (
+      members.length &&
+      members.every((m) => m.status === "done" || m.status === "declined") &&
+      members.some((m) => m.status !== input.status)
+    )
+      throw new DomainError("CONFLICT", "INSIGHT_CHANGED");
+    return members.map((m) => m.postId);
   });
-};
+  return {
+    insightId: input.insightId,
+    status: input.status,
+    postsUpdated: rows.filter((r) => r.changed).length,
+  };
+}

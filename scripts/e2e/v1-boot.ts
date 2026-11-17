@@ -279,6 +279,7 @@ export async function phaseOne(image: string, runId: string, check: Check) {
             "0002_password_recovery",
             "0003_ai_dispatch",
             "0004_moderation_coverage",
+            "0005_insight_members",
           ],
         );
         assert.equal(

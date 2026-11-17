@@ -8,10 +8,7 @@ export const FEEDBACK_STATUSES = [
   "declined",
 ] as const;
 
-export const STATUS_TEXT_CLASS: Record<
-  NonNullable<FeedbackStatus>,
-  string
-> = {
+export const STATUS_TEXT_CLASS: Record<NonNullable<FeedbackStatus>, string> = {
   "under consideration": "text-under-consideration",
   planned: "text-planned",
   "in progress": "text-in-progress",
@@ -59,7 +56,12 @@ export const clamp = (n: number, lo: number, hi: number) =>
 /** Extra people backing an insight since the previous run. */
 export const getReachDelta = (insight: Insight): number | null => {
   const previous = insight.signals?.previous;
-  if (!previous) return null;
+  if (
+    !previous ||
+    insight.signals?.anonymousPosts ||
+    insight.signals?.votesLimited
+  )
+    return null;
   const delta = insight.reach - previous.reach;
   return delta > 0 ? delta : null;
 };
@@ -108,8 +110,16 @@ export const getSignalDriver = (insight: Insight): string | null => {
   return top.value - restMean >= DRIVER_MARGIN ? DRIVER_LABEL[top.key] : null;
 };
 
-export const formatReach = (reach: number) =>
-  `${reach} ${reach === 1 ? "person" : "people"}`;
+export function formatReach(
+  reach: number,
+  anonymousPosts = 0,
+  votesLimited = false,
+) {
+  const people = `${votesLimited ? "At least " : ""}${reach} ${reach === 1 ? "person" : "people"}`;
+  if (!anonymousPosts) return people;
+  const anonymous = `${anonymousPosts} anonymous ${anonymousPosts === 1 ? "post" : "posts"}`;
+  return reach ? `${people} identified · ${anonymous}` : anonymous;
+}
 
 export const formatPostCount = (count: number) =>
   `${count} ${count === 1 ? "post" : "posts"}`;

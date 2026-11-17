@@ -3,6 +3,8 @@ const messages = {
   AI_UNAVAILABLE:
     "The AI provider needs attention. Check its status in System.",
   AI_PAUSED: "The daily AI allowance cannot cover this analysis.",
+  INSIGHT_PLAN_TOO_LARGE:
+    "This analysis needs more calls than a full daily allowance permits. Increase AI_DAILY_CALL_LIMIT and start again.",
   AI_BUSY: "The AI provider is busy. Try starting a new analysis later.",
   CONFIGURATION_DIVERGED:
     "This server has different AI settings from the active configuration.",

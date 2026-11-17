@@ -345,9 +345,10 @@ export function startConfigurationLease() {
 }
 export async function configuration(
   signal?: AbortSignal,
+  fresh = false,
 ): Promise<Configuration> {
   const state = runtimeState();
-  if (state.aiConfig && performance.now() < state.aiConfig.until)
+  if (!fresh && state.aiConfig && performance.now() < state.aiConfig.until)
     return state.aiConfig.value;
   const generation = state.aiConfigGeneration,
     started = performance.now();

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { command, eventually } from "./run";
 import { firstKey } from "../mock-llm";
@@ -173,18 +175,26 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     // Real DNS, TLS, global fetch and SDK serialization. The internal bridge has
     // no Internet route. The certificate and hostname override exist only here.
-    const mounts = [
-      "lib",
-      "db",
-      "queries",
-      "scripts",
-      "app",
-      "trpc",
-      "tsconfig.json",
-    ].flatMap((p) => [
-      "--mount",
-      "type=bind,src=" + resolve(p) + ",dst=/app/" + p + ",readonly",
-    ]);
+    const sourceMounts = (previous?: string) =>
+      [
+        "lib",
+        "db",
+        "queries",
+        "scripts",
+        "app",
+        "trpc",
+        "tsconfig.json",
+      ].flatMap((p) => [
+        "--mount",
+        "type=bind,src=" +
+          (previous && ["lib", "db", "queries"].includes(p)
+            ? join(previous, p)
+            : resolve(p)) +
+          ",dst=/app/" +
+          p +
+          ",readonly",
+      ]);
+    const mounts = sourceMounts();
     await docker(
       "run",
       "-d",
@@ -296,8 +306,10 @@ export async function aiFoundations(runId: string, productionImage: string) {
       database: string,
       script: string,
       extra: string[],
+      previous?: string,
     ) => {
-      await docker("exec", pg, "createdb", "-U", "postgres", database);
+      if (!previous)
+        await docker("exec", pg, "createdb", "-U", "postgres", database);
       const output = await docker(
         "run",
         "--rm",
@@ -309,7 +321,7 @@ export async function aiFoundations(runId: string, productionImage: string) {
         "openrouter.ai:127.0.0.1",
         "-v",
         certs + ":/certs:ro",
-        ...mounts,
+        ...sourceMounts(previous),
         "-e",
         "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
         "-e",
@@ -345,24 +357,77 @@ export async function aiFoundations(runId: string, productionImage: string) {
       ["-e", "AI_TIMEOUT_MS=120000"],
     );
     assert(regressions.includes("Search regressions passed"));
+    const insightEnv = [
+      "--memory",
+      "512m",
+      "--memory-swap",
+      "512m",
+      "-e",
+      "AI_TIMEOUT_MS=30000",
+      "-e",
+      "AI_DAILY_CALL_LIMIT=100",
+    ];
     const insightOutput = await runContracts(
       "board_insights",
       "insights-contracts.ts",
-      [
-        "--memory",
-        "512m",
-        "--memory-swap",
-        "512m",
-        "-e",
-        "AI_TIMEOUT_MS=30000",
-        "-e",
-        "AI_DAILY_CALL_LIMIT=100",
-      ],
+      insightEnv,
     );
     const insightSummary = insightOutput
       .split(/\r?\n/)
       .find((line) => line.startsWith("P10_OUTCOME="));
     assert(insightSummary, "Missing background insight contracts result");
+    assert(
+      (
+        await runContracts(
+          "board_insight_regressions",
+          "insight-regressions.ts",
+          insightEnv,
+        )
+      ).includes("Insight regressions passed"),
+    );
+    assert(
+      (
+        await runContracts("board_insight_minimum", "insight-regressions.ts", [
+          "-e",
+          "AI_DAILY_CALL_LIMIT=10",
+        ])
+      ).includes("Insight regressions passed"),
+    );
+    assert(
+      (
+        await runContracts(
+          "board_insight_rollback",
+          "insight-rollback-prepare.ts",
+          insightEnv,
+        )
+      ).includes("P10 rollback fixture ready"),
+    );
+    const previous = await mkdtemp(join(tmpdir(), "feedbackland-p09-"));
+    try {
+      const archive = join(previous, "p09.tar");
+      await command("git", [
+        "archive",
+        "--output",
+        archive,
+        "1da2f142518eec862c90829ab36f21d0e76b691c",
+        "lib",
+        "db",
+        "queries",
+      ]);
+      await command("tar", ["-xf", archive, "-C", previous]);
+      assert(
+        (
+          await runContracts(
+            "board_insight_rollback",
+            "insight-rollback-check.ts",
+            insightEnv,
+            previous,
+          )
+        ).includes("P09 rollback passed"),
+      );
+    } finally {
+      await rm(previous, { recursive: true, force: true });
+    }
     await docker("exec", pg, "createdb", "-U", "postgres", "board_content");
     await docker(
       "run",

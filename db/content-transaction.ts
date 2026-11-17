@@ -12,8 +12,8 @@ export async function contentTransaction<T>(
   request: AbortSignal | undefined,
   work: (trx: Transaction<DB>) => Promise<T>,
   isolation: "read committed" | "repeatable read" = "read committed",
+  duration = 5000,
 ) {
-  const duration = 5000;
   const end = performance.now() + duration;
   const timeout = AbortSignal.timeout(duration);
   const signal = request ? AbortSignal.any([request, timeout]) : timeout;

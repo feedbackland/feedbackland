@@ -12,14 +12,18 @@ import {
 import { Layers, MessageSquarePlus, SearchX, Sparkles } from "lucide-react";
 
 /** Nothing on the board to analyse yet. */
-export function InsightsNoFeedback() {
+export function InsightsNoFeedback({ hasRun }: { hasRun: boolean }) {
   return (
     <Empty className="py-16">
       <EmptyHeader className="max-w-md">
         <EmptyMedia variant="icon">
           <MessageSquarePlus />
         </EmptyMedia>
-        <EmptyTitle>No feedback to work with yet</EmptyTitle>
+        <EmptyTitle>
+          {hasRun
+            ? "No open feedback to analyse"
+            : "No feedback to work with yet"}
+        </EmptyTitle>
         <EmptyDescription>
           Once people start posting, what they say gets grouped here into the
           handful of themes worth doing something about.
@@ -38,10 +42,12 @@ export function InsightsNoFeedback() {
  * one — which is more use here than a sparkle.
  */
 export function InsightsFirstRun({
+  completedEmpty,
   onGenerate,
   isGenerating,
   postCount,
 }: {
+  completedEmpty: boolean;
   onGenerate: () => void;
   isGenerating: boolean;
   postCount: number;
@@ -52,7 +58,11 @@ export function InsightsFirstRun({
         <EmptyMedia variant="icon">
           <Layers />
         </EmptyMedia>
-        <EmptyTitle>See what your feedback adds up to</EmptyTitle>
+        <EmptyTitle>
+          {completedEmpty
+            ? "The last analysis found no actionable themes"
+            : "See what your feedback adds up to"}
+        </EmptyTitle>
         <EmptyDescription>
           There {postCount === 1 ? "is" : "are"} {postCount} open{" "}
           {postCount === 1 ? "post" : "posts"}. The analysis groups recent
@@ -65,7 +75,7 @@ export function InsightsFirstRun({
       <EmptyContent>
         <Button size="lg" onClick={onGenerate} loading={isGenerating}>
           <Sparkles className="size-4" />
-          Generate insights
+          {completedEmpty ? "Regenerate" : "Generate insights"}
         </Button>
       </EmptyContent>
     </Empty>

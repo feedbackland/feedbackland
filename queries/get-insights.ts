@@ -1,5 +1,6 @@
 import "server-only";
 
+import { sql } from "kysely";
 import { db } from "@/db/db";
 import type {
   FeedbackStatus,
@@ -30,6 +31,9 @@ const asSignals = (value: unknown): InsightSignals | null => {
 
   return {
     reachScore: num(raw.reachScore),
+    anonymousPosts: num(raw.anonymousPosts),
+    votesLimited: raw.votesLimited === true,
+    commentsLimited: raw.commentsLimited === true,
     momentumScore: num(raw.momentumScore),
     severityScore: num(raw.severityScore),
     effortMultiplier: num(raw.effortMultiplier) || 1,
@@ -62,7 +66,22 @@ export const getInsightsQuery = async (): Promise<Insights> => {
     .execute(async (trx) => {
       const rows = await trx
         .selectFrom("insights")
-        .selectAll()
+        .select([
+          "id",
+          "version",
+          "title",
+          "description",
+          "priority",
+          "reach",
+          "momentum",
+          "upvotes",
+          "commentCount",
+          "effort",
+          "category",
+          "signals",
+          "firstSeenAt",
+          "lastSeenAt",
+        ])
         .where("isArchived", "=", false)
         .orderBy("priority", "desc")
         .orderBy("reach", "desc")
@@ -84,15 +103,27 @@ export const getInsightsQuery = async (): Promise<Insights> => {
         .orderBy("id", "desc")
         .limit(1)
         .executeTakeFirst();
-      const postIds = [...new Set(rows.flatMap((row) => row.ids))];
-      const posts = postIds.length
-        ? await trx
-            .selectFrom("feedback")
-            .select(["id", "status"])
-            .where("id", "in", postIds)
-            .execute()
-        : [];
-      const statusByPost = new Map(posts.map((p) => [p.id, p.status]));
+      const membership = await trx
+        .selectFrom("insight_member as m")
+        .innerJoin("insights as i", "i.id", "m.insightId")
+        .innerJoin("feedback as f", "f.id", "m.postId")
+        .where("i.isArchived", "=", false)
+        .groupBy("m.insightId")
+        .having(
+          sql<boolean>`bool_or(f.status is null or f.status not in ('done','declined'))`,
+        )
+        .select([
+          "m.insightId",
+          sql<number>`count(*)::int`.as("postCount"),
+          sql<FeedbackStatus>`min(f.status::text)::feedback_status`.as(
+            "status",
+          ),
+          sql<boolean>`count(distinct coalesce(f.status::text,''))>1`.as(
+            "mixed",
+          ),
+        ])
+        .execute();
+      const live = new Map(membership.map((row) => [row.insightId, row]));
       const count = await trx
         .selectFrom("feedback")
         .select((eb) => eb.fn.countAll<string>().as("n"))
@@ -104,46 +135,32 @@ export const getInsightsQuery = async (): Promise<Insights> => {
         )
         .executeTakeFirstOrThrow();
       const openPostCount = Number(count.n);
-      const rollUpStatus = (postIds: string[]) => {
-        const statuses = postIds
-          .filter((id) => statusByPost.has(id))
-          .map((id) => statusByPost.get(id) ?? null);
-
-        if (statuses.length === 0)
-          return { status: null, isMixedStatus: false };
-
-        const first = statuses[0];
-        const unanimous = statuses.every((status) => status === first);
-
-        return {
-          status: unanimous ? first : (null as FeedbackStatus),
-          isMixedStatus: !unanimous,
-        };
-      };
-
-      const insights: Insight[] = rows.map((row) => {
-        const postIds = row.ids ?? [];
-
-        return {
-          id: row.id,
-          title: row.title,
-          description: row.description,
-          postIds,
-          priority: num(row.priority),
-          reach: num(row.reach),
-          momentum: num(row.momentum),
-          upvotes: num(row.upvotes),
-          commentCount: num(row.commentCount),
-          effort: asEffort(row.effort),
-          ...rollUpStatus(postIds),
-          category: row.category,
-          signals: asSignals(row.signals),
-          firstSeenAt: row.firstSeenAt,
-          lastSeenAt: row.lastSeenAt,
-          // An insight that has only ever been seen in one run is new in that run.
-          isNew: row.firstSeenAt.getTime() === row.lastSeenAt.getTime(),
-        };
-      });
+      const insights: Insight[] = rows
+        .filter((row) => live.has(row.id))
+        .map((row) => {
+          const members = live.get(row.id)!;
+          return {
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            postCount: members.postCount,
+            version: row.version,
+            priority: num(row.priority),
+            reach: num(row.reach),
+            momentum: num(row.momentum),
+            upvotes: num(row.upvotes),
+            commentCount: num(row.commentCount),
+            effort: asEffort(row.effort),
+            status: members.mixed ? null : members.status,
+            isMixedStatus: members.mixed,
+            category: row.category,
+            signals: asSignals(row.signals),
+            firstSeenAt: row.firstSeenAt,
+            lastSeenAt: row.lastSeenAt,
+            // An insight that has only ever been seen in one run is new in that run.
+            isNew: row.firstSeenAt.getTime() === row.lastSeenAt.getTime(),
+          };
+        });
 
       const run: InsightsRun | null = runRow
         ? {

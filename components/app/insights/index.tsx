@@ -22,7 +22,7 @@ const SEARCH_THRESHOLD = 8;
 export function Insights() {
   const [search, setSearch] = useState("");
   const {
-    query: { data, isPending, isError },
+    query: { data, isPending, isError, refetch },
   } = useInsights();
   const job = useGenerateInsights();
 
@@ -47,7 +47,7 @@ export function Insights() {
 
   if (isPending) return <InsightsLoading />;
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div>
         <h2 className="h5 mb-4">Insights</h2>
@@ -62,17 +62,28 @@ export function Insights() {
   const { isGenerating } = job;
   const openPostCount = data?.openPostCount ?? 0;
 
+  const refreshError = isError && (
+    <div role="alert" className="mb-4 text-sm">
+      Could not refresh this report. Showing the last successful result.{" "}
+      <button className="underline" onClick={() => void refetch()}>
+        Try again
+      </button>
+    </div>
+  );
   if (insights.length === 0) {
     return (
       <div>
         {/* No action up here: the empty state below is the call to action, and
             when there is no feedback at all there is nothing to act on. */}
         <InsightsHeader hasRun={!!run} />
+        {refreshError}
         <InsightJobStatus job={job} />
+        {run && <InsightsRunStrip run={run} />}
         {isGenerating ? null : openPostCount === 0 ? (
-          <InsightsNoFeedback />
+          <InsightsNoFeedback hasRun={!!run} />
         ) : (
           <InsightsFirstRun
+            completedEmpty={run?.insightCount === 0}
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             postCount={openPostCount}
@@ -90,6 +101,7 @@ export function Insights() {
         isGenerating={isGenerating}
       />
 
+      {refreshError}
       <InsightJobStatus job={job} />
 
       {insights.length >= SEARCH_THRESHOLD && (

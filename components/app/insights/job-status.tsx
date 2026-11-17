@@ -10,6 +10,17 @@ export function InsightJobStatus({
   const run = job.latest.data;
   const css =
     "border-border bg-muted/40 mb-4 rounded-lg border px-4 py-3 text-sm";
+  if (job.latest.isError)
+    return (
+      <div role="alert" className={css}>
+        Could not read the latest analysis status.{" "}
+        {run?.status === "running" &&
+          "The worker was running at the last update."}{" "}
+        <button className="underline" onClick={() => void job.latest.refetch()}>
+          Try again
+        </button>
+      </div>
+    );
   if (job.isGenerating)
     return (
       <div role="status" className={css}>
@@ -22,15 +33,6 @@ export function InsightJobStatus({
             Reading {run.postsAnalyzed} of {run.postsTotal} posts.
           </p>
         )}
-      </div>
-    );
-  if (job.latest.isError)
-    return (
-      <div role="alert" className={css}>
-        Could not read the latest analysis status.{" "}
-        <button className="underline" onClick={() => void job.latest.refetch()}>
-          Try again
-        </button>
       </div>
     );
   const startError =

@@ -523,6 +523,7 @@ async function main() {
       "getActivityFeed",
       "getInsights",
       "getInsightsRun",
+      "getInsightEvidence",
       "getActivityFeedMetaData",
       "getModerationCoverage",
       "getFeedbackPostCount",

@@ -38,7 +38,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/set-all-activities-seen.ts` | `trpc/set-all-activities-seen.ts` |
 | `queries/set-insight-status.ts` | `trpc/set-insight-status.ts` |
 | `queries/update-comment.ts` | `trpc/update-comment.ts` |
-| `queries/update-feedback-post-status.ts` | `trpc/update-feedback-post-status.ts` |
+| `queries/update-feedback-post-status.ts` | `queries/set-insight-status.ts`, `trpc/update-feedback-post-status.ts` |
 | `queries/update-feedback-post.ts` | `trpc/update-feedback-post.ts` |
 | `queries/update-settings.ts` | `trpc/update-settings.ts` |
 | `queries/update-user.ts` | `trpc/update-user.ts` |
@@ -63,6 +63,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-feedback-post.ts` | `trpc/index.ts` |
 | `trpc/get-feedback-posts-by-ids.ts` | `trpc/index.ts` |
 | `trpc/get-feedback-posts.ts` | `trpc/index.ts` |
+| `trpc/get-insight-evidence.ts` | `trpc/index.ts` |
 | `trpc/get-insights-run.ts` | `trpc/index.ts` |
 | `trpc/get-insights.ts` | `trpc/index.ts` |
 | `trpc/get-mentionable-users.ts` | `trpc/index.ts` |
