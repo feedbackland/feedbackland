@@ -1,5 +1,7 @@
 import { connectionChat } from "../../lib/ai-request-limits";
 import { insightAnswer } from "./insights-fixture";
+import { answerAskAi } from "./ask-ai-provider";
+import { publicationFixture } from "./v12-publication-errors";
 import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
 
 async function main() {
@@ -38,6 +40,7 @@ async function main() {
       if (embeddingsOffline) return json(request.response, { error: {} }, 503);
     }
     if (request.url !== "/api/v1/chat/completions") return defaults(request);
+    if (request.body.stream === true) return answerAskAi(request);
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);
     const input = JSON.stringify(messages.slice(1));
@@ -66,6 +69,48 @@ async function main() {
       return insightAnswer(request);
     }
     if (prompt.startsWith("Moderate")) {
+      const scenario = input.match(
+        new RegExp(
+          publicationFixture +
+            "(401|402|429|500|timeout|malformed|refusal|filtered)",
+        ),
+      )?.[1];
+      if (scenario) {
+        console.log("P12 publication scenario " + scenario);
+        if (scenario === "timeout") {
+          await new Promise<void>((resolve) =>
+            request.response.once("close", resolve),
+          );
+          return;
+        }
+        if (scenario === "malformed") {
+          request.response.writeHead(200, {
+            "content-type": "application/json",
+          });
+          request.response.end("{" + privateMarker);
+          return;
+        }
+        if (scenario === "filtered")
+          return chat(request.response, null, "content_filter", privateMarker);
+        return json(
+          request.response,
+          {
+            error: {
+              message: privateMarker,
+              metadata: {
+                arbitrary: privateMarker,
+                ...(scenario === "402" && {
+                  limit_source: "openrouter_credits",
+                }),
+                ...(scenario === "refusal" && {
+                  error_type: "content_policy_violation",
+                }),
+              },
+            },
+          },
+          scenario === "refusal" ? 403 : Number(scenario),
+        );
+      }
       if (
         input.includes("data:image/png;") &&
         input.includes("Image attachment")

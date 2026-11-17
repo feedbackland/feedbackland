@@ -10,10 +10,17 @@ import { insightsBrowser } from "./insights-browser";
 import { replicaSearch } from "./replica-search";
 import { coldSearchRecovery } from "./search-browser-regressions";
 import { contentBrowser } from "./content-ai-browser";
+import { askAiHttp } from "./ask-ai-http";
+import { primaryJourney } from "./v2-primary";
+import { publicationErrors } from "./v12-publication-errors";
 
 const pgImage =
   "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11";
-export async function aiFoundations(runId: string, productionImage: string) {
+export async function aiFoundations(
+  runId: string,
+  productionImage: string,
+  phaseSix = false,
+) {
   assert.match(runId, /^p07-\d+-[a-f0-9]+$/);
   const project = runId + "-ai",
     pg = project + "-pg",
@@ -527,8 +534,38 @@ export async function aiFoundations(runId: string, productionImage: string) {
       (s) => s === 200,
     );
     const bootReadyAt = Date.now();
-    const browserResult = await contentBrowser(base, setup, (page) =>
-      coldSearchRecovery(page, base, project, docker, bootReadyAt),
+    const queryContent = (statement: string) =>
+      docker(
+        "exec",
+        pg,
+        "psql",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-U",
+        "postgres",
+        "-d",
+        "board_content",
+        "-Atqc",
+        statement,
+      );
+    const browserResult = await contentBrowser(
+      base,
+      setup,
+      (page) => coldSearchRecovery(page, base, project, docker, bootReadyAt),
+      phaseSix
+        ? async (page) => ({
+            askAi: await askAiHttp(page, base, queryContent, () =>
+              docker("logs", provider),
+            ),
+            primary: await primaryJourney(page, base, "semantic", queryContent),
+            brokenProvider: await publicationErrors(
+              page,
+              base,
+              queryContent,
+              () => docker("logs", provider),
+            ),
+          })
+        : undefined,
     );
     const vision = await productionVision(base, project, docker);
     await startWeb(peer, "board-peer");
@@ -555,7 +592,24 @@ export async function aiFoundations(runId: string, productionImage: string) {
         !logs.includes(setup),
       "Private marker in production logs",
     );
+    if (phaseSix) {
+      const hidden = await queryContent(`select not exists (
+        select 1 from (
+          select "lastCheck"::text as contents from ai_settings union all
+          select to_jsonb(h)::text from ai_health h union all
+          select to_jsonb(m)::text from moderation_event m union all
+          select to_jsonb(u)::text from llm_usage u union all
+          select to_jsonb(r)::text from insight_reports r union all
+          select description from feedback union all
+          select content from comment
+        ) sinks where strpos(contents,'P07_PRIVATE_')>0
+      )`);
+      assert.equal(hidden, "t", "Private marker in phase-6 application state");
+    }
     return {
+      ...(phaseSix
+        ? { phaseSix: browserResult.phaseSix, privateStateScan: "passed" }
+        : {}),
       browser: browserResult.content,
       coldProviderRecovery: browserResult.search,
       legacyPgvector: "0.7.4 HNSW on both tables, ordered 400 and exact tail",

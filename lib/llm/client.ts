@@ -96,6 +96,7 @@ type Controls = {
   [heldInsightSlot]?: true;
   lease?: import("../jobs/leases").Lease;
   signal?: AbortSignal;
+  actor?: Actor;
   check?: CheckTicket;
   reservation?: Reservation;
   content?: { config: Configuration; wall: Deadline };
@@ -247,6 +248,7 @@ async function execute<T>(
         signal,
         end: wall.end,
         check: controls.check,
+        actor: controls.actor,
         reservation: controls.reservation,
         lease: controls.lease,
         usage: {},

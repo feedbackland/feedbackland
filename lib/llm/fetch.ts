@@ -40,6 +40,7 @@ export type Dispatch = {
   signal: AbortSignal;
   end: number;
   check?: CheckTicket;
+  actor?: Actor;
   reservation?: Reservation;
   lease?: import("../jobs/leases").Lease;
   admission?: Admission;
@@ -211,6 +212,7 @@ export const providerFetch: typeof fetch = async (input, init) => {
       ctx.reservation,
       ctx,
       ctx.lease,
+      ctx.actor,
     );
     try {
       checkDeadline(ctx);

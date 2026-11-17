@@ -629,15 +629,20 @@ sets, manual evidence and the design-to-implementation ledger.
       keyless, broken provider, search/index states, authorization, body/memory,
       concurrency and active-client behavior. No future phase-7/8/9 check is
       misreported as passed.
-- [ ] Add the independent selection/held-out moderation fixtures and maximum
-      request/cost fixtures. Record real default-model width/search/privacy
-      checks and real Connect behavior required by phase 6.
-- [ ] Prove keyless DNS **and literal-IP attempt** absence with optional
-      auth/mail off and a positive-control observer. Scan logs/responses/state
-      for private markers across every model path, not only the first wired path.
-- [ ] Reconcile the 41-row ledger below against actual passing test names and
-      open future operational obligations. Only then complete #10's integration
-      merge, provided P00 remains satisfied.
+- [x] Add independent selection/held-out moderation fixtures and maximum
+      request/cost fixtures. Validate and hash them in the cumulative gate.
+- [x] Observe keyless DNS and outbound network attempts with optional auth/mail
+      off and independent positive controls. Exercise application responses,
+      persisted state and logs under reflected provider failures.
+- [x] Map the 41 review rows to cumulative checks and operational obligations.
+- [ ] Record real default-model width/search/privacy checks, measured defaults
+      and prices, and real Connect behavior required by phase 6.
+- [ ] Complete #10's integration merge after review, passing candidate
+      evidence, P00 and release-owner authorization.
+
+**Execution:** `npm run verify -- --phase 6 --image feedbackland:ci --artifacts artifacts/self-hosting`.
+See the [P12 evidence ledger](../reviews/2026-11-17-p12-integration-evidence.md)
+for the named checks and outstanding operator records.
 
 **Exit:** phase 6 complete with committed evidence and no unresolved due finding.
 Do not use review-count or synthetic SQL success as acceptance. **Next:** P13.

@@ -1,9 +1,9 @@
-name: Self-hosting phase 6b
+name: Self-hosting phase 6 acceptance
 on:
   push:
     branches: [main, single-tenant-self-hosting]
   pull_request:
-    branches: [main, single-tenant-self-hosting, codex/setup-auth, codex/social-recovery, codex/images-attachments, codex/ai-foundations, codex/content-ai, codex/durable-search, codex/background-insights]
+    branches: [main, single-tenant-self-hosting, codex/setup-auth, codex/social-recovery, codex/images-attachments, codex/ai-foundations, codex/content-ai, codex/durable-search, codex/background-insights, codex/ai-onboarding]
 permissions:
   contents: read
 jobs:
@@ -33,7 +33,7 @@ jobs:
           rm .env .env.production
       - name: Install all engines for the cumulative browser gates
         run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run verify -- --phase 6b --image feedbackland:ci --artifacts artifacts/self-hosting
+      - run: npm run verify -- --phase 6 --image feedbackland:ci --artifacts artifacts/self-hosting
       - name: Inspect evidence for fixture-only output
         id: evidence
         if: always()
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && steps.evidence.outcome == 'success' && steps.evidence.outputs.present == 'true' }}
         with:
-          name: self-hosting-phase-6b
+          name: self-hosting-phase-6
           path: artifacts/self-hosting/
           retention-days: 14
   development-boot:

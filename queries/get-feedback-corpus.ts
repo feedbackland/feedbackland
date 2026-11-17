@@ -1,43 +1,35 @@
 import "server-only";
 
+import { sql } from "kysely";
 import { db } from "@/db/db";
+import { ASK_AI_MAX_DESCRIPTION_CHARS } from "@/lib/ask-ai";
 
-/**
- * Everything the Ask AI page reads, newest first.
- *
- * Deliberately unfiltered by status. The chat's whole value over the board and
- * over Insights is that any question can be asked of it, and half of the useful
- * ones are about status — what we already shipped that people still ask for,
- * what we declined that keeps coming back. Hiding closed posts would also make
- * every counting question quietly answer against a board the admin cannot see.
- *
- * Descriptions come back as stored HTML and are converted where they are used,
- * so a board larger than the cap does not pay to strip markup from posts that
- * are about to be dropped.
- */
-export const getFeedbackCorpusQuery = async ({ limit }: { limit: number }) => {
-  try {
-    return await db
-      .selectFrom("feedback")
-      .select([
-        "feedback.id",
-        "feedback.title",
-        "feedback.description",
-        "feedback.category",
-        "feedback.status",
-        "feedback.upvotes",
-        "feedback.createdAt",
-        (eb) =>
-          eb
-            .selectFrom("comment")
-            .select(eb.fn.countAll<string>().as("commentCount"))
-            .whereRef("comment.postId", "=", "feedback.id")
-            .as("commentCount"),
-      ])
-      .orderBy("feedback.createdAt", "desc")
-      .limit(limit)
-      .execute();
-  } catch (error) {
-    throw new Error("Feedback query failed");
-  }
-};
+/** Include every status. The selected records and their text are bounded at the query. */
+export function getFeedbackCorpusQuery(
+  { limit }: { limit: number },
+  connection = db,
+) {
+  return connection
+    .selectFrom("feedback")
+    .select([
+      "feedback.id",
+      sql<string>`left(feedback.title, 300)`.as("title"),
+      sql<string>`left(feedback."plainText", ${ASK_AI_MAX_DESCRIPTION_CHARS})`.as(
+        "plainText",
+      ),
+      "feedback.category",
+      "feedback.status",
+      "feedback.upvotes",
+      "feedback.createdAt",
+      (eb) =>
+        eb
+          .selectFrom("comment")
+          .select(eb.fn.countAll<string>().as("commentCount"))
+          .whereRef("comment.postId", "=", "feedback.id")
+          .as("commentCount"),
+    ])
+    .orderBy("feedback.createdAt", "desc")
+    .orderBy("feedback.id", "desc")
+    .limit(limit)
+    .execute();
+}

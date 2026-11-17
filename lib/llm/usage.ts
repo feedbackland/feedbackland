@@ -7,7 +7,7 @@ import { DomainError } from "../domain-error";
 import { isDeepStrictEqual } from "node:util";
 import { deadline, withinTransaction, type Deadline } from "./deadline";
 import { log } from "../log";
-import type { Actor } from "../auth/authorization";
+import { requireAdmin, type Actor } from "../auth/authorization";
 import {
   attemptAiBudget,
   consumeRateLimitWindow,
@@ -238,12 +238,14 @@ export async function beginAttempt(
   reservation?: Reservation,
   wall: Deadline = deadline(config.options.timeoutMs),
   lease?: Lease,
+  actor?: Actor,
 ): Promise<Admission> {
   try {
     return await withinTransaction(
       wall,
       async (trx) => {
         if (lease) await requireLease(trx, lease);
+        if (actor) await requireAdmin(trx, actor, true);
         if (check && feature !== "check") throw new AiError("invalid-input");
         const action = check?.action;
         if (action) await authorizeCheckActor(trx, action.actor, false);
