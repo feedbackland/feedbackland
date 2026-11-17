@@ -50,7 +50,7 @@ jobs:
             --env SOURCE_COMMIT --env CI --env GITHUB_ACTIONS \
             --env NEXT_TELEMETRY_DISABLED \
             feedbackland:phase-six-runner bash -euc '
-              node -e "if (require(\"playwright/package.json\").version !== \"1.64.1\") process.exit(1)"
+              node -e "if (process.versions.node.split(\".\")[0] !== \"24\" || require(\"playwright/package.json\").version !== \"1.64.1\") process.exit(1)"
               npm run verify -- --phase 6 --image feedbackland:ci --artifacts artifacts/self-hosting
             '
       - name: Inspect evidence for fixture-only output
