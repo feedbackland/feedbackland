@@ -24,6 +24,7 @@ import {
   renewConfigurationLease,
   replicaId,
   startConfigurationLease,
+  configuration,
 } from "../llm/settings-store";
 import identity from "../build-identity.json";
 import { BootError } from "./errors";
@@ -379,6 +380,10 @@ export function boot() {
       count: config.maxImageBytes,
     });
     startConfigurationLease();
+    if (result.aiAligned && config.llm.valid && !(await configuration()).apiKey)
+      console.info(
+        "AI: off — turn it on in Settings → AI (/admin/settings/ai)",
+      );
     log("boot.ai-foundations", {
       stage: !config.llm.valid
         ? "invalid-configuration"

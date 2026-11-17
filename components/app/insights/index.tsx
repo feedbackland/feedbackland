@@ -19,7 +19,10 @@ import {
 /** Below this many insights the whole list fits on screen, so search is noise. */
 const SEARCH_THRESHOLD = 8;
 
+import { useAiAdmin, AiNextAction } from "@/components/app/ai-settings/status";
 export function Insights() {
+  const { status, unavailable } = useAiAdmin();
+  const canGenerate = !!status?.chatAvailable && !unavailable;
   const [search, setSearch] = useState("");
   const {
     query: { data, isPending, isError, refetch },
@@ -79,7 +82,22 @@ export function Insights() {
         {refreshError}
         <InsightJobStatus job={job} />
         {run && <InsightsRunStrip run={run} />}
-        {isGenerating ? null : openPostCount === 0 ? (
+        {isGenerating ? null : !canGenerate ? (
+          <div className="space-y-3">
+            <h3>See what your feedback adds up to</h3>
+            <p>
+              Insights groups open feedback into themes and shows the requests
+              with the most support.
+            </p>
+            {status?.state === "paused" && (
+              <p>
+                Paused until{" "}
+                {new Date(status.budget.resetAt).toLocaleTimeString()}.
+              </p>
+            )}
+            {!unavailable && <AiNextAction />}
+          </div>
+        ) : openPostCount === 0 ? (
           <InsightsNoFeedback hasRun={!!run} />
         ) : (
           <InsightsFirstRun
@@ -97,10 +115,11 @@ export function Insights() {
     <div>
       <InsightsHeader
         hasRun={!!run}
-        onGenerate={handleGenerate}
+        onGenerate={canGenerate ? handleGenerate : undefined}
         isGenerating={isGenerating}
       />
 
+      {!canGenerate && !unavailable && <AiNextAction />}
       {refreshError}
       <InsightJobStatus job={job} />
 

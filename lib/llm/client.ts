@@ -169,11 +169,12 @@ async function ready(
     );
   const config =
     controls.content?.config ??
-    (await configuration(initial.signal, !!controls.reservation).catch(
-      (error) => {
-        throw safeError(error, initial.signal);
-      },
-    ));
+    (await configuration(
+      initial.signal,
+      !!controls.reservation || !!controls.check || metadataAdmin,
+    ).catch((error) => {
+      throw safeError(error, initial.signal);
+    }));
   const wall =
     controls.content?.wall ??
     deadline(
@@ -533,6 +534,7 @@ export async function readProviderMetadata(
   external?: AbortSignal,
   check?: CheckTicket,
   lease?: import("../jobs/leases").Lease,
+  expected?: { token: string; revision: string },
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
@@ -545,6 +547,11 @@ export async function readProviderMetadata(
     );
     signal = wall.signal;
     signal.throwIfAborted();
+    if (
+      expected &&
+      (config.token !== expected.token || config.revision !== expected.revision)
+    )
+      throw new AiError("STALE_CONFIGURATION");
     return await metadata(config, kind, actor, wall, check, lease);
   } catch (error) {
     const failure = safeError(error, signal);

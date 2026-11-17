@@ -1,3 +1,4 @@
+import { getSystemStatus } from "./get-system-status";
 import { getSearchIndex, rebuildSearchIndex } from "./search-index";
 import { getSettings } from "./get-settings";
 import { updateSettings } from "./update-settings";
@@ -43,7 +44,32 @@ import { getAuthStatus } from "./get-auth-status";
 
 import { getImageUsage, reclaimPendingImages } from "./reclaim-pending-images";
 import { issueSearchTicket } from "./issue-search-capability";
+import {
+  getAiStatus,
+  getAiUsage,
+  getAiNoticeCounts,
+  saveAiOptions,
+  pasteAiKey,
+  changeAiKey,
+  startOpenRouter,
+  finishOpenRouter,
+  dismissAiNoticeForMe,
+  getAiKeyInfo,
+  listAiModels,
+} from "./ai-onboarding";
 export const appRouter = router({
+  getSystemStatus,
+  getAiStatus,
+  getAiUsage,
+  getAiNoticeCounts,
+  saveAiOptions,
+  pasteAiKey,
+  changeAiKey,
+  startOpenRouter,
+  finishOpenRouter,
+  dismissAiNoticeForMe,
+  getAiKeyInfo,
+  listAiModels,
   issueSearchTicket,
   getSearchIndex,
   rebuildSearchIndex,

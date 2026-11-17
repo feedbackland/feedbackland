@@ -1,4 +1,5 @@
 import "server-only";
+import { probeText } from "../ai-request-limits";
 import { setImmediate as yieldTurn } from "node:timers/promises";
 import { sql } from "kysely";
 import { contentTransaction } from "../../db/content-transaction";
@@ -6,7 +7,8 @@ import { runtimeState } from "../runtime-state";
 import { log } from "../log";
 import type { Lease } from "../jobs/leases";
 import { callEmbeddings, embeddingRequestLimit } from "./client";
-import { usableCheckedKey } from "./settings-store";
+import { contentBudget } from "./content-capabilities";
+import { failingCapability, usableCheckedKey } from "./settings-store";
 import { deadline } from "./deadline";
 import { AiError, EmbeddingWidthError } from "./errors";
 import { prepareEmbedding } from "./model-profiles";
@@ -36,7 +38,13 @@ export async function embeddingsAvailable() {
   const probe = runtimeState().embeddingProbe;
   if (!probe?.ready) return false;
   try {
-    return usableIndex(await indexSnapshot(false, AbortSignal.timeout(1500)));
+    const signal = AbortSignal.timeout(1500);
+    const index = await indexSnapshot(false, signal);
+    return (
+      usableIndex(index) &&
+      (await contentBudget(index.config, "rewrite", signal)).allowed &&
+      !(await failingCapability(index.config, "embeddings", signal))
+    );
   } catch {
     return false;
   }
@@ -123,17 +131,13 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
   state.embeddingProbe = probe;
   probe.pending = (async () => {
     try {
-      await callEmbeddings(
-        "probe",
-        ["Feedbackland search index dimension check"],
-        {
-          signal,
-          content: {
-            config: index.config,
-            wall: deadline(index.config.options.timeoutMs, signal),
-          },
+      await callEmbeddings("probe", [probeText], {
+        signal,
+        content: {
+          config: index.config,
+          wall: deadline(index.config.options.timeoutMs, signal),
         },
-      );
+      });
       if (state.embeddingProbe !== probe) return;
       probe.ready = true;
       probe.reason = "verified";

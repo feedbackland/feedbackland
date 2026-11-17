@@ -6,6 +6,7 @@ import {
   indexCounts,
   rebuildIndex,
 } from "@/lib/llm/search-index";
+import { checkConnection } from "@/lib/llm/onboarding";
 import { probeInfo } from "@/lib/llm/embeddings";
 import { usableCheckedKey } from "@/lib/llm/settings-store";
 import { getConfig } from "@/lib/config";
@@ -43,4 +44,18 @@ export const rebuildSearchIndex = adminProcedure
       confirm: z.literal(true),
     }),
   )
-  .mutation(({ input, ctx }) => rebuildIndex(ctx, input));
+  .mutation(async ({ input, ctx }) => {
+    const { epoch, dimensions, identity, configured } = await rebuildIndex(
+      ctx,
+      input,
+    );
+    if (!configured) return { epoch, dimensions, checked: false };
+    // The rebuild committed before the provider call. Report its outcome independently.
+    const check = await checkConnection(
+      ctx,
+      identity,
+      "configure",
+      ctx.signal,
+    ).catch(() => null);
+    return { epoch, dimensions, checked: check?.check.search === "passed" };
+  });

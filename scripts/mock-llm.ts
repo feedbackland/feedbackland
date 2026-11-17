@@ -119,7 +119,14 @@ const success: Handler = ({ url, body, response }) => {
     ],
   });
 };
-export async function mockOpenRouter(host = "127.0.0.1") {
+export type MockOAuth = {
+  authorize: (url: URL, res: ServerResponse) => void;
+  exchange: (
+    body: Record<string, unknown>,
+    res: ServerResponse,
+  ) => void | Promise<void>;
+};
+export async function mockOpenRouter(host = "127.0.0.1", oauth?: MockOAuth) {
   const fixture = {
     requests: 0,
     active: 0,
@@ -132,10 +139,18 @@ export async function mockOpenRouter(host = "127.0.0.1") {
   };
   let protocolFault = false;
   const handle = async (req: IncomingMessage, res: ServerResponse) => {
+    const url = req.url ?? "",
+      method = req.method ?? "";
+    const authorization =
+      !!oauth && method === "GET" && url.startsWith("/auth?");
+    const exchange =
+      !!oauth && method === "POST" && url === "/api/v1/auth/keys";
     if (
       (req.socket as TLSSocket).servername !== "openrouter.ai" ||
       req.headers.host !== "openrouter.ai" ||
-      req.headers.authorization !== "Bearer " + fixture.expectedKey ||
+      (authorization || exchange
+        ? req.headers.authorization !== undefined
+        : req.headers.authorization !== "Bearer " + fixture.expectedKey) ||
       [
         "http-referer",
         "x-openrouter-title",
@@ -148,8 +163,10 @@ export async function mockOpenRouter(host = "127.0.0.1") {
       json(res, {}, 403);
       return;
     }
-    const url = req.url ?? "",
-      method = req.method ?? "";
+    if (authorization) {
+      oauth!.authorize(new URL(url, "https://openrouter.ai"), res);
+      return;
+    }
     const post = ["/api/v1/chat/completions", "/api/v1/embeddings"].includes(
       url,
     );
@@ -158,14 +175,25 @@ export async function mockOpenRouter(host = "127.0.0.1") {
       "/api/v1/models/user",
       "/api/v1/models/user?output_modalities=embeddings",
     ].includes(url);
-    if (!((post && method === "POST") || (get && method === "GET"))) {
+    if (!(
+      exchange ||
+      (post && method === "POST") ||
+      (get && method === "GET")
+    )) {
       protocolFault = true;
       json(res, {}, 404);
       return;
     }
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(chunk as Buffer);
-    const body = post ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : {};
+    const body =
+      post || exchange
+        ? JSON.parse(Buffer.concat(chunks).toString("utf8"))
+        : {};
+    if (exchange) {
+      await oauth!.exchange(body, res);
+      return;
+    }
     const handler = fixture.handler;
     fixture.last = { url, method, body };
     fixture.requests++;

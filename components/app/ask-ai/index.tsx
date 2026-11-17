@@ -19,6 +19,8 @@ import {
   saveStoredThread,
 } from "@/components/app/ask-ai/storage";
 
+import { useAiAdmin, AiNextAction } from "@/components/app/ai-settings/status";
+import { issueText } from "@/lib/ai-onboarding-copy";
 const authHeaders = async () => ({});
 
 /**
@@ -33,6 +35,7 @@ export default function AskAi() {
   // Bumped to start over. Remounting the session is what guarantees the thread,
   // the composer draft and the restored history all go at once — a reset that
   // leaves one of the three behind is worse than none.
+  const { status, unavailable } = useAiAdmin();
   const [session, setSession] = useState(0);
 
   // Three states, and the welcome says something different for each: undefined
@@ -47,6 +50,26 @@ export default function AskAi() {
     setSession((current) => current + 1);
   }, []);
 
+  if (!status?.chatAvailable || unavailable)
+    return (
+      <section className="space-y-3">
+        <h2 className="h5">Ask AI</h2>
+        <p>
+          Ask questions about your{" "}
+          {typeof postCount === "number"
+            ? Math.min(300, postCount)
+            : "up to 300"}{" "}
+          most recent posts, with links to the feedback behind each answer.
+        </p>
+        {status?.state === "paused" && (
+          <p>
+            Paused until {new Date(status.budget.resetAt).toLocaleTimeString()}.
+          </p>
+        )}
+        {status?.state === "attention" && <p>{issueText(status.reason)}</p>}
+        {!unavailable && <AiNextAction />}
+      </section>
+    );
   return (
     <AskAiSession
       key={session}

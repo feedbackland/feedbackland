@@ -26,5 +26,5 @@ export async function setupAction(
           : "Setup is temporarily unavailable. Try again later.",
     };
   }
-  redirect("/admin");
+  redirect("/admin/settings/ai?welcome=1");
 }

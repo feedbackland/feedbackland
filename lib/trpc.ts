@@ -1,4 +1,5 @@
 import "server-only";
+import { recordRequest } from "./request-diagnostics";
 import { credentialHeaders } from "./auth/headers";
 import superjson from "superjson";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -27,6 +28,7 @@ export const createContext = async ({
 }: {
   req: Request;
 }): Promise<RequestContext> => {
+  recordRequest(req.headers);
   const authHeaders = credentialHeaders(req.headers);
   const { response: session, headers } = await getAuth().api.getSession({
     headers: authHeaders,

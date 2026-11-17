@@ -138,7 +138,7 @@ export function observeStreamFrame(ctx: Dispatch, frame: unknown) {
 }
 async function send(
   path: string,
-  key: string,
+  key: string | null,
   body: string | undefined,
   signal: AbortSignal,
   limit: number,
@@ -148,7 +148,7 @@ async function send(
   const result = await fetch(OPENROUTER_API + path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
-      authorization: "Bearer " + key,
+      ...(key ? { authorization: "Bearer " + key } : {}),
       ...(body === undefined ? {} : { "content-type": "application/json" }),
     },
     body,
@@ -389,4 +389,29 @@ export async function metadata(
   });
   if (kind === "chatModels") await recordModelVision(config, models, wall);
   return models;
+}
+
+export async function exchangeConnectCode(
+  code: string,
+  verifier: string,
+  signal: AbortSignal,
+) {
+  const res = await send(
+    "/auth/keys",
+    null,
+    JSON.stringify({
+      code,
+      code_verifier: verifier,
+      code_challenge_method: "S256",
+    }),
+    signal,
+    8192,
+  );
+  const body = object(await res.json());
+  if (
+    typeof body.key !== "string" ||
+    !/^sk-or-v1-[a-zA-Z0-9_-]{8,256}$/.test(body.key)
+  )
+    throw new AiError("invalid-response");
+  return body.key;
 }

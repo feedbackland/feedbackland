@@ -33,7 +33,8 @@ export async function canImproveDraft() {
       !config.configured ||
       !config.apiKey ||
       (config.check &&
-        ["invalid", "management", "expired"].includes(config.check.key))
+        (["invalid", "management", "expired"].includes(config.check.key) ||
+          config.check.chat === "failed"))
     )
       return false;
     return (

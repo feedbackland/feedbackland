@@ -68,6 +68,7 @@ export function SettingsProvider({
       void refresh();
     };
     timer = setTimeout(tick, 5000);
+    window.addEventListener("feedbackland-settings", hint);
     window.addEventListener("focus", hint);
     window.addEventListener("online", hint);
     document.addEventListener("visibilitychange", hint);
@@ -97,6 +98,7 @@ export function SettingsProvider({
       clearInterval(stale);
       clearTimeout(timer);
       channel?.close();
+      window.removeEventListener("feedbackland-settings", hint);
       window.removeEventListener("focus", hint);
       window.removeEventListener("online", hint);
       document.removeEventListener("visibilitychange", hint);

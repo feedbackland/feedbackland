@@ -609,11 +609,11 @@ successful reports and consumed allowance. **Next:** P11.
 return/headless flow, key checks, credit wait, notices, status polling and public
 settings capabilities. Finish discovery retry and reclaim placement in System.
 
-- [ ] Implement admin CAS actions, encrypted server-held verifier, echoed state
+- [x] Implement admin CAS actions, encrypted server-held verifier, echoed state
       plus path nonce, key confirmation, environment locks and Keep AI off.
-- [ ] Atomically bind enable/check results to the replacement token; close-tab
+- [x] Atomically bind enable/check results to the replacement token; close-tab
       credit checks use P09 leadership and honor ordinary budget availability.
-- [ ] Wire visible client polling, focus refresh, stale/offline handling and
+- [x] Wire visible client polling, focus refresh, stale/offline handling and
       UTC rollover; cost UI shows bounded scenarios and explicit unknowns.
 
 **Exit:** V18; V21 stale-key/enable/health races; V23 same-DOM multi-tab/drawer

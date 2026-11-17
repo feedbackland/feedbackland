@@ -90,7 +90,13 @@ async function readIndex(create: boolean, signal?: AbortSignal) {
       generation: "1",
     };
     return describe(
-      await advanceIndexGeneration(trx, fingerprint, physical, snapshot.config),
+      await advanceIndexGeneration(
+        trx,
+        fingerprint,
+        physical,
+        snapshot.config,
+        true,
+      ),
     );
   });
 }
@@ -246,5 +252,13 @@ export async function rebuildIndex(
     return describe(updated);
   });
   publish(snapshot);
-  return { epoch: snapshot.epoch, dimensions: n };
+  return {
+    epoch: snapshot.epoch,
+    dimensions: n,
+    identity: {
+      token: snapshot.config.token,
+      revision: snapshot.config.revision,
+    },
+    configured: snapshot.config.configured,
+  };
 }
