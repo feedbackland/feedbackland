@@ -733,15 +733,30 @@ export async function onboardingBrowser(f: Fixture) {
         'select extract(epoch from "updatedAt")*1000 from ai_settings where enabled',
       ),
     );
+    const admittedAt = Number(
+      await f.sql(
+        "select extract(epoch from max(at))*1000 from onboarding_clock.poll",
+      ),
+    );
+    const creditAdmissionMs = admittedAt - fundedAt;
     const activationMs = activatedAt - fundedAt;
     const fundedMs = Math.max(...visibleAt) - fundedAt;
     assert(
-      activationMs >= 0 && activationMs <= 15000,
-      "funding to committed activation took " + activationMs + "ms",
+      creditAdmissionMs >= 0 && creditAdmissionMs <= 15000,
+      "funding to the next admitted check took " + creditAdmissionMs + "ms",
     );
     assert(
-      fundedMs <= 15000,
-      "funding to visible AI on in both mounted tabs took " + fundedMs + "ms",
+      activationMs >= creditAdmissionMs &&
+        activationMs - creditAdmissionMs <= 1000,
+      "admitted fixture check to activation took " +
+        (activationMs - creditAdmissionMs) +
+        "ms",
+    );
+    assert(
+      fundedMs >= activationMs && fundedMs - activationMs <= 500,
+      "activation to both mounted tabs took " +
+        (fundedMs - activationMs) +
+        "ms",
     );
     await page.unroute("**/*changeAiKey*");
     await peer.close();
@@ -862,6 +877,7 @@ export async function onboardingBrowser(f: Fixture) {
     return {
       closedCreditMs,
       creditAdmissions: observed.length,
+      creditAdmissionMs: Math.round(creditAdmissionMs),
       activationMs: Math.round(activationMs),
       fundedMs: Math.round(fundedMs),
       utcDays: [oldDay, newDay],
