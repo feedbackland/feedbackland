@@ -45,7 +45,7 @@ export function SearchIndex() {
   const data = query.data,
     n = Number(data?.requested ?? width ?? data?.dimensions);
   return (
-    <section className="space-y-2">
+    <section id="search-index" className="space-y-2">
       <h2 className="text-lg font-semibold">Search index</h2>
       {query.isError && <p role="alert">Could not read the search index.</p>}
       {data && (
@@ -56,10 +56,13 @@ export function SearchIndex() {
             {data.model} · {data.dimensions ?? "unknown"} dimensions
             {data.observed !== null && ` · provider returned ${data.observed}`}.
           </p>
-          <p>
-            {data.total - data.pending - data.skipped} indexed · {data.pending}{" "}
-            pending · {data.skipped} skipped
-          </p>
+          {data.state !== "rebuild-required" &&
+            data.state !== "column-mismatch" && (
+              <p>
+                {data.total - data.pending - data.skipped} indexed ·{" "}
+                {data.pending} pending · {data.skipped} skipped
+              </p>
+            )}
           <label className="block" htmlFor="index-width">
             Rebuild at dimensions
           </label>
@@ -139,7 +142,10 @@ export function SearchIndex() {
           {mutation.isSuccess && (
             <p role="status">
               Index rebuild committed. Eligible items will be indexed in the
-              background.
+              background.{" "}
+              {mutation.data.checked
+                ? "The selected embedding model passed its live check."
+                : "The embedding model has not passed a live check for this generation."}
             </p>
           )}
         </>

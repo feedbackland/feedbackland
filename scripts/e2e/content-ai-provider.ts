@@ -1,3 +1,4 @@
+import { connectionChat } from "../../lib/ai-request-limits";
 import { insightAnswer } from "./insights-fixture";
 import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
 
@@ -40,6 +41,13 @@ async function main() {
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);
     const input = JSON.stringify(messages.slice(1));
+    if (prompt === connectionChat.system && input.includes(connectionChat.text))
+      return chat(
+        request.response,
+        0.001,
+        "stop",
+        JSON.stringify({ ok: true }),
+      );
     if (
       prompt.startsWith("Group related feedback") ||
       prompt.startsWith("Find summaries")

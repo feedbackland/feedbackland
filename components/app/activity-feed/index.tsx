@@ -4,6 +4,7 @@ import { useActivityFeedMetaData } from "@/hooks/use-activity-feed-meta-data";
 import { ActivityFeedHeader } from "./header";
 import { ActivityFeedToolbar } from "./toolbar";
 import { ActivityFeedList } from "./list";
+import { ActivityAiNotice } from "@/components/app/ai-settings/status";
 import { ActivityCategory } from "./category-filter";
 
 export function ActivityFeed() {
@@ -23,6 +24,7 @@ export function ActivityFeed() {
 
   return (
     <div>
+      <ActivityAiNotice />
       <ActivityFeedHeader unseenCount={totalUnseen} />
       <ActivityFeedToolbar unseenCounts={unseenCounts} />
       <ActivityFeedList />

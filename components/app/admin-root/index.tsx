@@ -8,6 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, ReactNode } from "react";
+import {
+  type AiStatus,
+  AiAdminProvider,
+  AiPill,
+  AiTabMarker,
+} from "@/components/app/ai-settings/status";
 import { useIsTopLevel } from "@/providers/surface";
 
 // Approximate widths of the tab labels, for the auth-loading skeleton.
@@ -23,7 +29,13 @@ const TABS = [
 ];
 const TAB_WIDTHS = TABS.map((label) => `${label.length * 0.45 + 1.5}rem`);
 
-export default function AdminRoot({ children }: { children: ReactNode }) {
+export default function AdminRoot({
+  children,
+  initialStatus,
+}: {
+  children: ReactNode;
+  initialStatus?: AiStatus;
+}) {
   const { isAdmin, isLoaded } = useAuth();
   const topLevel = useIsTopLevel();
   const href = useBoardHref();
@@ -38,7 +50,7 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
   }, [isLoaded, boardRoot, isAdmin, router, topLevel]);
 
   const getValue = () => {
-    return pathname?.split("/")?.pop() || "activity";
+    return pathname?.split("/")[2] || "activity";
   };
 
   // While auth is still resolving, show the chrome's tab bar as a skeleton
@@ -67,24 +79,32 @@ export default function AdminRoot({ children }: { children: ReactNode }) {
 
   if (isAdmin) {
     return (
-      <div>
-        <Tabs
-          value={getValue()}
-          className="w-full overflow-x-auto overflow-y-hidden"
-        >
-          <TabsList className="w-max">
-            {TABS.map((label) => {
-              const value = label.toLowerCase().replaceAll(" ", "-");
-              return (
-                <TabsTrigger key={value} value={value} asChild>
-                  <Link href={href("/admin/" + value)}>{label}</Link>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-        </Tabs>
-        <div className="mt-6">{children}</div>
-      </div>
+      <AiAdminProvider initialStatus={initialStatus}>
+        <div>
+          <Tabs
+            value={getValue()}
+            className="w-full overflow-x-auto overflow-y-hidden"
+          >
+            <TabsList className="w-max">
+              {TABS.map((label) => {
+                const value = label.toLowerCase().replaceAll(" ", "-");
+                return (
+                  <TabsTrigger key={value} value={value} asChild>
+                    <Link href={href("/admin/" + value)}>
+                      {label}
+                      {(value === "insights" || value === "ask-ai") && (
+                        <AiTabMarker />
+                      )}
+                    </Link>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
+          <AiPill />
+          <div className="mt-6">{children}</div>
+        </div>
+      </AiAdminProvider>
     );
   }
 

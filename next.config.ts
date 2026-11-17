@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
           { key: "Content-Disposition", value: "inline" },
         ],
       },
+      {
+        source: "/admin/settings/ai/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
       ...["/", "/:postId([0-9a-fA-F-]{36})"].map((source) => ({
         source,
         has: [{ type: "query" as const, key: "embed", value: "drawer" }],

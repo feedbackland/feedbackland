@@ -83,6 +83,7 @@ export interface AiSettings {
   indexFingerprint: Json | null;
   keepOffAt: Timestamp | null;
   keepOffBy: string | null;
+  keyUndo: Json | null;
   lastCheck: Json | null;
   options: Generated<Json>;
   revision: Generated<Int8>;

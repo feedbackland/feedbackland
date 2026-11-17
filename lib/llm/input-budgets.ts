@@ -1,4 +1,5 @@
 import "server-only";
+import { maxVisionImages } from "../ai-request-limits";
 import { inputBytes, type ChatFeature } from "./defaults";
 import { AiError } from "./errors";
 
@@ -106,7 +107,7 @@ export function planVision(assets: readonly VisionAsset[]) {
   let total = 0;
   for (const a of assets) {
     if (unique.has(a.id)) continue;
-    if (unique.size >= 4 || !visionEligible(a))
+    if (unique.size >= maxVisionImages || !visionEligible(a))
       throw new AiError("invalid-input");
     unique.set(a.id, a);
     total += a.byteSize;

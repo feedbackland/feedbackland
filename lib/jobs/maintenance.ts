@@ -11,13 +11,11 @@ import {
 import { indexSnapshot, type IndexSnapshot } from "../llm/search-index";
 import {
   beginCheck,
-  completeCreditWait,
   pendingCreditCheck,
-  saveCheck,
   unhealthyCapabilities,
 } from "../llm/settings-store";
-import { callChat, callEmbeddings, readProviderMetadata } from "../llm/client";
-import { AiError, safeError } from "../llm/errors";
+import { AiError } from "../llm/errors";
+import { runConnectionCheck } from "../llm/onboarding";
 import { deadline } from "../llm/deadline";
 
 export async function maintenanceDiagnostics(
@@ -42,33 +40,7 @@ export async function maintenanceDiagnostics(
       deadline(config.options.timeoutMs, signal),
       lease,
     );
-    const key = await readProviderMetadata(
-      "key",
-      undefined,
-      signal,
-      check,
-      lease,
-    );
-    if (
-      Array.isArray(key) ||
-      key.management ||
-      key.expired ||
-      key.remaining === 0
-    )
-      return;
-    // Successful paid-model dispatch is the credit evidence, independently of the embedding model.
-    await callChat(
-      "check",
-      { system: "Reply with OK.", text: "Connection check" },
-      { check, signal, lease },
-    );
-    await completeCreditWait(
-      check,
-      config.keyDigest,
-      wait.creditWaitUntil,
-      { key: "valid", chat: "passed", search: "untested" },
-      lease,
-    );
+    await runConnectionCheck(config, check, { signal, worker: owner });
     return;
   }
   const unhealthy = await unhealthyCapabilities(config, signal);
@@ -79,74 +51,17 @@ export async function maintenanceDiagnostics(
     deadline(config.options.timeoutMs, signal),
     lease,
   );
-  const result = {
-    key: config.check?.key ?? "unknown",
-    chat: config.check?.chat ?? "untested",
-    search: config.check?.search ?? "untested",
-  };
-  let canTest = false;
-  try {
-    const key = await readProviderMetadata(
-      "key",
-      undefined,
-      signal,
-      check,
-      lease,
-    );
-    if (Array.isArray(key)) throw new AiError("invalid-response");
-    result.key = key.management
-      ? "management"
-      : key.expired
-        ? "expired"
-        : "valid";
-    canTest = result.key === "valid" && key.remaining !== 0;
-  } catch (error) {
-    if (safeError(error, signal).reason === "provider-auth")
-      result.key = "invalid";
-    else throw error;
-  }
-  for (const { capability } of unhealthy) {
-    signal.throwIfAborted();
-    const field = capability === "chat" ? "chat" : "search";
-    if (
-      !canTest ||
-      (field === "search" && (index.reason || !index.fingerprint))
-    ) {
-      result[field] = "untested";
-      continue;
-    }
-    try {
-      if (field === "chat") {
-        await callChat(
-          "check",
-          { system: "Reply with OK.", text: "Connection check" },
-          { check, lease, signal },
-        );
-      } else {
-        await callEmbeddings("check", ["Search health check"], {
-          check,
-          lease,
-          signal,
-          content: { config, wall: deadline(config.options.timeoutMs, signal) },
-        });
-      }
-      result[field] = "passed";
-    } catch (error) {
-      signal.throwIfAborted();
-      const { reason } = safeError(error, signal);
-      if (reason === "RESERVATION_EXPIRED" || reason === "STALE_CONFIGURATION")
-        throw error;
-      result[field] = [
-        "AI_PAUSED",
-        "AI_BUSY",
-        "limiter-error",
-        "in-flight-budget",
-      ].includes(reason)
-        ? "untested"
-        : "failed";
-    }
-  }
-  await saveCheck(check, result, owner);
+  await runConnectionCheck(config, check, {
+    signal,
+    worker: owner,
+    capabilities: {
+      chat: unhealthy.some((h) => h.capability === "chat"),
+      search:
+        !index.reason &&
+        !!index.fingerprint &&
+        unhealthy.some((h) => h.capability === "embeddings"),
+    },
+  });
 }
 export function startMaintenance() {
   const state = runtimeState();

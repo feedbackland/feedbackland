@@ -30,7 +30,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/get-insights.ts` | `trpc/get-insights.ts` |
 | `queries/get-mentionable-users.ts` | `trpc/get-mentionable-users.ts` |
 | `queries/get-moderation-coverage.ts` | `trpc/get-moderation-coverage.ts` |
-| `queries/get-settings.ts` | `lib/settings.ts`, `queries/update-settings.ts`, `trpc/get-settings.ts` |
+| `queries/get-settings.ts` | `lib/llm/connect.ts`, `lib/settings.ts`, `queries/update-settings.ts`, `trpc/get-settings.ts` |
 | `queries/redeem-admin-invite.ts` | `trpc/redeem-admin-invite.ts` |
 | `queries/reply-parent.ts` | `queries/content-write.ts` |
 | `queries/save-insights.ts` | `lib/jobs/insights.ts` |
@@ -44,6 +44,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/update-user.ts` | `trpc/update-user.ts` |
 | `queries/upvote-comment.ts` | `trpc/upvote-comment.ts` |
 | `queries/upvote-feedback-post.ts` | `trpc/upvote-feedback-post.ts` |
+| `trpc/ai-onboarding.ts` | `trpc/index.ts` |
 | `trpc/create-admin-invite.ts` | `trpc/index.ts` |
 | `trpc/create-comment.ts` | `trpc/index.ts` |
 | `trpc/create-feedback-post.ts` | `trpc/index.ts` |
@@ -69,8 +70,9 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `trpc/get-mentionable-users.ts` | `trpc/index.ts` |
 | `trpc/get-moderation-coverage.ts` | `trpc/index.ts` |
 | `trpc/get-settings.ts` | `trpc/index.ts` |
+| `trpc/get-system-status.ts` | `trpc/index.ts` |
 | `trpc/get-user-session.ts` | `trpc/index.ts` |
-| `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `hooks/use-search-session.ts`, `providers/trpc-client.tsx` |
+| `trpc/index.ts` | `app/api/trpc/[trpc]/route.ts`, `components/app/ai-settings/status.tsx`, `hooks/use-search-session.ts`, `providers/trpc-client.tsx` |
 | `trpc/issue-search-capability.ts` | `trpc/index.ts` |
 | `trpc/reclaim-pending-images.ts` | `trpc/index.ts` |
 | `trpc/redeem-admin-invite.ts` | `trpc/index.ts` |

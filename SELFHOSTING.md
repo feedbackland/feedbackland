@@ -2,7 +2,7 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P10 includes transactional boot, one-time setup,
+> **Implementation status:** P11 includes AI onboarding, active status, transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
@@ -274,6 +274,12 @@ If the target already provides pgvector in a different schema, have the extensio
 ---
 
 ## AI configuration in this development milestone
+
+Open **Admin → Settings → AI** after creating the board. **Connect OpenRouter** redirects on localhost and publicly indexed HTTPS boards. On a private board it opens OpenRouter separately and asks you to paste its one-time code. **Connect without listing** also uses this flow. You can paste a regular OpenRouter key directly. The board checks the key and model before enabling AI. **Confirm it’s yours** opens the key in your OpenRouter account, where you can set a dollar spend limit.
+
+**Skip for now** leaves the board available. **Not now** hides an Activity reminder for your account for 14 days. **Keep AI off** applies to every administrator while retaining the key. **Undo** can restore your previous key for five minutes if no newer settings change superseded yours. **Remove key** clears the stored copy. Revoke the original in OpenRouter to stop other uses.
+
+If the account needs credit, you can add credit and close the tab. Visible settings pages check every 15 seconds. A single maintenance worker checks approximately every five minutes for up to seven days within the ordinary request allowance. After expiry, use **Test again**. Availability and budget changes appear in open board and admin tabs. The usage table reports missing prices separately. Estimates stay unavailable where tokenization, image billing, routing or observed usage cannot support a dollar amount.
 
 Set `OPENROUTER_API_KEY` to screen new and edited feedback and comments, generate post titles and categories, and enable **Improve my draft**. Draft improvements send text only and preserve attached images. Without a key, posting and editing work, posts use the first sentence as their title, and the draft button is hidden.
 

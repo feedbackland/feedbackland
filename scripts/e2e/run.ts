@@ -97,6 +97,7 @@ export async function eventually<T>(
   action: () => Promise<T>,
   accept: (value: T) => boolean,
   timeout = 60_000,
+  pollInterval = 300,
 ): Promise<T> {
   const end = Date.now() + timeout;
   let last: unknown;
@@ -108,7 +109,7 @@ export async function eventually<T>(
     } catch (error) {
       last = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
   } while (Date.now() < end);
   throw new Error(`condition not met within ${timeout}ms: ${String(last)}`);
 }

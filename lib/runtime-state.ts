@@ -11,6 +11,7 @@ export type VectorMetadata = {
   indexesValid?: boolean;
 };
 export type RuntimeState = {
+  requestSamples?: { host: string | null; hasClientIp: boolean }[];
   aiConfigGeneration?: number;
   aiConfig?: {
     value: import("./llm/settings-store").Configuration;

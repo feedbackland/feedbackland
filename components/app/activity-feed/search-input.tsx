@@ -1,5 +1,6 @@
 "use client";
 
+import { useAiAdmin } from "@/components/app/ai-settings/status";
 import { useState } from "react";
 import {
   InputGroup,
@@ -23,6 +24,7 @@ export const ActivityFeedSearchInput = ({
   delay?: number;
   className?: React.ComponentProps<"div">["className"];
 }) => {
+  const { status } = useAiAdmin();
   const [inputValue, setInputValue] = useState(value);
 
   useDebounce(
@@ -40,7 +42,11 @@ export const ActivityFeedSearchInput = ({
       </InputGroupAddon>
       <InputGroupInput
         type="text"
-        placeholder="Search activity..."
+        placeholder={
+          status?.state === "off" && !status.keptOffAt
+            ? "Searching exact words · Search by meaning with AI"
+            : "Search activity..."
+        }
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {

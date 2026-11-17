@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { isSetupComplete } from "@/lib/setup-state";
 import { getAuth, requireAdminSession } from "@/lib/auth/server";
 import { EMBED_HEADER } from "@/lib/embed-surface";
+import { adminAiState } from "@/lib/llm/settings-store";
 import { DomainError } from "@/lib/domain-error";
 
 export default async function AdminLayout({
@@ -21,13 +22,18 @@ export default async function AdminLayout({
     requestHeaders.get("sec-fetch-dest") === "iframe"
   )
     return <p role="alert">Open this page in its own tab.</p>;
+  let initialStatus;
   try {
-    requireAdminSession(
+    const { user, session } = requireAdminSession(
       await getAuth().api.getSession({
         headers: requestHeaders,
         query: { disableRefresh: true },
       }),
     );
+    initialStatus = await adminAiState(
+      { userId: user.id, sessionId: session.id },
+      AbortSignal.timeout(2000),
+    ).catch(() => undefined);
   } catch (error) {
     if (!(error instanceof DomainError)) throw error;
     return (
@@ -39,7 +45,7 @@ export default async function AdminLayout({
   return (
     <PlatformRoot>
       <BoardState />
-      <AdminRoot>{children}</AdminRoot>
+      <AdminRoot initialStatus={initialStatus}>{children}</AdminRoot>
     </PlatformRoot>
   );
 }

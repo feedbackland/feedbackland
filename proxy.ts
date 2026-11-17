@@ -1,3 +1,4 @@
+import { recordRequest } from "@/lib/request-diagnostics";
 import { NextRequest, NextResponse } from "next/server";
 import { isPostId } from "@/lib/post-id";
 import { getConfig } from "@/lib/config";
@@ -11,6 +12,7 @@ export const config = {
   matcher: ["/((?!api/|_next/|_static/|[\\w-]+\\.\\w+).*)", "/robots.txt"],
 };
 export function proxy(req: NextRequest) {
+  recordRequest(req.headers);
   const site = req.headers.get("sec-fetch-site");
   if (
     req.nextUrl.pathname === "/auth/popup" &&

@@ -4,6 +4,8 @@ import { contentTransaction } from "../../db/content-transaction";
 import {
   configuration,
   failingCapability,
+  usableCheckedKey,
+  currentCheck,
   type Configuration,
 } from "./settings-store";
 import { dailyShare } from "./usage";
@@ -32,8 +34,9 @@ export async function canImproveDraft() {
       config.diverged ||
       !config.configured ||
       !config.apiKey ||
-      (config.check &&
-        ["invalid", "management", "expired"].includes(config.check.key))
+      !usableCheckedKey(config) ||
+      (config.check?.chat === "failed" &&
+        (await currentCheck(config, signal))?.chat === "failed")
     )
       return false;
     return (

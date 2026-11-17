@@ -7,9 +7,14 @@ export async function submitSetup(
   base: string,
   code: string,
   email = "admin@fixture.invalid",
+  browserProbe = false,
 ) {
+  const sessionUrl = base + "/api/auth/get-session";
+  const ready = browserProbe
+    ? await page.goto(sessionUrl)
+    : await page.request.get(sessionUrl);
   assert.equal(
-    (await page.request.get(base + "/api/auth/get-session")).status(),
+    ready?.status(),
     200,
     "Auth HTTP route must respond before setup",
   );
@@ -39,6 +44,12 @@ export async function submitSetup(
     ),
     "Setup response must set an HttpOnly SameSite=Lax session cookie",
   );
+  await page.waitForURL(
+    (url) =>
+      url.pathname === "/admin/settings/ai" &&
+      url.searchParams.get("welcome") === "1",
+  );
+  await page.getByRole("link", { name: "Skip for now" }).click();
   await page.waitForURL((url) => url.pathname === "/admin/activity", {
     timeout: 30_000,
   });

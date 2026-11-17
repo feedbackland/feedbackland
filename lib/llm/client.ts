@@ -1,4 +1,6 @@
 import "server-only";
+import { embeddingRequestLimit } from "../ai-request-limits";
+export { embeddingRequestLimit };
 import { z } from "zod";
 import { getConfig } from "../config";
 import { deadline, checkDeadline, type Deadline } from "./deadline";
@@ -17,7 +19,6 @@ import type { Actor } from "../auth/authorization";
 import {
   OPENROUTER_API,
   VISION_WORK_BYTES,
-  MODEL_RESPONSE_BYTES,
   type Capability,
   type Feature,
 } from "./constants";
@@ -169,11 +170,12 @@ async function ready(
     );
   const config =
     controls.content?.config ??
-    (await configuration(initial.signal, !!controls.reservation).catch(
-      (error) => {
-        throw safeError(error, initial.signal);
-      },
-    ));
+    (await configuration(
+      initial.signal,
+      !!controls.reservation || !!controls.check || metadataAdmin,
+    ).catch((error) => {
+      throw safeError(error, initial.signal);
+    }));
   const wall =
     controls.content?.wall ??
     deadline(
@@ -460,13 +462,6 @@ function checkFinish(raw: string | undefined, reason: string) {
   if (raw === "error" || reason === "error")
     throw new AiError("provider-error");
 }
-// Leave room for envelope and usage fields in each bounded provider response.
-export function embeddingRequestLimit(dimensions: number) {
-  return Math.max(
-    1,
-    Math.floor((MODEL_RESPONSE_BYTES - 16384) / (dimensions * 25 + 128)),
-  );
-}
 export async function callEmbeddings(
   feature: "embed-write" | "embed-query" | "backfill" | "probe" | "check",
   items: readonly string[],
@@ -533,6 +528,8 @@ export async function readProviderMetadata(
   external?: AbortSignal,
   check?: CheckTicket,
   lease?: import("../jobs/leases").Lease,
+  expected?: { token: string; revision: string },
+  checkedConfig?: Configuration,
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
@@ -540,11 +537,27 @@ export async function readProviderMetadata(
     const { config, wall } = await ready(
       "metadata",
       "chat",
-      { signal: external, check },
+      {
+        signal: external,
+        check,
+        ...(checkedConfig && check && kind === "key"
+          ? {
+              content: {
+                config: checkedConfig,
+                wall: deadline(checkedConfig.options.timeoutMs, external),
+              },
+            }
+          : {}),
+      },
       !!actor,
     );
     signal = wall.signal;
     signal.throwIfAborted();
+    if (
+      expected &&
+      (config.token !== expected.token || config.revision !== expected.revision)
+    )
+      throw new AiError("STALE_CONFIGURATION");
     return await metadata(config, kind, actor, wall, check, lease);
   } catch (error) {
     const failure = safeError(error, signal);

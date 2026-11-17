@@ -1,4 +1,10 @@
 import "server-only";
+import {
+  backfillRows,
+  backfillTokens,
+  backfillControl,
+  probeText,
+} from "../ai-request-limits";
 import { setImmediate as yieldTurn } from "node:timers/promises";
 import { sql } from "kysely";
 import { contentTransaction } from "../../db/content-transaction";
@@ -6,7 +12,8 @@ import { runtimeState } from "../runtime-state";
 import { log } from "../log";
 import type { Lease } from "../jobs/leases";
 import { callEmbeddings, embeddingRequestLimit } from "./client";
-import { usableCheckedKey } from "./settings-store";
+import { contentBudget } from "./content-capabilities";
+import { failingCapability, usableCheckedKey } from "./settings-store";
 import { deadline } from "./deadline";
 import { AiError, EmbeddingWidthError } from "./errors";
 import { prepareEmbedding } from "./model-profiles";
@@ -24,19 +31,31 @@ export function probeInfo(index: IndexSnapshot) {
   const probe = runtimeState().embeddingProbe;
   return probe?.identity === index.config.token ? probe : undefined;
 }
+function observedSearch(index: IndexSnapshot) {
+  const check = index.config.check;
+  return check ? check.at + "/" + (check.sequence ?? "") : undefined;
+}
 export function usableIndex(index: IndexSnapshot) {
   return (
     !index.reason &&
     !!index.fingerprint &&
     usableCheckedKey(index.config) &&
-    probeInfo(index)?.ready === true
+    probeInfo(index)?.ready === true &&
+    (index.config.check?.search !== "failed" ||
+      probeInfo(index)?.checked === observedSearch(index))
   );
 }
 export async function embeddingsAvailable() {
   const probe = runtimeState().embeddingProbe;
   if (!probe?.ready) return false;
   try {
-    return usableIndex(await indexSnapshot(false, AbortSignal.timeout(1500)));
+    const signal = AbortSignal.timeout(1500);
+    const index = await indexSnapshot(false, signal);
+    return (
+      usableIndex(index) &&
+      (await contentBudget(index.config, "rewrite", signal)).allowed &&
+      !(await failingCapability(index.config, "embeddings", signal))
+    );
   } catch {
     return false;
   }
@@ -104,17 +123,23 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
   if (index.reason || !index.fingerprint || !usableCheckedKey(index.config))
     return;
   const state = runtimeState();
-  const probe = probeInfo(index) ?? {
+  const observation = index.config.check;
+  const marker = observedSearch(index);
+  const local = probeInfo(index);
+  // Detach in-flight probes issued before a failed check. Their completions cannot publish readiness.
+  const superseded =
+    observation?.search === "failed" && local?.checked !== marker;
+  const probe = (!superseded && local) || {
     identity: index.config.token,
     ready: false,
     reason: "unverified",
+    checked: marker,
     attempt: 0,
     next: 0,
   };
   if (probe.pending) return probe.pending;
   if (probe.reason === "profile-context-length") return;
-  const passed =
-    index.config.check?.search === "passed" ? index.config.check.at : undefined;
+  const passed = observation?.search === "passed" ? marker : undefined;
   if (passed && probe.checked !== passed) {
     probe.checked = passed;
     probe.next = 0;
@@ -123,17 +148,13 @@ export async function probeIndex(index: IndexSnapshot, signal?: AbortSignal) {
   state.embeddingProbe = probe;
   probe.pending = (async () => {
     try {
-      await callEmbeddings(
-        "probe",
-        ["Feedbackland search index dimension check"],
-        {
-          signal,
-          content: {
-            config: index.config,
-            wall: deadline(index.config.options.timeoutMs, signal),
-          },
+      await callEmbeddings("probe", [probeText], {
+        signal,
+        content: {
+          config: index.config,
+          wall: deadline(index.config.options.timeoutMs, signal),
         },
-      );
+      });
       if (state.embeddingProbe !== probe) return;
       probe.ready = true;
       probe.reason = "verified";
@@ -228,9 +249,9 @@ export async function backfillBatch(
   const { rows } = await contentTransaction(wall.signal, (trx) =>
     sql<IndexRow>`select * from (
     (select 'post' as kind,id,revision,case when trim("plainText")='' then '' else title||chr(10)||"plainText" end as text from feedback
-      where embedding is null and not "embeddingSkipped" order by id limit 64)
+      where embedding is null and not "embeddingSkipped" order by id limit ${backfillRows})
     union all (select 'comment' as kind,id,revision,"plainText" as text from comment
-      where embedding is null and not "embeddingSkipped" order by id limit 64)) candidates order by id,kind limit 64`.execute(
+      where embedding is null and not "embeddingSkipped" order by id limit ${backfillRows})) candidates order by id,kind limit ${backfillRows}`.execute(
       trx,
     ),
   );
@@ -244,7 +265,7 @@ export async function backfillBatch(
       row.text,
     );
     if (
-      tokens + (prepared?.tokens ?? 0) > 32000 ||
+      tokens + (prepared?.tokens ?? 0) > backfillTokens ||
       bytes + (prepared?.bytes ?? 0) > 128000
     )
       break;
@@ -273,7 +294,7 @@ export async function backfillBatch(
     }
     // An unclassified 4xx can be a global provider/configuration error.
     // Verify a known-good control before isolating or skipping any content.
-    await callEmbeddings("backfill", ["Feedbackland index check"], controls);
+    await callEmbeddings("backfill", [backfillControl], controls);
     if (items.length === 1) {
       try {
         return await attempt();

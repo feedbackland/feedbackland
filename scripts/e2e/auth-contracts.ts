@@ -507,6 +507,15 @@ async function main() {
     for (const [path, body] of edits) await rpc(path, body, 403, credential);
   for (const credential of [...credentials, { cookie: agedCookie }]) {
     for (const path of [
+      "saveAiOptions",
+      "pasteAiKey",
+      "changeAiKey",
+      "startOpenRouter",
+      "finishOpenRouter",
+      "dismissAiNoticeForMe",
+      "getAiKeyInfo",
+      "listAiModels",
+      "rebuildSearchIndex",
       "startInsightsRun",
       "deleteAdminInvite",
       "createAdminInvite",
@@ -524,6 +533,11 @@ async function main() {
       "getInsights",
       "getInsightsRun",
       "getInsightEvidence",
+      "getAiStatus",
+      "getAiUsage",
+      "getAiNoticeCounts",
+      "getSystemStatus",
+      "getSearchIndex",
       "getActivityFeedMetaData",
       "getModerationCoverage",
       "getFeedbackPostCount",

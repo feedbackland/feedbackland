@@ -138,7 +138,7 @@ export function observeStreamFrame(ctx: Dispatch, frame: unknown) {
 }
 async function send(
   path: string,
-  key: string,
+  key: string | null,
   body: string | undefined,
   signal: AbortSignal,
   limit: number,
@@ -148,7 +148,7 @@ async function send(
   const result = await fetch(OPENROUTER_API + path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
-      authorization: "Bearer " + key,
+      ...(key ? { authorization: "Bearer " + key } : {}),
       ...(body === undefined ? {} : { "content-type": "application/json" }),
     },
     body,
@@ -291,6 +291,7 @@ const keyMetadata = z.object({
   usage: amount,
   limit: amount.nullable(),
   limit_remaining: amount.nullable(),
+  limit_reset: z.string().nullable().optional(),
   is_free_tier: z.boolean(),
   is_management_key: z.boolean().optional(),
   is_provisioning_key: z.boolean().optional(),
@@ -301,10 +302,16 @@ function keyInfo(raw: unknown) {
   if (!result.success) throw new AiError("invalid-response");
   const data = result.data;
   const expiresAt = data.expires_at;
+  const limitReset = z
+    .enum(["daily", "weekly", "monthly"])
+    .nullable()
+    .safeParse(data.limit_reset);
   return {
     usage: data.usage,
     limit: data.limit,
     remaining: data.limit_remaining,
+    limitReset: limitReset.success ? limitReset.data : ("unknown" as const),
+    observedAt: new Date().toISOString(),
     freeTier: data.is_free_tier,
     expiresAt: expiresAt ?? null,
     expired:
@@ -321,6 +328,7 @@ export type KeyInfo = ReturnType<typeof keyInfo>;
 export type ModelInfo = {
   id: string;
   inputPrice: string | null;
+  requestPrice: string | null;
   outputPrice: string | null;
   vision: boolean | null;
 };
@@ -382,6 +390,7 @@ export async function metadata(
       {
         id: row.id,
         inputPrice: price(pricing.prompt),
+        requestPrice: price(pricing.request),
         outputPrice: price(pricing.completion),
         vision: Array.isArray(modalities) ? modalities.includes("image") : null,
       },
@@ -389,4 +398,29 @@ export async function metadata(
   });
   if (kind === "chatModels") await recordModelVision(config, models, wall);
   return models;
+}
+
+export async function exchangeConnectCode(
+  code: string,
+  verifier: string,
+  signal: AbortSignal,
+) {
+  const res = await send(
+    "/auth/keys",
+    null,
+    JSON.stringify({
+      code,
+      code_verifier: verifier,
+      code_challenge_method: "S256",
+    }),
+    signal,
+    8192,
+  );
+  const body = object(await res.json());
+  if (
+    typeof body.key !== "string" ||
+    !/^sk-or-v1-[a-zA-Z0-9_-]{8,256}$/.test(body.key)
+  )
+    throw new AiError("invalid-response");
+  return body.key;
 }

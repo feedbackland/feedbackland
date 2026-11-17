@@ -6,6 +6,7 @@ import { staticFoundations } from "./ci-gates";
 import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
 import { phaseThree } from "./e2e/v3-auth";
+import { verifyOnboarding } from "./e2e/v18-onboarding";
 import { aiFoundations } from "./e2e/v6a-foundations";
 import { phaseFive } from "./e2e/v4-backup";
 import { phaseFour } from "./e2e/v4-social";
@@ -23,15 +24,15 @@ async function main() {
     strict: true,
   });
   if (
-    !["0", "1", "2", "3", "4", "5", "6a"].includes(values.phase ?? "") ||
+    !["0", "1", "2", "3", "4", "5", "6a", "6b"].includes(values.phase ?? "") ||
     !values.image ||
     !values.artifacts
   ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0|1|2|3|4|5|6a --image feedbackland:ci --artifacts artifacts/self-hosting",
+      "Usage: npm run verify -- --phase 0|1|2|3|4|5|6a|6b --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
-  const phase = values.phase === "6a" ? 6 : Number(values.phase);
+  const phase = values.phase?.startsWith("6") ? 6 : Number(values.phase);
   const runId = `p0${phase + 1}-${Date.now()}-${randomUUID().slice(0, 8)}`;
   // Resolve once for every group, so a retag cannot mix builds during the run.
   const image = JSON.parse(
@@ -51,20 +52,22 @@ async function main() {
       JSON.stringify(
         {
           runId,
-          phase: values.phase === "6a" ? values.phase : phase,
+          phase: phase === 6 ? values.phase : phase,
           image,
           status,
           checks: rows,
           futurePhases:
-            phase >= 6
-              ? "AI onboarding and configuration controls are scheduled for P11."
-              : phase >= 5
-                ? "AI and search are scheduled for later phases."
-                : phase >= 4
-                  ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                  : phase >= 3
-                    ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                    : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
+            values.phase === "6b"
+              ? "Independent release evidence and live provider measurements are scheduled for P12."
+              : phase >= 6
+                ? "AI onboarding and configuration controls are scheduled for P11."
+                : phase >= 5
+                  ? "AI and search are scheduled for later phases."
+                  : phase >= 4
+                    ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                    : phase >= 3
+                      ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                      : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
         },
         null,
         2,
@@ -103,6 +106,11 @@ async function main() {
       await check(
         "V8/V11/V12/V13/V20/V21 OpenRouter, content, durable search and background insights",
         () => aiFoundations(runId, image),
+      );
+    if (values.phase === "6b")
+      await check(
+        "V18/V21/V23 AI onboarding, concurrent configuration and mounted status",
+        () => verifyOnboarding(image),
       );
     await save("passed");
   } catch (error) {

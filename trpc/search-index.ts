@@ -6,7 +6,8 @@ import {
   indexCounts,
   rebuildIndex,
 } from "@/lib/llm/search-index";
-import { probeInfo } from "@/lib/llm/embeddings";
+import { checkConnection } from "@/lib/llm/onboarding";
+import { probeInfo, usableIndex } from "@/lib/llm/embeddings";
 import { usableCheckedKey } from "@/lib/llm/settings-store";
 import { getConfig } from "@/lib/config";
 import { dailyShare } from "@/lib/llm/usage";
@@ -24,12 +25,16 @@ export const getSearchIndex = adminProcedure.query(async ({ ctx }) => {
     model: index.config.options.embeddingModel,
     dimensions: index.physical?.dimensions ?? null,
     requested: env.explicitDimensions ? env.dimensions : null,
-    observed: probe?.actual ?? null,
+    observed: probe?.actual ?? index.config.check?.actualDimensions ?? null,
     state:
       index.reason ??
       (!usableCheckedKey(index.config)
         ? "key-unusable"
-        : (probe?.reason ?? "unverified")),
+        : probe?.ready && !usableIndex(index)
+          ? index.config.check?.searchIssue === "dimension-mismatch"
+            ? "provider-width-mismatch"
+            : "unverified"
+          : (probe?.reason ?? "unverified")),
     dailyBudget: dailyShare(index.config, "backfill"),
     generation: index.fingerprint?.generation ?? null,
   };
@@ -43,4 +48,18 @@ export const rebuildSearchIndex = adminProcedure
       confirm: z.literal(true),
     }),
   )
-  .mutation(({ input, ctx }) => rebuildIndex(ctx, input));
+  .mutation(async ({ input, ctx }) => {
+    const { epoch, dimensions, identity, configured } = await rebuildIndex(
+      ctx,
+      input,
+    );
+    if (!configured) return { epoch, dimensions, checked: false };
+    // The rebuild committed before the provider call. Report its outcome independently.
+    const check = await checkConnection(
+      ctx,
+      identity,
+      "configure",
+      ctx.signal,
+    ).catch(() => null);
+    return { epoch, dimensions, checked: check?.check.search === "passed" };
+  });

@@ -232,6 +232,15 @@ export async function replicaSearch(
     await system
       .getByText("Index rebuild committed.", { exact: false })
       .waitFor();
+    const liveCheck = await context.request.get(a + "/api/trpc/getAiStatus");
+    assert.equal(liveCheck.status(), 200);
+    const status = (await liveCheck.json()).result.data.json;
+    assert.equal(
+      status.check?.chat,
+      "passed",
+      "The rebuild must verify chat before the next insight run",
+    );
+    assert.equal(status.check?.verifiedDimensions, 1536);
     await cards.last().evaluate((el) => {
       el.scrollIntoView({ block: "start" });
       for (let p = el.parentElement; p; p = p.parentElement)

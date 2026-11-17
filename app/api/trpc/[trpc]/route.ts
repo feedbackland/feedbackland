@@ -23,6 +23,7 @@ const handler = async (req: Request) => {
     }
   }
   const context = await createTRPCContext({ req });
+  context.responseHeaders?.set("Cache-Control", "private, no-store");
   return fetchRequestHandler({
     endpoint: "/api/trpc",
     allowMethodOverride:

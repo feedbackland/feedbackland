@@ -1,4 +1,5 @@
 import "server-only";
+import { recordRequest } from "./request-diagnostics";
 import { credentialHeaders } from "./auth/headers";
 import superjson from "superjson";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -27,6 +28,7 @@ export const createContext = async ({
 }: {
   req: Request;
 }): Promise<RequestContext> => {
+  recordRequest(req.headers);
   const authHeaders = credentialHeaders(req.headers);
   const { response: session, headers } = await getAuth().api.getSession({
     headers: authHeaders,
@@ -55,6 +57,10 @@ const t = initTRPC.context<RequestContext>().create({
         ...(error.cause instanceof DomainError &&
         error.cause.retryAfterSeconds !== undefined
           ? { retryAfterSeconds: error.cause.retryAfterSeconds }
+          : {}),
+        ...(error.cause instanceof DomainError &&
+        error.cause.retryAfterMs !== undefined
+          ? { retryAfterMs: error.cause.retryAfterMs }
           : {}),
         ...(error.cause instanceof DomainError && error.cause.resetsAt
           ? { resetsAt: error.cause.resetsAt, contentCode: error.cause.message }

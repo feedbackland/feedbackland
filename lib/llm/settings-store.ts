@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getConfig } from "../config";
 import { runtimeState, type VectorMetadata } from "../runtime-state";
+import { indexConfiguration } from "./index-configuration";
 import { physicalVector } from "../../db/vector";
 import { log } from "../log";
 import { DomainError } from "../domain-error";
@@ -29,23 +30,59 @@ export async function ensureAiSettingsRow(trx: Kysely<DB>) {
 }
 type Row = Selectable<AiSettings>;
 export type Identity = { token: string; revision: string };
-export type CheckAction = { actor: Actor; intent: "test-again" | "configure" };
+export type CheckAction = {
+  actor: Actor;
+  intent: "test-again" | "configure" | "credit";
+};
 export type CheckTicket = Identity & {
   sequence: string;
   action?: CheckAction;
   creditWait: boolean;
+  candidateDigest?: string;
+  chatWatermark?: string;
 };
 const purpose = "ai_settings.apiKey";
 const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
+const checkIssue = z.enum([
+  "invalid-key",
+  "management-key",
+  "expired-key",
+  "account-credit",
+  "key-limit",
+  "request-exceeds-balance",
+  "model-unavailable",
+  "privacy",
+  "provider-rate",
+  "timeout",
+  "network",
+  "invalid-response",
+  "dimension-mismatch",
+  "budget",
+  "busy",
+  "unsupported-model",
+  "unavailable",
+]);
 const checkSchema = z
   .object({
     key: z.enum(["valid", "invalid", "management", "expired", "unknown"]),
     chat: z.enum(["passed", "failed", "untested"]),
     search: z.enum(["passed", "failed", "untested"]),
+    chatIssue: checkIssue.optional(),
+    searchIssue: checkIssue.optional(),
+    actualDimensions: z.number().int().positive().optional(),
+    verifiedDimensions: z.number().int().min(1).max(4000).optional(),
+    expiresAt: z.iso.datetime({ offset: true }).nullable().optional(),
+    limitReset: z
+      .enum(["daily", "weekly", "monthly", "unknown"])
+      .nullable()
+      .optional(),
+    spendLimit: z.number().finite().nonnegative().nullable().optional(),
+    remaining: z.number().finite().nullable().optional(),
   })
   .strict();
-type Check = z.infer<typeof checkSchema>;
+export type Check = z.infer<typeof checkSchema>;
+export type CheckIssue = z.infer<typeof checkIssue>;
 function checkedResult(input: unknown): Check {
   const parsed = checkSchema.safeParse(input);
   if (!parsed.success) throw new AiError("invalid-input");
@@ -55,6 +92,9 @@ const recordedCheck = checkSchema.extend({
   at: z.string(),
   configToken: z.string(),
   sequence: z.string().optional(),
+  incidentSince: z.string().optional(),
+  chatWatermark: z.string().optional(),
+  chatRecoveredAt: z.string().optional(),
 });
 function resolve(row: Row, secret: string, physicalWidth?: number) {
   const {
@@ -146,11 +186,57 @@ function resolve(row: Row, secret: string, physicalWidth?: number) {
   };
 }
 export type Configuration = ReturnType<typeof resolve>;
-export function usableCheckedKey(config: Configuration) {
+export function keyExpired(
+  config: Pick<Configuration, "check">,
+  now = Date.now(),
+) {
   return (
-    !config.check ||
-    !["invalid", "management", "expired"].includes(config.check.key)
+    config.check?.key === "expired" ||
+    (!!config.check?.expiresAt && Date.parse(config.check.expiresAt) <= now)
   );
+}
+export function usableCheckedKey(
+  config: Pick<Configuration, "check">,
+  now = Date.now(),
+) {
+  return (
+    !keyExpired(config, now) &&
+    !["invalid", "management"].includes(config.check?.key ?? "")
+  );
+}
+function transientChatFailure(check: Check) {
+  return (
+    (check.key === "valid" || check.key === "unknown") &&
+    check.chat === "failed" &&
+    !["invalid-key", "management-key", "expired-key", "key-limit"].includes(
+      check.chatIssue ?? "",
+    )
+  );
+}
+async function effectiveCheck(connection: Kysely<DB>, config: Configuration) {
+  const check = config.check;
+  if (!check || !transientChatFailure(check)) return check;
+  const success = await connection
+    .selectFrom("ai_health")
+    .where("configToken", "=", config.token)
+    .where("capability", "=", "chat")
+    .where("lastReason", "is", null)
+    .where("lastSuccessAt", "is not", null)
+    .where("lastAppliedSequence", ">", check.chatWatermark ?? "0")
+    .where("lastSuccessAt", ">", new Date(check.at))
+    .select("lastSuccessAt")
+    .executeTakeFirst();
+  return success
+    ? {
+        ...check,
+        chat: "passed" as const,
+        chatIssue: undefined,
+        chatRecoveredAt: success.lastSuccessAt!.toISOString(),
+      }
+    : check;
+}
+export function currentCheck(config: Configuration, signal: AbortSignal) {
+  return contentTransaction(signal, (trx) => effectiveCheck(trx, config));
 }
 export async function insightConfiguration(trx: Transaction<DB>) {
   const row = await currentRow(trx).forShare().executeTakeFirstOrThrow();
@@ -175,6 +261,52 @@ const clearResults = {
   creditWaitConfigToken: null,
   lastCheck: null,
 };
+type RecordedCheck = z.infer<typeof recordedCheck>;
+function dependencies(config: Configuration) {
+  return {
+    model: config.options.model,
+    vision: config.options.vision,
+    privacy: config.options.privacy,
+    embeddingModel: config.options.embeddingModel,
+    dimensions: config.dimensions,
+    epoch: config.indexEpoch,
+  };
+}
+function transferCheck(
+  check: RecordedCheck | null,
+  from: ReturnType<typeof dependencies>,
+  to: Configuration,
+) {
+  if (!check) return undefined;
+  const next = { ...check };
+  if (
+    from.privacy !== to.options.privacy ||
+    from.model !== to.options.model ||
+    from.vision !== to.options.vision
+  ) {
+    if (
+      check.key === "valid" &&
+      !["account-credit", "key-limit"].includes(check.chatIssue ?? "")
+    ) {
+      next.chat = "untested";
+      delete next.chatIssue;
+      delete next.chatWatermark;
+      delete next.chatRecoveredAt;
+    }
+  }
+  if (
+    from.privacy !== to.options.privacy ||
+    from.embeddingModel !== to.options.embeddingModel ||
+    from.dimensions !== to.dimensions ||
+    from.epoch !== to.indexEpoch
+  ) {
+    next.search = "untested";
+    delete next.searchIssue;
+    delete next.verifiedDimensions;
+    delete next.actualDimensions;
+  }
+  return next;
+}
 const currentRow = (connection: Kysely<DB>) =>
   connection.selectFrom("ai_settings").where("id", "=", 1).selectAll();
 function indexFields(row: Row, physical: VectorMetadata | null) {
@@ -206,6 +338,7 @@ export async function advanceIndexGeneration(
   fingerprint: IndexFingerprint,
   physical: VectorMetadata,
   previous: Configuration,
+  initializing = false,
 ) {
   const row = await trx
     .updateTable("ai_settings")
@@ -214,6 +347,13 @@ export async function advanceIndexGeneration(
     .returningAll()
     .executeTakeFirstOrThrow();
   const next = resolve(row, getConfig().authSecret, physical.dimensions);
+  const evidence = await effectiveCheck(trx, previous);
+  const verifiedInitialSearch =
+    initializing &&
+    evidence?.key === "valid" &&
+    evidence.search === "passed" &&
+    evidence.verifiedDimensions === physical.dimensions &&
+    previous.options.embeddingModel === fingerprint.model;
   // Only the embedding generation changed under this lock. Keep credential
   // and chat observations with their original timestamps and sequences.
   const saved = await trx
@@ -221,8 +361,20 @@ export async function advanceIndexGeneration(
     .where("id", "=", 1)
     .set({
       effectiveConfigToken: next.token,
-      lastCheck: previous.check
-        ? { ...previous.check, configToken: next.token, search: "untested" }
+      lastCheck: evidence
+        ? {
+            ...evidence,
+            configToken: next.token,
+            chatWatermark: "0",
+            search: verifiedInitialSearch ? "passed" : "untested",
+            ...(!verifiedInitialSearch
+              ? {
+                  searchIssue: undefined,
+                  actualDimensions: undefined,
+                  verifiedDimensions: undefined,
+                }
+              : {}),
+          }
         : null,
       creditWaitConfigToken:
         row.creditWaitConfigToken === previous.token
@@ -383,9 +535,10 @@ const rowFence = (trx: Kysely<DB>, id: Identity) =>
 async function replaceToken(
   trx: Transaction<DB>,
   row: Row,
-  check?: Check,
+  check?: Check | RecordedCheck,
   secret = getConfig().authSecret,
   physicalWidth?: number,
+  waitUntil?: Date | null,
 ) {
   const value = resolve(row, secret, physicalWidth);
   await trx
@@ -393,12 +546,22 @@ async function replaceToken(
     .set({
       effectiveConfigToken: value.token,
       ...clearResults,
+      ...(waitUntil && {
+        creditWaitUntil: waitUntil,
+        creditWaitConfigToken: value.token,
+      }),
       lastCheck: check
         ? {
             ...check,
-            at: new Date().toISOString(),
+            at: "at" in check ? check.at : new Date().toISOString(),
+            chatWatermark:
+              "configToken" in check && check.configToken !== value.token
+                ? "0"
+                : "chatWatermark" in check
+                  ? check.chatWatermark
+                  : undefined,
             configToken: value.token,
-            sequence: row.checkSequence,
+            sequence: "at" in check ? check.sequence : row.checkSequence,
           }
         : null,
     })
@@ -424,6 +587,7 @@ export async function recordModelVision(
       (row.catalogueModel === model.id && row.catalogueVision === model.vision)
     )
       return;
+    const current = resolve(row, getConfig().authSecret);
     const updated = await trx
       .updateTable("ai_settings")
       .where("id", "=", 1)
@@ -437,125 +601,191 @@ export async function recordModelVision(
         .set({ configGeneration: sql`"configGeneration"+1` })
         .returningAll()
         .executeTakeFirstOrThrow();
-      await replaceToken(trx, generation);
+      await replaceToken(
+        trx,
+        generation,
+        transferCheck(
+          await effectiveCheck(trx, current),
+          dependencies(current),
+          resolve(generation, getConfig().authSecret),
+        ),
+        undefined,
+        undefined,
+        row.creditWaitConfigToken === config.token ? row.creditWaitUntil : null,
+      );
     }
   });
   invalidate();
 }
-export async function saveConfiguration(
+type ConfigurationChange = {
+  enabled?: boolean;
+  apiKey?: string | null;
+  options?: Partial<Options>;
+  selectedModel?: { id: string; vision: boolean | null };
+  stageKey?: boolean;
+};
+async function writeConfiguration(
+  trx: Transaction<DB>,
   actor: Actor,
   identity: Identity,
-  change: {
-    enabled?: boolean;
-    apiKey?: string | null;
-    options?: Partial<Options>;
-    selectedModel?: { id: string; vision: boolean | null };
-  },
+  change: ConfigurationChange,
 ) {
-  const result = await db.transaction().execute(async (trx) => {
-    await lock(trx, locks.membership);
-    await requireAdmin(trx, actor);
-    const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
-    const before = resolve(row, getConfig().authSecret);
-    if (!matches(row, identity) || before.diverged)
-      throw new AiError("STALE_CONFIGURATION");
-    const env = getConfig().llm;
-    if (
-      (change.apiKey !== undefined && env.apiKey) ||
-      Object.keys(change.options ?? {}).some(
-        (k) => env.options[k as keyof Options] !== undefined,
-      )
+  await lock(trx, locks.membership);
+  await requireAdmin(trx, actor);
+  const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
+  const before = resolve(row, getConfig().authSecret);
+  if (!matches(row, identity) || before.diverged)
+    throw new AiError("STALE_CONFIGURATION");
+  const env = getConfig().llm;
+  if (
+    (change.apiKey !== undefined && env.keySupplied) ||
+    Object.keys(change.options ?? {}).some(
+      (k) => env.options[k as keyof Options] !== undefined,
     )
-      throw new AiError("invalid-input");
-    const options = optionsSchema.safeParse({
-      ...(row.options as Partial<Options>),
-      ...change.options,
-    });
-    if (
-      !options.success ||
-      (change.selectedModel &&
-        (change.selectedModel.id !== change.options?.model ||
-          (change.selectedModel.vision !== null &&
-            typeof change.selectedModel.vision !== "boolean"))) ||
-      (change.apiKey != null && !keySchema.safeParse(change.apiKey).success)
-    )
-      throw new AiError("invalid-input");
-    const key = change.apiKey;
-    if (
-      change.enabled === true &&
-      !(env.apiKey || (key === undefined ? before.apiKey : key))
-    )
-      throw new AiError("key-unreadable");
-    // A replacement key must pass its own check before enabling stored-key AI.
-    const enabled =
-      change.enabled !== undefined
+  )
+    throw new AiError("invalid-input");
+  const options = optionsSchema.safeParse({
+    ...(row.options as Partial<Options>),
+    ...change.options,
+  });
+  if (
+    !options.success ||
+    (change.selectedModel &&
+      (change.selectedModel.id !== change.options?.model ||
+        (change.selectedModel.vision !== null &&
+          typeof change.selectedModel.vision !== "boolean"))) ||
+    (change.apiKey != null && !keySchema.safeParse(change.apiKey).success)
+  )
+    throw new AiError("invalid-input");
+  const key = change.apiKey;
+  if (
+    change.enabled === true &&
+    !(env.apiKey || (key === undefined ? before.apiKey : key))
+  )
+    throw new AiError("key-unreadable");
+  // A replacement key must pass its own check before enabling stored-key AI.
+  const enabled =
+    change.stageKey && key
+      ? null
+      : change.enabled !== undefined
         ? change.enabled
         : key === null && before.enabled !== false
           ? null
           : key && digest(key) !== before.keyDigest && before.enabled !== false
             ? null
             : before.enabled;
-    if (change.enabled === true && key && digest(key) !== before.keyDigest)
-      throw new AiError("STALE_CONFIGURATION");
-    const updated = await trx
-      .updateTable("ai_settings")
-      .where("id", "=", 1)
-      .set({
-        ...(key === undefined
-          ? {}
-          : {
-              apiKey: key
-                ? sealSecret(key, getConfig().authSecret, purpose)
-                : null,
-              apiKeyDigest: key ? digest(key) : null,
-              apiKeyLast4: key ? key.slice(-4) : null,
-              apiKeySetAt: key ? sql<Date>`clock_timestamp()` : null,
-            }),
-        enabled,
-        ...(change.selectedModel
+  if (change.enabled === true && key && digest(key) !== before.keyDigest)
+    throw new AiError("STALE_CONFIGURATION");
+  const undoExpiry =
+    change.stageKey && key
+      ? (
+          await sql<{
+            expires: Date;
+          }>`select clock_timestamp()+interval '5 minutes' as expires`.execute(
+            trx,
+          )
+        ).rows[0].expires.toISOString()
+      : null;
+  const updated = await trx
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .set({
+      ...(key === undefined
+        ? {}
+        : {
+            apiKey: key
+              ? sealSecret(key, getConfig().authSecret, purpose)
+              : null,
+            apiKeyDigest: key ? digest(key) : null,
+            apiKeyLast4: key ? key.slice(-4) : null,
+            apiKeySetAt: key ? sql<Date>`clock_timestamp()` : null,
+          }),
+      enabled,
+      keyUndo:
+        change.stageKey && key
           ? {
-              catalogueModel: change.selectedModel.id,
-              catalogueVision: change.selectedModel.vision,
+              actor: actor.userId,
+              targetRevision: String(BigInt(row.revision) + 1n),
+              dependencies: dependencies(before),
+              expiresAt: undoExpiry!,
+              apiKey: row.apiKey,
+              apiKeyDigest: row.apiKeyDigest,
+              apiKeyLast4: row.apiKeyLast4,
+              apiKeySetAt: row.apiKeySetAt?.toISOString() ?? null,
+              enabled: row.enabled,
+              keepOffAt: row.keepOffAt?.toISOString() ?? null,
+              keepOffBy: row.keepOffBy,
+              check: await effectiveCheck(trx, before),
+              creditUntil:
+                row.creditWaitConfigToken === before.token
+                  ? (row.creditWaitUntil?.toISOString() ?? null)
+                  : null,
             }
+          : null,
+      ...(change.selectedModel
+        ? {
+            catalogueModel: change.selectedModel.id,
+            catalogueVision: change.selectedModel.vision,
+          }
+        : {}),
+      ...(change.enabled === false
+        ? { keepOffAt: sql<Date>`clock_timestamp()`, keepOffBy: actor.userId }
+        : enabled !== false
+          ? { keepOffAt: null, keepOffBy: null }
           : {}),
-        ...(change.enabled === false
-          ? { keepOffAt: sql<Date>`clock_timestamp()`, keepOffBy: actor.userId }
-          : enabled !== false
-            ? { keepOffAt: null, keepOffBy: null }
-            : {}),
-        options: options.data,
-        revision: sql`revision+1`,
-        updatedBy: actor.userId,
-        updatedAt: sql`clock_timestamp()`,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
-    const after = resolve(updated, getConfig().authSecret);
-    let transfer: Check | undefined;
-    if (before.enabled !== true && updated.enabled === true) {
-      if (
-        before.check?.key !== "valid" ||
-        before.check.sequence !== row.checkSequence ||
-        before.check.chat !== "passed" ||
-        before.keyDigest !== after.keyDigest ||
-        before.options.model !== after.options.model ||
-        before.options.privacy !== after.options.privacy ||
-        before.options.vision !== after.options.vision
+      options: options.data,
+      revision: sql`revision+1`,
+      updatedBy: actor.userId,
+      updatedAt: sql`clock_timestamp()`,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+  const after = resolve(updated, getConfig().authSecret);
+  const sameKey =
+    !!before.keyDigest &&
+    before.keyDigest === after.keyDigest &&
+    !change.stageKey;
+  const transfer = sameKey
+    ? transferCheck(
+        await effectiveCheck(trx, before),
+        dependencies(before),
+        after,
       )
-        throw new AiError("STALE_CONFIGURATION");
-      transfer = {
-        key: "valid",
-        chat: "passed",
-        search:
-          before.options.embeddingModel === after.options.embeddingModel &&
-          before.indexEpoch === after.indexEpoch &&
-          before.dimensions === after.dimensions
-            ? before.check.search
-            : "untested",
-      };
-    }
-    return replaceToken(trx, updated, transfer);
-  });
+    : undefined;
+  if (before.enabled !== true && updated.enabled === true) {
+    if (
+      !usableCheckedKey(before) ||
+      before.check?.key !== "valid" ||
+      before.check.sequence !== row.checkSequence ||
+      before.check.chat !== "passed" ||
+      before.keyDigest !== after.keyDigest ||
+      before.options.model !== after.options.model ||
+      before.options.privacy !== after.options.privacy ||
+      before.options.vision !== after.options.vision
+    )
+      throw new AiError("STALE_CONFIGURATION");
+  }
+  const continuingWait =
+    sameKey &&
+    updated.enabled === null &&
+    row.creditWaitConfigToken === before.token;
+  return replaceToken(
+    trx,
+    updated,
+    transfer,
+    undefined,
+    undefined,
+    continuingWait ? row.creditWaitUntil : null,
+  );
+}
+export async function saveConfiguration(
+  actor: Actor,
+  identity: Identity,
+  change: ConfigurationChange,
+) {
+  const result = await db
+    .transaction()
+    .execute((trx) => writeConfiguration(trx, actor, identity, change));
   invalidate();
   return result;
 }
@@ -589,29 +819,95 @@ export async function beginCheck(
 ): Promise<CheckTicket> {
   return withinTransaction(wall, async (trx) => {
     if (lease) await requireLease(trx, lease);
-    if (action) await authorizeCheckActor(trx, action.actor, true);
-    if (
-      !(await rowFence(trx, config).select("id").forUpdate().executeTakeFirst())
-    )
-      throw new AiError("STALE_CONFIGURATION");
-    await requireDispatch(trx, config, action ? "admin" : "check");
-    const row = await trx
-      .updateTable("ai_settings")
-      .where("id", "=", 1)
-      .where("revision", "=", config.revision)
-      .where("effectiveConfigToken", "=", config.token)
-      .set({ checkSequence: sql`"checkSequence"+1` })
-      .returning("checkSequence")
-      .executeTakeFirst();
-    if (!row) throw new AiError("STALE_CONFIGURATION");
-    return {
-      token: config.token,
-      revision: config.revision,
-      sequence: row.checkSequence,
-      action,
-      creditWait: !config.configured && !action,
-    };
+    return issueCheck(trx, config, action, !!lease);
   });
+}
+// Keep the active key serving requests until its replacement has a verdict. Only
+// the authenticated check uses this in-memory candidate, fenced by the original row.
+export function keyCandidate(
+  current: Configuration,
+  key: string,
+): Configuration {
+  if (getConfig().llm.keySupplied || !keySchema.safeParse(key).success)
+    throw new AiError("invalid-input");
+  return {
+    ...current,
+    apiKey: key,
+    keyDigest: digest(key),
+    configured: false,
+    keyless: false,
+    enabled: null,
+    unreadable: false,
+    check: null,
+  };
+}
+async function issueCheck(
+  trx: Transaction<DB>,
+  config: Configuration,
+  action: CheckAction | undefined,
+  leased: boolean,
+): Promise<CheckTicket> {
+  // Automatic credit polls have their own shared fifteen-second admission.
+  if (action)
+    await authorizeCheckActor(trx, action.actor, action.intent !== "credit");
+  if (
+    !(await rowFence(trx, config).select("id").forUpdate().executeTakeFirst())
+  )
+    throw new AiError("STALE_CONFIGURATION");
+  await requireDispatch(trx, config, action ? "admin" : "check");
+  if (
+    action?.intent === "credit" ||
+    (leased && !action && !config.configured)
+  ) {
+    if (!usableCheckedKey(config)) throw new AiError("AI_NOT_CONFIGURED");
+    const pending = await rowFence(trx, config)
+      .where("enabled", "is", null)
+      .where("creditWaitConfigToken", "=", config.token)
+      .where("creditWaitUntil", ">", sql<Date>`clock_timestamp()`)
+      .select("id")
+      .executeTakeFirst();
+    if (!pending) throw new AiError("AI_NOT_CONFIGURED");
+    const key = "ai:credit-poll:" + config.keyDigest;
+    // Use database wall time after the row lock. Rejected polls never move the deadline.
+    const poll = await sql<{
+      accepted: boolean;
+    }>`insert into rate_limit(key,count,"windowStart") values (${key},1,clock_timestamp())
+        on conflict(key) do update set count=1,"windowStart"=clock_timestamp()
+        where rate_limit."windowStart" <= clock_timestamp()-interval '15 seconds' returning true as accepted`.execute(
+      trx,
+    );
+    if (!poll.rows.length) {
+      const delay = await sql<{
+        ms: number;
+      }>`select greatest(1,ceil(extract(epoch from ("windowStart"+interval '15 seconds'-clock_timestamp()))*1000))::int as ms from rate_limit where key=${key}`.execute(
+        trx,
+      );
+      throw new AiError("AI_BUSY", 429, delay.rows[0].ms);
+    }
+  }
+  const row = await trx
+    .updateTable("ai_settings")
+    .where("id", "=", 1)
+    .where("revision", "=", config.revision)
+    .where("effectiveConfigToken", "=", config.token)
+    .set({ checkSequence: sql`"checkSequence"+1` })
+    .returning("checkSequence")
+    .executeTakeFirst();
+  if (!row) throw new AiError("STALE_CONFIGURATION");
+  const health = await trx
+    .selectFrom("ai_health")
+    .select("nextSequence")
+    .where("configToken", "=", config.token)
+    .where("capability", "=", "chat")
+    .executeTakeFirst();
+  return {
+    token: config.token,
+    revision: config.revision,
+    sequence: row.checkSequence,
+    chatWatermark: health?.nextSequence ?? "0",
+    action,
+    creditWait: action?.intent === "credit" || (!config.configured && !action),
+  };
 }
 export async function requireDispatch(
   trx: Transaction<DB>,
@@ -626,21 +922,36 @@ export async function requireDispatch(
     (ticket.token !== config.token || ticket.revision !== config.revision)
   )
     throw new AiError("STALE_CONFIGURATION");
+  if (
+    ticket?.candidateDigest &&
+    (purpose !== "admin" || config.keyDigest !== ticket.candidateDigest)
+  )
+    throw new AiError("STALE_CONFIGURATION");
   // Acquire the lock first, then read the database clock. Another transaction
   // can keep the row locked until after a credit window has ended.
   const row = await rowFence(trx, config)
-    .select(["checkSequence"])
+    .select(["checkSequence", "lastCheck"])
     .forShare()
     .executeTakeFirst();
   if (!row || (ticket && row.checkSequence !== ticket.sequence))
     throw new AiError("STALE_CONFIGURATION");
-  if (purpose === "admin" || config.configured) return;
+  if (purpose === "ordinary") {
+    const stored = recordedCheck.safeParse(row.lastCheck);
+    if (
+      stored.success &&
+      stored.data.configToken === config.token &&
+      !usableCheckedKey({ check: stored.data })
+    )
+      throw new AiError("provider-auth");
+  }
+  if (!ticket?.creditWait && (purpose === "admin" || config.configured)) return;
   if (
-    purpose !== "check" ||
+    (purpose !== "check" && !ticket?.creditWait) ||
     (ticket !== undefined && !ticket.creditWait) ||
     config.enabled !== null
   )
     throw new AiError("AI_NOT_CONFIGURED");
+  if (!usableCheckedKey(config)) throw new AiError("AI_NOT_CONFIGURED");
   const wait = await rowFence(trx, config)
     .select("id")
     .where("enabled", "is", null)
@@ -666,6 +977,7 @@ export async function saveCheck(
       .set({
         lastCheck: {
           ...value,
+          chatWatermark: identity.chatWatermark,
           sequence: identity.sequence,
           configToken: identity.token,
           at: new Date().toISOString(),
@@ -752,6 +1064,12 @@ export async function completeCreditWait(
       .where("creditWaitUntil", ">", sql<Date>`clock_timestamp()`)
       .set({
         enabled: true,
+        keyUndo: advanceUndo(
+          row,
+          identity.action?.intent === "credit"
+            ? undefined
+            : identity.action?.actor,
+        ),
         revision: sql`revision+1`,
         updatedAt: sql`clock_timestamp()`,
         keepOffAt: null,
@@ -856,6 +1174,13 @@ export async function failingCapability(
 }
 
 export async function sweepHealth() {
+  await db
+    .updateTable("ai_settings")
+    .set({ keyUndo: null })
+    .where(
+      sql<boolean>`"keyUndo" is not null and ("keyUndo"->>'expiresAt')::timestamptz <= clock_timestamp()`,
+    )
+    .execute();
   let count: number;
   do {
     count = await db.transaction().execute(async (trx) => {
@@ -873,4 +1198,537 @@ export async function sweepHealth() {
       ).rows.length;
     });
   } while (count === 1000);
+}
+
+const undoRecord = z.object({
+  actor: z.string(),
+  targetRevision: z.string(),
+  dependencies: z.object({
+    model: z.string(),
+    vision: z.boolean(),
+    privacy: z.enum(["deny", "zdr", "allow"]),
+    embeddingModel: z.string(),
+    dimensions: z.number(),
+    epoch: z.string(),
+  }),
+  expiresAt: z.iso.datetime(),
+  apiKey: z.string().nullable(),
+  apiKeyDigest: z.string().nullable(),
+  apiKeyLast4: z.string().nullable(),
+  apiKeySetAt: z.iso.datetime().nullable(),
+  enabled: z.boolean().nullable(),
+  keepOffAt: z.iso.datetime().nullable(),
+  keepOffBy: z.string().nullable(),
+  check: recordedCheck.nullable(),
+  creditUntil: z.iso.datetime().nullable(),
+});
+
+function advanceUndo(row: Row, actor?: Actor) {
+  const receipt = undoRecord.safeParse(row.keyUndo);
+  if (
+    !receipt.success ||
+    receipt.data.targetRevision !== row.revision ||
+    (actor && receipt.data.actor !== actor.userId)
+  )
+    return null;
+  return { ...receipt.data, targetRevision: String(BigInt(row.revision) + 1n) };
+}
+export async function undoKey(actor: Actor, identity: Identity) {
+  const saved = await db.transaction().execute(async (trx) => {
+    await authorizeCheckActor(trx, actor, false);
+    const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
+    const prior = undoRecord.safeParse(row.keyUndo);
+    const now = (
+      await sql<{ now: Date }>`select clock_timestamp() as now`.execute(trx)
+    ).rows[0].now;
+    if (
+      !matches(row, identity) ||
+      resolve(row, getConfig().authSecret).diverged ||
+      getConfig().llm.keySupplied ||
+      !prior.success ||
+      prior.data.actor !== actor.userId ||
+      prior.data.targetRevision !== row.revision ||
+      Date.parse(prior.data.expiresAt) <= now.getTime()
+    )
+      throw new AiError("STALE_CONFIGURATION");
+    const p = prior.data;
+    const updated = await trx
+      .updateTable("ai_settings")
+      .where("id", "=", 1)
+      .set({
+        apiKey: p.apiKey,
+        apiKeyDigest: p.apiKeyDigest,
+        apiKeyLast4: p.apiKeyLast4,
+        apiKeySetAt: p.apiKeySetAt,
+        enabled: p.enabled,
+        keepOffAt: p.keepOffAt,
+        keepOffBy: p.keepOffBy,
+        keyUndo: null,
+        updatedBy: actor.userId,
+        updatedAt: sql<Date>`clock_timestamp()`,
+        revision: sql`revision+1`,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    const restored = await replaceToken(
+      trx,
+      updated,
+      transferCheck(
+        p.check,
+        p.dependencies,
+        resolve(updated, getConfig().authSecret),
+      ),
+    );
+    if (p.creditUntil)
+      await trx
+        .updateTable("ai_settings")
+        .where("id", "=", 1)
+        .set({
+          creditWaitConfigToken: restored.token,
+          creditWaitUntil: p.creditUntil,
+        })
+        .execute();
+    return restored;
+  });
+  invalidate();
+  return saved;
+}
+
+/** Commit all check fields together. A settings change or a newer check wins even if the old provider response arrives last. */
+function incidentReason(check: Check | null) {
+  if (!check) return null;
+  return (
+    check.chatIssue ??
+    check.searchIssue ??
+    (["invalid", "expired", "management"].includes(check.key)
+      ? check.key
+      : null)
+  );
+}
+export async function finishConnectionCheck(
+  ticket: CheckTicket,
+  result: Check,
+  enable: boolean,
+  options: {
+    worker?: { lease: Lease; signal: AbortSignal };
+    signal?: AbortSignal;
+    replacementKey?: string;
+  } = {},
+) {
+  const { worker, signal, replacementKey } = options;
+  if (
+    ticket.candidateDigest !==
+    (replacementKey ? digest(replacementKey) : undefined)
+  )
+    throw new AiError("STALE_CONFIGURATION");
+  if (!ticket.action && !worker) throw new AiError("forbidden");
+  const actor = ticket.action?.actor,
+    value = checkedResult(result);
+  const saved = await contentTransaction(
+    signal ?? worker?.signal,
+    async (trx) => {
+      if (worker) await requireLease(trx, worker.lease);
+      if (actor) await authorizeCheckActor(trx, actor, false);
+      let row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
+      let config = resolve(row, getConfig().authSecret);
+      if (
+        !matches(row, ticket) ||
+        config.diverged ||
+        row.checkSequence !== ticket.sequence
+      )
+        throw new AiError("STALE_CONFIGURATION");
+      if (replacementKey) {
+        if (!actor || !enable || worker) throw new AiError("forbidden");
+        if (
+          config.configured &&
+          [
+            "budget",
+            "busy",
+            "provider-rate",
+            "timeout",
+            "network",
+            "unavailable",
+          ].includes(value.chatIssue ?? "")
+        ) {
+          throw new DomainError(
+            ["budget", "busy", "provider-rate"].includes(value.chatIssue!)
+              ? "TOO_MANY_REQUESTS"
+              : "SERVICE_UNAVAILABLE",
+            "OpenRouter could not verify the replacement. The current key is still active. Try again.",
+          );
+        }
+        const staged = await writeConfiguration(trx, actor, ticket, {
+          apiKey: replacementKey,
+          stageKey: true,
+        });
+        ticket = { ...ticket, ...staged };
+        row = await currentRow(trx).executeTakeFirstOrThrow();
+        config = resolve(row, getConfig().authSecret);
+      }
+      const clock = (
+        await sql<{ now: Date }>`select clock_timestamp() as now`.execute(trx)
+      ).rows[0].now;
+      const waiting =
+        row.enabled === null &&
+        row.creditWaitConfigToken === ticket.token &&
+        !!row.creditWaitUntil &&
+        row.creditWaitUntil > clock;
+      if (ticket.creditWait && !waiting)
+        throw new AiError("STALE_CONFIGURATION");
+      const prior = await effectiveCheck(trx, config);
+      const reason = incidentReason(value);
+      const observation = {
+        ...value,
+        at: clock.toISOString(),
+        sequence: ticket.sequence,
+        configToken: ticket.token,
+        chatWatermark: ticket.chatWatermark,
+        incidentSince: reason
+          ? ((reason === incidentReason(prior)
+              ? (prior?.incidentSince ?? prior?.at)
+              : undefined) ?? clock.toISOString())
+          : undefined,
+      };
+      if (worker) await requireLease(trx, worker.lease);
+      const retryStaged =
+        ticket.action?.intent === "test-again" &&
+        row.enabled === null &&
+        !!row.apiKey;
+      if (
+        (enable || waiting || retryStaged) &&
+        value.key === "valid" &&
+        value.chat === "passed" &&
+        row.enabled !== true
+      ) {
+        const updated = await trx
+          .updateTable("ai_settings")
+          .where("id", "=", 1)
+          .set({
+            enabled: true,
+            keyUndo: advanceUndo(
+              row,
+              ticket.action?.intent === "credit" ? undefined : actor,
+            ),
+            keepOffBy: null,
+            keepOffAt: null,
+            revision: sql`revision+1`,
+            ...(actor && { updatedBy: actor.userId }),
+            updatedAt: clock,
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
+        return replaceToken(trx, updated, observation);
+      }
+      if (
+        enable &&
+        !config.configured &&
+        value.chatIssue === "account-credit" &&
+        row.apiKey &&
+        row.apiKeySetAt &&
+        !getConfig().llm.apiKey
+      ) {
+        let current = row,
+          identity: Identity = ticket;
+        if (row.enabled === false) {
+          current = await trx
+            .updateTable("ai_settings")
+            .where("id", "=", 1)
+            .set({
+              enabled: null,
+              keepOffBy: null,
+              keepOffAt: null,
+              revision: sql`revision+1`,
+              ...(actor && { updatedBy: actor.userId }),
+              updatedAt: clock,
+            })
+            .returningAll()
+            .executeTakeFirstOrThrow();
+          identity = await replaceToken(trx, current, observation);
+        }
+        const until = new Date(row.apiKeySetAt.getTime() + 7 * 86400_000);
+        if (until > clock)
+          await trx
+            .updateTable("ai_settings")
+            .where("id", "=", 1)
+            .set({
+              creditWaitUntil: until,
+              creditWaitConfigToken: identity.token,
+            })
+            .execute();
+        await trx
+          .updateTable("ai_settings")
+          .where("id", "=", 1)
+          .set({
+            lastCheck: { ...observation, configToken: identity.token },
+          })
+          .execute();
+        return { token: identity.token, revision: identity.revision };
+      }
+      await trx
+        .updateTable("ai_settings")
+        .where("id", "=", 1)
+        .set({
+          ...(waiting &&
+            [
+              "invalid-key",
+              "management-key",
+              "expired-key",
+              "key-limit",
+            ].includes(value.chatIssue ?? "") && {
+              creditWaitUntil: null,
+              creditWaitConfigToken: null,
+            }),
+          lastCheck: observation,
+        })
+        .execute();
+      return { token: ticket.token, revision: ticket.revision };
+    },
+  );
+  invalidate();
+  return saved;
+}
+
+export async function connectAdmission(
+  actor: Actor,
+  identity: Identity,
+  claim?: string,
+) {
+  return db.transaction().execute(async (trx) => {
+    await authorizeCheckActor(trx, actor, !claim);
+    const row = await currentRow(trx).forShare().executeTakeFirstOrThrow();
+    if (
+      claim &&
+      (await trx
+        .selectFrom("rate_limit")
+        .select("key")
+        .where("key", "=", "connect:" + claim)
+        .executeTakeFirst())
+    )
+      return false;
+    if (
+      !matches(row, identity) ||
+      resolve(row, getConfig().authSecret).diverged
+    )
+      throw new AiError("STALE_CONFIGURATION");
+    if (getConfig().llm.keySupplied) throw new AiError("invalid-input");
+    if (!claim) return true;
+    return !!(await trx
+      .insertInto("rate_limit")
+      .values({ key: "connect:" + claim, count: 1 })
+      .onConflict((c) => c.column("key").doNothing())
+      .returning("key")
+      .executeTakeFirst());
+  });
+}
+
+export async function adminAiState(actor: Actor, signal?: AbortSignal) {
+  return contentTransaction(signal, async (trx) => {
+    await requireAdmin(trx, actor);
+    const row = await currentRow(trx).forShare().executeTakeFirstOrThrow(),
+      env = getConfig().llm;
+    const config = resolve(row, getConfig().authSecret);
+    const {
+      rows: [budget],
+    } = await sql<{
+      now: Date;
+      resetAt: Date;
+      used: number;
+      diagnostic: number;
+    }>`
+      with instant as (select clock_timestamp() at time zone 'UTC' as t), clock as (select t,to_char(t,'YYYY-MM-DD') as day from instant)
+      select t at time zone 'UTC' as now,(date_trunc('day',t)+interval '1 day') at time zone 'UTC' as "resetAt",
+        coalesce((select count from rate_limit where key='ai:instance:day:'||day),0) as used,
+        coalesce((select count from rate_limit where key='ai:instance:day:diagnostic:'||day),0) as diagnostic from clock`.execute(
+      trx,
+    );
+    config.check = await effectiveCheck(trx, config);
+    const expiredKey = keyExpired(config, budget.now.getTime());
+    const rebuildRequired =
+      config.configured &&
+      config.options.embeddingModel !== "none" &&
+      indexConfiguration(
+        row.indexFingerprint,
+        config.options.embeddingModel,
+        config.dimensions,
+        config.widthMismatch,
+        runtimeState().vector?.indexesValid,
+      ).rebuildRequired;
+    const failures = await failingHealth(trx, config)
+      .select(["capability", "lastReason", "failingSince"])
+      .orderBy("failingSince")
+      .orderBy("capability")
+      .execute();
+    const waiting =
+      !expiredKey &&
+      row.enabled === null &&
+      row.creditWaitConfigToken === config.token &&
+      !!row.creditWaitUntil;
+    const expired = waiting && row.creditWaitUntil! <= budget.now;
+    const state =
+      row.enabled === false
+        ? "off"
+        : config.unreadable || !config.valid || config.diverged
+          ? "attention"
+          : waiting && !expired
+            ? "credit"
+            : expired
+              ? "expired"
+              : (config.check &&
+                    (!usableCheckedKey(config, budget.now.getTime()) ||
+                      config.check.chat === "failed" ||
+                      config.check.search === "failed")) ||
+                  rebuildRequired ||
+                  failures.length
+                ? "attention"
+                : !config.configured
+                  ? "off"
+                  : budget.used >=
+                      Math.floor(config.options.dailyCallLimit * 0.8)
+                    ? "paused"
+                    : "on";
+    const incident =
+      failures[0]?.failingSince?.toISOString() ??
+      config.check?.incidentSince ??
+      config.check?.at ??
+      row.updatedAt.toISOString();
+    const notices = await trx
+      .selectFrom("admin_notice")
+      .select(["notice", "dismissedAt", "hiddenUntil"])
+      .where("userId", "=", actor.userId)
+      .execute();
+    const hidden = (name: keyof typeof noticeKeys) =>
+      notices.some(
+        (n) =>
+          n.notice === noticeKeys[name] &&
+          (name === "failure"
+            ? !!incident && n.dismissedAt >= new Date(incident)
+            : !!n.hiddenUntil && n.hiddenUntil > budget.now),
+      );
+    const undo = undoRecord.safeParse(row.keyUndo);
+    const canUndo =
+      undo.success &&
+      undo.data.actor === actor.userId &&
+      undo.data.targetRevision === row.revision &&
+      Date.parse(undo.data.expiresAt) > budget.now.getTime();
+    const who = row.keepOffBy
+      ? await trx
+          .selectFrom("user")
+          .select("name")
+          .where("id", "=", row.keepOffBy)
+          .executeTakeFirst()
+      : null;
+    return {
+      statusVersion: digest(
+        JSON.stringify([
+          config.token,
+          state,
+          config.check,
+          rebuildRequired,
+          expiredKey,
+          budget.resetAt,
+          budget.used,
+          budget.diagnostic,
+          failures,
+          hidden("off"),
+          hidden("context"),
+          hidden("failure"),
+          canUndo,
+          expired,
+        ]),
+      ),
+      state,
+      chatAvailable:
+        config.configured &&
+        !config.diverged &&
+        !!config.apiKey &&
+        usableCheckedKey(config, budget.now.getTime()) &&
+        config.check?.chat !== "failed" &&
+        !failures.some((f) => f.capability === "chat") &&
+        budget.used < Math.floor(config.options.dailyCallLimit * 0.8),
+      identity: { token: config.token, revision: row.revision },
+      options: config.options,
+      dimensions: config.dimensions,
+      rebuildRequired,
+      creditCheckInFlight:
+        waiting && !expired && row.checkSequence !== config.check?.sequence,
+      nextCreditCheckAt:
+        waiting && !expired
+          ? ((
+              await trx
+                .selectFrom("rate_limit")
+                .where("key", "=", "ai:credit-poll:" + config.keyDigest)
+                .select(
+                  sql<Date>`"windowStart"+interval '15 seconds'`.as("next"),
+                )
+                .executeTakeFirst()
+            )?.next ?? budget.now)
+          : null,
+      locked: Object.keys(env.options).filter(
+        (k) => env.options[k as keyof Options] !== undefined,
+      ),
+      keySource: env.keySupplied
+        ? "environment"
+        : row.apiKey
+          ? "stored"
+          : "none",
+      last4: env.apiKey?.slice(-4) ?? row.apiKeyLast4,
+      keyUrl: config.keyDigest
+        ? "https://openrouter.ai/keys/" + config.keyDigest
+        : null,
+      unreadable: config.unreadable,
+      canEnable: !!config.apiKey && !config.unreadable,
+      enabled: config.enabled,
+      keptOffAt: row.keepOffAt,
+      keptOffBy: who?.name ?? null,
+      creditWaitUntil: waiting ? row.creditWaitUntil : null,
+      check: config.check,
+      failures,
+      reason: config.unreadable
+        ? "unreadable"
+        : !config.valid
+          ? "invalid-environment"
+          : config.diverged
+            ? "replica-mismatch"
+            : expiredKey
+              ? "expired-key"
+              : (config.check?.chatIssue ??
+                config.check?.searchIssue ??
+                (rebuildRequired ? "rebuild-required" : null) ??
+                failures[0]?.lastReason ??
+                null),
+      budget,
+      undo: canUndo,
+      hideActivity: hidden("off"),
+      hideContext: hidden("context"),
+      hideFailure: hidden("failure"),
+    };
+  });
+}
+
+const noticeKeys = {
+  off: "ai-off-card",
+  context: "ai-unseen-notice",
+  failure: "ai-broken-card",
+} as const;
+export async function dismissAiNotice(
+  actor: Actor,
+  notice: "off" | "context" | "failure",
+) {
+  await db.transaction().execute(async (trx) => {
+    await authorizeCheckActor(trx, actor, false);
+    const hiddenUntil =
+      notice === "failure"
+        ? null
+        : sql<Date>`clock_timestamp()+interval '14 days'`;
+    await trx
+      .insertInto("admin_notice")
+      .values({ userId: actor.userId, notice: noticeKeys[notice], hiddenUntil })
+      .onConflict((c) =>
+        c.columns(["userId", "notice"]).doUpdateSet({
+          hiddenUntil,
+          dismissedAt: sql<Date>`clock_timestamp()`,
+        }),
+      )
+      .execute();
+  });
 }
