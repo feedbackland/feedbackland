@@ -60,6 +60,9 @@ export type ActivityFeedItem = {
  */
 export type InsightSignals = {
   reachScore: number;
+  anonymousPosts: number;
+  votesLimited: boolean;
+  commentsLimited: boolean;
   momentumScore: number;
   severityScore: number;
   effortMultiplier: number;
@@ -82,8 +85,7 @@ export type InsightSignals = {
 };
 
 /**
- * An insight as the client consumes it: numerics already parsed, and the
- * post ids under a name that says what they are.
+ * A published theme with its current live post count and membership version.
  *
  * `status` is rolled up from the live feedback posts on every read rather than
  * stored, so it can never drift from what the board actually says.
@@ -92,7 +94,8 @@ export type Insight = {
   id: string;
   title: string;
   description: string;
-  postIds: string[];
+  postCount: number;
+  version: string;
   priority: number;
   reach: number;
   momentum: number;

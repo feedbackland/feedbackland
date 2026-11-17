@@ -8,9 +8,10 @@ export const setInsightStatus = adminProcedure
   .input(
     z.object({
       insightId: z.uuid(),
+      version: z.uuid(),
       status: feedbackStatusSchema,
     }),
   )
-  .mutation(async ({ input: { insightId, status }, ctx: {} }) => {
-    return await setInsightStatusQuery({ insightId, status });
-  });
+  .mutation(({ input, ctx: { userId, sessionId, signal } }) =>
+    setInsightStatusQuery({ ...input, userId, sessionId, signal }),
+  );

@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { command, eventually } from "./run";
 import { firstKey } from "../mock-llm";
 import { productionVision } from "./content-vision-http";
+import { insightsBrowser } from "./insights-browser";
 import { replicaSearch } from "./replica-search";
 import { coldSearchRecovery } from "./search-browser-regressions";
 import { contentBrowser } from "./content-ai-browser";
@@ -172,18 +175,26 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     // Real DNS, TLS, global fetch and SDK serialization. The internal bridge has
     // no Internet route. The certificate and hostname override exist only here.
-    const mounts = [
-      "lib",
-      "db",
-      "queries",
-      "scripts",
-      "app",
-      "trpc",
-      "tsconfig.json",
-    ].flatMap((p) => [
-      "--mount",
-      "type=bind,src=" + resolve(p) + ",dst=/app/" + p + ",readonly",
-    ]);
+    const sourceMounts = (previous?: string) =>
+      [
+        "lib",
+        "db",
+        "queries",
+        "scripts",
+        "app",
+        "trpc",
+        "tsconfig.json",
+      ].flatMap((p) => [
+        "--mount",
+        "type=bind,src=" +
+          (previous && ["lib", "db", "queries"].includes(p)
+            ? join(previous, p)
+            : resolve(p)) +
+          ",dst=/app/" +
+          p +
+          ",readonly",
+      ]);
+    const mounts = sourceMounts();
     await docker(
       "run",
       "-d",
@@ -291,50 +302,133 @@ export async function aiFoundations(runId: string, productionImage: string) {
       .split(/\r?\n/)
       .find((line) => line.startsWith("P07_OUTCOME="));
     assert(summary, "Missing AI contracts result");
-    await docker(
-      "exec",
-      pg,
-      "createdb",
-      "-U",
-      "postgres",
+    const runContracts = async (
+      database: string,
+      script: string,
+      extra: string[],
+      previous?: string,
+    ) => {
+      if (!previous)
+        await docker("exec", pg, "createdb", "-U", "postgres", database);
+      const output = await docker(
+        "run",
+        "--rm",
+        "--name",
+        worker,
+        "--network",
+        project,
+        "--add-host",
+        "openrouter.ai:127.0.0.1",
+        "-v",
+        certs + ":/certs:ro",
+        ...sourceMounts(previous),
+        "-e",
+        "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
+        "-e",
+        "NODE_ENV=test",
+        "-e",
+        "DATABASE_URL=postgres://postgres:" +
+          password +
+          "@database:5432/" +
+          database,
+        "-e",
+        "OPENROUTER_API_KEY=" + firstKey,
+        "-e",
+        "AI_EMBEDDING_DIMENSIONS=768",
+        "-e",
+        "DATABASE_POOL_MAX=2",
+        ...extra,
+        image,
+        "node",
+        "--conditions=react-server",
+        "--import",
+        "tsx",
+        "scripts/e2e/" + script,
+      );
+      assert(
+        !output.includes("P07_PRIVATE_") && !output.includes(password),
+        "Private marker in contract output",
+      );
+      return output;
+    };
+    const regressions = await runContracts(
       "board_search_regressions",
-    );
-    const regressions = await docker(
-      "run",
-      "--rm",
-      "--name",
-      worker,
-      "--network",
-      project,
-      "--add-host",
-      "openrouter.ai:127.0.0.1",
-      "-v",
-      certs + ":/certs:ro",
-      ...mounts,
-      "-e",
-      "NODE_EXTRA_CA_CERTS=/certs/provider.crt",
-      "-e",
-      "NODE_ENV=test",
-      "-e",
-      "DATABASE_URL=postgres://postgres:" +
-        password +
-        "@database:5432/board_search_regressions",
-      "-e",
-      "OPENROUTER_API_KEY=" + firstKey,
-      "-e",
-      "AI_EMBEDDING_DIMENSIONS=768",
-      "-e",
-      "AI_TIMEOUT_MS=120000",
-      "-e",
-      "DATABASE_POOL_MAX=2",
-      image,
-      "node",
-      "--conditions=react-server",
-      "--import",
-      "tsx",
-      "scripts/e2e/search-regressions.ts",
+      "search-regressions.ts",
+      ["-e", "AI_TIMEOUT_MS=120000"],
     );
     assert(regressions.includes("Search regressions passed"));
+    const insightEnv = [
+      "--memory",
+      "512m",
+      "--memory-swap",
+      "512m",
+      "-e",
+      "AI_TIMEOUT_MS=30000",
+      "-e",
+      "AI_DAILY_CALL_LIMIT=100",
+    ];
+    const insightOutput = await runContracts(
+      "board_insights",
+      "insights-contracts.ts",
+      insightEnv,
+    );
+    const insightSummary = insightOutput
+      .split(/\r?\n/)
+      .find((line) => line.startsWith("P10_OUTCOME="));
+    assert(insightSummary, "Missing background insight contracts result");
+    assert(
+      (
+        await runContracts(
+          "board_insight_regressions",
+          "insight-regressions.ts",
+          insightEnv,
+        )
+      ).includes("Insight regressions passed"),
+    );
+    assert(
+      (
+        await runContracts("board_insight_minimum", "insight-regressions.ts", [
+          "-e",
+          "AI_DAILY_CALL_LIMIT=10",
+        ])
+      ).includes("Insight regressions passed"),
+    );
+    assert(
+      (
+        await runContracts(
+          "board_insight_rollback",
+          "insight-rollback-prepare.ts",
+          insightEnv,
+        )
+      ).includes("P10 rollback fixture ready"),
+    );
+    const previous = await mkdtemp(join(tmpdir(), "feedbackland-p09-"));
+    try {
+      const revision = "1da2f142518eec862c90829ab36f21d0e76b691c";
+      const archive = join(previous, "p09.tar");
+      await command("git", ["archive", "--output", archive, revision]);
+      await command("tar", ["-xf", archive, "-C", previous]);
+      await command(
+        process.execPath,
+        ["scripts/build-identity.mjs", "--fresh"],
+        {
+          cwd: previous,
+          env: { SOURCE_COMMIT: revision },
+        },
+      );
+      assert(
+        (
+          await runContracts(
+            "board_insight_rollback",
+            "insight-rollback-check.ts",
+            [...insightEnv, "-e", "SOURCE_COMMIT=" + revision],
+            previous,
+          )
+        ).includes("P09 rollback passed"),
+      );
+    } finally {
+      await rm(previous, { recursive: true, force: true });
+    }
     await docker("exec", pg, "createdb", "-U", "postgres", "board_content");
     await docker(
       "run",
@@ -448,6 +542,12 @@ export async function aiFoundations(runId: string, productionImage: string) {
       project,
       docker,
     );
+    const insightUi = await insightsBrowser(
+      base,
+      "http://localhost:" + peerPort,
+      project,
+      docker,
+    );
     const logs = (await docker("logs", web)) + (await docker("logs", peer));
     assert(
       !logs.includes("P07_PRIVATE_") &&
@@ -461,6 +561,10 @@ export async function aiFoundations(runId: string, productionImage: string) {
       legacyPgvector: "0.7.4 HNSW on both tables, ordered 400 and exact tail",
       searchRegressions: "passed",
       searchReplicas,
+      backgroundInsights: JSON.parse(
+        insightSummary.slice("P10_OUTCOME=".length),
+      ),
+      insightUi,
       productionVision: vision,
       ...JSON.parse(summary.slice("P07_OUTCOME=".length)),
       invalidAiEnvironmentBoot: "privacy and timeout passed",

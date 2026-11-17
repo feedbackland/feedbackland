@@ -1,3 +1,4 @@
+import { insightAnswer } from "./insights-fixture";
 import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
 
 async function main() {
@@ -19,6 +20,11 @@ async function main() {
   const defaults = fixture.handler;
   const releaseVision = Promise.withResolvers<void>();
   process.on("SIGUSR2", releaseVision.resolve);
+  const insightRelease = Promise.withResolvers<void>();
+  process.on("SIGUSR2", () => {
+    if (insightWaiting) insightRelease.resolve();
+  });
+  let insightWaiting = false;
   let visionCalls = 0;
   let embeddingsOffline = false;
   process.on("SIGHUP", () => {
@@ -34,6 +40,23 @@ async function main() {
     const messages = request.body.messages as { content: unknown }[];
     const prompt = String(messages[0].content);
     const input = JSON.stringify(messages.slice(1));
+    if (
+      prompt.startsWith("Group related feedback") ||
+      prompt.startsWith("Find summaries")
+    ) {
+      if (input.includes("P10 failed analysis fixture"))
+        return json(
+          request.response,
+          { error: { message: privateMarker } },
+          503,
+        );
+      if (input.includes("P10 held analysis fixture")) {
+        insightWaiting = true;
+        console.log("Insight fixture holding the first chunk");
+        await insightRelease.promise;
+      }
+      return insightAnswer(request);
+    }
     if (prompt.startsWith("Moderate")) {
       if (
         input.includes("data:image/png;") &&

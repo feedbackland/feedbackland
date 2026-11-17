@@ -21,8 +21,10 @@ import { deleteComment } from "./delete-comment";
 import { getActivityFeed } from "./get-activity-feed";
 import { setActivitiesSeen } from "./set-activities-seen";
 import { getActivityFeedMetaData } from "./get-activity-feed-meta-data";
-import { generateInsights } from "./generate-insights";
+import { startInsightsRun } from "./start-insights-run";
+import { getInsightsRun } from "./get-insights-run";
 import { getInsights } from "./get-insights";
+import { getInsightEvidence } from "./get-insight-evidence";
 import { setInsightStatus } from "./set-insight-status";
 import { createAdminInvite } from "./create-admin-invite";
 import { getAdmins } from "./get-admins";
@@ -69,9 +71,11 @@ export const appRouter = router({
   getActivityFeedMetaData,
   setActivitiesSeen,
   setAllActivitiesSeen,
-  generateInsights,
+  startInsightsRun,
+  getInsightsRun,
   getInsights,
   setInsightStatus,
+  getInsightEvidence,
   createAdminInvite,
   deleteAdminInvite,
   getAdmins,

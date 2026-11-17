@@ -1,4 +1,5 @@
 import "server-only";
+import { expireInsights } from "../queries/expire-insights";
 import { sweepImages } from "./images/store";
 import { sql } from "kysely";
 import { db } from "../db/db";
@@ -29,7 +30,13 @@ const sweeps = [
   ],
   [
     "insight_reports",
-    `status<>'running' and id not in (select id from insight_reports where status<>'running' order by "createdAt" desc,id desc limit 50)`,
+    `status<>'running' and id not in (
+      select id from insight_reports where status<>'running'
+      order by (id=(select id from insight_reports where status='succeeded' order by id desc limit 1)) desc nulls last, "createdAt" desc,id desc limit 50)`,
+  ],
+  [
+    "job_lease",
+    `name like 'insight:%' and until<=clock_timestamp() and not exists(select 1 from insight_reports r where 'insight:'||r.id=job_lease.name and r.status='running')`,
   ],
   ["moderation_event", `"createdAt"<now()-interval '30 days'`],
   ["llm_usage", `day<(now() at time zone 'UTC')::date-400`],
@@ -77,9 +84,7 @@ export async function sweep(hourly = true) {
       await sql`update search_session set status='failed' where status='pending' and "createdAt"<clock_timestamp()-interval '3 minutes'`.execute(
         trx,
       );
-      await sql`update insight_reports set status='failed', stage='complete', error='stale-run', "finishedAt"=clock_timestamp(), "inputSnapshot"=null where status='running' and "heartbeatAt"<clock_timestamp()-interval '5 minutes'`.execute(
-        trx,
-      );
+      await expireInsights(trx);
     });
   } catch (error) {
     log("housekeeping.expiry-failed", { sqlstate: sqlstate(error) }, "warn");

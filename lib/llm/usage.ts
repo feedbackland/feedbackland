@@ -9,7 +9,6 @@ import { deadline, withinTransaction, type Deadline } from "./deadline";
 import { log } from "../log";
 import type { Actor } from "../auth/authorization";
 import {
-  consumeAiBudget,
   attemptAiBudget,
   consumeRateLimitWindow,
 } from "../../queries/check-rate-limit";
@@ -26,12 +25,12 @@ import {
 import type { Capability, Feature } from "./constants";
 
 type Tx = Transaction<DB>;
-export type Reservation = {
+type RunOwner = {
   runId: string;
   owner: string;
   fence: string;
-  id: string;
 };
+export type Reservation = RunOwner & { id: string; configToken: string };
 export type Admission = Identity & {
   feature: Feature;
   capability: Capability;
@@ -107,31 +106,30 @@ export async function cancelUndispatchedMetadata(
     );
   }
 }
-// P10 can bind its frozen chunk plan and this reservation in the same short
-// transaction. No credit is returned for abandoned or expired work.
-async function requireInsightLease(trx: Tx, run: Omit<Reservation, "id">) {
+// Recheck the database clock after acquiring the lease row lock. Use a monotonic
+// deadline so a queued wire request cannot cross its reservation's UTC midnight.
+async function requireInsightLease(trx: Tx, run: RunOwner, day?: string) {
+  const end = await requireLease(trx, {
+    name: "insight:" + run.runId,
+    holder: run.owner,
+    fence: run.fence,
+  });
+  if (!day) return end;
   const observed = performance.now();
-  const lease = await trx
-    .selectFrom("job_lease")
-    .select(
-      sql<number>`extract(epoch from ("until"-clock_timestamp()))::float8 * 1000`.as(
-        "remainingMs",
-      ),
-    )
-    .where("name", "=", "insight:" + run.runId)
-    .where("holder", "=", run.owner)
-    .where("fence", "=", run.fence)
-    .where("until", ">", sql<Date>`clock_timestamp()`)
-    .forShare()
-    .executeTakeFirst();
-  if (!lease || lease.remainingMs <= 0)
-    throw new AiError("RESERVATION_EXPIRED");
-  return observed + lease.remainingMs;
+  const {
+    rows: [clock],
+  } = await sql<{
+    remaining: number;
+  }>`select extract(epoch from (((${day}::date+1)::timestamp at time zone 'UTC')-clock_timestamp()))::float8*1000 as remaining`.execute(
+    trx,
+  );
+  if (clock.remaining <= 0) throw new AiError("RESERVATION_EXPIRED");
+  return Math.min(end, observed + clock.remaining);
 }
 export async function reserveInsightPlan(
   trx: Tx,
   config: Configuration,
-  run: Omit<Reservation, "id">,
+  run: RunOwner,
   plan: { snapshot: string; groups: string[][] },
 ) {
   // Bind the request to repeatable input order before waiting for any locks.
@@ -179,11 +177,17 @@ export async function reserveInsightPlan(
     isDeepStrictEqual(record.requestPlan, frozen)
   ) {
     await requireInsightLease(trx, run);
-    return { ...run, id: record.reservationId };
+    return { ...run, id: record.reservationId, configToken: config.token };
   }
   if (record.stage !== "admitting") throw new AiError("RESERVATION_EXPIRED");
-  const day = await consumeAiBudget(dailyShare(config, "insights"), count, trx);
-  if (!day) throw new AiError("AI_PAUSED");
+  const budget = await attemptAiBudget(
+    dailyShare(config, "insights"),
+    count,
+    trx,
+  );
+  if (!budget) throw new AiError("INSIGHT_PLAN_TOO_LARGE");
+  if (!budget.allowed) throw new DailyBudgetError(budget);
+  const day = budget.day;
   const id = randomUUID();
   await trx
     .updateTable("insight_reports")
@@ -197,7 +201,7 @@ export async function reserveInsightPlan(
     })
     .execute();
   await requireInsightLease(trx, run);
-  return { ...run, id };
+  return { ...run, id, configToken: config.token };
 }
 async function spendReservation(
   trx: Tx,
@@ -289,7 +293,7 @@ export async function beginAttempt(
           .execute();
         await requireDispatch(trx, config, purpose, check);
         const leaseEnd = reservation
-          ? await requireInsightLease(trx, reservation)
+          ? await requireInsightLease(trx, reservation, day)
           : lease
             ? await requireLease(trx, lease)
             : undefined;
@@ -321,14 +325,19 @@ export async function cancelUndispatched(
   try {
     await withinTransaction(deadline(2000), async (trx) => {
       if (reservation) {
-        await trx
-          .updateTable("insight_reports")
-          .where("id", "=", reservation.runId)
-          .where("reservationId", "=", reservation.id)
-          .where("owner", "=", reservation.owner)
-          .where("fence", "=", reservation.fence)
-          .set({ reservationCount: sql`"reservationCount"+1` })
-          .execute();
+        // A spent slot belongs to the still-live owner. Always correct the
+        // ledger below, even when a fenced worker can no longer touch the run.
+        await sql`with lease as materialized (
+          select holder,fence,until from job_lease where name=${"insight:" + reservation.runId}
+            and holder=${reservation.owner} and fence=${reservation.fence} for share
+        ), active as materialized (
+          select r.id,l.until from insight_reports r join lease l on l.holder=r.owner and l.fence=r.fence
+          where r.id=${reservation.runId} and r."reservationId"=${reservation.id} and r."configToken"=${reservation.configToken}
+            and r.status='running' and r.stage='admitted' and r."reservationDay"=${admission.day}::date for update of r
+        ) update insight_reports r set "reservationCount"=r."reservationCount"+1 from active
+          where active.id=r.id and active.until>clock_timestamp() and r."reservationDay"=(clock_timestamp() at time zone 'UTC')::date`.execute(
+          trx,
+        );
       } else {
         const prefix = admission.diagnostic
           ? "ai:instance:day:diagnostic:"

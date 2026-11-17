@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { InsightJobStatus } from "./job-status";
 import { Error } from "@/components/ui/error";
-import { Spinner } from "@/components/ui/spinner";
 import { useInsights } from "@/hooks/use-insights";
 import { useGenerateInsights } from "@/hooks/use-generate-insights";
 import { InsightsHeader } from "./header";
@@ -23,23 +22,14 @@ const SEARCH_THRESHOLD = 8;
 export function Insights() {
   const [search, setSearch] = useState("");
   const {
-    query: { data, isPending, isError },
+    query: { data, isPending, isError, refetch },
   } = useInsights();
-  const generate = useGenerateInsights();
+  const job = useGenerateInsights();
 
   const insights = useMemo(() => data?.insights ?? [], [data?.insights]);
   const run = data?.run ?? null;
 
-  const handleGenerate = () => {
-    generate.mutate(undefined, {
-      onSuccess: () =>
-        toast.success("Insights updated", { position: "top-right" }),
-      onError: (error) =>
-        toast.error(error.message || "The analysis didn't finish.", {
-          position: "top-right",
-        }),
-    });
-  };
+  const handleGenerate = () => job.start.mutate();
 
   // The whole insights is in memory, so search runs over every insight rather
   // than over whatever happened to be loaded.
@@ -57,7 +47,7 @@ export function Insights() {
 
   if (isPending) return <InsightsLoading />;
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div>
         <h2 className="h5 mb-4">Insights</h2>
@@ -69,21 +59,31 @@ export function Insights() {
     );
   }
 
-  const isGenerating = generate.isPending;
+  const { isGenerating } = job;
   const openPostCount = data?.openPostCount ?? 0;
 
+  const refreshError = isError && (
+    <div role="alert" className="mb-4 text-sm">
+      Could not refresh this report. Showing the last successful result.{" "}
+      <button className="underline" onClick={() => void refetch()}>
+        Try again
+      </button>
+    </div>
+  );
   if (insights.length === 0) {
     return (
       <div>
         {/* No action up here: the empty state below is the call to action, and
             when there is no feedback at all there is nothing to act on. */}
         <InsightsHeader hasRun={!!run} />
-        {isGenerating ? (
-          <InsightsLoading showHeader={false} />
-        ) : openPostCount === 0 ? (
-          <InsightsNoFeedback />
+        {refreshError}
+        <InsightJobStatus job={job} />
+        {run && <InsightsRunStrip run={run} />}
+        {isGenerating ? null : openPostCount === 0 ? (
+          <InsightsNoFeedback hasRun={!!run} />
         ) : (
           <InsightsFirstRun
+            completedEmpty={run?.insightCount === 0}
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             postCount={openPostCount}
@@ -101,18 +101,8 @@ export function Insights() {
         isGenerating={isGenerating}
       />
 
-      {isGenerating && (
-        <div
-          role="status"
-          className="border-border bg-muted/40 text-muted-foreground mb-4 flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm"
-        >
-          <Spinner className="size-4 shrink-0" />
-          <span>
-            Reading your feedback. What&apos;s below stays put until the new
-            insights are ready.
-          </span>
-        </div>
-      )}
+      {refreshError}
+      <InsightJobStatus job={job} />
 
       {insights.length >= SEARCH_THRESHOLD && (
         <InsightsSearch

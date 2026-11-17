@@ -2,13 +2,13 @@
 
 Run your own feedback board. Your data, your domain, your costs.
 
-> **Implementation status:** P09 includes transactional boot, one-time setup,
+> **Implementation status:** P10 includes transactional boot, one-time setup,
 > email sign-in/out, comments/voting and session-scoped administration. The drawer
 > uses its own signed bearer session; a first-party administrator cookie never
 > grants it administrative rights. Social sign-in, password reset and operator
 > recovery are available. Posts, comments and logos can include images stored in PostgreSQL.
 > Optional OpenRouter moderation, generated post titles and draft improvements are available.
-> Board and Activity search support exact text and optional semantic matching. Insights, automated backups and one-click release packaging are later milestones.
+> Board and Activity search support exact text and optional semantic matching. Administrators can generate background insight reports. Automated backups and one-click release packaging are later milestones.
 > Use a new disposable database and an isolated checkout without hosted credentials.
 
 **Pick the path that sounds like you:**
@@ -95,7 +95,7 @@ feedback widget on your site takes that minute to open the first time.
 For this one you'll need **Docker** (Docker Desktop, or Docker Engine with the
 Compose plugin) and a terminal.
 
-**P09 contributor verification (development only)**
+**P10 contributor verification (development only)**
 
 Use an isolated checkout without hosted dotenv files or credentials. The
 committed Compose file mounts the Postgres 18 parent data directory correctly
@@ -304,6 +304,31 @@ Each attempted model request, including an allowed retry, consumes an allowance.
 
 ---
 
+## Background insight reports
+
+Open **Admin → Insights** and choose **Generate insights**. You can leave the page and return, including through another replica. The board runs one analysis at a time and keeps the last successful report visible until its replacement is ready.
+
+A run reads up to 2,000 of the newest open posts. It freezes up to 700 characters of plain text per post and up to 2 MiB for the snapshot. The report shows how many posts it read and omitted. OpenRouter receives the bounded post text, titles and categories. Feedback votes and comments contribute to the rankings locally.
+
+Each batch holds up to 200 posts and 64,000 bytes of model input. A run with multiple batches needs one additional request to merge themes. Before the first call, the board reserves the entire plan within 80% of the shared daily AI allowance. An allowance too small for the plan is shown before any paid request. Usage counts the requests actually sent. Unused reservations expire at UTC midnight.
+
+The report shows identified supporters and anonymous post counts separately. For ranking, each anonymous post contributes one demand signal. Participation scores use up to the newest 1,024 votes and 1,024 discussion comments per post. The score details identify limited samples, and reach is displayed as a lower bound when votes were sampled. A run combines matching titles across all batches and sends up to 200 candidate themes to the final merge. Up to 60 themes appear in the report. Opening a theme loads its underlying posts in pages.
+
+If a provider request fails, the run ends. If the worker stops, the board marks the run failed after five minutes without a heartbeat. The previous report stays available, and an administrator can start a fresh run. Each fresh run needs its own reservation. If the full plan exceeds the daily share even on an unused day, increase `AI_DAILY_CALL_LIMIT` before restarting the analysis.
+
+#### Revert background insights to P09
+
+Stop every application replica and leave PostgreSQL running. From the P10 checkout, run the following once against the board database before starting P09. For an external database use the same file with `psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f scripts/ops/prepare-p09-insights-rollback.sql`.
+
+```sh
+docker compose stop app
+docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d feedbackland < scripts/ops/prepare-p09-insights-rollback.sql
+```
+
+The transaction fails interrupted work, clears temporary input and plans, and moves failed-run metadata to `insight_rollback_history`. P09 then reads the last successful summary, or shows its first-run state if there has been no success. Successful reports and daily usage remain available. The transaction can be run again after an interruption. Start the P09 application only after it commits.
+
+---
+
 ## Authentication in this development milestone
 
 A successful setup clears its code permanently. Changing or removing `SETUP_CODE`
@@ -446,7 +471,7 @@ own Postgres. Two things it needs:
 
 Everything here is optional — your board already works without any of it —
 and each is covered in the sections that follow this guide as they land.
-The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the server settings for P09.
+The [AI configuration](#ai-configuration-in-this-development-milestone) section lists the available server settings.
 
 - **Add the widget** — drop a feedback button into your own app.
 - **Use your own domain** — `feedback.yourcompany.com`, with HTTPS.

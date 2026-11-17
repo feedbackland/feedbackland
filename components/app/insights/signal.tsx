@@ -164,13 +164,17 @@ export function InsightSignal({ insight }: { insight: Insight }) {
         <div className="space-y-2.5">
           <ScoreBar
             label="Reach"
-            detail={formatReach(signals.reach)}
+            detail={formatReach(
+              signals.reach,
+              signals.anonymousPosts,
+              signals.votesLimited,
+            )}
             value={signals.reachScore}
             weight={SCORE_WEIGHTS.reach}
           />
           <ScoreBar
             label="Momentum"
-            detail={`${signals.recentUpvotes + signals.recentCommentCount} in 30 days`}
+            detail={`${signals.votesLimited || signals.commentsLimited ? "At least " : ""}${signals.recentUpvotes + signals.recentCommentCount} in 30 days`}
             value={signals.momentumScore}
             weight={SCORE_WEIGHTS.momentum}
           />
@@ -184,9 +188,11 @@ export function InsightSignal({ insight }: { insight: Insight }) {
 
         <p className="text-muted-foreground border-t pt-2.5 text-[11px] leading-relaxed">
           Reach and momentum are scored against the strongest insight in this
-          run. Reach counts distinct people, so one person upvoting duplicates
-          counts once. Severity is the model&apos;s read of the problem, not of
-          demand.
+          run. Reach counts each identified supporter once. Each anonymous post
+          contributes one demand signal. Severity is the model&apos;s read of
+          the problem, not of demand.
+          {(signals.votesLimited || signals.commentsLimited) &&
+            " Scores use the most recent 1,024 votes and 1,024 comments per post."}
           {insight.effort && signals.effortMultiplier !== 1 && (
             <>
               {" "}

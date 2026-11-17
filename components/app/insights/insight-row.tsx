@@ -28,24 +28,29 @@ export function InsightRow({ insight }: { insight: Insight }) {
   const setStatus = useSetInsightStatus();
 
   const isOpen = expanded[insight.id] ?? false;
-  const postCount = insight.postIds.length;
+  const postCount = insight.postCount;
   const reachDelta = getReachDelta(insight);
 
   const handleStatus = (next: FeedbackStatus) => {
     setStatus.mutate(
-      { insightId: insight.id, status: next },
+      { insightId: insight.id, version: insight.version, status: next },
       {
-        onSuccess: () =>
+        onSuccess: ({ postsUpdated }) =>
           toast.success(
             next
-              ? `${formatPostCount(postCount)} marked "${next}"`
-              : `Status cleared on ${formatPostCount(postCount)}`,
+              ? `${formatPostCount(postsUpdated)} marked "${next}"`
+              : `Status cleared on ${formatPostCount(postsUpdated)}`,
             { position: "top-right" },
           ),
-        onError: () =>
-          toast.error("That status didn't save. Try again.", {
-            position: "top-right",
-          }),
+        onError: (error) =>
+          toast.error(
+            error.data?.code === "CONFLICT"
+              ? "This insight changed. Review its updated posts before setting a status."
+              : "That status didn't save. Try again.",
+            {
+              position: "top-right",
+            },
+          ),
       },
     );
   };
@@ -87,7 +92,13 @@ export function InsightRow({ insight }: { insight: Insight }) {
             {/* Reach and its change are one fact, so they sit closer to each
                 other than to anything else on the line. */}
             <span className="flex items-center gap-1.5">
-              <span className="tabular-nums">{formatReach(insight.reach)}</span>
+              <span className="tabular-nums">
+                {formatReach(
+                  insight.reach,
+                  insight.signals?.anonymousPosts,
+                  insight.signals?.votesLimited,
+                )}
+              </span>
 
               {reachDelta !== null && (
                 <Tooltip>

@@ -8,6 +8,7 @@ export type Reason =
   | "AI_NOT_CONFIGURED"
   | "AI_UNAVAILABLE"
   | "AI_PAUSED"
+  | "INSIGHT_PLAN_TOO_LARGE"
   | "AI_BUSY"
   | "VISION_BUSY"
   | "CONFIGURATION_DIVERGED"

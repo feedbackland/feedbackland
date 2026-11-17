@@ -507,7 +507,7 @@ async function main() {
     for (const [path, body] of edits) await rpc(path, body, 403, credential);
   for (const credential of [...credentials, { cookie: agedCookie }]) {
     for (const path of [
-      "generateInsights",
+      "startInsightsRun",
       "deleteAdminInvite",
       "createAdminInvite",
       "deleteAdmin",
@@ -522,6 +522,8 @@ async function main() {
       "getAdmins",
       "getActivityFeed",
       "getInsights",
+      "getInsightsRun",
+      "getInsightEvidence",
       "getActivityFeedMetaData",
       "getModerationCoverage",
       "getFeedbackPostCount",

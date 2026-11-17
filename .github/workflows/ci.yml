@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, single-tenant-self-hosting]
   pull_request:
-    branches: [main, single-tenant-self-hosting, codex/setup-auth, codex/social-recovery, codex/images-attachments, codex/ai-foundations, codex/content-ai]
+    branches: [main, single-tenant-self-hosting, codex/setup-auth, codex/social-recovery, codex/images-attachments, codex/ai-foundations, codex/content-ai, codex/durable-search]
 permissions:
   contents: read
 jobs:

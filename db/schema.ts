@@ -189,6 +189,12 @@ export interface Images {
   width: number;
 }
 
+export interface InsightMember {
+  insightId: string;
+  ordinal: number;
+  postId: string;
+}
+
 export interface InsightReports {
   archivedInsightCount: Generated<Numeric>;
   configToken: string;
@@ -216,6 +222,11 @@ export interface InsightReports {
   status: string;
 }
 
+export interface InsightRollbackHistory {
+  id: Int8;
+  report: Json;
+}
+
 export interface Insights {
   category: FeedbackCategory | null;
   commentCount: Generated<Numeric>;
@@ -234,6 +245,7 @@ export interface Insights {
   status: FeedbackStatus | null;
   title: string;
   upvotes: Generated<Numeric>;
+  version: Generated<string>;
 }
 
 export interface InstanceSecret {
@@ -350,7 +362,9 @@ export interface DB {
   feedback: Feedback;
   image_ref: ImageRef;
   images: Images;
+  insight_member: InsightMember;
   insight_reports: InsightReports;
+  insight_rollback_history: InsightRollbackHistory;
   insights: Insights;
   instance_secret: InstanceSecret;
   job_lease: JobLease;

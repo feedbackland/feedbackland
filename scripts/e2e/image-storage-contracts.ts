@@ -208,7 +208,13 @@ async function contracts() {
   await deleteCommentQuery({ ...actor, commentId: c.id });
   assert(!(await exists(nested.id)));
   assert(await exists(shared.id));
+  // Reclaim can legally delete a detached prior logo before the test restores it.
+  // Keep the browser fixture's logo attached while these swaps exercise cleanup.
+  const priorLogoPost = initial.logoImageId
+    ? await post(initial.logoImageId)
+    : null;
   await setLogo(shared.id);
+  await managePendingImages(actor, true);
   await deleteFeedbackPostQuery({ ...actor, postId: p.id });
   assert(await exists(shared.id));
   await setLogo(initial.logoImageId);
@@ -279,6 +285,19 @@ async function contracts() {
       assert.match(String(setting.reason), /re-attach/i);
       assert(!(await exists(logo.id)));
     }
+  }
+  if (priorLogoPost && initial.logoImageId) {
+    assert.equal(
+      (
+        await db
+          .selectFrom("settings")
+          .select("logoImageId")
+          .executeTakeFirstOrThrow()
+      ).logoImageId,
+      initial.logoImageId,
+    );
+    await deleteFeedbackPostQuery({ ...actor, postId: priorLogoPost.id });
+    assert(await exists(initial.logoImageId));
   }
   const parentImage = await upload(),
     root = await post(parentImage.id),

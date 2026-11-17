@@ -48,7 +48,7 @@ async function main() {
       (await sql`explain (format json) ${query}`.execute(trx)).rows,
     );
     for (const name of ["feedback_embedding_idx", "comment_embedding_idx"])
-      assert(plan.includes(name));
+      assert(plan.includes(name), name);
     const snapshot = await materialize(
       trx,
       scope,

@@ -1,4 +1,5 @@
 import "server-only";
+import type { InsightFailure } from "./insight-run";
 
 type DomainErrorCode =
   | "BAD_REQUEST"
@@ -33,6 +34,7 @@ export class DomainError extends Error {
     message: string,
     public readonly retryAfterSeconds?: number,
     public readonly resetsAt?: string,
+    public readonly reason?: InsightFailure,
   ) {
     super(message);
     this.name = "DomainError";

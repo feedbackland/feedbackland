@@ -38,7 +38,8 @@ async function leaseQuery<T extends import("pg").QueryResultRow>(
       await client.query("begin");
       await client.query("set local statement_timeout='5s'");
       const result = await client.query<T>(statement, values);
-      await client.query("commit");
+      // A combined insight renewal is valid only when the report heartbeat also matched.
+      await client.query(result.rowCount ? "commit" : "rollback");
       return result.rows[0];
     } catch (error) {
       failed = true;
@@ -86,9 +87,38 @@ export async function acquireLease(name: string) {
   );
   if (!claim) return null;
   const lease = { name, holder, fence: claim.fence };
-  const params = [name, holder, claim.fence];
+  return monitorLease(lease, started + claim.remaining);
+}
+
+export async function claimInsightLease(
+  trx: Transaction<DB>,
+  runId: string,
+  holder: string,
+) {
+  const name = "insight:" + runId;
+  const started = performance.now();
+  const {
+    rows: [claim],
+  } = await sql<Heartbeat>`insert into job_lease(name,holder,until,fence)
+    values(${name},${holder},clock_timestamp()+interval '90 seconds',1)
+    returning fence,extract(epoch from (until-clock_timestamp()))::float8*1000 as remaining`.execute(
+    trx,
+  );
+  return {
+    lease: { name, holder, fence: claim.fence },
+    expires: started + claim.remaining,
+  };
+}
+
+export function monitorLease(
+  lease: Lease,
+  initialExpiry: number,
+  runId?: string,
+) {
+  const { name, holder, fence } = lease;
+  const params = [name, holder, fence];
   const controller = new AbortController();
-  let expires = started + claim.remaining,
+  let expires = initialExpiry,
     timer: ReturnType<typeof setTimeout>,
     expiry: ReturnType<typeof setTimeout>;
   function armExpiry() {
@@ -103,11 +133,17 @@ export async function acquireLease(name: string) {
     if (controller.signal.aborted) return;
     const start = performance.now();
     try {
-      const row = await leaseQuery<Heartbeat>(
-        `update job_lease set until=clock_timestamp()+interval '90 seconds'
-        where name=$1 and holder=$2 and fence=$3 and until>clock_timestamp() returning fence,${remaining}`,
-        params,
-      );
+      const renewal = `update job_lease set until=clock_timestamp()+interval '90 seconds'
+        where name=$1 and holder=$2 and fence=$3 and until>clock_timestamp() returning fence,${remaining}`;
+      const row = runId
+        ? await leaseQuery<Heartbeat>(
+            `with renewed as (${renewal})
+        update insight_reports r set "heartbeatAt"=case when r."heartbeatAt" <= clock_timestamp()-interval '30 seconds' then clock_timestamp() else r."heartbeatAt" end
+        from renewed where r.id=$4 and r.owner=$2 and r.fence=renewed.fence and r.status='running'
+        and r."heartbeatAt">clock_timestamp()-interval '5 minutes' returning renewed.fence,renewed.remaining`,
+            [...params, runId],
+          )
+        : await leaseQuery<Heartbeat>(renewal, params);
       if (!row || controller.signal.aborted || performance.now() >= expires) {
         controller.abort();
         return;

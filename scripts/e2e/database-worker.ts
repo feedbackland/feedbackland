@@ -64,6 +64,8 @@ async function schemaAssertions() {
     "image_ref_comment_idx",
     "moderation_post_revision_idx",
     "moderation_comment_revision_idx",
+    "user_upvote_insights_idx",
+    "comment_insights_activity_idx",
     "insight_reports_running_idx",
     "insights_archived_idx",
     "insight_reports_created_idx",

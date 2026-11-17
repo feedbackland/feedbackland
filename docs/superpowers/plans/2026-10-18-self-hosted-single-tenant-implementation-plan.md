@@ -594,9 +594,9 @@ transition; never silently restore a distance cursor's old meaning. **Next:** P1
 **Entry:** P09. **Files:** insight job module, start/read procedures, same-run
 save query, report/status UI and stale-job handling; delete old synchronous route.
 
-- [ ] Atomically create singleton run/lease, freeze bounded snapshot/plan,
+- [x] Atomically create singleton run/lease, freeze bounded snapshot/plan,
       reserve chunks plus merge, and guard every stage/final write by owner/fence.
-- [ ] Remove hidden retries, handle reservation-day expiry and fail crashed
+- [x] Remove hidden retries, handle reservation-day expiry and fail crashed
       runs rather than silently resuming paid work. Clear retained snapshots.
 
 **Exit:** V21 concurrent starts/reservations/merge accounting/worker death/late
