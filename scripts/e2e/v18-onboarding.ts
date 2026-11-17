@@ -252,6 +252,7 @@ export async function verifyOnboarding(
         path,
       );
       return JSON.parse(raw) as {
+        at: number;
         mode: string;
         samples: { at: number; kind: string; images: number }[];
       };
@@ -270,7 +271,9 @@ export async function verifyOnboarding(
       sql,
       control: fixtureControl,
       setCredit: async (available) => {
-        await fixtureControl("/mode?value=" + (available ? "paid" : "credit"));
+        return (
+          await fixtureControl("/mode?value=" + (available ? "paid" : "credit"))
+        ).at;
       },
     });
     const logs = await Promise.all(

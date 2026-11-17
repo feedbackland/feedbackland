@@ -58,6 +58,10 @@ const t = initTRPC.context<RequestContext>().create({
         error.cause.retryAfterSeconds !== undefined
           ? { retryAfterSeconds: error.cause.retryAfterSeconds }
           : {}),
+        ...(error.cause instanceof DomainError &&
+        error.cause.retryAfterMs !== undefined
+          ? { retryAfterMs: error.cause.retryAfterMs }
+          : {}),
         ...(error.cause instanceof DomainError && error.cause.resetsAt
           ? { resetsAt: error.cause.resetsAt, contentCode: error.cause.message }
           : {}),

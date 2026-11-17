@@ -186,7 +186,7 @@ if (process.argv.includes("--serve"))
         if (url.searchParams.has("expiry"))
           state.expiry = url.searchParams.get("expiry") || null;
       }
-      json(res, { mode: state.mode, samples: state.samples });
+      json(res, { at: Date.now(), mode: state.mode, samples: state.samples });
     }).listen(8089, "127.0.0.1", () =>
       console.log("Onboarding fixture listening"),
     );

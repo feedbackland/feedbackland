@@ -196,7 +196,8 @@ export function AiSettingsPage() {
           error instanceof TRPCClientError &&
           typeof error.data?.retryAfterSeconds === "number"
         )
-          delay = error.data.retryAfterSeconds * 1000;
+          delay =
+            error.data.retryAfterMs ?? error.data.retryAfterSeconds * 1000;
       } finally {
         running = false;
         schedule(delay);

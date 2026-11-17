@@ -35,6 +35,7 @@ export class DomainError extends Error {
     public readonly retryAfterSeconds?: number,
     public readonly resetsAt?: string,
     public readonly reason?: InsightFailure,
+    public readonly retryAfterMs?: number,
   ) {
     super(message);
     this.name = "DomainError";

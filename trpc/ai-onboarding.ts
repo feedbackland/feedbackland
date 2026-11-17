@@ -60,6 +60,9 @@ async function run<T>(action: () => Promise<T>): Promise<T> {
           "TOO_MANY_REQUESTS",
           "A check is already running or was recently requested. Try again shortly.",
           e.retryAfterMs ? Math.ceil(e.retryAfterMs / 1000) : undefined,
+          undefined,
+          undefined,
+          e.retryAfterMs,
         );
     }
     throw new DomainError(

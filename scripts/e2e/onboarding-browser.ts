@@ -14,7 +14,7 @@ type Fixture = {
     mode: string;
     samples: { at: number; kind: string; images: number }[];
   }>;
-  setCredit: (available: boolean) => Promise<void>;
+  setCredit: (available: boolean) => Promise<number>;
 };
 export async function onboardingBrowser(f: Fixture) {
   const browser = await chromium.launch({
@@ -640,7 +640,10 @@ export async function onboardingBrowser(f: Fixture) {
     await page
       .getByText(/Provider spend limit.*monthly.*remaining.*12.5/)
       .waitFor();
-    const spendTab = await context.newPage();
+    const spendContext = await browser.newContext({
+      storageState: await context.storageState(),
+    });
+    const spendTab = await spendContext.newPage();
     await spendTab.clock.install();
     await spendTab.goto(primary + path);
     await spendTab
@@ -651,7 +654,7 @@ export async function onboardingBrowser(f: Fixture) {
     await spendTab
       .getByText(/Provider spend limit.*monthly.*remaining.*8.75/)
       .waitFor({ timeout: 10000 });
-    await spendTab.close();
+    await spendContext.close();
     step = "foreground timing across two replicas";
     const isPoll = (req: {
       url: () => string;
@@ -709,15 +712,37 @@ export async function onboardingBrowser(f: Fixture) {
     assert(wire.length === observed.length + 1);
     for (let i = 0; i < observed.length; i++)
       assert(Math.abs(wire[i + 1].at - observed[i]) < 1200);
-    await f.setCredit(true);
-    const funded = performance.now();
-    await Promise.all(
-      [page, peer].map((p) => heading(p, "AI on").waitFor({ timeout: 17000 })),
+    const visible = Promise.all(
+      [page, peer].map(async (tab) => {
+        await tab.waitForFunction(
+          () =>
+            Array.from(document.querySelectorAll("h2")).some(
+              (h) => h.textContent === "AI on",
+            ),
+          undefined,
+          { polling: 25, timeout: 17000 },
+        );
+        return Date.now();
+      }),
     );
-    const fundedMs = performance.now() - funded;
+    const fundedAt = await f.setCredit(true);
+    const visibleAt = await visible;
+    const activatedAt = Number(
+      await f.sql(
+        'select extract(epoch from "updatedAt")*1000 from ai_settings where enabled',
+      ),
+    );
+    const activationMs = activatedAt - fundedAt;
+    const fundedMs = Math.max(...visibleAt) - fundedAt;
     assert(
-      fundedMs <= 16000,
-      "funded to visible AI on took " + fundedMs + "ms",
+      activationMs >= 0 && activationMs <= 15000,
+      "funding to committed activation took " + activationMs + "ms",
+    );
+    assert(
+      fundedMs - activationMs <= 1000,
+      "status delivery to both mounted tabs took " +
+        (fundedMs - activationMs) +
+        "ms",
     );
     await page.unroute("**/*changeAiKey*");
     await peer.close();
@@ -838,6 +863,7 @@ export async function onboardingBrowser(f: Fixture) {
     return {
       closedCreditMs,
       creditAdmissions: observed.length,
+      activationMs: Math.round(activationMs),
       fundedMs: Math.round(fundedMs),
       utcDays: [oldDay, newDay],
     };
