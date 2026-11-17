@@ -31,9 +31,28 @@ jobs:
           printf 'P01_BUILD_DECOY=must-never-ship\n' > .env.production
           docker build --build-arg SOURCE_COMMIT="$SOURCE_COMMIT" --tag feedbackland:ci .
           rm .env .env.production
-      - name: Install all engines for the cumulative browser gates
-        run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run verify -- --phase 6 --image feedbackland:ci --artifacts artifacts/self-hosting
+      - name: Build pinned Linux verification runner
+        timeout-minutes: 8
+        run: docker build -f ci/phase-six-runner.Dockerfile --tag feedbackland:phase-six-runner .
+      - name: Run the cumulative gate on Chromium, Firefox, and WebKit
+        run: |
+          set -euo pipefail
+          phase_six_tmp="$(mktemp -d "$RUNNER_TEMP/phase-six.XXXXXXXX")"
+          # The harness publishes its disposable relays on the Linux runner's
+          # loopback and passes absolute bind paths to the runner's Docker engine.
+          docker run --rm --init --network host --ipc host \
+            --user "$(id -u):$(id -g)" --group-add "$(stat -c '%g' /var/run/docker.sock)" \
+            --mount "type=bind,src=$GITHUB_WORKSPACE,dst=$GITHUB_WORKSPACE" \
+            --mount "type=bind,src=$phase_six_tmp,dst=$phase_six_tmp" \
+            --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+            --workdir "$GITHUB_WORKSPACE" --env "TMPDIR=$phase_six_tmp" \
+            --env "NPM_CONFIG_CACHE=$phase_six_tmp/npm" \
+            --env SOURCE_COMMIT --env CI --env GITHUB_ACTIONS \
+            --env NEXT_TELEMETRY_DISABLED \
+            feedbackland:phase-six-runner bash -euc '
+              node -e "if (require(\"playwright/package.json\").version !== \"1.64.1\") process.exit(1)"
+              npm run verify -- --phase 6 --image feedbackland:ci --artifacts artifacts/self-hosting
+            '
       - name: Inspect evidence for fixture-only output
         id: evidence
         if: always()
