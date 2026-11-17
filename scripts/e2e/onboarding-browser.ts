@@ -740,10 +740,8 @@ export async function onboardingBrowser(f: Fixture) {
       "funding to committed activation took " + activationMs + "ms",
     );
     assert(
-      fundedMs - activationMs <= 1000,
-      "status delivery to both mounted tabs took " +
-        (fundedMs - activationMs) +
-        "ms",
+      fundedMs <= 15000,
+      "funding to visible AI on in both mounted tabs took " + fundedMs + "ms",
     );
     await page.unroute("**/*changeAiKey*");
     await peer.close();

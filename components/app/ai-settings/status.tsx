@@ -47,10 +47,10 @@ function useController(initialStatus?: AiStatus) {
         ) {
           // Other tabs and the leased worker share one provider check. Re-read the board
           // while it is settling and just after its next admission becomes possible.
-          if (state.creditCheckInFlight) return 500;
+          if (state.creditCheckInFlight) return 100;
           const until =
             state.nextCreditCheckAt.getTime() - state.budget.now.getTime();
-          return until <= 0 ? 1000 : Math.min(5000, until + 150);
+          return until <= 0 ? 100 : Math.min(5000, until + 150);
         }
         return 5000;
       },
