@@ -1,4 +1,6 @@
 import "server-only";
+import { embeddingRequestLimit } from "../ai-request-limits";
+export { embeddingRequestLimit };
 import { z } from "zod";
 import { getConfig } from "../config";
 import { deadline, checkDeadline, type Deadline } from "./deadline";
@@ -17,7 +19,6 @@ import type { Actor } from "../auth/authorization";
 import {
   OPENROUTER_API,
   VISION_WORK_BYTES,
-  MODEL_RESPONSE_BYTES,
   type Capability,
   type Feature,
 } from "./constants";
@@ -460,13 +461,6 @@ function checkFinish(raw: string | undefined, reason: string) {
     throw new AiError("provider-refusal");
   if (raw === "error" || reason === "error")
     throw new AiError("provider-error");
-}
-// Leave room for envelope and usage fields in each bounded provider response.
-export function embeddingRequestLimit(dimensions: number) {
-  return Math.max(
-    1,
-    Math.floor((MODEL_RESPONSE_BYTES - 16384) / (dimensions * 25 + 128)),
-  );
 }
 export async function callEmbeddings(
   feature: "embed-write" | "embed-query" | "backfill" | "probe" | "check",

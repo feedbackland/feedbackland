@@ -1,12 +1,16 @@
 import "server-only";
 import { connectionText, connectionChat } from "../ai-request-limits";
 import { z } from "zod";
+import type { OwnedLease } from "../jobs/leases";
 import type { Actor } from "../auth/authorization";
 import { AiError, EmbeddingWidthError, safeError } from "./errors";
 import {
   configuration,
   beginCheck,
-  finishAdminCheck,
+  finishConnectionCheck,
+  stageKeyCheck,
+  type CheckTicket,
+  type Configuration,
   saveConfiguration,
   type Check,
   type CheckIssue,
@@ -39,6 +43,7 @@ export function diagnosticIssue(
     case "STALE_CONFIGURATION":
     case "forbidden":
     case "RESERVATION_EXPIRED":
+    case "AI_NOT_CONFIGURED":
     case "aborted":
       throw e;
     case "provider-auth":
@@ -88,13 +93,42 @@ export async function checkConnection(
     { actor, intent: intent === "enable" ? "configure" : intent },
     deadline(config.options.timeoutMs, signal),
   );
+  return runConnectionCheck(config, ticket, intent === "enable", signal);
+}
+export async function runConnectionCheck(
+  config: Configuration,
+  ticket: CheckTicket,
+  enable: boolean,
+  signal?: AbortSignal,
+  worker?: OwnedLease,
+  capabilities?: { chat: boolean; search: boolean },
+) {
   const result: Check = {
     key: "unknown",
     chat: "untested",
     search: "untested",
+    expiresAt: config.check?.expiresAt,
   };
+  if (capabilities && config.check) {
+    if (!capabilities.chat) {
+      result.chat = config.check.chat;
+      result.chatIssue = config.check.chatIssue;
+    }
+    if (!capabilities.search) {
+      result.search = config.check.search;
+      result.searchIssue = config.check.searchIssue;
+      result.actualDimensions = config.check.actualDimensions;
+      result.verifiedDimensions = config.check.verifiedDimensions;
+    }
+  }
   try {
-    const key = await readProviderMetadata("key", actor, signal, ticket);
+    const key = await readProviderMetadata(
+      "key",
+      ticket.action?.actor,
+      signal,
+      ticket,
+      worker?.lease,
+    );
     if (Array.isArray(key)) throw new AiError("invalid-response");
     result.key = key.management
       ? "management"
@@ -103,6 +137,7 @@ export async function checkConnection(
         : "valid";
     result.expiresAt = key.expiresAt;
     result.spendLimit = key.limit;
+    result.limitReset = key.limitReset;
     result.remaining = key.remaining;
     if (key.management) result.chatIssue = "management-key";
     else if (key.expired) result.chatIssue = "expired-key";
@@ -112,10 +147,11 @@ export async function checkConnection(
     result.chatIssue = diagnosticIssue(error, signal);
     if (result.chatIssue === "invalid-key") result.key = "invalid";
   }
-  if (!result.chatIssue) {
+  if (!result.chatIssue && (capabilities?.chat ?? true)) {
     try {
       await callChat("check", connectionChat, {
         check: ticket,
+        lease: worker?.lease,
         signal,
         validateText: (text) => {
           try {
@@ -134,11 +170,13 @@ export async function checkConnection(
       result.chatIssue = diagnosticIssue(error, signal);
     }
   }
+  if (result.chatIssue === "invalid-key") result.key = "invalid";
   if (result.chatIssue)
     result.chat = ["budget", "busy"].includes(result.chatIssue)
       ? "untested"
       : "failed";
   if (
+    (capabilities?.search ?? true) &&
     result.key === "valid" &&
     ![
       "account-credit",
@@ -152,6 +190,7 @@ export async function checkConnection(
     try {
       await callEmbeddings("check", [connectionText], {
         check: ticket,
+        lease: worker?.lease,
         signal,
         content: { config, wall: deadline(config.options.timeoutMs, signal) },
       });
@@ -166,8 +205,8 @@ export async function checkConnection(
         result.actualDimensions = error.actual;
     }
   }
-  let saved = await finishAdminCheck(ticket, result, intent === "enable");
-  if (result.search === "passed") {
+  let saved = await finishConnectionCheck(ticket, result, enable, worker);
+  if ((capabilities?.search ?? true) && result.search === "passed") {
     const index = await indexSnapshot(true, signal);
     if (
       !index.reason &&
@@ -186,7 +225,8 @@ export async function checkConnection(
         reason: "verified",
         attempt: 0,
         next: 0,
-        checked: index.config.check.at,
+        checked:
+          index.config.check.at + "/" + (index.config.check.sequence ?? ""),
       };
     }
   }
@@ -198,11 +238,14 @@ export async function installKey(
   key: string,
   signal?: AbortSignal,
 ) {
-  const next = await saveConfiguration(actor, identity, {
-    apiKey: key,
-    stageKey: true,
-  });
-  return checkConnection(actor, next, "enable", signal);
+  const current = await configuration(signal, true);
+  const { config, ticket } = await stageKeyCheck(
+    actor,
+    identity,
+    key,
+    deadline(current.options.timeoutMs, signal),
+  );
+  return runConnectionCheck(config, ticket, true, signal);
 }
 
 export async function updateAiOptions(

@@ -56,10 +56,13 @@ export function SearchIndex() {
             {data.model} · {data.dimensions ?? "unknown"} dimensions
             {data.observed !== null && ` · provider returned ${data.observed}`}.
           </p>
-          <p>
-            {data.total - data.pending - data.skipped} indexed · {data.pending}{" "}
-            pending · {data.skipped} skipped
-          </p>
+          {data.state !== "rebuild-required" &&
+            data.state !== "column-mismatch" && (
+              <p>
+                {data.total - data.pending - data.skipped} indexed ·{" "}
+                {data.pending} pending · {data.skipped} skipped
+              </p>
+            )}
           <label className="block" htmlFor="index-width">
             Rebuild at dimensions
           </label>

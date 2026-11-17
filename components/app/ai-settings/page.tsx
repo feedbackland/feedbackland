@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { TRPCClientError } from "@trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC, useTRPCClient } from "@/providers/trpc-client";
 import { useSettings } from "@/providers/settings";
@@ -11,7 +12,7 @@ import {
   issueText,
   keyProblem,
 } from "@/lib/ai-onboarding-copy";
-import { AiNextAction, statusLabel, useAiAdmin } from "./status";
+import { AiNextAction, ConnectAction, statusLabel, useAiAdmin } from "./status";
 import { Advanced } from "./advanced";
 
 function SecretField({
@@ -81,7 +82,8 @@ export function AiSettingsPage() {
       unavailable,
       busy,
       change,
-      connect,
+      refresh,
+      refreshStatus,
       perform,
       alternate,
     } = useAiAdmin(),
@@ -97,6 +99,8 @@ export function AiSettingsPage() {
       limit: number | null;
       remaining: number | null;
       expiresAt: string | null;
+      observedAt: string;
+      limitReset: string | null;
     } | null>(null);
   const [keyInfoFailed, setKeyInfoFailed] = useState(false);
   const token = s?.identity.token,
@@ -109,47 +113,113 @@ export function AiSettingsPage() {
     s.budget.now.getTime() - Date.parse(s.check.at) < 15 * 60_000;
   useEffect(() => {
     if (!token || !revision || !active || checkedDetails) return;
-    let ignore = false;
-    void api.getAiKeyInfo
-      .mutate({ token, revision })
-      .then((data) => {
-        if (!ignore && data) {
+    let stopped = false,
+      running = false,
+      next = 0,
+      timer: ReturnType<typeof setTimeout>;
+    const read = async () => {
+      clearTimeout(timer);
+      if (stopped || running || document.hidden || !navigator.onLine) return;
+      const delay = next - performance.now();
+      if (delay > 0) {
+        timer = setTimeout(() => void read(), delay);
+        return;
+      }
+      running = true;
+      next = performance.now() + 15 * 60_000;
+      try {
+        const data = await api.getAiKeyInfo.mutate({ token, revision });
+        if (!stopped && data) {
           setKeyInfo({ token, ...data });
           setKeyInfoFailed(false);
         }
-      })
-      .catch(() => {
-        if (!ignore) setKeyInfoFailed(true);
-      });
+      } catch {
+        if (!stopped) {
+          setKeyInfo(null);
+          setKeyInfoFailed(true);
+        }
+        next = performance.now() + 60_000;
+      } finally {
+        running = false;
+        if (!stopped)
+          timer = setTimeout(
+            () => void read(),
+            Math.max(1, next - performance.now()),
+          );
+      }
+    };
+    void read();
+    document.addEventListener("visibilitychange", read);
+    window.addEventListener("online", read);
     return () => {
-      ignore = true;
+      stopped = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", read);
+      window.removeEventListener("online", read);
     };
   }, [api, token, revision, active, checkedDetails]);
-  const credit = s?.state === "credit";
+  const credit = s?.state === "credit",
+    next = s?.nextCreditCheckAt?.getTime();
+  const serverClock = useRef({ at: 0, received: 0 });
+  useEffect(() => {
+    if (s)
+      serverClock.current = {
+        at: s.budget.now.getTime(),
+        received: performance.now(),
+      };
+  }, [s]);
   useEffect(() => {
     if (!credit || !token || !revision) return;
-    let running = false;
+    let stopped = false,
+      running = false,
+      timer: ReturnType<typeof setTimeout>;
+    const schedule = (delay: number) => {
+      clearTimeout(timer);
+      if (!stopped) timer = setTimeout(() => void poll(), Math.max(1, delay));
+    };
     const poll = async () => {
-      if (document.hidden || !navigator.onLine || running) return;
+      if (stopped || document.hidden || !navigator.onLine || running) return;
       running = true;
+      const started = performance.now();
+      let delay = 15000;
       try {
-        await api.changeAiKey.mutate({
+        const result = await api.changeAiKey.mutate({
           action: "credit",
           identity: { token, revision },
         });
-        window.dispatchEvent(new Event("feedbackland-settings"));
-      } catch {
+        if (result.token !== token) await refresh();
+        else if (!stopped) await refreshStatus();
+        delay = Math.max(1, 15000 - (performance.now() - started));
+      } catch (error) {
+        if (!stopped) void refreshStatus();
+        if (
+          error instanceof TRPCClientError &&
+          typeof error.data?.retryAfterSeconds === "number"
+        )
+          delay = error.data.retryAfterSeconds * 1000;
       } finally {
         running = false;
+        schedule(delay);
       }
     };
-    const timer = setInterval(() => void poll(), 15000);
-    document.addEventListener("visibilitychange", poll);
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", poll);
+    const resume = () => {
+      if (!document.hidden && navigator.onLine)
+        schedule(
+          (next ?? 0) -
+            serverClock.current.at -
+            (performance.now() - serverClock.current.received),
+        );
     };
-  }, [api, credit, token, revision]);
+    resume();
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("online", resume);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("online", resume);
+    };
+  }, [api, credit, next, refresh, refreshStatus, revision, token]);
   if (!s)
     return (
       <p role="status">
@@ -158,11 +228,7 @@ export function AiSettingsPage() {
           : "Loading AI settings…"}
       </p>
     );
-  const origin = new URL(board.appUrl),
-    publicHttps =
-      origin.protocol === "https:" &&
-      origin.hostname !== "localhost" &&
-      board.allowIndexing;
+  const origin = new URL(board.appUrl);
   const paste = async (key: string) => {
     const error = keyProblem(key);
     setProblem(error ?? "");
@@ -188,6 +254,10 @@ export function AiSettingsPage() {
     checkedDetails && s.check
       ? {
           limit: s.check.spendLimit,
+          limitReset:
+            s.check.limitReset ??
+            (s.check.limitReset === null ? null : "unknown"),
+          observedAt: s.check.at,
           remaining: s.check.remaining,
           expiresAt: s.check.expiresAt,
         }
@@ -230,7 +300,7 @@ export function AiSettingsPage() {
           </p>
         )}
         {s.state === "on" && s.options.embeddingModel !== "none" && (
-          <IndexProgress />
+          <IndexProgress token={s.identity.token} />
         )}
         {s.state === "credit" && (
           <p>
@@ -240,6 +310,14 @@ export function AiSettingsPage() {
             {s.creditWaitUntil &&
               new Date(s.creditWaitUntil).toLocaleDateString()}
             .
+          </p>
+        )}
+        {s.rebuildRequired && s.reason !== "rebuild-required" && (
+          <p>
+            {issueText("rebuild-required")}{" "}
+            <Link className="underline" href="/admin/system#search-index">
+              Review search index
+            </Link>
           </p>
         )}
         {s.state === "expired" && (
@@ -277,25 +355,13 @@ export function AiSettingsPage() {
             </p>
           )
         )}
-        {publicHttps && s.keySource !== "environment" && (
-          <p>
-            OpenRouter will show this board’s address as the app that created
-            the key when you use a redirect.{" "}
-            <button
-              disabled={busy}
-              className="underline"
-              onClick={() => connect(true)}
-            >
-              Connect without listing
-            </button>
-          </p>
-        )}
         <div className="flex flex-wrap gap-2">
           <AiNextAction allowKeptOff />
           {s.canEnable &&
             (s.state === "on" ||
               s.state === "paused" ||
-              s.state === "credit") && (
+              s.state === "credit" ||
+              (active && s.reason === "account-credit")) && (
               <Button
                 variant="outline"
                 disabled={busy}
@@ -304,11 +370,14 @@ export function AiSettingsPage() {
                 Test again
               </Button>
             )}
-          {s.keySource === "stored" && !s.unreadable && (
-            <Button variant="outline" disabled={busy} onClick={() => connect()}>
-              Reconnect OpenRouter
-            </Button>
-          )}
+          {s.keySource === "stored" &&
+            !s.unreadable &&
+            ![
+              "invalid-key",
+              "expired-key",
+              "management-key",
+              "provider-auth",
+            ].includes(s.reason ?? "") && <ConnectAction reconnect />}
           {s.undo && (
             <Button
               variant="outline"
@@ -356,7 +425,11 @@ export function AiSettingsPage() {
         {s.check && (
           <p>
             Last check at {new Date(s.check.at).toLocaleString()}. Key{" "}
-            {s.check.key}. Chat {s.check.chat}
+            {s.reason === "expired-key" ? "expired" : s.check.key}. Chat{" "}
+            {s.check.chatRecoveredAt
+              ? "recovered on " +
+                new Date(s.check.chatRecoveredAt).toLocaleString()
+              : s.check.chat}
             {s.check.chatIssue ? " — " + issueText(s.check.chatIssue) : ""}.
             Search {s.check.search}
             {s.check.searchIssue ? " — " + issueText(s.check.searchIssue) : ""}.
@@ -368,17 +441,32 @@ export function AiSettingsPage() {
                 "."}
           </p>
         )}
+        {active &&
+          s.check?.expiresAt &&
+          Date.parse(s.check.expiresAt) > s.budget.now.getTime() &&
+          Date.parse(s.check.expiresAt) - s.budget.now.getTime() <=
+            7 * 86400_000 && (
+            <p role="status" className="text-amber-700">
+              This key expires within seven days.
+            </p>
+          )}
         {details && (
           <p>
             {details.limit == null
               ? "No provider spend limit is reported."
               : "Provider spend limit $" +
                 details.limit +
+                (details.limitReset === null
+                  ? " (non-resetting)"
+                  : details.limitReset === "unknown"
+                    ? " (reset period unknown)"
+                    : " (" + details.limitReset + ")") +
                 "; remaining " +
                 (details.remaining == null
                   ? "unknown"
                   : "$" + details.remaining) +
                 "."}{" "}
+            As of {new Date(details.observedAt).toLocaleString()}.{" "}
             {details.expiresAt &&
               "Key expires " +
                 new Date(details.expiresAt).toLocaleDateString() +
@@ -446,12 +534,17 @@ export function AiSettingsPage() {
   );
 }
 
-function IndexProgress() {
+function IndexProgress({ token }: { token: string }) {
   const trpc = useTRPC(),
     query = useQuery(
       trpc.getSearchIndex.queryOptions(undefined, { refetchInterval: 5000 }),
     );
-  if (!query.data) return null;
+  if (
+    !query.data ||
+    query.data.token !== token ||
+    query.data.state === "rebuild-required"
+  )
+    return null;
   const { total, pending, skipped } = query.data,
     done = total - pending - skipped;
   return (

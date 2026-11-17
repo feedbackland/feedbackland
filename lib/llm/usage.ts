@@ -62,6 +62,8 @@ export async function admitMetadata(
     wall,
     async (trx) => {
       if (lease) await requireLease(trx, lease);
+      if (kind !== "key" && config.enabled === false)
+        throw new AiError("AI_NOT_CONFIGURED");
       const admin = check?.action?.actor ?? actor;
       const user = admin
         ? await authorizeCheckActor(trx, admin, !check)

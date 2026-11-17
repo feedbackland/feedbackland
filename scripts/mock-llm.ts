@@ -81,6 +81,10 @@ const success: Handler = ({ url, body, response }) => {
         "stop",
         JSON.stringify({ isInappropriate: false, confidenceScore: 0.99 }),
       );
+    else if (
+      JSON.stringify(body.messages).includes("For this connection check")
+    )
+      chat(response, 0.001, "stop", '{"ok":true}');
     else chat(response);
     return;
   }

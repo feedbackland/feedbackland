@@ -13,7 +13,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@/trpc";
 import { useTRPC, useTRPCClient } from "@/providers/trpc-client";
 import { useSettings } from "@/providers/settings";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { aiSettingsPath, issueText } from "@/lib/ai-onboarding-copy";
 import { cn } from "@/lib/utils";
@@ -27,15 +27,33 @@ function useController(initialStatus?: AiStatus) {
     trpc = useTRPC(),
     cache = useQueryClient(),
     router = useRouter(),
-    publicSettings = useSettings();
+    publicSettings = useSettings(),
+    viewingSettings = usePathname() === aiSettingsPath;
   const query = useQuery(
     trpc.getAiStatus.queryOptions(undefined, {
       initialData: initialStatus,
       staleTime: 0,
-      refetchInterval: (q) =>
-        q.state.error
-          ? Math.min(30000, 5000 * 2 ** Math.min(3, q.state.errorUpdateCount))
-          : 5000,
+      refetchInterval: (q) => {
+        if (q.state.error)
+          return Math.min(
+            30000,
+            5000 * 2 ** Math.min(3, q.state.errorUpdateCount),
+          );
+        const state = q.state.data;
+        if (
+          viewingSettings &&
+          state?.state === "credit" &&
+          state.nextCreditCheckAt
+        ) {
+          // Other tabs and the leased worker share one provider check. Re-read the board
+          // while it is settling and just after its next admission becomes possible.
+          if (state.creditCheckInFlight) return 500;
+          const until =
+            state.nextCreditCheckAt.getTime() - state.budget.now.getTime();
+          return until <= 0 ? 1000 : Math.min(5000, until + 150);
+        }
+        return 5000;
+      },
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: "always",
       retry: false,
@@ -153,6 +171,10 @@ function useController(initialStatus?: AiStatus) {
     message,
     perform,
     refresh,
+    refreshStatus: useCallback(
+      () => cache.invalidateQueries({ queryKey: trpc.getAiStatus.queryKey() }),
+      [cache, trpc],
+    ),
     change,
     connect,
     alternate,
@@ -187,12 +209,46 @@ export function statusLabel(s: AiStatus) {
     }[s.state] ?? "AI status unavailable"
   );
 }
+export function ConnectAction({ reconnect = false }: { reconnect?: boolean }) {
+  const { busy, connect } = useAiAdmin(),
+    board = useSettings(),
+    origin = new URL(board.appUrl);
+  const listed =
+    origin.protocol === "https:" &&
+    origin.hostname !== "localhost" &&
+    board.allowIndexing;
+  return (
+    <div className="space-y-1">
+      {listed && (
+        <p>
+          OpenRouter will show this board’s address as the app that created the
+          key when you use a redirect.
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" disabled={busy} onClick={() => connect()}>
+          {reconnect ? "Reconnect OpenRouter" : "Connect OpenRouter"}
+        </Button>
+        {listed && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => connect(true)}
+          >
+            Connect without listing
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 export function AiNextAction({
   allowKeptOff = false,
 }: {
   allowKeptOff?: boolean;
 }) {
-  const { status: s, busy, connect, change } = useAiAdmin();
+  const { status: s, busy, change } = useAiAdmin();
   if (!s || (!allowKeptOff && s.keptOffAt)) return null;
   if (s.state === "expired")
     return (
@@ -204,7 +260,7 @@ export function AiNextAction({
         Test again
       </Button>
     );
-  if (s.reason === "dimension-mismatch")
+  if (s.reason === "dimension-mismatch" || s.reason === "rebuild-required")
     return (
       <Button size="sm" asChild>
         <Link href="/admin/system#search-index">Review search index</Link>
@@ -275,13 +331,10 @@ export function AiNextAction({
           : "Turn on AI"}
       </Button>
     );
-  return (
-    <Button size="sm" disabled={busy} onClick={() => connect()}>
-      {reconnect ? "Reconnect OpenRouter" : "Connect OpenRouter"}
-    </Button>
-  );
+  return <ConnectAction reconnect={reconnect} />;
 }
 export function AiPill() {
+  const pathname = usePathname();
   const { status, unavailable, error, message, removedKeyUrl } = useAiAdmin();
   return (
     <div className="my-3 flex flex-wrap items-center gap-3 text-sm">
@@ -300,7 +353,10 @@ export function AiPill() {
             ? statusLabel(status)
             : "Checking AI status…"}
       </Link>
-      {status && status.state !== "on" && !unavailable && <AiNextAction />}
+      {pathname !== aiSettingsPath &&
+        status &&
+        status.state !== "on" &&
+        !unavailable && <AiNextAction />}
       {error && <span role="alert">{error}</span>}
       {message && (
         <span role="status">

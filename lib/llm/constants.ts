@@ -2,7 +2,8 @@ import "server-only";
 
 export const OPENROUTER_API = "https://openrouter.ai/api/v1";
 export const OPENROUTER_AUTH = "https://openrouter.ai/auth";
-export const MODEL_RESPONSE_BYTES = 1024 * 1024;
+import { modelResponseBytes } from "../ai-request-limits";
+export const MODEL_RESPONSE_BYTES = modelResponseBytes;
 export const METADATA_RESPONSE_BYTES = 4 * MODEL_RESPONSE_BYTES;
 export const VISION_WORK_BYTES = 32 * 1024 * 1024;
 export const FEATURES = [

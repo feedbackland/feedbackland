@@ -21,7 +21,7 @@ export function recordRequest(headers: Headers) {
 export function systemStatus(headers: Headers) {
   const config = getConfig(),
     { appUrl, inferred } = getAppUrl(headers),
-    host = new URL(appUrl).host.toLowerCase();
+    origin = new URL(appUrl);
   const samples = runtimeState().requestSamples ?? [];
   return {
     version: identity.version,
@@ -31,6 +31,13 @@ export function systemStatus(headers: Headers) {
     clientIpHeader: config.clientIpHeader,
     requests: samples.length,
     missingClientIp: samples.filter((r) => !r.hasClientIp).length,
-    mismatchedHost: samples.filter((r) => r.host !== host).length,
+    mismatchedHost: samples.filter(({ host }) => {
+      if (!host) return true;
+      try {
+        return new URL(origin.protocol + "//" + host).host !== origin.host;
+      } catch {
+        return true;
+      }
+    }).length,
   };
 }

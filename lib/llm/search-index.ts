@@ -1,6 +1,6 @@
 import "server-only";
 import { sql, type Transaction } from "kysely";
-import { z } from "zod/v4";
+import { indexConfiguration } from "./index-configuration";
 import { db } from "../../db/db";
 import { discoverVector, physicalVector } from "../../db/vector";
 import { contentTransaction } from "../../db/content-transaction";
@@ -21,11 +21,6 @@ import {
 import { supportsEmbeddingModel } from "./model-profiles";
 import { AiError } from "./errors";
 
-const fingerprintSchema = z.object({
-  model: z.string(),
-  dimensions: z.number().int().min(1).max(4000),
-  generation: z.string().regex(/^[1-9][0-9]*$/),
-});
 export type IndexRow = {
   kind: "post" | "comment";
   id: string;
@@ -38,7 +33,13 @@ function describe({
   storedFingerprint,
   physical,
 }: Awaited<ReturnType<typeof lockedIndexSettings>>) {
-  const fingerprint = fingerprintSchema.safeParse(storedFingerprint).data;
+  const { fingerprint, rebuildRequired } = indexConfiguration(
+    storedFingerprint,
+    config.options.embeddingModel,
+    config.dimensions,
+    config.widthMismatch,
+    physical?.indexesValid,
+  );
   let reason: string | null = null;
   if (config.diverged) reason = "CONFIGURATION_DIVERGED";
   else if (
@@ -52,14 +53,7 @@ function describe({
   else if (physical.indexesValid === false) reason = "rebuild-required";
   else if (!supportsEmbeddingModel(config.options.embeddingModel))
     reason = "UNSUPPORTED_EMBEDDING_TOKENIZER";
-  else if (
-    config.widthMismatch ||
-    (storedFingerprint &&
-      (!fingerprint ||
-        fingerprint.model !== config.options.embeddingModel ||
-        fingerprint.dimensions !== physical.dimensions))
-  )
-    reason = "rebuild-required";
+  else if (rebuildRequired) reason = "rebuild-required";
   return { config, epoch, fingerprint, physical, reason };
 }
 export type IndexSnapshot = ReturnType<typeof describe>;

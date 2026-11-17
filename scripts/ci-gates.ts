@@ -136,6 +136,7 @@ export async function staticFoundations() {
     "app/(first-party)/admin/system/instance.tsx",
     "scripts/e2e/onboarding-browser.ts",
     "scripts/e2e/onboarding-contracts.ts",
+    "scripts/e2e/onboarding-regressions.ts",
     "scripts/e2e/v18-onboarding.ts",
     "scripts/e2e/onboarding-provider.ts",
     "db/content-transaction.ts",

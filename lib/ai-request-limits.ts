@@ -1,3 +1,14 @@
+export const maxVisionImages = 4;
+export const backfillRows = 64;
+export const backfillTokens = 32000;
+export const backfillControl = "Feedbackland index check";
+export const modelResponseBytes = 1024 * 1024;
+export function embeddingRequestLimit(dimensions: number) {
+  return Math.max(
+    1,
+    Math.floor((modelResponseBytes - 16384) / (dimensions * 25 + 128)),
+  );
+}
 export const outputTokens = {
   moderation: 1024,
   title: 1024,

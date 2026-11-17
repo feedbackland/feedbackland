@@ -144,6 +144,15 @@ export async function verifyOnboarding(
     );
     if (contractsOnly) return { contracts: "passed" };
     await create("board_browser");
+    // This database exists only for this browser run. A live, adjustable wall clock lets the
+    // same mounted documents and their actual SQL admissions cross UTC midnight together.
+    await sql(`create schema onboarding_clock;
+      create table onboarding_clock.settings(delta interval not null);
+      insert into onboarding_clock.settings values(interval '0 seconds');
+      create function onboarding_clock.clock_timestamp() returns timestamptz volatile language sql as
+        'select pg_catalog.clock_timestamp()+delta from onboarding_clock.settings';
+      alter database board_browser set search_path to public,onboarding_clock,pg_catalog`);
+
     await docker(
       "run",
       "-d",
@@ -229,20 +238,39 @@ export async function verifyOnboarding(
         (s) => s === "200",
       );
     }
+    await sql(`create table onboarding_clock.poll(at timestamptz not null, key text not null);
+      create function onboarding_clock.record_poll() returns trigger language plpgsql as $body$
+        begin insert into onboarding_clock.poll values(new."windowStart",new.key);return null;end $body$;
+      create trigger record_poll after insert or update on rate_limit for each row when (new.key like 'ai:credit-poll:%') execute function onboarding_clock.record_poll()`);
+    const fixtureControl = async (path: string) => {
+      const raw = await docker(
+        "exec",
+        provider,
+        "node",
+        "-e",
+        "fetch('http://127.0.0.1:8089'+process.argv[1],{method:'POST'}).then(r=>r.text()).then(console.log)",
+        path,
+      );
+      return JSON.parse(raw) as {
+        mode: string;
+        samples: { at: number; kind: string; images: number }[];
+      };
+    };
     const { onboardingBrowser } = await import("./onboarding-browser");
     const certPem = await docker("exec", pg, "cat", "/certs/provider.crt");
     const certificatePin = createHash("sha256")
       .update(createPublicKey(certPem).export({ type: "spki", format: "der" }))
       .digest("base64");
-    await onboardingBrowser({
+    const observations = await onboardingBrowser({
       certificatePin,
       secure,
       lan,
       auth,
       setup,
       sql,
-      setCredit: async (available: boolean) => {
-        await docker("kill", "--signal", available ? "USR2" : "USR1", provider);
+      control: fixtureControl,
+      setCredit: async (available) => {
+        await fixtureControl("/mode?value=" + (available ? "paid" : "credit"));
       },
     });
     const logs = await Promise.all(
@@ -259,6 +287,7 @@ export async function verifyOnboarding(
     return {
       contracts: "passed",
       replicas: 2,
+      observations,
       origins: [
         "HTTPS localhost",
         "configured HTTPS public board",

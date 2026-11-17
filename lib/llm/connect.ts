@@ -12,7 +12,7 @@ import { OPENROUTER_AUTH } from "./constants";
 import { exchangeConnectCode } from "./fetch";
 import { installKey } from "./onboarding";
 
-const cookie = "feedbackland.openrouter";
+const cookieName = (nonce: string) => "feedbackland.openrouter." + nonce;
 const flowSchema = z
   .object({
     mode: z.enum(["redirect", "headless"]),
@@ -37,11 +37,16 @@ function channelOrigin(channel: Channel) {
     throw new DomainError("FORBIDDEN", "Open Connect in this board’s own tab.");
   return origin;
 }
-function setCookie(channel: Channel, value: string, seconds: number) {
+function setCookie(
+  channel: Channel,
+  nonce: string,
+  value: string,
+  seconds: number,
+) {
   const secure = channelOrigin(channel).startsWith("https:") ? " Secure;" : "";
   channel.responseHeaders.append(
     "set-cookie",
-    cookie +
+    cookieName(nonce) +
       "=" +
       value +
       "; Path=/; HttpOnly; SameSite=Lax;" +
@@ -79,6 +84,7 @@ export async function startConnect(
   };
   setCookie(
     channel,
+    nonce,
     sealSecret(
       JSON.stringify(flow),
       getConfig().authSecret,
@@ -130,6 +136,7 @@ export async function finishConnect(
   channel: Channel,
 ) {
   const origin = channelOrigin(channel);
+  const cookie = cookieName(input.nonce);
   const raw = channel.headers
     .get("cookie")
     ?.split(";")
@@ -161,7 +168,7 @@ export async function finishConnect(
       "BAD_REQUEST",
       "That connection timed out. Start Connect OpenRouter again.",
     );
-  setCookie(channel, "", 0);
+  setCookie(channel, input.nonce, "", 0);
   if (
     !(await connectAdmission(
       actor,

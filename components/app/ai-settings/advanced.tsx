@@ -4,6 +4,7 @@ import { useTRPCClient } from "@/providers/trpc-client";
 import { Button } from "@/components/ui/button";
 import type { Options } from "@/lib/llm/defaults";
 import { envNames } from "@/lib/ai-onboarding-copy";
+import { maxVisionImages } from "@/lib/ai-request-limits";
 import { largeRequestScenarios } from "@/lib/ai-cost-scenarios";
 import { SearchIndex } from "@/app/(first-party)/admin/system/search-index";
 import { useAiAdmin, type AiStatus } from "./status";
@@ -12,6 +13,7 @@ import { useTRPC } from "@/providers/trpc-client";
 type Catalogue = {
   id: string;
   inputPrice: string | null;
+  requestPrice: string | null;
   outputPrice: string | null;
   vision: boolean | null;
 };
@@ -32,6 +34,7 @@ export function Advanced({ status: s }: { status: AiStatus }) {
     embeddingModels: Catalogue[];
     at: string | null;
   }>({ chatModels: [], embeddingModels: [], at: null });
+  const [open, setOpen] = useState(false);
   const [loadedToken, setLoadedToken] = useState<string | null>(null);
   const [pickerError, setPickerError] = useState("");
   const currentToken = useRef(s.identity.token);
@@ -109,13 +112,14 @@ export function Advanced({ status: s }: { status: AiStatus }) {
         }}
         className="space-y-3 rounded-lg border p-4"
         onToggle={(e) => {
+          setOpen(e.currentTarget.open);
           if (e.currentTarget.open) void load();
         }}
       >
         <summary className="cursor-pointer font-semibold">
           Advanced settings and privacy
         </summary>
-        <div className="grid max-w-xl gap-3">
+        <fieldset disabled={busy} className="grid max-w-xl gap-3">
           {(["model", "embeddingModel"] as const).map((k) => (
             <label className="grid gap-1" key={k}>
               {k === "model" ? "Chat model" : "Embedding model"}
@@ -223,16 +227,17 @@ export function Advanced({ status: s }: { status: AiStatus }) {
           >
             Save AI settings
           </Button>
-        </div>
-        <SearchIndex />
+        </fieldset>
+        {open && <SearchIndex />}
         <details>
           <summary>What is sent to OpenRouter</summary>
           <p>
             Screening and titles send new post or comment text. Screening may
-            include up to two eligible images. Embeddings send bounded text for
-            indexing and search. Ask AI sends the question, recent conversation
-            and selected post text. Insights sends bounded batches of open
-            posts. Connection checks use fixed samples.
+            include up to {maxVisionImages} eligible images. Choosing Improve my
+            draft sends the unpublished draft text to the chat model. Embeddings
+            send bounded text for indexing and search. Ask AI sends the
+            question, recent conversation and selected post text. Insights sends
+            bounded batches of open posts. Connection checks use fixed samples.
           </p>
         </details>
         <details>
@@ -248,10 +253,12 @@ export function Advanced({ status: s }: { status: AiStatus }) {
             consume a separate request.
           </p>
           <ul>
-            {largeRequestScenarios(s.options.model, s.options.embeddingModel, [
-              ...models.chatModels,
-              ...models.embeddingModels,
-            ]).map((row) => (
+            {largeRequestScenarios(
+              s.options.model,
+              s.options.embeddingModel,
+              [...models.chatModels, ...models.embeddingModels],
+              s.dimensions,
+            ).map((row) => (
               <li key={row.feature}>
                 {row.feature} · {row.model} · {row.shape} ·{" "}
                 {row.cost === null ? "Estimate unavailable" : money(row.cost)}

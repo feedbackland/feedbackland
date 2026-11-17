@@ -59,6 +59,7 @@ async function run<T>(action: () => Promise<T>): Promise<T> {
         throw new DomainError(
           "TOO_MANY_REQUESTS",
           "A check is already running or was recently requested. Try again shortly.",
+          e.retryAfterMs ? Math.ceil(e.retryAfterMs / 1000) : undefined,
         );
     }
     throw new DomainError(
@@ -95,7 +96,9 @@ export const getAiNoticeCounts = adminProcedure.query(({ ctx }) =>
     return noticeCounts(
       ctx,
       state.failures.find((f) => f.capability === "chat")?.failingSince ??
-        (state.check?.chat === "failed" ? new Date(state.check.at) : null),
+        (state.check?.chat === "failed"
+          ? new Date(state.check.incidentSince ?? state.check.at)
+          : null),
       ctx.signal,
     );
   }),

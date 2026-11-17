@@ -50,32 +50,37 @@ export default function AskAi() {
     setSession((current) => current + 1);
   }, []);
 
-  if (!status?.chatAvailable || unavailable)
-    return (
-      <section className="space-y-3">
-        <h2 className="h5">Ask AI</h2>
-        <p>
-          Ask questions about your{" "}
-          {typeof postCount === "number"
-            ? Math.min(300, postCount)
-            : "up to 300"}{" "}
-          most recent posts, with links to the feedback behind each answer.
-        </p>
-        {status?.state === "paused" && (
-          <p>
-            Paused until {new Date(status.budget.resetAt).toLocaleTimeString()}.
-          </p>
-        )}
-        {status?.state === "attention" && <p>{issueText(status.reason)}</p>}
-        {!unavailable && <AiNextAction />}
-      </section>
-    );
+  const available = !!status?.chatAvailable && !unavailable;
   return (
-    <AskAiSession
-      key={session}
-      postCount={postCount}
-      onNewChat={startNewChat}
-    />
+    <>
+      {!available && (
+        <section className="space-y-3">
+          <h2 className="h5">Ask AI</h2>
+          <p>
+            Ask questions about your{" "}
+            {typeof postCount === "number"
+              ? Math.min(300, postCount)
+              : "up to 300"}{" "}
+            most recent posts, with links to the feedback behind each answer.
+          </p>
+          {status?.state === "paused" && (
+            <p>
+              Paused until{" "}
+              {new Date(status.budget.resetAt).toLocaleTimeString()}.
+            </p>
+          )}
+          {status?.state === "attention" && <p>{issueText(status.reason)}</p>}
+          {!unavailable && <AiNextAction />}
+        </section>
+      )}
+      <div hidden={!available} inert={!available}>
+        <AskAiSession
+          key={session}
+          postCount={postCount}
+          onNewChat={startNewChat}
+        />
+      </div>
+    </>
   );
 }
 

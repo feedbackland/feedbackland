@@ -291,6 +291,7 @@ const keyMetadata = z.object({
   usage: amount,
   limit: amount.nullable(),
   limit_remaining: amount.nullable(),
+  limit_reset: z.string().nullable().optional(),
   is_free_tier: z.boolean(),
   is_management_key: z.boolean().optional(),
   is_provisioning_key: z.boolean().optional(),
@@ -301,10 +302,16 @@ function keyInfo(raw: unknown) {
   if (!result.success) throw new AiError("invalid-response");
   const data = result.data;
   const expiresAt = data.expires_at;
+  const limitReset = z
+    .enum(["daily", "weekly", "monthly"])
+    .nullable()
+    .safeParse(data.limit_reset);
   return {
     usage: data.usage,
     limit: data.limit,
     remaining: data.limit_remaining,
+    limitReset: limitReset.success ? limitReset.data : ("unknown" as const),
+    observedAt: new Date().toISOString(),
     freeTier: data.is_free_tier,
     expiresAt: expiresAt ?? null,
     expired:
@@ -321,6 +328,7 @@ export type KeyInfo = ReturnType<typeof keyInfo>;
 export type ModelInfo = {
   id: string;
   inputPrice: string | null;
+  requestPrice: string | null;
   outputPrice: string | null;
   vision: boolean | null;
 };
@@ -382,6 +390,7 @@ export async function metadata(
       {
         id: row.id,
         inputPrice: price(pricing.prompt),
+        requestPrice: price(pricing.request),
         outputPrice: price(pricing.completion),
         vision: Array.isArray(modalities) ? modalities.includes("image") : null,
       },

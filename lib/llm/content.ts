@@ -1,4 +1,5 @@
 import "server-only";
+import { maxVisionImages } from "../ai-request-limits";
 import type { Transaction } from "kysely";
 import { contentTransaction } from "../../db/content-transaction";
 import type { DB } from "../../db/schema";
@@ -194,7 +195,7 @@ export async function screenContent(
       return unavailable(failure);
     }
     const selected = config.options.vision
-      ? images.filter(visionEligible).slice(0, 4)
+      ? images.filter(visionEligible).slice(0, maxVisionImages)
       : [];
     const assets: VisionAsset[] = selected.map((row) => ({
       ...row,

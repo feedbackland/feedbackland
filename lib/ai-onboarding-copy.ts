@@ -33,6 +33,8 @@ export function issueText(issue: string | null | undefined) {
     timeout: "The model timed out. Test again or select a faster model.",
     network: "This server could not reach OpenRouter.",
     "invalid-response": "OpenRouter returned an unusable response.",
+    "rebuild-required":
+      "The existing search index uses a different configuration. Rebuild it to index this board with the selected embedding model.",
     "dimension-mismatch": "The embedding width differs from the search index.",
     budget: "The ordinary daily allowance is exhausted.",
     busy: "All available model slots are busy.",

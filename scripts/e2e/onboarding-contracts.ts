@@ -11,7 +11,7 @@ import {
   beginCheck,
   configuration,
   dismissAiNotice,
-  finishAdminCheck,
+  finishConnectionCheck,
   saveConfiguration,
   undoKey,
 } from "../../lib/llm/settings-store";
@@ -29,6 +29,7 @@ import { adminUsage } from "../../lib/llm/admin-usage";
 import { keyProblem } from "../../lib/ai-onboarding-copy";
 import { largeRequestScenarios } from "../../lib/ai-cost-scenarios";
 import { recordRequest, systemStatus } from "../../lib/request-diagnostics";
+import { onboardingRegressions } from "./onboarding-regressions";
 import { fixtureKey, onboardingProvider } from "./onboarding-provider";
 import { admin, setup, setBudget } from "./insight-test-support";
 import { privateMarker } from "../mock-llm";
@@ -253,7 +254,7 @@ async function main() {
     const newer = await saveConfiguration(second, a, { enabled: false });
     await assert.rejects(
       () =>
-        finishAdminCheck(
+        finishConnectionCheck(
           held,
           { key: "valid", chat: "passed", search: "passed" },
           true,
@@ -355,6 +356,7 @@ async function main() {
       .set({ failingSince: null, lastSuccessAt: new Date(), lastReason: null })
       .execute();
     assert.equal((await status()).state, "on");
+    await onboardingRegressions({ mock, state, issue });
     const env = await configuration(undefined, true);
     process.env.OPENROUTER_MODEL = env.options.model;
     process.env.OPENROUTER_API_KEY = fixtureKey;
@@ -386,6 +388,7 @@ async function main() {
         {
           id: "openai/text-embedding-3-small",
           inputPrice: "0.000001",
+          requestPrice: "0",
           outputPrice: null,
         },
       ],
