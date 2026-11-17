@@ -8,7 +8,7 @@ import {
   configuration,
   beginCheck,
   finishConnectionCheck,
-  stageKeyCheck,
+  keyCandidate,
   type CheckTicket,
   type Configuration,
   saveConfiguration,
@@ -93,15 +93,27 @@ export async function checkConnection(
     { actor, intent: intent === "enable" ? "configure" : intent },
     deadline(config.options.timeoutMs, signal),
   );
-  return runConnectionCheck(config, ticket, intent === "enable", signal);
+  return runConnectionCheck(config, ticket, {
+    enable: intent === "enable",
+    signal,
+  });
 }
 export async function runConnectionCheck(
   config: Configuration,
   ticket: CheckTicket,
-  enable: boolean,
-  signal?: AbortSignal,
-  worker?: OwnedLease,
-  capabilities?: { chat: boolean; search: boolean },
+  {
+    enable = false,
+    signal,
+    worker,
+    capabilities,
+    replacementKey,
+  }: {
+    enable?: boolean;
+    signal?: AbortSignal;
+    worker?: OwnedLease;
+    capabilities?: { chat: boolean; search: boolean };
+    replacementKey?: string;
+  },
 ) {
   const result: Check = {
     key: "unknown",
@@ -128,6 +140,8 @@ export async function runConnectionCheck(
       signal,
       ticket,
       worker?.lease,
+      undefined,
+      config,
     );
     if (Array.isArray(key)) throw new AiError("invalid-response");
     result.key = key.management
@@ -153,6 +167,7 @@ export async function runConnectionCheck(
         check: ticket,
         lease: worker?.lease,
         signal,
+        content: { config, wall: deadline(config.options.timeoutMs, signal) },
         validateText: (text) => {
           try {
             if (
@@ -205,7 +220,11 @@ export async function runConnectionCheck(
         result.actualDimensions = error.actual;
     }
   }
-  let saved = await finishConnectionCheck(ticket, result, enable, worker);
+  let saved = await finishConnectionCheck(ticket, result, enable, {
+    worker,
+    signal,
+    replacementKey,
+  });
   if ((capabilities?.search ?? true) && result.search === "passed") {
     const index = await indexSnapshot(true, signal);
     if (
@@ -239,13 +258,22 @@ export async function installKey(
   signal?: AbortSignal,
 ) {
   const current = await configuration(signal, true);
-  const { config, ticket } = await stageKeyCheck(
-    actor,
-    identity,
-    key,
-    deadline(current.options.timeoutMs, signal),
+  if (
+    current.token !== identity.token ||
+    current.revision !== identity.revision
+  )
+    throw new AiError("STALE_CONFIGURATION");
+  const config = keyCandidate(current, key);
+  const admitted = await beginCheck(
+    config,
+    { actor, intent: "configure" },
+    deadline(config.options.timeoutMs, signal),
   );
-  return runConnectionCheck(config, ticket, true, signal);
+  return runConnectionCheck(
+    config,
+    { ...admitted, candidateDigest: config.keyDigest! },
+    { enable: true, signal, replacementKey: key },
+  );
 }
 
 export async function updateAiOptions(

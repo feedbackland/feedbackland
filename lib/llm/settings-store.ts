@@ -38,6 +38,7 @@ export type CheckTicket = Identity & {
   sequence: string;
   action?: CheckAction;
   creditWait: boolean;
+  candidateDigest?: string;
   chatWatermark?: string;
 };
 const purpose = "ai_settings.apiKey";
@@ -821,31 +822,24 @@ export async function beginCheck(
     return issueCheck(trx, config, action, !!lease);
   });
 }
-export async function stageKeyCheck(
-  actor: Actor,
-  identity: Identity,
+// Keep the active key serving requests until its replacement has a verdict. Only
+// the authenticated check uses this in-memory candidate, fenced by the original row.
+export function keyCandidate(
+  current: Configuration,
   key: string,
-  wall: Deadline,
-) {
-  const staged = await withinTransaction(wall, async (trx) => {
-    await writeConfiguration(trx, actor, identity, {
-      apiKey: key,
-      stageKey: true,
-    });
-    const config = resolve(
-      await currentRow(trx).executeTakeFirstOrThrow(),
-      getConfig().authSecret,
-    );
-    const ticket = await issueCheck(
-      trx,
-      config,
-      { actor, intent: "configure" },
-      false,
-    );
-    return { config, ticket };
-  });
-  invalidate();
-  return staged;
+): Configuration {
+  if (getConfig().llm.keySupplied || !keySchema.safeParse(key).success)
+    throw new AiError("invalid-input");
+  return {
+    ...current,
+    apiKey: key,
+    keyDigest: digest(key),
+    configured: false,
+    keyless: false,
+    enabled: null,
+    unreadable: false,
+    check: null,
+  };
 }
 async function issueCheck(
   trx: Transaction<DB>,
@@ -853,7 +847,9 @@ async function issueCheck(
   action: CheckAction | undefined,
   leased: boolean,
 ): Promise<CheckTicket> {
-  if (action) await authorizeCheckActor(trx, action.actor, true);
+  // Automatic credit polls have their own shared fifteen-second admission.
+  if (action)
+    await authorizeCheckActor(trx, action.actor, action.intent !== "credit");
   if (
     !(await rowFence(trx, config).select("id").forUpdate().executeTakeFirst())
   )
@@ -924,6 +920,11 @@ export async function requireDispatch(
   if (
     ticket &&
     (ticket.token !== config.token || ticket.revision !== config.revision)
+  )
+    throw new AiError("STALE_CONFIGURATION");
+  if (
+    ticket?.candidateDigest &&
+    (purpose !== "admin" || config.keyDigest !== ticket.candidateDigest)
   )
     throw new AiError("STALE_CONFIGURATION");
   // Acquire the lock first, then read the database clock. Another transaction
@@ -1308,91 +1309,106 @@ export async function finishConnectionCheck(
   ticket: CheckTicket,
   result: Check,
   enable: boolean,
-  worker?: { lease: Lease; signal: AbortSignal },
+  options: {
+    worker?: { lease: Lease; signal: AbortSignal };
+    signal?: AbortSignal;
+    replacementKey?: string;
+  } = {},
 ) {
+  const { worker, signal, replacementKey } = options;
+  if (
+    ticket.candidateDigest !==
+    (replacementKey ? digest(replacementKey) : undefined)
+  )
+    throw new AiError("STALE_CONFIGURATION");
   if (!ticket.action && !worker) throw new AiError("forbidden");
   const actor = ticket.action?.actor,
     value = checkedResult(result);
-  const saved = await contentTransaction(worker?.signal, async (trx) => {
-    if (worker) await requireLease(trx, worker.lease);
-    if (actor) await authorizeCheckActor(trx, actor, false);
-    const row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
-    const config = resolve(row, getConfig().authSecret);
-    if (
-      !matches(row, ticket) ||
-      config.diverged ||
-      row.checkSequence !== ticket.sequence
-    )
-      throw new AiError("STALE_CONFIGURATION");
-    const clock = (
-      await sql<{ now: Date }>`select clock_timestamp() as now`.execute(trx)
-    ).rows[0].now;
-    const waiting =
-      row.enabled === null &&
-      row.creditWaitConfigToken === ticket.token &&
-      !!row.creditWaitUntil &&
-      row.creditWaitUntil > clock;
-    if (ticket.creditWait && !waiting) throw new AiError("STALE_CONFIGURATION");
-    const prior = await effectiveCheck(trx, config);
-    const reason = incidentReason(value);
-    const observation = {
-      ...value,
-      at: clock.toISOString(),
-      sequence: ticket.sequence,
-      configToken: ticket.token,
-      chatWatermark: ticket.chatWatermark,
-      incidentSince: reason
-        ? ((reason === incidentReason(prior)
-            ? (prior?.incidentSince ?? prior?.at)
-            : undefined) ?? clock.toISOString())
-        : undefined,
-    };
-    if (worker) await requireLease(trx, worker.lease);
-    const retryStaged =
-      ticket.action?.intent === "test-again" &&
-      row.enabled === null &&
-      !!row.apiKey;
-    if (
-      (enable || waiting || retryStaged) &&
-      value.key === "valid" &&
-      value.chat === "passed" &&
-      row.enabled !== true
-    ) {
-      const updated = await trx
-        .updateTable("ai_settings")
-        .where("id", "=", 1)
-        .set({
-          enabled: true,
-          keyUndo: advanceUndo(
-            row,
-            ticket.action?.intent === "credit" ? undefined : actor,
-          ),
-          keepOffBy: null,
-          keepOffAt: null,
-          revision: sql`revision+1`,
-          ...(actor && { updatedBy: actor.userId }),
-          updatedAt: clock,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
-      return replaceToken(trx, updated, observation);
-    }
-    if (
-      enable &&
-      !config.configured &&
-      value.chatIssue === "account-credit" &&
-      row.apiKey &&
-      row.apiKeySetAt &&
-      !getConfig().llm.apiKey
-    ) {
-      let current = row,
-        identity: Identity = ticket;
-      if (row.enabled === false) {
-        current = await trx
+  const saved = await contentTransaction(
+    signal ?? worker?.signal,
+    async (trx) => {
+      if (worker) await requireLease(trx, worker.lease);
+      if (actor) await authorizeCheckActor(trx, actor, false);
+      let row = await currentRow(trx).forUpdate().executeTakeFirstOrThrow();
+      let config = resolve(row, getConfig().authSecret);
+      if (
+        !matches(row, ticket) ||
+        config.diverged ||
+        row.checkSequence !== ticket.sequence
+      )
+        throw new AiError("STALE_CONFIGURATION");
+      if (replacementKey) {
+        if (!actor || !enable || worker) throw new AiError("forbidden");
+        if (
+          config.configured &&
+          [
+            "budget",
+            "busy",
+            "provider-rate",
+            "timeout",
+            "network",
+            "unavailable",
+          ].includes(value.chatIssue ?? "")
+        ) {
+          throw new DomainError(
+            ["budget", "busy", "provider-rate"].includes(value.chatIssue!)
+              ? "TOO_MANY_REQUESTS"
+              : "SERVICE_UNAVAILABLE",
+            "OpenRouter could not verify the replacement. The current key is still active. Try again.",
+          );
+        }
+        const staged = await writeConfiguration(trx, actor, ticket, {
+          apiKey: replacementKey,
+          stageKey: true,
+        });
+        ticket = { ...ticket, ...staged };
+        row = await currentRow(trx).executeTakeFirstOrThrow();
+        config = resolve(row, getConfig().authSecret);
+      }
+      const clock = (
+        await sql<{ now: Date }>`select clock_timestamp() as now`.execute(trx)
+      ).rows[0].now;
+      const waiting =
+        row.enabled === null &&
+        row.creditWaitConfigToken === ticket.token &&
+        !!row.creditWaitUntil &&
+        row.creditWaitUntil > clock;
+      if (ticket.creditWait && !waiting)
+        throw new AiError("STALE_CONFIGURATION");
+      const prior = await effectiveCheck(trx, config);
+      const reason = incidentReason(value);
+      const observation = {
+        ...value,
+        at: clock.toISOString(),
+        sequence: ticket.sequence,
+        configToken: ticket.token,
+        chatWatermark: ticket.chatWatermark,
+        incidentSince: reason
+          ? ((reason === incidentReason(prior)
+              ? (prior?.incidentSince ?? prior?.at)
+              : undefined) ?? clock.toISOString())
+          : undefined,
+      };
+      if (worker) await requireLease(trx, worker.lease);
+      const retryStaged =
+        ticket.action?.intent === "test-again" &&
+        row.enabled === null &&
+        !!row.apiKey;
+      if (
+        (enable || waiting || retryStaged) &&
+        value.key === "valid" &&
+        value.chat === "passed" &&
+        row.enabled !== true
+      ) {
+        const updated = await trx
           .updateTable("ai_settings")
           .where("id", "=", 1)
           .set({
-            enabled: null,
+            enabled: true,
+            keyUndo: advanceUndo(
+              row,
+              ticket.action?.intent === "credit" ? undefined : actor,
+            ),
             keepOffBy: null,
             keepOffAt: null,
             revision: sql`revision+1`,
@@ -1401,46 +1417,73 @@ export async function finishConnectionCheck(
           })
           .returningAll()
           .executeTakeFirstOrThrow();
-        identity = await replaceToken(trx, current, observation);
+        return replaceToken(trx, updated, observation);
       }
-      const until = new Date(row.apiKeySetAt.getTime() + 7 * 86400_000);
-      if (until > clock)
+      if (
+        enable &&
+        !config.configured &&
+        value.chatIssue === "account-credit" &&
+        row.apiKey &&
+        row.apiKeySetAt &&
+        !getConfig().llm.apiKey
+      ) {
+        let current = row,
+          identity: Identity = ticket;
+        if (row.enabled === false) {
+          current = await trx
+            .updateTable("ai_settings")
+            .where("id", "=", 1)
+            .set({
+              enabled: null,
+              keepOffBy: null,
+              keepOffAt: null,
+              revision: sql`revision+1`,
+              ...(actor && { updatedBy: actor.userId }),
+              updatedAt: clock,
+            })
+            .returningAll()
+            .executeTakeFirstOrThrow();
+          identity = await replaceToken(trx, current, observation);
+        }
+        const until = new Date(row.apiKeySetAt.getTime() + 7 * 86400_000);
+        if (until > clock)
+          await trx
+            .updateTable("ai_settings")
+            .where("id", "=", 1)
+            .set({
+              creditWaitUntil: until,
+              creditWaitConfigToken: identity.token,
+            })
+            .execute();
         await trx
           .updateTable("ai_settings")
           .where("id", "=", 1)
           .set({
-            creditWaitUntil: until,
-            creditWaitConfigToken: identity.token,
+            lastCheck: { ...observation, configToken: identity.token },
           })
           .execute();
+        return { token: identity.token, revision: identity.revision };
+      }
       await trx
         .updateTable("ai_settings")
         .where("id", "=", 1)
         .set({
-          lastCheck: { ...observation, configToken: identity.token },
+          ...(waiting &&
+            [
+              "invalid-key",
+              "management-key",
+              "expired-key",
+              "key-limit",
+            ].includes(value.chatIssue ?? "") && {
+              creditWaitUntil: null,
+              creditWaitConfigToken: null,
+            }),
+          lastCheck: observation,
         })
         .execute();
-      return { token: identity.token, revision: identity.revision };
-    }
-    await trx
-      .updateTable("ai_settings")
-      .where("id", "=", 1)
-      .set({
-        ...(waiting &&
-          [
-            "invalid-key",
-            "management-key",
-            "expired-key",
-            "key-limit",
-          ].includes(value.chatIssue ?? "") && {
-            creditWaitUntil: null,
-            creditWaitConfigToken: null,
-          }),
-        lastCheck: observation,
-      })
-      .execute();
-    return { token: ticket.token, revision: ticket.revision };
-  });
+      return { token: ticket.token, revision: ticket.revision };
+    },
+  );
   invalidate();
   return saved;
 }

@@ -40,7 +40,7 @@ export async function maintenanceDiagnostics(
       deadline(config.options.timeoutMs, signal),
       lease,
     );
-    await runConnectionCheck(config, check, false, signal, owner);
+    await runConnectionCheck(config, check, { signal, worker: owner });
     return;
   }
   const unhealthy = await unhealthyCapabilities(config, signal);
@@ -51,12 +51,16 @@ export async function maintenanceDiagnostics(
     deadline(config.options.timeoutMs, signal),
     lease,
   );
-  await runConnectionCheck(config, check, false, signal, owner, {
-    chat: unhealthy.some((h) => h.capability === "chat"),
-    search:
-      !index.reason &&
-      !!index.fingerprint &&
-      unhealthy.some((h) => h.capability === "embeddings"),
+  await runConnectionCheck(config, check, {
+    signal,
+    worker: owner,
+    capabilities: {
+      chat: unhealthy.some((h) => h.capability === "chat"),
+      search:
+        !index.reason &&
+        !!index.fingerprint &&
+        unhealthy.some((h) => h.capability === "embeddings"),
+    },
   });
 }
 export function startMaintenance() {

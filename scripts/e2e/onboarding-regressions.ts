@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { sql } from "kysely";
 import { db } from "../../db/db";
+import { eventually } from "./run";
 import { admin, setBudget } from "./insight-test-support";
 import { fixtureKey, type onboardingProvider } from "./onboarding-provider";
 import {
@@ -102,7 +103,44 @@ export async function onboardingRegressions({
   assert.equal((await status()).last4, working.last4);
   assert.equal((await status()).state, "on");
   assert.equal(mock.requests, beforeRequests);
+  await reset();
+  const cancel = new AbortController(),
+    held = Promise.withResolvers<void>(),
+    startReads = state.keyReads;
+  const replacement = fixtureKey + "2222";
+  mock.expectedKey = replacement;
+  state.keyGate = held.promise;
+  const interrupted = installKey(
+    admin,
+    working.identity,
+    replacement,
+    cancel.signal,
+  );
+  try {
+    await eventually(
+      async () => state.keyReads,
+      (n) => n > startReads,
+      3000,
+    );
+    assert.equal((await status()).last4, working.last4);
+    assert.equal(await canImproveDraft(), true);
+    cancel.abort();
+    await assert.rejects(interrupted);
+  } finally {
+    held.resolve();
+    state.keyGate = undefined;
+    mock.expectedKey = fixtureKey;
+  }
+  assert.deepEqual((await status()).identity, working.identity);
+  assert.equal((await status()).state, "on");
 
+  await setBudget((await status()).options.dailyCallLimit);
+  await assert.rejects(
+    installKey(admin, working.identity, fixtureKey),
+    /current key is still active/,
+  );
+  assert.deepEqual((await status()).identity, working.identity);
+  await reset();
   for (const mode of ["malformed", "vision", "width"]) {
     await install("credit");
     const lease = await acquireLease("ai-maintenance");
@@ -243,7 +281,6 @@ export async function onboardingRegressions({
   state.keyGate = gate.promise;
   const pending = checkConnection(admin, await identity(), "credit");
   try {
-    const { eventually } = await import("./run");
     await eventually(
       async () => state.keyReads,
       (n) => n > reads,

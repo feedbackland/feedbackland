@@ -529,6 +529,7 @@ export async function readProviderMetadata(
   check?: CheckTicket,
   lease?: import("../jobs/leases").Lease,
   expected?: { token: string; revision: string },
+  checkedConfig?: Configuration,
 ) {
   let release: (() => void) | undefined, signal: AbortSignal | undefined;
   try {
@@ -536,7 +537,18 @@ export async function readProviderMetadata(
     const { config, wall } = await ready(
       "metadata",
       "chat",
-      { signal: external, check },
+      {
+        signal: external,
+        check,
+        ...(checkedConfig && check && kind === "key"
+          ? {
+              content: {
+                config: checkedConfig,
+                wall: deadline(checkedConfig.options.timeoutMs, external),
+              },
+            }
+          : {}),
+      },
       !!actor,
     );
     signal = wall.signal;

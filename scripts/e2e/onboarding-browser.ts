@@ -401,6 +401,9 @@ export async function onboardingBrowser(f: Fixture) {
       (v) => v === "recovered",
       5000,
     );
+    await eventually(() => semantic(peer), Boolean, 45000);
+    await text.fill("Fresh content after the provider recovered");
+    await button(drawer, "Submit feedback").click();
     await eventually(
       () => health("embeddings"),
       (v) => v === "recovered",
