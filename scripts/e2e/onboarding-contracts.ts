@@ -222,6 +222,7 @@ async function main() {
       state.mode = "paid";
       await maintenanceDiagnostics(await indexSnapshot(false), owner);
       assert.equal((await status()).state, "on");
+      assert((await status()).undo);
     } finally {
       await owner.release();
     }

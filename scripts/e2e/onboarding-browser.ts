@@ -169,6 +169,23 @@ export async function onboardingBrowser(f: Fixture) {
       (n) => n > 0,
       3000,
     );
+    await page.getByText("What is sent to OpenRouter", { exact: true }).click();
+    await page
+      .getByText(/up to 4 eligible images.+unpublished draft text/)
+      .waitFor();
+    await page
+      .getByText("Large-request scenario at listed prices", { exact: true })
+      .click();
+    await page
+      .getByText(
+        /Moderation · image request and text-only fallback.+2 attempts/,
+      )
+      .waitFor();
+    await page
+      .getByText(
+        /Backfill · rejected inputs and split retries.+fixed control succeeds/,
+      )
+      .waitFor();
     await advanced.click();
     step = "HTTPS redirect with PKCE";
     await button(page, "Connect OpenRouter").click();
@@ -437,6 +454,22 @@ export async function onboardingBrowser(f: Fixture) {
     }
     await page.getByText("AI settings saved.", { exact: true }).waitFor();
     await page.unroute("**/*saveAiOptions*");
+    step = "embedding model change with an existing index";
+    const model = page.getByLabel("Embedding model", { exact: true });
+    const originalModel = await model.inputValue();
+    await model.fill("openai/text-embedding-3-large");
+    await button(page, "Save AI settings").click();
+    await link(page, "Review search index").waitFor();
+    await page.getByText(/Search passed/).waitFor();
+    assert.equal(
+      await page
+        .getByRole("progressbar", { name: "Search indexing progress" })
+        .count(),
+      0,
+    );
+    await model.fill(originalModel);
+    await button(page, "Save AI settings").click();
+    await on(page);
     await advanced.click();
 
     step = "rotated key and mounted expiry";
@@ -535,6 +568,8 @@ export async function onboardingBrowser(f: Fixture) {
       }
     }
     await peer.goto(publicBoard + path);
+    await off(peer);
+    await peer.getByText(/OpenRouter will show this board/).waitFor();
     await f.sql('update settings set "allowIndexing"=false');
     await peer
       .getByText(/OpenRouter will show this board/)
