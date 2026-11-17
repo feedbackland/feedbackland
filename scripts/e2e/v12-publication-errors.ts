@@ -43,7 +43,7 @@ export async function publicationErrors(
         assert.equal(
           await sql(`select f."moderationState"||'/'||m.reason
           from feedback f join moderation_event m on m."postId"=f.id
-          where f.id='${body.id}' and f.revision=m.revision`),
+          where f.id='${body.id}' and f.revision=m."contentRevision"`),
           "unscreened/" + reason,
           name,
         );
