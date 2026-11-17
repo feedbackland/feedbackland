@@ -80,7 +80,7 @@ export async function getInsightsInputs(trx: Transaction<DB>) {
         cross join lateral (
           select least(count(*),${participationLimit}) as total,count(*)>${participationLimit} as limited,
             least(count(*) filter(where "createdAt">=transaction_timestamp()-${MOMENTUM_WINDOW_DAYS}*interval '1 day'),${participationLimit}) as recent
-          from (select "createdAt" from comment where "postId"=p.id and content not like 'Updated status to%'
+          from (select "createdAt" from comment where "postId"=p.id and not starts_with(content,'Updated status to')
             order by "createdAt" desc,id limit ${participationLimit + 1}) recent_comments
         ) c
       ), size as (

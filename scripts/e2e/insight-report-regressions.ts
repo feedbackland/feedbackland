@@ -270,6 +270,15 @@ export async function popularBoardAndArchive(mock: Mock) {
   await sql`insert into comment("postId",content,"plainText","moderationState") select ${only.id},'Discussion','Discussion','screened' from generate_series(1,1100)`.execute(
     db,
   );
+  await sql`insert into comment("postId",content,"plainText","moderationState")
+    select ${only.id},'Updated status to done','Updated status to done','screened' from generate_series(1,12000)`.execute(
+    db,
+  );
+  await sql`analyze comment`.execute(db);
+  const plan = await sql`explain (format json) select "createdAt" from comment
+    where "postId"=${only.id} and not starts_with(content,'Updated status to')
+    order by "createdAt" desc,id limit 1025`.execute(db);
+  assert.match(JSON.stringify(plan.rows), /comment_insights_activity_idx/);
   await publish();
   const [limited] = (await getInsightsQuery()).insights;
   assert.equal(limited.signals?.votesLimited, true);
@@ -278,4 +287,9 @@ export async function popularBoardAndArchive(mock: Mock) {
   assert.equal(limited.signals?.recentCommentCount, 1024);
   assert.equal(limited.reach, 1025);
   assert.equal(formatReach(limited.reach, 0, true), "At least 1025 people");
+  await db.deleteFrom("comment").where("content", "=", "Discussion").execute();
+  await publish();
+  const [historyOnly] = (await getInsightsQuery()).insights;
+  assert.equal(historyOnly.signals?.commentsLimited, false);
+  assert.equal(historyOnly.signals?.recentCommentCount, 0);
 }

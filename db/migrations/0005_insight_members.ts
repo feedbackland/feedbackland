@@ -33,7 +33,9 @@ export async function up(db: Kysely<unknown>) {
     create trigger insight_version before update of ids,"isArchived" on insights
       for each row execute function version_insight();
     create index user_upvote_insights_idx on user_upvote("contentId","createdAt" desc,"userId");
+    -- The report looks up discussion by post. Keep this partial index separate
+    -- from the board-wide distance-ordered activity search and its HNSW scan.
     create index comment_insights_activity_idx on comment("postId","createdAt" desc,id)
-      where content not like 'Updated status to%';
+      where not starts_with(content,'Updated status to');
   `.execute(db);
 }

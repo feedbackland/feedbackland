@@ -856,17 +856,21 @@ async function budgetChecks(mock: Mock) {
         groups: Array.from({ length: chunks }, (_, i) => [String(i)]),
       }),
     );
-  await denied(reserve(8), "AI_PAUSED");
+  await denied(reserve(8), "INSIGHT_PLAN_TOO_LARGE");
+  assert(await consumeAiBudget(8, 6));
+  await denied(reserve(2), "AI_PAUSED");
+  await resetCounters();
   const [one, two] = await Promise.all([reserve(2), reserve(2)]);
   assert.deepEqual(one, two);
   assert.equal(
     (
-      await db
-        .selectFrom("rate_limit")
-        .where("key", "=", "ai:instance:day:" + day)
-        .select("count")
-        .executeTakeFirstOrThrow()
-    ).count,
+      await sql<{
+        count: number;
+      }>`select l.count from rate_limit l join insight_reports r
+        on l.key='ai:instance:day:'||to_char(r."reservationDay",'YYYY-MM-DD') where r.id=${run.id}`.execute(
+        db,
+      )
+    ).rows[0]?.count,
     3,
   );
   await denied(
