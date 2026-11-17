@@ -404,23 +404,24 @@ export async function aiFoundations(runId: string, productionImage: string) {
     );
     const previous = await mkdtemp(join(tmpdir(), "feedbackland-p09-"));
     try {
+      const revision = "1da2f142518eec862c90829ab36f21d0e76b691c";
       const archive = join(previous, "p09.tar");
-      await command("git", [
-        "archive",
-        "--output",
-        archive,
-        "1da2f142518eec862c90829ab36f21d0e76b691c",
-        "lib",
-        "db",
-        "queries",
-      ]);
+      await command("git", ["archive", "--output", archive, revision]);
       await command("tar", ["-xf", archive, "-C", previous]);
+      await command(
+        process.execPath,
+        ["scripts/build-identity.mjs", "--fresh"],
+        {
+          cwd: previous,
+          env: { SOURCE_COMMIT: revision },
+        },
+      );
       assert(
         (
           await runContracts(
             "board_insight_rollback",
             "insight-rollback-check.ts",
-            insightEnv,
+            [...insightEnv, "-e", "SOURCE_COMMIT=" + revision],
             previous,
           )
         ).includes("P09 rollback passed"),

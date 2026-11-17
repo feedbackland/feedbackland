@@ -3,11 +3,14 @@ import { readFile } from "node:fs/promises";
 import { Client } from "pg";
 import { db } from "../../db/db";
 import { migrateAndSeed } from "../../lib/boot";
+import identity from "../../lib/build-identity.json";
 import { runtimeState } from "../../lib/runtime-state";
 import { getInsightsQuery } from "../../queries/get-insights";
 
 // The harness mounts the exact P09 source for all three application imports.
 async function main() {
+  assert.match(process.env.SOURCE_COMMIT ?? "", /^[a-f0-9]{40}$/);
+  assert.equal(identity.sourceCommit, process.env.SOURCE_COMMIT);
   const pg = new Client({ connectionString: process.env.DATABASE_URL });
   await pg.connect();
   try {
