@@ -119,7 +119,12 @@ export async function askAiHttp(
     (await answer.allHeaders())["content-type"],
     /^text\/event-stream/,
   );
-  assert((await answer.text()).includes('"type":"text-delta"'));
+  assert.equal(
+    (await answer.allHeaders())["x-vercel-ai-ui-message-stream"],
+    "v1",
+  );
+  // The rendered text and citation prove the browser consumed the stream.
+  // Read raw SSE in the API client below, independent of the browser debugger.
   await page.getByText(/Feedbackland fixture response/).waitFor();
   const cited = page.getByRole("link", { name: /^Source 1(?::|$)/ });
   await cited.waitFor();
@@ -162,7 +167,9 @@ export async function askAiHttp(
       ],
     });
     assert.equal(request.status(), 200);
-    assert((await secretFree(request)).includes('"type":"finish"'));
+    const sse = await secretFree(request);
+    for (const kind of ["text-start", "text-delta", "text-end", "finish"])
+      assert(sse.includes('"type":"' + kind + '"'), kind);
     const samples = (await providerLogs())
       .split(/\r?\n/)
       .filter((line) => line.startsWith('{"askTextBytes"'))
