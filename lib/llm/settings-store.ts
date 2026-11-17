@@ -68,6 +68,7 @@ const checkSchema = z
     chatIssue: checkIssue.optional(),
     searchIssue: checkIssue.optional(),
     actualDimensions: z.number().int().positive().optional(),
+    verifiedDimensions: z.number().int().min(1).max(4000).optional(),
     expiresAt: z.iso.datetime({ offset: true }).nullable().optional(),
     spendLimit: z.number().finite().nonnegative().nullable().optional(),
     remaining: z.number().finite().nullable().optional(),
@@ -247,6 +248,12 @@ export async function advanceIndexGeneration(
     .returningAll()
     .executeTakeFirstOrThrow();
   const next = resolve(row, getConfig().authSecret, physical.dimensions);
+  const verifiedInitialSearch =
+    initializing &&
+    previous.check?.key === "valid" &&
+    previous.check.search === "passed" &&
+    previous.check.verifiedDimensions === physical.dimensions &&
+    previous.options.embeddingModel === fingerprint.model;
   // Only the embedding generation changed under this lock. Keep credential
   // and chat observations with their original timestamps and sequences.
   const saved = await trx
@@ -258,9 +265,13 @@ export async function advanceIndexGeneration(
         ? {
             ...previous.check,
             configToken: next.token,
-            search: initializing ? previous.check.search : "untested",
-            ...(!initializing
-              ? { searchIssue: undefined, actualDimensions: undefined }
+            search: verifiedInitialSearch ? "passed" : "untested",
+            ...(!verifiedInitialSearch
+              ? {
+                  searchIssue: undefined,
+                  actualDimensions: undefined,
+                  verifiedDimensions: undefined,
+                }
               : {}),
           }
         : null,

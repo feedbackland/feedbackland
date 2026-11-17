@@ -120,6 +120,7 @@ async function main() {
     assert.equal(await embeddingsAvailable(), true);
     const saved = await status();
     assert.equal(saved.check?.search, "passed");
+    assert.equal(saved.check?.verifiedDimensions, saved.dimensions);
     assert.equal(saved.last4, "1111");
     assert(!JSON.stringify(saved).includes(fixtureKey));
     const row = await db
@@ -329,13 +330,11 @@ async function main() {
         lastReason: "provider-rate",
       })
       .onConflict((c) =>
-        c
-          .columns(["configToken", "capability"])
-          .doUpdateSet({
-            failingSince: new Date(),
-            lastFailureAt: new Date(),
-            lastReason: "provider-rate",
-          }),
+        c.columns(["configToken", "capability"]).doUpdateSet({
+          failingSince: new Date(),
+          lastFailureAt: new Date(),
+          lastReason: "provider-rate",
+        }),
       )
       .execute();
     assert.equal((await status()).chatAvailable, true);

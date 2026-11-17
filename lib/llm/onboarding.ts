@@ -156,6 +156,7 @@ export async function checkConnection(
         content: { config, wall: deadline(config.options.timeoutMs, signal) },
       });
       result.search = "passed";
+      result.verifiedDimensions = config.dimensions;
     } catch (error) {
       result.searchIssue = diagnosticIssue(error, signal);
       result.search = ["budget", "busy"].includes(result.searchIssue)
