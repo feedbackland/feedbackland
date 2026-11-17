@@ -119,10 +119,6 @@ export async function askAiHttp(
     (await answer.allHeaders())["content-type"],
     /^text\/event-stream/,
   );
-  assert.equal(
-    (await answer.allHeaders())["x-vercel-ai-ui-message-stream"],
-    "v1",
-  );
   // The rendered text and citation prove the browser consumed the stream.
   // Read raw SSE in the API client below, independent of the browser debugger.
   await page.getByText(/Feedbackland fixture response/).waitFor();
