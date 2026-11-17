@@ -108,6 +108,20 @@ export async function phaseOne(image: string, runId: string, check: Check) {
     const port18 = await portFor(project, topology, "db"),
       port15 = await portFor(project, topology, "pg15"),
       poolerPort = await portFor(project, topology, "pooler");
+    await check("insights/populated-membership-upgrade", async () => {
+      for (const port of [port15, port18]) {
+        await withDb(fixtureUrl(port), (pool) =>
+          pool.query("create database insight_upgrade"),
+        );
+        const output = await node(
+          "scripts/e2e/insight-member-upgrade.ts",
+          [],
+          fixtureUrl(port, "insight_upgrade"),
+        );
+        assert(output.includes("Populated insight membership upgrade passed"));
+      }
+      return { postgres: [15, 18] };
+    });
     const adminUrl = fixtureUrl(port18);
     await withDb(adminUrl, async (pool) => {
       for (const name of [

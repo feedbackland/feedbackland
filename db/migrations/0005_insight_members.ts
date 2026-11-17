@@ -14,7 +14,7 @@ export async function up(db: Kysely<unknown>) {
     );
     insert into insight_member
       select i.id,min(n),post::uuid from insights i cross join lateral unnest(i.ids) with ordinality m(post,n)
-      where pg_input_is_valid(post,\'uuid\') group by i.id,post::uuid;
+      where post ~* '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$' group by i.id,post::uuid;
     create function refresh_insight_members() returns trigger language plpgsql as $$
     begin
       if tg_op = 'UPDATE' then
@@ -23,7 +23,7 @@ export async function up(db: Kysely<unknown>) {
       end if;
       insert into insight_member
         select new.id,min(n),post::uuid from unnest(new.ids) with ordinality m(post,n)
-        where pg_input_is_valid(post,\'uuid\') group by post::uuid;
+        where post ~* '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$' group by post::uuid;
       return new;
     end $$;
     create trigger insight_members after insert or update of ids on insights

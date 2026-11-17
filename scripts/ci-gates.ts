@@ -151,6 +151,7 @@ export async function staticFoundations() {
     "scripts/e2e/insights-fixture.ts",
     "scripts/e2e/insights-browser.ts",
     "scripts/e2e/insight-regressions.ts",
+    "scripts/e2e/insight-member-upgrade.ts",
     "scripts/e2e/insight-report-regressions.ts",
     "scripts/e2e/insight-rollback-check.ts",
     "scripts/e2e/insight-rollback-prepare.ts",
