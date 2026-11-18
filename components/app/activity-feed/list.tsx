@@ -69,16 +69,15 @@ export function ActivityFeedList() {
   const hasFilter = category !== "all" || status !== null || unscreenedOnly;
 
   const lastPage = data?.pages.at(-1);
+  const { ref, inView } = useInView();
   useEffect(() => {
-    if (
-      isSearchActive &&
-      lastPage?.items.length === 0 &&
-      hasNextPage &&
-      !isFetching &&
-      !isError
-    )
+    const emptySearchPage = isSearchActive && lastPage?.items.length === 0;
+    // Recheck when a fetch settles. The sentinel can stay visible while a page
+    // is being fetched and produce no new intersection event for the next page.
+    if ((inView || emptySearchPage) && hasNextPage && !isFetching && !isError)
       void fetchNextPage();
   }, [
+    inView,
     isSearchActive,
     lastPage,
     hasNextPage,
@@ -86,13 +85,6 @@ export function ActivityFeedList() {
     isError,
     fetchNextPage,
   ]);
-  const { ref } = useInView({
-    onChange: (inView) => {
-      if (inView && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-  });
 
   const resetSearch = () => setState((prev) => ({ ...prev, searchValue: "" }));
   const resetUnseen = () =>

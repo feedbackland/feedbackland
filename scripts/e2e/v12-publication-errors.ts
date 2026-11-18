@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import type { Page } from "playwright";
-import { privateMarker } from "../mock-llm";
+import { privateMarker, reflectionMarkers } from "../mock-llm";
+import { eventually } from "./run";
 
 export const publicationFixture = "P12 fixture publication ";
 
@@ -21,66 +22,203 @@ export async function publicationErrors(
     ["refusal", null],
     ["filtered", null],
   ] as const;
-  const accepted: string[] = [];
+  const signed = await page.request.get(base + "/api/auth/get-session");
+  assert.equal(signed.status(), 200);
+  const actor = (await signed.json()).user.id;
+  const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
+  const scoped = (name: string, data: unknown) =>
+    page.request.post(base + "/api/trpc/" + name, {
+      headers: { origin: base },
+      data: { json: data },
+      timeout: 55_000,
+    });
+  const commands = [
+    "anonymous post",
+    "signed comment",
+    "post edit",
+    "comment edit",
+  ];
+  const coverage = async () => {
+    await page.goto(base + "/admin/system");
+    const section = page.locator("section").filter({
+      has: page.getByRole("heading", {
+        name: "Moderation coverage",
+        exact: true,
+      }),
+    });
+    const counter = section.locator("dd").first();
+    await counter.waitFor();
+    const raw = await counter.innerText();
+    return Number(raw.replace(/[^0-9]/g, ""));
+  };
+  const accepted: { id: string; kind: string }[] = [];
+  const baseline = await coverage();
   try {
     for (const [name, reason] of cases) {
-      const response = await fetch(base + "/api/feedback/create", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ description: token + name }),
-        signal: AbortSignal.timeout(45000),
-      });
-      const value = await response.text();
-      assert(
-        !value.includes(privateMarker),
-        "provider text in publication response",
-      );
-      const body = JSON.parse(value);
-      if (reason) {
-        assert.equal(response.status, 201, name);
-        assert.match(body.id, /^[0-9a-f-]{36}$/);
-        accepted.push(body.id);
-        assert.equal(
-          await sql(`select f."moderationState"||'/'||m.reason
-          from feedback f join moderation_event m on m."postId"=f.id
-          where f.id='${body.id}' and f.revision=m."contentRevision"`),
-          "unscreened/" + reason,
-          name,
+      const input = token + name;
+      const [anchor, edited, reply] = (
+        await sql(
+          'with a as (insert into feedback(title,description,"plainText","authorId","moderationState") values (' +
+            [
+              quote(token + "anchor " + name),
+              "'Seeded description'",
+              "'Seeded description'",
+              quote(actor),
+              "'screened'",
+            ].join(",") +
+            ') returning id), p as (insert into feedback(title,description,"plainText","authorId","moderationState") values (' +
+            [
+              quote(token + "seed post " + name),
+              "'Seeded description'",
+              "'Seeded description'",
+              quote(actor),
+              "'screened'",
+            ].join(",") +
+            ') returning id), c as (insert into comment("postId",content,"plainText","authorId","moderationState") ' +
+            "select a.id,'Seeded comment','Seeded comment'," +
+            quote(actor) +
+            ",'screened' from a returning id) " +
+            "select a.id || '/' || p.id || '/' || c.id from a,p,c",
+        )
+      ).split("/");
+      for (const id of [anchor, edited, reply])
+        assert.match(id, /^[0-9a-f-]{36}$/);
+      const [post, ...other] = await Promise.all([
+        fetch(base + "/api/feedback/create", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ description: input + " new post" }),
+          signal: AbortSignal.timeout(55_000),
+        }),
+        scoped("createComment", {
+          postId: anchor,
+          parentCommentId: null,
+          content: input + " new comment",
+        }),
+        scoped("updateFeedbackPost", {
+          postId: edited,
+          expectedRevision: "1",
+          title: input + " revised title",
+          description: input + " revised post",
+        }),
+        scoped("updateComment", {
+          commentId: reply,
+          expectedRevision: "1",
+          content: input + " revised comment",
+        }),
+      ]);
+      const responses = [
+        { status: post.status, body: await post.text() },
+        ...(await Promise.all(
+          other.map(async (result) => ({
+            status: result.status(),
+            body: await result.text(),
+          })),
+        )),
+      ];
+      for (const [i, response] of responses.entries()) {
+        assert(
+          ![privateMarker, ...reflectionMarkers].some((marker) =>
+            response.body.includes(marker),
+          ),
+          "provider text in publication response",
         );
-      } else {
-        assert.equal(response.status, 400, name);
-        assert.deepEqual(body, { error: "inappropriate-content" });
+        const result = JSON.parse(response.body);
+        const label = name + " " + commands[i];
+        if (reason) {
+          assert.equal(response.status, i === 0 ? 201 : 200, label);
+          const id = i === 0 ? result.id : result.result.data.json.id;
+          assert.match(id, /^[0-9a-f-]{36}$/);
+          const kind = i % 2 === 0 ? "feedback" : "comment";
+          const eventId = kind === "feedback" ? "postId" : "commentId";
+          assert.equal(
+            await sql(
+              "select f.\"moderationState\"||'/'||m.reason||'/'||f.revision from " +
+                kind +
+                ' f join moderation_event m on m."' +
+                eventId +
+                '"=f.id ' +
+                "where f.id='" +
+                id +
+                '\' and f.revision=m."contentRevision"',
+            ),
+            "unscreened/" + reason + "/" + (i >= 2 ? "2" : "1"),
+            label,
+          );
+          accepted.push({ id, kind });
+        } else {
+          assert.equal(response.status, 400, label);
+          assert.equal(
+            i === 0 ? result.error : result.error.json.message,
+            "inappropriate-content",
+          );
+        }
       }
+      assert.equal(
+        await sql(
+          'select count(*) from moderation_event where ("postId"=\'' +
+            edited +
+            "' or \"commentId\"='" +
+            reply +
+            "')",
+        ),
+        reason ? "2" : "0",
+      );
     }
+    assert.equal(await coverage(), baseline + accepted.length);
     await page.goto(base + "/admin/activity");
-    const filter = page.getByRole("button", { name: "Show unscreened items" });
-    await filter.click();
-    for (const id of accepted)
-      await page
-        .locator('a[href="/' + id + '"]')
-        .first()
-        .waitFor();
-    assert(!(await page.locator("body").innerText()).includes(privateMarker));
+    await page.getByRole("button", { name: "Show unscreened items" }).click();
+    const status = page.getByText(/Unscreened · provider error/).first();
+    await status.waitFor();
+    await eventually(
+      async () => {
+        const headings = page.getByRole("heading", { name: new RegExp(token) });
+        if (await headings.count())
+          await headings.last().evaluate((element) => {
+            element.scrollIntoView({ block: "end" });
+            for (
+              let parent = element.parentElement;
+              parent;
+              parent = parent.parentElement
+            )
+              if (parent.clientHeight < parent.scrollHeight)
+                parent.scrollTop = parent.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
+          });
+        const body = await page.locator("body").innerText();
+        return ["401", "402", "429", "500", "malformed", "timeout"].every(
+          (code) =>
+            [
+              "new post",
+              "revised title",
+              "new comment",
+              "revised comment",
+            ].every((suffix) => body.includes(token + code + " " + suffix)),
+        );
+      },
+      Boolean,
+      25_000,
+    );
     const summary = await logs();
     for (const [name] of cases)
       assert.equal(
         summary.split("P12 publication scenario " + name).length - 1,
-        1,
+        4,
         name,
       );
-    assert.equal(
-      await sql(
-        `select count(*) from feedback where "plainText" like '${token}%'`,
-      ),
-      String(accepted.length),
-    );
     return {
       accepted: accepted.length,
-      refused: cases.length - accepted.length,
-      callsPerCase: 1,
-      activity: "all accepted cases have mapped coverage",
+      refused: 8,
+      operations: commands,
+      callsPerCase: 4,
+      coverageDelta: accepted.length,
     };
   } finally {
-    await sql(`delete from feedback where "plainText" like '${token}%'`);
+    await sql(
+      "delete from feedback where title like " +
+        quote(token + "%") +
+        ' or "plainText" like ' +
+        quote(token + "%"),
+    );
   }
 }

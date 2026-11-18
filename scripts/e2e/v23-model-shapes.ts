@@ -7,11 +7,116 @@ import {
   outputTokens,
 } from "../../lib/ai-request-limits";
 import { releaseFixtures } from "../ai-release-fixtures";
+import { releaseRequestShapes, runReleaseShape } from "../ai-release-shapes";
+import { calibrationClient } from "../../lib/llm/client";
+import { defaults } from "../../lib/llm/defaults";
+import { OPENROUTER_API } from "../../lib/llm/constants";
 
 const model = "openai/text-embedding-3-small";
 const ascii = (bytes: number) => "x".repeat(bytes);
 const textBytes = (messages: { content: string }[]) =>
   messages.reduce((size, m) => size + Buffer.byteLength(m.content), 0);
+
+async function verifyWireMaximums() {
+  const options = {
+    ...defaults,
+    model: "fixture/maximum",
+    privacy: "deny" as const,
+  };
+  const costs = [];
+  for (const shape of releaseRequestShapes()) {
+    let requests = 0;
+    let wireBytes = 0;
+    const client = calibrationClient("fixture-key", async (input, init) => {
+      requests++;
+      assert.equal(input, OPENROUTER_API + "/chat/completions");
+      assert(typeof init?.body === "string");
+      wireBytes = Buffer.byteLength(init.body);
+      const body = JSON.parse(init.body);
+      assert.equal(body.model, options.model);
+      assert.equal(body.provider.data_collection, "deny");
+      assert.deepEqual(body.response_format, { type: "json_object" });
+      assert.equal(body.max_tokens, shape.images ? 1024 : 4096);
+      const [system, user] = body.messages;
+      assert.equal(body.messages.length, 2);
+      assert.equal(system.role, "system");
+      assert.equal(system.content, shape.input.system);
+      assert.equal(user.role, "user");
+      if (shape.images) {
+        assert.equal(
+          Buffer.byteLength(system.content) +
+            Buffer.byteLength(user.content[0].text),
+          48000,
+        );
+        assert.equal(user.content[0].text, shape.input.text);
+        assert.equal(user.content.length, 5);
+        const images = new Set();
+        for (const part of user.content.slice(1)) {
+          assert.equal(part.type, "image_url");
+          const url: string = part.image_url.url;
+          assert(url.startsWith("data:image/png;base64,"));
+          const decoded = Buffer.from(
+            url.slice("data:image/png;base64,".length),
+            "base64",
+          );
+          assert.equal(decoded.length, 1_000_000);
+          assert.equal(decoded.readUInt32BE(16), 2000);
+          assert.equal(decoded.readUInt32BE(20), 2000);
+          images.add(url);
+        }
+        assert.equal(images.size, 4);
+        assert(wireBytes > 5_380_000 && wireBytes < 6_000_000);
+      } else {
+        assert.deepEqual(body.reasoning, { effort: "medium", exclude: true });
+        assert.equal(user.content, shape.input.text);
+        const bytes =
+          Buffer.byteLength(system.content) + Buffer.byteLength(user.content);
+        assert(
+          bytes >= 63000 && bytes <= 64000,
+          shape.id + " used " + bytes + " text bytes",
+        );
+        const rows = JSON.parse(user.content);
+        if (shape.id.endsWith("chunk")) {
+          assert.deepEqual(
+            rows.map((row: { id: number }) => row.id),
+            Array.from({ length: rows.length }, (_, i) => i + 1),
+          );
+          assert.equal(rows[0].description.length, 700);
+        } else {
+          assert.deepEqual(
+            rows.map((row: { index: number }) => row.index),
+            Array.from({ length: 200 }, (_, i) => i),
+          );
+          assert.equal(rows[0].description.length, 115);
+        }
+      }
+      return Response.json({
+        model: options.model,
+        provider: "Fixture",
+        choices: [
+          {
+            index: 0,
+            finish_reason: "stop",
+            message: { role: "assistant", content: shape.reply },
+          },
+        ],
+        usage: { prompt_tokens: 15001, completion_tokens: 37, cost: 0.00123 },
+      });
+    });
+    const result = await runReleaseShape(client, shape, options);
+    assert.equal(result.failure, undefined, shape.id);
+    assert(result.value);
+    assert.deepEqual(result.usage, {
+      inputTokens: 15001,
+      outputTokens: 37,
+      cost: 0.00123,
+    });
+    assert.equal(result.receipt?.model, options.model);
+    assert.equal(requests, 1, shape.id);
+    costs.push({ case: shape.id, wireBytes, requests, usage: result.usage });
+  }
+  return costs;
+}
 
 export async function verifyModelShapes() {
   const prepared = await releaseFixtures();
@@ -175,6 +280,7 @@ export async function verifyModelShapes() {
       },
       embeddingTokens: { perPost: boundedPost.tokens, perBatch: 32_000 },
       embeddingWidths: depths,
+      serialized: await verifyWireMaximums(),
     },
   };
 }

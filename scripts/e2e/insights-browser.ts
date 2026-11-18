@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { fixturePassword } from "./setup-browser";
 import { eventually, toolEnvironment } from "./run";
-import { privateMarker } from "../mock-llm";
+import { privateMarker, reflectionMarkers } from "../mock-llm";
 
 export async function insightsBrowser(
   a: string,
@@ -179,7 +179,12 @@ export async function insightsBrowser(
     await refreshError.getByRole("button", { name: "Try again" }).click();
     await refreshError.waitFor({ state: "hidden" });
     await theme.waitFor();
-    assert(!(await page.locator("body").innerText()).includes(privateMarker));
+    const rendered = await page.locator("body").innerText();
+    assert(
+      ![privateMarker, ...reflectionMarkers].some((marker) =>
+        rendered.includes(marker),
+      ),
+    );
     const status = await context.request.get(a + "/api/trpc/getInsightsRun");
     const failed = (await status.json()).result.data.json;
     assert.equal(failed.status, "failed");

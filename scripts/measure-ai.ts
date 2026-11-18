@@ -1,5 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, rename, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { z } from "zod";
 import {
@@ -7,22 +9,40 @@ import {
   connectionText,
   outputTokens,
 } from "../lib/ai-request-limits";
+import { calibrationClient } from "../lib/llm/client";
+import {
+  checkImage,
+  validateConnectionReply,
+} from "../lib/llm/connection-check";
 import { OPENROUTER_API } from "../lib/llm/constants";
-import { defaults, privacyRouting } from "../lib/llm/defaults";
+import { parseLabels } from "../lib/llm/content";
 import {
   moderatePrompt,
+  moderationInput,
+  rewritePrompt,
   titlePrompt,
   titleReview,
 } from "../lib/llm/content-prompts";
+import { defaults, privacyRouting } from "../lib/llm/defaults";
+import { postEmbeddingText } from "../lib/llm/embeddings";
+import type { VisionAsset } from "../lib/llm/input-budgets";
+import {
+  calibrationWidth,
+  measureSearchDistances,
+  searchCutoff,
+  verifyCalibrationDatabase,
+} from "./ai-calibration-search";
 import {
   releaseFixtures,
   sha256,
   type ModerationFixture,
 } from "./ai-release-fixtures";
 import { command } from "./e2e/run";
+import { releaseRequestShapes, runReleaseShape } from "./ai-release-shapes";
 
 class MeasurementError extends Error {}
-const nonnegative = z
+
+const price = z
   .union([
     z.number(),
     z
@@ -31,115 +51,645 @@ const nonnegative = z
       .transform(Number),
   ])
   .pipe(z.number().min(0));
-const name = z.string().regex(/^[a-zA-Z0-9._:/ -]{1,128}$/);
-const catalogue = z.object({
-  data: z.array(
-    z.object({
-      id: name,
-      canonical_slug: name.optional(),
-      context_length: z.number().int().optional().nullable(),
-      architecture: z.object({
-        input_modalities: z.array(z.string()),
-        output_modalities: z.array(z.string()).optional(),
-      }),
-      pricing: z.object({
-        prompt: nonnegative,
-        completion: nonnegative,
-        request: nonnegative,
-      }),
-    }),
-  ),
+const name = z.string().regex(/^[A-Za-z0-9._:/ -]{1,128}$/);
+const keyInfo = z.object({
+  data: z.object({
+    limit: z.number().positive(),
+    limit_remaining: z.number().positive(),
+    limit_reset: z.null(),
+    is_free_tier: z.literal(false),
+    include_byok_in_limit: z.literal(true),
+    is_management_key: z.boolean().optional(),
+    is_provisioning_key: z.boolean().optional(),
+  }),
 });
-const usageSchema = z.object({
-  prompt_tokens: z.number().int().min(0).optional(),
-  completion_tokens: z.number().int().min(0).optional(),
-  cost: nonnegative.optional(),
+const catalogueData = z.object({ data: z.array(z.unknown()) });
+const candidateEntry = z.object({
+  id: name,
+  canonical_slug: name.optional(),
+  context_length: z.number().int().min(128000),
+  architecture: z.object({
+    input_modalities: z.array(z.string()),
+    output_modalities: z.array(z.string()),
+  }),
+  pricing: z.object({ prompt: price, completion: price, request: price }),
 });
-const chatSchema = z.object({
-  model: name,
-  provider: name.optional(),
-  usage: usageSchema,
-  choices: z
-    .array(
-      z.object({
-        finish_reason: z.string(),
-        message: z.object({ content: z.string().nullable() }),
-      }),
-    )
-    .length(1),
+const embeddingEntry = z.object({
+  id: name,
+  pricing: z.object({ prompt: price, request: price }),
 });
-const titleSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1)
-    .max(300)
-    .refine((s) => s.isWellFormed() && !/[\u0000-\u001f\u007f]/.test(s)),
-  category: z.enum(["idea", "issue", "general feedback"]),
-});
-const verdictSchema = z.object({
-  isInappropriate: z.boolean(),
-  confidenceScore: z.number().min(0).max(1),
-  titleApproved: z.boolean().optional(),
-});
-const embeddings = z.object({
-  model: name,
-  usage: usageSchema,
-  data: z.array(
-    z.object({
-      index: z.number().int().min(0),
-      embedding: z.array(z.number()).length(768),
-    }),
-  ),
-});
-function parsedJson(text: string | null) {
-  try {
-    return JSON.parse(
-      text?.trim().replace(/^`{3}(?:json)?\s*([\s\S]*?)\s*`{3}$/i, "$1") ?? "",
-    );
-  } catch {
-    return null;
-  }
-}
-function validName(value: string | undefined) {
-  return value && (value.includes("sk-or-") || value.includes("P07_PRIVATE_"))
-    ? undefined
-    : value;
-}
-function positiveOption(
-  value: string | undefined,
-  ceiling: number,
-  setting: string,
-) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0 || parsed > ceiling)
+
+const finiteAmount = (value: unknown) => price.safeParse(value).data ?? null;
+const tokenCount = (value: unknown) =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0
+    ? value
+    : null;
+
+export function assertCalibrationKey(value: unknown, maxUsd: number) {
+  const info = keyInfo.safeParse(value);
+  if (
+    !info.success ||
+    info.data.data.limit > maxUsd ||
+    info.data.data.is_management_key ||
+    info.data.data.is_provisioning_key
+  )
     throw new MeasurementError(
-      setting + " requires a positive explicit value within its allowed range",
+      "Use a funded inference key with a non-resetting limit at or below --max-usd and BYOK included in the limit",
     );
-  return parsed;
 }
-async function readJson(response: Response) {
+
+async function readMetadata(
+  path: string,
+  key: string,
+  transport: typeof fetch,
+) {
+  const response = await transport(OPENROUTER_API + path, {
+    headers: { authorization: "Bearer " + key },
+    redirect: "error",
+    signal: AbortSignal.timeout(defaults.timeoutMs),
+  });
   const reader = response.body?.getReader();
-  if (!reader) throw new MeasurementError("OpenRouter returned no body");
+  if (!reader)
+    throw new MeasurementError("OpenRouter metadata response has no body");
+  const chunks: Uint8Array[] = [];
   let bytes = 0;
-  const chunks: Buffer[] = [];
   try {
+    if (!response.ok)
+      throw new MeasurementError("OpenRouter metadata request failed");
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
       bytes += value.length;
       if (bytes > 4 * 1024 * 1024)
-        throw new MeasurementError("OpenRouter response exceeds 4 MiB");
-      chunks.push(Buffer.from(value));
+        throw new MeasurementError("OpenRouter metadata exceeds 4 MiB");
+      chunks.push(value);
     }
     return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
-  } catch {
-    throw new MeasurementError(
-      "OpenRouter response is unreadable or exceeds 4 MiB",
-    );
   } finally {
-    await reader.cancel().catch(() => {});
+    void reader.cancel().catch(() => {});
   }
+}
+
+type Attempt = {
+  case: string;
+  requestedModel: string;
+  state: "started" | "passed" | "failed";
+  servedModel?: string;
+  provider?: string;
+  httpStatus?: number | null;
+  reason?: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  costUsd: number | null;
+  elapsedMs?: number;
+};
+type Candidate = {
+  model: string;
+  version?: string;
+  comparisonQuoteUsd: number;
+  prices: z.infer<typeof candidateEntry>["pricing"];
+  screening: { id: string; expected: string; actual: string }[];
+  titles: {
+    id: string;
+    heading?: string;
+    expectedCategory: string;
+    category?: string;
+    screened: boolean;
+    passed: boolean;
+  }[];
+  eligible: boolean;
+  averagePostChatUsd: number | null;
+};
+
+type Fixtures = Awaited<ReturnType<typeof releaseFixtures>>;
+function manifest(fixtures: Fixtures) {
+  return {
+    hashes: fixtures.hashes,
+    selection: fixtures.selection.length,
+    heldOut: fixtures.heldOut.length,
+    search: fixtures.search.length,
+    prompts: sha256(
+      [
+        moderatePrompt,
+        titlePrompt,
+        titleReview,
+        rewritePrompt,
+        connectionChat.system,
+        ...releaseRequestShapes().map(({ input }) =>
+          sha256(JSON.stringify(input)),
+        ),
+      ].join("\n"),
+    ),
+  };
+}
+
+export function chooseMeasuredCandidate(candidates: Candidate[]) {
+  const qualified = candidates.filter((candidate) => candidate.eligible);
+  if (qualified.some(({ averagePostChatUsd }) => averagePostChatUsd === null))
+    throw new MeasurementError(
+      "A qualified model has unknown post-workload cost",
+    );
+  return qualified.sort(
+    (a, b) =>
+      a.averagePostChatUsd! - b.averagePostChatUsd! ||
+      a.model.localeCompare(b.model, "en"),
+  )[0];
+}
+
+export function estimateEmbeddingCost(
+  attempts: Pick<Attempt, "inputTokens" | "costUsd">[],
+  listed: z.infer<typeof embeddingEntry>["pricing"] | undefined,
+) {
+  if (attempts.every((row) => row.costUsd !== null))
+    return {
+      total: attempts.reduce((sum, row) => sum + row.costUsd!, 0),
+      source: "provider-reported" as const,
+    };
+  if (
+    listed &&
+    attempts.every((row) => row.costUsd !== null || row.inputTokens !== null)
+  )
+    return {
+      total: attempts.reduce(
+        (sum, row) =>
+          sum +
+          (row.costUsd ?? row.inputTokens! * listed.prompt + listed.request),
+        0,
+      ),
+      source: "reported-and-listed-token-prices" as const,
+    };
+  return null;
+}
+
+type Bounds = { maxUsd: number; maxRequests: number; maxCandidates: number };
+type MeasureOptions = {
+  key: string;
+  sourceCommit: string;
+  date: string;
+  bounds: Bounds;
+  fixtures: Fixtures;
+  transport?: typeof fetch;
+  distances?: typeof measureSearchDistances;
+  checkpoint: (report: unknown) => Promise<void>;
+};
+
+export async function measureRelease({
+  key,
+  sourceCommit,
+  date,
+  bounds,
+  fixtures,
+  checkpoint,
+  transport = fetch,
+  distances = measureSearchDistances,
+}: MeasureOptions) {
+  const report = {
+    status: "incomplete",
+    error: undefined as string | undefined,
+    date,
+    sourceCommit,
+    bounds,
+    privacy: privacyRouting("deny"),
+    fixtureManifest: manifest(fixtures),
+    candidates: [] as Candidate[],
+    holdout: [] as Candidate["screening"],
+    attempts: [] as Attempt[],
+    catalogue: undefined as
+      | {
+          entries: number;
+          eligible: number;
+          excluded: {
+            priceOrShape: number;
+            route: number;
+            modalities: number;
+            zeroQuote: number;
+            duplicates: number;
+          };
+        }
+      | undefined,
+    comparison:
+      "Average reported title plus moderation cost per accepted text post. Vision qualification and image pricing are separate.",
+    maximumShapes: [] as { id: string; passed: boolean }[],
+    observedCostUsd: 0,
+    paidRequests: 0,
+    unpricedRequests: 0,
+    result: undefined as object | undefined,
+  };
+  const safeName = (value: unknown) => {
+    const field = name.safeParse(value).data;
+    return field && !field.includes(key) && !/sk-or-|P07_PRIVATE_/i.test(field)
+      ? field
+      : undefined;
+  };
+  const heading = (value: string | undefined) =>
+    value && !value.includes(key) && !/sk-or-|P07_PRIVATE_/i.test(value)
+      ? value
+      : undefined;
+  const base = { ...defaults, privacy: "deny" as const };
+
+  async function step<
+    T extends {
+      failure?: { status: number | null; reason: string };
+      usage: { inputTokens?: number; outputTokens?: number; cost?: unknown };
+      receipt?: { model: unknown; provider: unknown; byok: boolean };
+    },
+  >(
+    caseId: string,
+    requestedModel: string,
+    call: (client: ReturnType<typeof calibrationClient>) => Promise<T>,
+  ) {
+    let row: Attempt | undefined;
+    let stop: MeasurementError | undefined;
+    const start = performance.now();
+    const client = calibrationClient(key, async (input, init) => {
+      if (
+        row ||
+        report.paidRequests >= bounds.maxRequests ||
+        report.observedCostUsd >= bounds.maxUsd
+      ) {
+        stop = new MeasurementError(
+          "The approved paid request or cost limit was reached",
+        );
+        throw stop;
+      }
+      row = {
+        case: caseId,
+        requestedModel,
+        state: "started",
+        inputTokens: null,
+        outputTokens: null,
+        costUsd: null,
+      };
+      report.attempts.push(row);
+      report.paidRequests++;
+      report.unpricedRequests++;
+      await checkpoint(report);
+      init?.signal?.throwIfAborted();
+      return transport(input, init);
+    });
+    const result = await call(client);
+    if (row) {
+      row.state = result.failure ? "failed" : "passed";
+      row.reason = result.failure?.reason;
+      row.httpStatus = result.failure?.status;
+      row.elapsedMs = Math.round(performance.now() - start);
+      row.servedModel = safeName(result.receipt?.model);
+      row.provider = safeName(result.receipt?.provider);
+      row.inputTokens = tokenCount(result.usage.inputTokens);
+      row.outputTokens = tokenCount(result.usage.outputTokens);
+      row.costUsd = finiteAmount(result.usage.cost);
+      if (row.costUsd !== null) {
+        report.observedCostUsd += row.costUsd;
+        report.unpricedRequests--;
+      }
+      await checkpoint(report);
+    }
+    if (stop) throw stop;
+    if (result.receipt?.byok)
+      throw new MeasurementError(
+        "The fixture account routed a request through BYOK",
+      );
+    if (result.failure && [401, 402, 429].includes(result.failure.status ?? 0))
+      throw new MeasurementError(
+        "OpenRouter stopped measurement with HTTP " + result.failure.status,
+      );
+    return { ...result, attempt: row };
+  }
+
+  const options = (model: string) => ({ ...base, model });
+  async function screen(
+    model: string,
+    test: ModerationFixture,
+    title?: string,
+  ) {
+    let images: VisionAsset[] = [];
+    if (test.stratum === "vision" && test.media) {
+      const bytes = fixtures.media.get(test.media)!;
+      images = [
+        {
+          id: test.media,
+          contentType: "image/png",
+          width: bytes.readUInt32BE(16),
+          height: bytes.readUInt32BE(20),
+          byteSize: bytes.length,
+          load: async () => bytes,
+        },
+      ];
+    }
+    const input = moderationInput(test.text, title);
+    const run = (suffix: string, vision: VisionAsset[]) =>
+      step(test.id + suffix, model, (client) =>
+        client.chat("moderation", input, options(model), { images: vision }),
+      );
+    let moderated = await run(title ? "/heading-screen" : "/screen", images);
+    if (images.length && moderated.failure?.reason === "provider-input")
+      moderated = await run("/fallback", []);
+    const verdict = moderated.value?.moderation;
+    const actual =
+      moderated.failure?.reason === "provider-refusal" ||
+      (verdict?.isInappropriate && verdict.confidenceScore > 0.7)
+        ? "refuse"
+        : verdict
+          ? "allow"
+          : "unavailable";
+    return {
+      outcome: { id: test.id, expected: test.verdict, actual },
+      approved: verdict?.titleApproved === true,
+      cost: moderated.attempt?.costUsd ?? null,
+    };
+  }
+
+  async function embed(
+    caseId: string,
+    text: string,
+    feature: "embed-query" | "embed-write" | "check",
+  ) {
+    const result = await step(caseId, base.embeddingModel, (client) =>
+      client.embedding(feature, text, base, calibrationWidth),
+    );
+    if (!result.value || !result.attempt)
+      throw new MeasurementError(
+        "Default embedding model did not pass the production vector checks",
+      );
+    return { vector: result.value, attempt: result.attempt };
+  }
+
+  try {
+    assertCalibrationKey(
+      await readMetadata("/key", key, transport),
+      bounds.maxUsd,
+    );
+    const rows = catalogueData.parse(
+      await readMetadata("/models/user", key, transport),
+    ).data;
+    const excluded = {
+      priceOrShape: 0,
+      route: 0,
+      modalities: 0,
+      zeroQuote: 0,
+      duplicates: 0,
+    };
+    const catalogue = new Map<string, z.infer<typeof candidateEntry>>();
+    for (const raw of rows) {
+      const entry = candidateEntry.safeParse(raw).data;
+      if (!entry || !safeName(entry.id)) excluded.priceOrShape++;
+      else if (entry.id.startsWith("openrouter/") || entry.id.endsWith(":free"))
+        excluded.route++;
+      else if (
+        !entry.architecture.input_modalities.includes("text") ||
+        !entry.architecture.input_modalities.includes("image") ||
+        !entry.architecture.output_modalities.includes("text")
+      )
+        excluded.modalities++;
+      else if (
+        entry.pricing.prompt +
+          entry.pricing.completion +
+          entry.pricing.request ===
+        0
+      )
+        excluded.zeroQuote++;
+      else if (catalogue.has(entry.id)) excluded.duplicates++;
+      else catalogue.set(entry.id, entry);
+    }
+    const quote = ({ pricing }: z.infer<typeof candidateEntry>) =>
+      400 * pricing.prompt + 120 * pricing.completion + pricing.request;
+    const eligible = [...catalogue.values()].sort(
+      (a, b) => quote(a) - quote(b) || a.id.localeCompare(b.id, "en"),
+    );
+    report.catalogue = {
+      entries: rows.length,
+      eligible: eligible.length,
+      excluded,
+    };
+    const examples = fixtures.selection.filter((test) => test.category);
+    for (const model of eligible.slice(0, bounds.maxCandidates)) {
+      const candidate: Candidate = {
+        model: model.id,
+        version: safeName(model.canonical_slug),
+        comparisonQuoteUsd: quote(model),
+        prices: model.pricing,
+        screening: [],
+        titles: [],
+        eligible: false,
+        averagePostChatUsd: null,
+      };
+      report.candidates.push(candidate);
+      for (const test of fixtures.selection) {
+        candidate.screening.push((await screen(model.id, test)).outcome);
+        await checkpoint(report);
+      }
+      if (
+        candidate.screening.some(({ expected, actual }) => expected !== actual)
+      )
+        continue;
+      const costs: number[] = [];
+      for (const test of examples) {
+        const title = await step(test.id + "/title", model.id, (client) =>
+          client.chat(
+            "title",
+            { system: titlePrompt, text: test.text },
+            options(model.id),
+            { validateText: parseLabels },
+          ),
+        );
+        const fields = title.value?.value;
+        const proposed = heading(fields?.title);
+        const observation = {
+          id: test.id,
+          heading: proposed,
+          expectedCategory: test.category!,
+          category: fields?.category ?? undefined,
+          screened: false,
+          passed: false,
+        };
+        candidate.titles.push(observation);
+        // The heading is an observation even if the budget ends before it can
+        // be screened. Checkpoint it before starting the next paid request.
+        await checkpoint(report);
+        if (!proposed) continue;
+        const reviewed = await screen(model.id, test, proposed);
+        observation.screened = reviewed.approved;
+        observation.passed =
+          fields?.category === test.category &&
+          reviewed.approved &&
+          reviewed.outcome.actual === "allow";
+        if (title.attempt?.costUsd != null && reviewed.cost != null)
+          costs.push(title.attempt.costUsd + reviewed.cost);
+        await checkpoint(report);
+      }
+      candidate.eligible =
+        candidate.titles.length === 20 &&
+        candidate.titles.every((row) => row.passed);
+      if (candidate.eligible && costs.length === 20)
+        candidate.averagePostChatUsd =
+          costs.reduce((sum, cost) => sum + cost, 0) / costs.length;
+    }
+    if (eligible.length > bounds.maxCandidates)
+      throw new MeasurementError(
+        "The candidate cap left comparable catalogue models unmeasured",
+      );
+    const chosen = chooseMeasuredCandidate(report.candidates);
+    if (!chosen)
+      throw new MeasurementError(
+        "No comparable candidate passed selection within the approved limits",
+      );
+
+    for (const test of fixtures.heldOut) {
+      report.holdout.push((await screen(chosen.model, test)).outcome);
+      await checkpoint(report);
+    }
+    if (report.holdout.some(({ expected, actual }) => expected !== actual))
+      throw new MeasurementError(
+        "Held-out verdicts differ. Review the mismatch IDs before changing fixtures or candidates.",
+      );
+
+    const selected = options(chosen.model);
+    const chatCheck = await step("diagnostic-chat", chosen.model, (client) =>
+      client.chat("check", connectionChat, selected, {
+        validateText: validateConnectionReply,
+        images: [checkImage],
+      }),
+    );
+    if (chatCheck.value?.value !== true)
+      throw new MeasurementError(
+        "The production vision connection check failed under deny routing",
+      );
+    for (const shape of releaseRequestShapes()) {
+      const measured = await step(shape.id, chosen.model, (client) =>
+        runReleaseShape(client, shape, selected),
+      );
+      const allowed = measured.value?.moderation;
+      const passed =
+        !!measured.attempt &&
+        measured.attempt.inputTokens !== null &&
+        measured.attempt.outputTokens !== null &&
+        measured.attempt.costUsd !== null &&
+        (shape.feature === "moderation"
+          ? allowed?.isInappropriate === false
+          : measured.value?.value === true);
+      report.maximumShapes.push({ id: shape.id, passed });
+      await checkpoint(report);
+      if (!passed)
+        throw new MeasurementError(
+          "The selected model failed production request or usage checks for " +
+            shape.id,
+        );
+    }
+    const check = await embed("diagnostic-embedding", connectionText, "check");
+    const pairs = [];
+    for (const pair of fixtures.search) {
+      const query = await embed(pair.id + "/query", pair.query, "embed-query");
+      const document = await embed(
+        pair.id + "/document",
+        postEmbeddingText(pair.post, pair.post),
+        "embed-write",
+      );
+      pairs.push({
+        id: pair.id,
+        expected: pair.expected,
+        query: query.vector,
+        document: document.vector,
+      });
+    }
+    const search = searchCutoff(
+      await distances(pairs),
+      defaults.searchMaxDistance,
+    );
+    if (search.searchMaxDistance === null)
+      throw new MeasurementError(
+        "Related and unrelated pgvector distances overlap",
+      );
+
+    const embeddings = [];
+    for (const { id, text } of examples) {
+      const title = chosen.titles.find((row) => row.id === id)?.heading;
+      if (!title)
+        throw new MeasurementError(
+          "A selected post is missing its reviewed title",
+        );
+      embeddings.push(
+        (
+          await embed(
+            id + "/post-embedding",
+            postEmbeddingText(title, text),
+            "embed-write",
+          )
+        ).attempt,
+      );
+    }
+    let listedPrice: z.infer<typeof embeddingEntry>["pricing"] | undefined;
+    if (embeddings.some((row) => row.costUsd === null)) {
+      const catalogue = catalogueData.parse(
+        await readMetadata(
+          "/models/user?output_modalities=embeddings",
+          key,
+          transport,
+        ),
+      );
+      listedPrice = catalogue.data
+        .map((data) => embeddingEntry.safeParse(data).data)
+        .find((entry) => entry?.id === base.embeddingModel)?.pricing;
+    }
+    const embeddingCost = estimateEmbeddingCost(embeddings, listedPrice);
+    report.result = {
+      chatModel: chosen.model,
+      currentDefaultChatModel: defaults.model,
+      embeddingModel: base.embeddingModel,
+      embeddingWidth: check.vector.length,
+      search,
+      // The vectors come from synthetic posts and are needed by the exact-image
+      // board check. This private report is never a CI upload.
+      searchVectors: pairs,
+      outputTokens,
+      priceSnapshot: embeddingCost
+        ? {
+            date,
+            usdPer100TextPosts:
+              (chosen.averagePostChatUsd! +
+                embeddingCost.total / examples.length) *
+              100,
+            embeddingSource: embeddingCost.source,
+            embeddingPrices: listedPrice,
+          }
+        : null,
+      operatorReview: [
+        "independent headings",
+        "apply model and measured midpoint",
+        "exact-image board search",
+      ],
+    };
+    if (!embeddingCost)
+      throw new MeasurementError(
+        "Embedding costs and a usable price fallback are unavailable",
+      );
+    report.status = "measured";
+  } catch (error) {
+    report.error =
+      error instanceof MeasurementError
+        ? error.message
+        : "Could not complete the authenticated provider measurement";
+  }
+  await checkpoint(report);
+  return report;
+}
+
+function positive(
+  value: string | undefined,
+  ceiling: number,
+  name: string,
+  integer = false,
+) {
+  const parsed = Number(value);
+  if (
+    !Number.isFinite(parsed) ||
+    parsed <= 0 ||
+    parsed > ceiling ||
+    (integer && !Number.isSafeInteger(parsed))
+  )
+    throw new MeasurementError(
+      name + " requires an explicit positive value within its bounds",
+    );
+  return parsed;
 }
 
 async function main() {
@@ -153,469 +703,70 @@ async function main() {
     strict: true,
   });
   const fixtures = await releaseFixtures();
-  const fixtureManifest = {
-    hashes: fixtures.hashes,
-    selection: fixtures.selection.length,
-    heldOut: fixtures.heldOut.length,
-    search: fixtures.search.length,
-    prompts: sha256([moderatePrompt, titlePrompt, titleReview].join("\n")),
-  };
   if (values["manifest-only"]) {
-    console.log(JSON.stringify(fixtureManifest, null, 2));
+    console.log(JSON.stringify(manifest(fixtures), null, 2));
     return;
   }
-  const maxUsd = positiveOption(values["max-usd"], 100, "--max-usd");
-  const maxRequests = positiveOption(
-    values["max-requests"],
-    5000,
-    "--max-requests",
-  );
-  const maxCandidates = positiveOption(
-    values["max-candidates"],
-    100,
-    "--max-candidates",
-  );
-  if (
-    !Number.isSafeInteger(maxRequests) ||
-    !Number.isSafeInteger(maxCandidates)
-  )
-    throw new MeasurementError(
-      "Request and candidate limits must be whole numbers",
-    );
+  const bounds = {
+    maxUsd: positive(values["max-usd"], 100, "--max-usd"),
+    maxRequests: positive(values["max-requests"], 5000, "--max-requests", true),
+    maxCandidates: positive(
+      values["max-candidates"],
+      100,
+      "--max-candidates",
+      true,
+    ),
+  };
   const key = process.env.OPENROUTER_API_KEY?.trim();
   if (!key)
     throw new MeasurementError(
-      "Supply a dedicated capped OPENROUTER_API_KEY in the shell environment",
+      "Supply a dedicated capped OPENROUTER_API_KEY from your secret manager",
     );
-
-  const date = new Date().toISOString();
+  await verifyCalibrationDatabase();
+  if (
+    await command("git", ["status", "--porcelain", "--untracked-files=normal"])
+  )
+    throw new MeasurementError(
+      "Run paid calibration from the exact clean commit you intend to qualify",
+    );
   const sourceCommit = await command("git", ["rev-parse", "HEAD"]);
-  const bounds = { maxUsd, maxRequests, maxCandidates };
-  const privacy = privacyRouting("deny");
-  const candidates: object[] = [];
-  const holdout: object[] = [];
-  const report = {
-    status: "incomplete",
-    error: "" as string | undefined,
-    date,
+  const date = new Date().toISOString();
+  const directory = "artifacts/self-hosting/live-ai";
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const file = join(
+    directory,
+    date.replaceAll(":", "-") + "-" + randomUUID().slice(0, 8) + ".json",
+  );
+  const temporary = file + ".tmp";
+  const result = await measureRelease({
+    key,
     sourceCommit,
-    fixtureManifest,
-    privacy,
+    date,
     bounds,
-    candidates,
-    holdout,
-    result: undefined as object | undefined,
-    paidRequests: 0,
-    observedCostUsd: 0,
-    unpricedRequests: 0,
-  };
-  type Path = "/key" | "/models/user" | "/chat/completions" | "/embeddings";
-  async function request(path: Path, body?: unknown) {
-    if (body && ++report.paidRequests > maxRequests) {
-      report.paidRequests--;
-      throw new MeasurementError("Maximum paid request count reached");
-    }
-    const response = await fetch(OPENROUTER_API + path, {
-      method: body ? "POST" : "GET",
-      headers: {
-        authorization: "Bearer " + key,
-        "content-type": "application/json",
-      },
-      body: body ? JSON.stringify(body) : undefined,
-      redirect: "error",
-      signal: AbortSignal.timeout(45000),
-    });
-    return { status: response.status, body: await readJson(response) };
-  }
-  function account(usage?: z.infer<typeof usageSchema>) {
-    if (usage?.cost === undefined) report.unpricedRequests++;
-    else report.observedCostUsd += usage.cost;
-    if (report.observedCostUsd >= maxUsd)
-      throw new MeasurementError("Reported cost reached the approved budget");
-    return usage;
-  }
-
-  async function complete(
-    model: string,
-    system: string,
-    text: string,
-    maximum: number,
-    image?: string,
-  ) {
-    const { status, body } = await request("/chat/completions", {
-      model,
-      provider: privacy,
-      response_format: { type: "json_object" },
-      reasoning: { effort: "minimal" },
-      max_tokens: maximum,
-      usage: { include: true },
-      messages: [
-        { role: "system", content: system },
-        {
-          role: "user",
-          content: image
-            ? [
-                { type: "text", text },
-                { type: "image_url", image_url: { url: image } },
-              ]
-            : text,
-        },
-      ],
-    });
-    if (status === 402 || status === 401 || status === 429)
-      throw new MeasurementError(
-        "OpenRouter stopped measurement with HTTP " + status,
-      );
-    if (status !== 200) {
-      const err = z
-        .object({
-          error: z.object({
-            metadata: z.object({ error_type: z.string() }).optional(),
-          }),
-          usage: usageSchema.optional(),
-        })
-        .safeParse(body);
-      const type = err.data?.error.metadata?.error_type;
-      return {
-        status,
-        value: null,
-        refused:
-          status === 403 &&
-          (type === "content_policy_violation" || type === "refusal"),
-        usage: account(err.data?.usage),
-      };
-    }
-    const result = chatSchema.safeParse(body);
-    if (!result.success) {
-      account();
-      return { status, value: null, refused: false };
-    }
-    const {
-      choices: [choice],
-      usage,
-      provider,
-      model: servedModel,
-    } = result.data;
-    return {
-      status,
-      value:
-        choice.finish_reason === "stop"
-          ? parsedJson(choice.message.content)
-          : null,
-      refused: choice.finish_reason === "content_filter",
-      usage: account(usage),
-      servedModel: validName(servedModel),
-      provider: validName(provider),
-    };
-  }
-
-  async function moderate(
-    model: string,
-    test: ModerationFixture,
-    heading?: string,
-  ) {
-    const image =
-      test.stratum === "vision" && test.media
-        ? "data:image/png;base64," +
-          fixtures.media.get(test.media)!.toString("base64")
-        : undefined;
-    const { value, refused, ...details } = await complete(
-      model,
-      heading ? moderatePrompt + titleReview : moderatePrompt,
-      heading ? test.text + "\n\nProposed heading:\n" + heading : test.text,
-      outputTokens.moderation,
-      image,
-    );
-    const verdict = verdictSchema.safeParse(value);
-    const actual =
-      refused ||
-      (verdict.data?.isInappropriate && verdict.data.confidenceScore > 0.7)
-        ? "refuse"
-        : verdict.success
-          ? "allow"
-          : "unavailable";
-    return {
-      id: test.id,
-      expected: test.verdict,
-      actual,
-      passed:
-        actual === test.verdict &&
-        (!heading || verdict.data?.titleApproved === true),
-      ...details,
-    };
-  }
-  const embeddingModel = defaults.embeddingModel;
-  async function embed(text: string[]) {
-    const { status, body } = await request("/embeddings", {
-      model: embeddingModel,
-      provider: privacy,
-      dimensions: 768,
-      encoding_format: "float",
-      input: text,
-    });
-    const result = embeddings.safeParse(body);
-    if (status !== 200 || !result.success)
-      throw new MeasurementError(
-        "Default embedding model did not return 768 finite values per input",
-      );
-    const ordered = [...result.data.data].sort((a, b) => a.index - b.index);
-    if (
-      ordered.length !== text.length ||
-      ordered.some(
-        (row, i) =>
-          row.index !== i ||
-          !row.embedding.every(Number.isFinite) ||
-          Math.hypot(...row.embedding) === 0,
-      )
-    )
-      throw new MeasurementError(
-        "Default embedding response is incomplete or invalid",
-      );
-    return {
-      values: ordered.map((row) => row.embedding),
-      usage: account(result.data.usage),
-      model: validName(result.data.model),
-    };
-  }
-  try {
-    const current = await request("/key");
-    const accountInfo = z
-      .object({
-        data: z.object({
-          limit: z.number().positive().max(maxUsd),
-          limit_remaining: z.number().positive(),
-          limit_reset: z.null(),
-          is_free_tier: z.literal(false),
-          is_management_key: z.boolean().optional(),
-          is_provisioning_key: z.boolean().optional(),
-        }),
-      })
-      .safeParse(current.body);
-    if (
-      current.status !== 200 ||
-      !accountInfo.success ||
-      accountInfo.data.data.is_management_key ||
-      accountInfo.data.data.is_provisioning_key
-    )
-      throw new MeasurementError(
-        "The key must be a funded inference key with a non-resetting spend cap at or below --max-usd",
-      );
-
-    const listed = await request("/models/user");
-    const parsed = catalogue.safeParse(listed.body);
-    // Individual catalogue entries with unknown prices cannot support a price comparison.
-    const root = z
-      .object({ data: z.array(z.unknown()) })
-      .safeParse(listed.body);
-    if (listed.status !== 200 || !root.success)
-      throw new MeasurementError(
-        "The authenticated model catalogue is unavailable",
-      );
-    const modelSchema = catalogue.shape.data.element;
-    const known = parsed.success
-      ? parsed.data.data
-      : root.data.data.flatMap((raw) => {
-          const row = modelSchema.safeParse(raw);
-          return row.success ? [row.data] : [];
-        });
-    const eligible = known.filter(
-      ({ id, architecture, pricing, context_length }) =>
-        !!validName(id) &&
-        !id.startsWith("openrouter/") &&
-        !id.endsWith(":free") &&
-        !!context_length &&
-        context_length >= 128000 &&
-        architecture.input_modalities.includes("text") &&
-        architecture.input_modalities.includes("image") &&
-        architecture.output_modalities?.includes("text") &&
-        pricing.prompt + pricing.completion + pricing.request > 0,
-    );
-    // Put the same reference workload through every quote when deciding what to test first.
-    const quote = ({ pricing }: (typeof eligible)[number]) =>
-      400 * pricing.prompt + 120 * pricing.completion + pricing.request;
-    eligible.sort(
-      (a, b) => quote(a) - quote(b) || a.id.localeCompare(b.id, "en"),
-    );
-    let chosen: (typeof eligible)[number] | undefined;
-    let postCosts: number[] = [];
-    for (const model of eligible.slice(0, maxCandidates)) {
-      const screening = [];
-      for (const test of fixtures.selection)
-        screening.push(await moderate(model.id, test));
-      const titles = [];
-      const costs = [];
-      if (screening.every((test) => test.passed)) {
-        for (const test of fixtures.selection.filter((test) => test.category)) {
-          const { value, refused, ...details } = await complete(
-            model.id,
-            titlePrompt,
-            test.text,
-            outputTokens.title,
-          );
-          const label = titleSchema.safeParse(value);
-          const reviewed = label.success
-            ? await moderate(model.id, test, label.data.title)
-            : null;
-          const passed =
-            !refused &&
-            label.data?.category === test.category &&
-            !!reviewed?.passed;
-          titles.push({
-            id: test.id,
-            expected: test.category,
-            actual: label.data?.category ?? null,
-            passed,
-            reviewed,
-            ...details,
-          });
-          if (
-            details.usage?.cost !== undefined &&
-            reviewed?.usage?.cost !== undefined
-          )
-            costs.push(details.usage.cost + reviewed.usage.cost);
-        }
-      }
-      candidates.push({
-        model: model.id,
-        version: validName(model.canonical_slug),
-        quoteUSD: quote(model),
-        quoteInputs: { inputTokens: 400, outputTokens: 120, requests: 1 },
-        prices: model.pricing,
-        modelCatalogueEntries: root.data.data.length,
-        comparableCatalogueEntries: eligible.length,
-        screening,
-        titles,
+    fixtures,
+    checkpoint: async (report) => {
+      await writeFile(temporary, JSON.stringify(report, null, 2) + "\n", {
+        mode: 0o600,
       });
-      if (titles.length === 20 && titles.every((test) => test.passed)) {
-        chosen = model;
-        postCosts = costs;
-        break;
-      }
-    }
-    if (!chosen)
-      throw new MeasurementError(
-        "No comparable candidate passed selection within the approved limits",
-      );
-    const allowed = [];
-    for (const test of fixtures.heldOut) {
-      const outcome = await moderate(chosen.id, test);
-      holdout.push(outcome);
-      allowed.push(outcome.passed);
-    }
-    if (allowed.includes(false))
-      throw new MeasurementError(
-        "Held-out regression verdicts differ. Review the mismatch IDs before changing fixtures or candidates.",
-      );
-
-    const fixedImage =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFElEQVR4nGNsaGhgwAaYsIoOWgkAMBcBkGHHl6YAAAAASUVORK5CYII=";
-    const { value: checked, ...chatCheck } = await complete(
-      chosen.id,
-      connectionChat.system,
-      connectionChat.text,
-      outputTokens.check,
-      fixedImage,
-    );
-    if (!z.object({ ok: z.literal(true) }).safeParse(checked).success)
-      throw new MeasurementError(
-        "The vision connection check did not pass under deny routing",
-      );
-    const {
-      values: [sample],
-      ...embeddingCheck
-    } = await embed([connectionText]);
-    const { values: vectors, ...searchCheck } = await embed(
-      fixtures.search.flatMap(({ query, post }) => [query, post]),
-    );
-    const searchDistances = fixtures.search.map(({ id, expected }, i) => {
-      const a = vectors[i * 2],
-        b = vectors[i * 2 + 1];
-      const dot = a.reduce((sum, v, n) => sum + v * b[n], 0);
-      return {
-        id,
-        expected,
-        distance: 1 - dot / (Math.hypot(...a) * Math.hypot(...b)),
-      };
-    });
-    const worstRelated = Math.max(
-      ...searchDistances
-        .filter((p) => p.expected === "related")
-        .map((p) => p.distance),
-    );
-    const closestUnrelated = Math.min(
-      ...searchDistances
-        .filter((p) => p.expected === "unrelated")
-        .map((p) => p.distance),
-    );
-    const searchMaxDistance = (worstRelated + closestUnrelated) / 2;
-    const matchCurrentCutoff =
-      defaults.searchMaxDistance >= worstRelated &&
-      defaults.searchMaxDistance < closestUnrelated;
-    const postEmbedding = await embed(
-      fixtures.selection
-        .filter((test) => test.category)
-        .map((test) => test.text),
-    );
-    const embeddingCost = postEmbedding.usage?.cost;
-    const typicalPostUsd =
-      postCosts.length === 20 && embeddingCost !== undefined
-        ? (postCosts.reduce((sum, value) => sum + value, 0) + embeddingCost) /
-          20
-        : null;
-    report.result = {
-      chatModel: chosen.id,
-      currentDefaultChatModel: defaults.model,
-      chatCheck,
-      embeddingModel,
-      embeddingCheck: { width: sample.length, ...embeddingCheck },
-      search: {
-        ...searchCheck,
-        distances: searchDistances,
-        worstRelated,
-        closestUnrelated,
-        searchMaxDistance,
-        matchCurrentCutoff,
-      },
-      postEmbedding: { model: postEmbedding.model, usage: postEmbedding.usage },
-      observedPriceSnapshot:
-        typicalPostUsd === null
-          ? null
-          : { date, usdPer100TextPosts: typicalPostUsd * 100 },
-      outputTokens,
-    };
-    if (worstRelated >= closestUnrelated)
-      throw new MeasurementError(
-        "Related and unrelated distance distributions overlap",
-      );
-    if (typicalPostUsd === null)
-      throw new MeasurementError(
-        "The provider omitted usage costs needed for the dated post-price snapshot",
-      );
-    report.status = "measured";
-    report.error = undefined;
-  } catch (error) {
-    report.error =
-      error instanceof MeasurementError
-        ? error.message
-        : "Could not complete the authenticated provider measurement";
+      await rename(temporary, file);
+    },
+  });
+  console.log(result.status + " " + file);
+  if (result.error) {
+    console.error(result.error);
     process.exitCode = 1;
   }
-  const directory = "artifacts/self-hosting/live-ai";
-  await mkdir(directory, { recursive: true });
-  const file = join(directory, date.replaceAll(":", "-") + ".json");
-  await writeFile(file, JSON.stringify(report, null, 2) + "\n", {
-    flag: "wx",
-    mode: 0o600,
-  });
-  console.log(report.status + " " + file);
-  if (report.error) console.error(report.error);
 }
 
-void main().catch((error) => {
-  console.error(
-    error instanceof MeasurementError
-      ? error.message
-      : "Provide valid measurement options and run from the repository root",
-  );
-  process.exitCode = 1;
-});
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  void main().catch((error) => {
+    console.error(
+      error instanceof MeasurementError
+        ? error.message
+        : "Calibration preflight or evidence write failed",
+    );
+    process.exitCode = 1;
+  });

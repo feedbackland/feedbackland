@@ -47,6 +47,12 @@ export type Dispatch = {
   error?: AiError;
   usage: Usage;
 };
+export type ModelWireState = Pick<
+  Dispatch,
+  "capability" | "signal" | "usage" | "error"
+> & {
+  receipt?: { model: unknown; provider: unknown; byok: boolean };
+};
 export const dispatchContext = new AsyncLocalStorage<Dispatch>();
 const metadataPaths = {
   key: "/key",
@@ -63,7 +69,7 @@ function boundedBody(
   response: Response,
   limit: number,
   signal: AbortSignal,
-  ctx?: Dispatch,
+  ctx?: ModelWireState,
 ) {
   const reader = response.body?.getReader();
   if (!reader) throw new AiError("invalid-response");
@@ -125,7 +131,7 @@ function readUsage(data: Record<string, unknown>): Usage {
         : undefined,
   };
 }
-export function observeStreamFrame(ctx: Dispatch, frame: unknown) {
+export function observeStreamFrame(ctx: ModelWireState, frame: unknown) {
   const data = object(frame);
   if (data.usage) {
     const usage = readUsage(data);
@@ -135,7 +141,17 @@ export function observeStreamFrame(ctx: Dispatch, frame: unknown) {
       cost: usage.cost ?? ctx.usage.cost,
     };
   }
+  observeReceipt(ctx, data);
   if (data.error) ctx.error = responseError(200, data, null);
+}
+function observeReceipt(ctx: ModelWireState, data: Record<string, unknown>) {
+  if (data.model === undefined && data.provider === undefined && !data.usage)
+    return;
+  ctx.receipt = {
+    model: data.model ?? ctx.receipt?.model,
+    provider: data.provider ?? ctx.receipt?.provider,
+    byok: object(data.usage).is_byok === true || ctx.receipt?.byok === true,
+  };
 }
 async function send(
   path: string,
@@ -143,10 +159,11 @@ async function send(
   body: string | undefined,
   signal: AbortSignal,
   limit: number,
-  ctx?: Dispatch,
+  ctx?: ModelWireState,
+  transport: typeof fetch = fetch,
 ) {
   signal.throwIfAborted();
-  const result = await fetch(OPENROUTER_API + path, {
+  const result = await transport(OPENROUTER_API + path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       ...(key ? { authorization: "Bearer " + key } : {}),
@@ -174,35 +191,114 @@ async function send(
     } catch {
       /* Unrecognized error body. */
     }
-    if (ctx) ctx.usage = readUsage(object(data));
+    if (ctx) {
+      ctx.usage = readUsage(object(data));
+      observeReceipt(ctx, object(data));
+    }
     throw responseError(result.status, data, result.headers.get("retry-after"));
   }
   return limited;
 }
+export function modelRequest(
+  input: Parameters<typeof fetch>[0],
+  init: Parameters<typeof fetch>[1],
+  capability: Capability,
+  privacy: import("./defaults").Options["privacy"],
+) {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  const path = capability === "chat" ? "/chat/completions" : "/embeddings";
+  if (
+    url !== OPENROUTER_API + path ||
+    init?.method !== "POST" ||
+    typeof init.body !== "string"
+  )
+    throw new AiError("invalid-input");
+  const body = object(JSON.parse(init.body));
+  body.provider = privacyRouting(privacy);
+  const payload = JSON.stringify(body);
+  if (Buffer.byteLength(payload) > 6_000_000)
+    throw new AiError("invalid-input");
+  return { path, body, payload };
+}
+
+export async function sendModel(
+  { path, body, payload }: ReturnType<typeof modelRequest>,
+  key: string,
+  dimensions: number,
+  ctx: ModelWireState,
+  transport?: typeof fetch,
+) {
+  const result = await send(
+    path,
+    key,
+    payload,
+    ctx.signal,
+    MODEL_RESPONSE_BYTES,
+    ctx,
+    transport,
+  );
+  if (
+    body.stream === true &&
+    result.headers.get("content-type")?.includes("text/event-stream")
+  )
+    return result;
+  const text = await result.text();
+  let data;
+  try {
+    data = object(JSON.parse(text));
+  } catch {
+    throw new AiError("invalid-response");
+  }
+  ctx.usage = readUsage(data);
+  observeReceipt(ctx, data);
+  if (data.error) throw responseError(200, data, null);
+  if (ctx.capability === "embeddings") {
+    // The compatible SDK discards response indexes. Validate and restore input
+    // order before it can associate a vector with the wrong board item.
+    const count = Array.isArray(body.input) ? body.input.length : 1;
+    if (!Array.isArray(data.data) || data.data.length !== count)
+      throw new AiError("invalid-response");
+    const sorted = new Array<unknown>(count);
+    for (const entry of data.data) {
+      const { index, embedding } = object(entry);
+      if (Array.isArray(embedding) && embedding.length !== dimensions)
+        throw new EmbeddingWidthError(dimensions, embedding.length);
+      if (
+        typeof index !== "number" ||
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= count ||
+        sorted[index] !== undefined ||
+        !validCosineVector(embedding, dimensions)
+      )
+        throw new AiError("invalid-response");
+      sorted[index] = entry;
+    }
+    data.data = sorted;
+  }
+  if (body.stream === true) throw new AiError("invalid-response");
+  return new Response(
+    ctx.capability === "embeddings" ? JSON.stringify(data) : text,
+    { headers: { "content-type": "application/json" } },
+  );
+}
+
 export const providerFetch: typeof fetch = async (input, init) => {
   const ctx = dispatchContext.getStore();
   if (!ctx || ctx.admission || !ctx.config.apiKey)
     throw new AiError("AI_UNAVAILABLE");
   try {
-    const url =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.href
-          : input.url;
-    const path =
-      ctx.capability === "chat" ? "/chat/completions" : "/embeddings";
-    if (
-      url !== OPENROUTER_API + path ||
-      init?.method !== "POST" ||
-      typeof init.body !== "string"
-    )
-      throw new AiError("invalid-input");
-    const body = object(JSON.parse(init.body));
-    body.provider = privacyRouting(ctx.config.options.privacy);
-    const payload = JSON.stringify(body);
-    if (Buffer.byteLength(payload) > 6_000_000)
-      throw new AiError("invalid-input");
+    const request = modelRequest(
+      input,
+      init,
+      ctx.capability,
+      ctx.config.options.privacy,
+    );
     ctx.signal.throwIfAborted();
     const admission = await beginAttempt(
       ctx.config,
@@ -226,62 +322,11 @@ export const providerFetch: typeof fetch = async (input, init) => {
       throw error;
     }
     ctx.admission = admission;
-    const result = await send(
-      path,
+    return await sendModel(
+      request,
       ctx.config.apiKey,
-      payload,
-      ctx.signal,
-      MODEL_RESPONSE_BYTES,
+      ctx.config.dimensions,
       ctx,
-    );
-    if (
-      body.stream === true &&
-      result.headers.get("content-type")?.includes("text/event-stream")
-    )
-      return result;
-    const text = await result.text();
-    let data;
-    try {
-      data = object(JSON.parse(text));
-    } catch {
-      throw new AiError("invalid-response");
-    }
-    ctx.usage = readUsage(data);
-    if (data.error) throw responseError(200, data, null);
-    if (ctx.capability === "embeddings") {
-      // The compatible SDK discards response indexes. Validate and restore input
-      // order before it can associate a vector with the wrong board item.
-      const count = Array.isArray(body.input) ? body.input.length : 1;
-      if (!Array.isArray(data.data) || data.data.length !== count)
-        throw new AiError("invalid-response");
-      const sorted = new Array<unknown>(count);
-      for (const entry of data.data) {
-        const { index, embedding } = object(entry);
-        if (
-          Array.isArray(embedding) &&
-          embedding.length !== ctx.config.dimensions
-        )
-          throw new EmbeddingWidthError(
-            ctx.config.dimensions,
-            embedding.length,
-          );
-        if (
-          typeof index !== "number" ||
-          !Number.isInteger(index) ||
-          index < 0 ||
-          index >= count ||
-          sorted[index] !== undefined ||
-          !validCosineVector(embedding, ctx.config.dimensions)
-        )
-          throw new AiError("invalid-response");
-        sorted[index] = entry;
-      }
-      data.data = sorted;
-    }
-    if (body.stream === true) throw new AiError("invalid-response");
-    return new Response(
-      ctx.capability === "embeddings" ? JSON.stringify(data) : text,
-      { headers: { "content-type": "application/json" } },
     );
   } catch (error) {
     ctx.error = safeError(error, ctx.signal);

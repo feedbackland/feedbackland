@@ -15,6 +15,7 @@ const fixture = z
     category: labels.optional(),
     verdict,
     stratum: z.string().min(1),
+    family: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)+$/),
     rationale: z.string().min(10),
     media: z
       .string()
@@ -42,6 +43,17 @@ const normalize = (text: string) =>
     .trim();
 const hash = (data: unknown) => sha256(JSON.stringify(data));
 
+export function assertIndependentFamilies(
+  selection: readonly Pick<ModerationFixture, "family">[],
+  heldOut: readonly Pick<ModerationFixture, "family">[],
+) {
+  const seen = new Set(selection.map((test) => test.family));
+  assert(
+    heldOut.every(({ family }) => !seen.has(family)),
+    "Held-out scenario family overlaps model selection",
+  );
+}
+
 export async function releaseFixtures() {
   const read = async (file: string) =>
     JSON.parse(await readFile(join(directory, file), "utf8"));
@@ -54,6 +66,14 @@ export async function releaseFixtures() {
   const heldOut = fixture.array().parse(rawHeldOut);
   const search = pair.array().parse(rawSearch);
   const submissions = [...selection, ...heldOut];
+  assertIndependentFamilies(selection, heldOut);
+  assert(
+    heldOut.filter(
+      ({ stratum, verdict }) =>
+        stratum === "sexual-material" && verdict === "refuse",
+    ).length >= 2,
+  );
+  assert(heldOut.some(({ media }) => media === "vision-chart.png"));
   for (const kind of verdict.options) {
     assert.equal(selection.filter((test) => test.verdict === kind).length, 20);
     assert(heldOut.filter((test) => test.verdict === kind).length >= 40);

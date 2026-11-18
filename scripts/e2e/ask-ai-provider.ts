@@ -1,5 +1,10 @@
 import { setTimeout as pause } from "node:timers/promises";
-import { json, privateMarker, type Handler } from "../mock-llm";
+import {
+  json,
+  privateMarker,
+  reflectedProviderError,
+  type Handler,
+} from "../mock-llm";
 
 export const failureText = "P12 private provider failure";
 
@@ -20,6 +25,14 @@ export const answerAskAi: Handler = async ({ body, response }) => {
   const question = textOf(messages.at(-1)!);
   const corpus = messages[1];
   const records = corpus && Array.isArray(corpus.content) ? textOf(corpus) : "";
+  let parsedRecords: { id: string; title: string; feedback: string }[] = [];
+  if (records) {
+    try {
+      parsedRecords = records.split("\n").map((line) => JSON.parse(line));
+    } catch {
+      return json(response, { error: {} }, 422);
+    }
+  }
   const history = messages.slice(records ? 2 : 1, -1);
   const expectedPolicy = body.provider as {
     data_collection?: string;
@@ -43,7 +56,13 @@ export const answerAskAi: Handler = async ({ body, response }) => {
       (size, message) => size + Buffer.byteLength(textOf(message)),
       0,
     ) > 128000 ||
-    records.split("\n").length > 300
+    parsedRecords.length > 300 ||
+    parsedRecords.some(
+      ({ id, title, feedback }) =>
+        typeof id !== "string" ||
+        Array.from(title).length > 300 ||
+        Array.from(feedback).length > 400,
+    )
   ) {
     console.log("P12 Ask transport shape rejected");
     return json(response, { error: {} }, 422);
@@ -67,8 +86,17 @@ export const answerAskAi: Handler = async ({ body, response }) => {
       );
     }
   }
-  const citation = /[0-9a-f-]{36}/.exec(records)?.[0];
+  const citation = parsedRecords[0]?.id;
   if (!citation) return json(response, { error: {} }, 422);
+  const scenario = question.match(
+    /^P12 lifecycle (early|late|empty|truncated|wall)$/,
+  )?.[1];
+  if (scenario) {
+    console.log("P12 Ask lifecycle entered " + scenario);
+    response.once("close", () =>
+      console.log("P12 Ask lifecycle closed " + scenario),
+    );
+  }
   const frame = (text: string | null, finish: string | null) => ({
     id: "p12-fixture-chat",
     created: 1,
@@ -82,23 +110,48 @@ export const answerAskAi: Handler = async ({ body, response }) => {
       },
     ],
   });
+  if (scenario === "early") {
+    await new Promise<void>((done) => response.once("close", done));
+    return;
+  }
   response.writeHead(200, { "content-type": "text/event-stream" });
   const send = (value: unknown) =>
     response.write("data: " + JSON.stringify(value) + "\n\n");
-  send(frame("Feedbackland fixture response. ", null));
+  send(
+    frame(
+      scenario === "empty" ? "  " : "Feedbackland fixture response. ",
+      null,
+    ),
+  );
+  if (scenario === "late") {
+    await new Promise<void>((done) => response.once("close", done));
+    return;
+  }
+  if (scenario === "wall") {
+    const heartbeat = setInterval(
+      () => send(frame(" More fixture text.", null)),
+      2000,
+    );
+    try {
+      await new Promise<void>((done) => response.once("close", done));
+    } finally {
+      clearInterval(heartbeat);
+    }
+    return;
+  }
   await pause(100);
   if (question === "P12 interrupted answer") {
     console.log("P12 Ask reflected stream error");
     send({
       error: {
         code: 502,
-        message: privateMarker,
-        metadata: { private: privateMarker },
+        ...reflectedProviderError.error,
       },
     });
   } else {
-    send(frame("[Source post](post:" + citation + ")", null));
-    send(frame(null, "stop"));
+    if (scenario !== "empty")
+      send(frame("[Source post](post:" + citation + ")", null));
+    send(frame(null, scenario === "truncated" ? "length" : "stop"));
     send({
       choices: [],
       usage: {
@@ -118,7 +171,12 @@ export const answerAskAi: Handler = async ({ body, response }) => {
           (size, msg) => size + Buffer.byteLength(textOf(msg)),
           0,
         ),
-        corpusRows: records.split("\n").length,
+        corpusRows: parsedRecords.length,
+        completeDescription: parsedRecords.every((row) =>
+          row.title.startsWith("P12 corpus fixture")
+            ? Array.from(row.feedback).length === 400
+            : true,
+        ),
         historyRows: history.length,
         cache: "part",
       }),

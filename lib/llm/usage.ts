@@ -245,7 +245,6 @@ export async function beginAttempt(
       wall,
       async (trx) => {
         if (lease) await requireLease(trx, lease);
-        if (actor) await requireAdmin(trx, actor, true);
         if (check && feature !== "check") throw new AiError("invalid-input");
         const action = check?.action;
         if (action) await authorizeCheckActor(trx, action.actor, false);
@@ -296,6 +295,9 @@ export async function beginAttempt(
           )
           .execute();
         await requireDispatch(trx, config, purpose, check);
+        // Evaluate session age and role at admission after the allowance and
+        // dispatch locks have been acquired.
+        if (actor) await requireAdmin(trx, actor, true);
         const leaseEnd = reservation
           ? await requireInsightLease(trx, reservation, day)
           : lease

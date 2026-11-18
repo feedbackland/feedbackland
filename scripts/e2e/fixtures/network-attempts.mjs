@@ -5,11 +5,20 @@ import { pathToFileURL } from "node:url";
 
 export function outboundDestinations(traces) {
   const endpoints = new Map();
+  const issues = {};
   let undecoded = 0;
+  const issue = (name) => {
+    undecoded++;
+    issues[name] = (issues[name] ?? 0) + 1;
+  };
   for (const trace of traces) {
     for (const line of trace.split("\n")) {
       const call = /^(connect|sendto|sendmsg|sendmmsg)\(/.exec(line)?.[1];
-      if (!call) continue;
+      if (!call) {
+        if (/^<\.\.\. (connect|sendto|sendmsg|sendmmsg) resumed>/.test(line))
+          issue("unmatched-resume");
+        continue;
+      }
       const inet = [...line.matchAll(/sa_family=AF_INET6?\b/g)];
       const ports = [...line.matchAll(/\bsin6?_port=htons\((\d+)\)/g)];
       const addresses = [
@@ -17,22 +26,35 @@ export function outboundDestinations(traces) {
           /(?:inet_addr\(|inet_pton\(AF_INET6, )"([0-9a-f:.]+)"/gi,
         ),
       ];
-      if (
-        inet.length !== ports.length ||
-        inet.length !== addresses.length ||
-        line.includes("/* unreadable") ||
-        (call === "connect" &&
-          !line.includes("sa_family=") &&
-          !/^connect\(\d+, NULL,/.test(line)) ||
-        (call === "sendmmsg" && line.includes("}, ...]"))
-      ) {
-        undecoded++;
+      const bad =
+        inet.length !== ports.length || inet.length !== addresses.length
+          ? "address-layout"
+          : line.includes("/* unreadable")
+            ? "unreadable"
+            : line.includes("<unfinished ...>")
+              ? "unfinished"
+              : call === "sendto" &&
+                  inet.length === 0 &&
+                  !/,( NULL| \{sa_family=AF_[A-Z0-9_]+\b.*\}), \d+\)/.test(line)
+                ? "sendto-address"
+                : (call === "sendmsg" || call === "sendmmsg") &&
+                    (!line.includes("msg_name=") || /msg_name=0x/.test(line))
+                  ? "message-address"
+                  : call === "connect" &&
+                      !line.includes("sa_family=") &&
+                      !/^connect\(\d+, NULL,/.test(line)
+                    ? "connect-address"
+                    : call === "sendmmsg" && line.includes("}, ...]")
+                      ? "abbreviated-message"
+                      : null;
+      if (bad) {
+        issue(call + ":" + bad);
         continue;
       }
       for (const [i, match] of addresses.entries()) {
         const host = match[1].replace(/^::ffff:/i, "");
         if (!isIP(host)) {
-          undecoded++;
+          issue(call + ":invalid-destination");
           continue;
         }
         const port = Number(ports[i][1]);
@@ -47,14 +69,12 @@ export function outboundDestinations(traces) {
       }
     }
   }
-  return { undecoded, endpoints: [...endpoints.values()] };
+  return { undecoded, issues, endpoints: [...endpoints.values()] };
 }
 
-if (
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(process.argv[1]).href
-) {
-  const dir = process.argv[2];
+async function main(dir) {
+  if ((await readFile(join(dir, "completed"), "utf8")) !== "complete")
+    throw new Error("Network trace did not close cleanly");
   const files = (await readdir(dir)).filter((file) =>
     /^network\.\d+$/.test(file),
   );
@@ -63,4 +83,14 @@ if (
     files.map((file) => readFile(join(dir, file), "utf8")),
   );
   console.log(JSON.stringify(outboundDestinations(traces)));
+}
+
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  void main(process.argv[2]).catch(() => {
+    console.error("Incomplete or unreadable network observation");
+    process.exitCode = 1;
+  });
 }

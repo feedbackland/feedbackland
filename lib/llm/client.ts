@@ -15,6 +15,7 @@ import {
   type LanguageModelUsage,
 } from "ai";
 import { runtimeState } from "../runtime-state";
+import { ASK_AI_STREAM_MS } from "../ask-ai";
 import type { Actor } from "../auth/authorization";
 import {
   OPENROUTER_API,
@@ -27,6 +28,7 @@ import {
   outputTokens,
   privacyRouting,
   type ChatFeature,
+  type Options,
 } from "./defaults";
 import {
   configuration,
@@ -51,6 +53,9 @@ import {
 import { embeddingBatch } from "./model-profiles";
 import {
   providerFetch,
+  modelRequest,
+  sendModel,
+  type ModelWireState,
   dispatchContext,
   observeStreamFrame,
   metadata,
@@ -58,37 +63,39 @@ import {
   type MetadataKind,
 } from "./fetch";
 
-const provider = createOpenAICompatible({
-  name: "openrouter",
-  baseURL: OPENROUTER_API,
-  includeUsage: true,
-  fetch: providerFetch,
-  transformRequestBody(body) {
-    const marker = body.feedbackland_cache;
-    if (marker !== "system" && marker !== "corpus") return body;
-    const rest = { ...body };
-    delete rest.feedbackland_cache;
-    return {
-      ...rest,
-      messages: body.messages.map(
-        (m: { role: string; content: unknown }, index: number) =>
-          index === (marker === "corpus" ? 1 : 0) &&
-          typeof m.content === "string"
-            ? {
-                ...m,
-                content: [
-                  {
-                    type: "text",
-                    text: m.content,
-                    cache_control: { type: "ephemeral" },
-                  },
-                ],
-              }
-            : m,
-      ),
-    };
-  },
-});
+const compatible = (transport: typeof fetch) =>
+  createOpenAICompatible({
+    name: "openrouter",
+    baseURL: OPENROUTER_API,
+    includeUsage: true,
+    fetch: transport,
+    transformRequestBody(body) {
+      const marker = body.feedbackland_cache;
+      if (marker !== "system" && marker !== "corpus") return body;
+      const rest = { ...body };
+      delete rest.feedbackland_cache;
+      return {
+        ...rest,
+        messages: body.messages.map(
+          (m: { role: string; content: unknown }, index: number) =>
+            index === (marker === "corpus" ? 1 : 0) &&
+            typeof m.content === "string"
+              ? {
+                  ...m,
+                  content: [
+                    {
+                      type: "text",
+                      text: m.content,
+                      cache_control: { type: "ephemeral" },
+                    },
+                  ],
+                }
+              : m,
+        ),
+      };
+    },
+  });
+const provider = compatible(providerFetch);
 globalThis.AI_SDK_DEFAULT_PROVIDER = provider;
 globalThis.AI_SDK_LOG_WARNINGS = false;
 const heldInsightSlot = Symbol("held insight model slot");
@@ -144,7 +151,7 @@ export type InsightSlot = ReturnType<typeof acquireInsightSlot>;
 
 function duration(feature: Feature | "metadata", timeout: number) {
   if (feature === "insights") return Math.min(6 * timeout, 180000);
-  if (feature === "ask-ai") return 180000;
+  if (feature === "ask-ai") return ASK_AI_STREAM_MS;
   return timeout;
 }
 export function initialAiTimeout() {
@@ -300,21 +307,155 @@ async function execute<T>(
     release?.();
   }
 }
-function setUsage(ctx: Dispatch, usage: LanguageModelUsage) {
+function setUsage(ctx: ModelWireState, usage: LanguageModelUsage) {
   ctx.usage = {
     inputTokens: usage.inputTokens ?? ctx.usage.inputTokens,
     outputTokens: usage.outputTokens ?? ctx.usage.outputTokens,
     cost: usage.raw?.cost ?? ctx.usage.cost,
   };
 }
-export async function callChat<T = never>(
+type ChatCallbacks<T> = {
+  validateText?: (text: string) => T;
+  onText?: (delta: string, included: number) => void;
+};
+
+async function runChat<T>(
+  engine: ReturnType<typeof compatible>,
+  feature: ChatFeature,
+  prepared: ReturnType<typeof prepareChat>,
+  vision: readonly VisionAsset[],
+  options: Options,
+  ctx: Deadline & ModelWireState,
+  controls: ChatCallbacks<T>,
+) {
+  const messages: ModelMessage[] = [...prepared.messages];
+  if (vision.length) {
+    const parts: Array<
+      | { type: "text"; text: string }
+      | { type: "image"; image: Uint8Array; mediaType: string }
+    > = [{ type: "text", text: prepared.messages.at(-1)!.content }];
+    for (const asset of vision) {
+      ctx.signal.throwIfAborted();
+      const bytes = await asset.load(ctx.signal);
+      ctx.signal.throwIfAborted();
+      if (bytes.byteLength !== asset.byteSize)
+        throw new AiError("invalid-input");
+      parts.push({
+        type: "image",
+        image: bytes,
+        mediaType: asset.contentType,
+      });
+    }
+    messages[messages.length - 1] = { role: "user", content: parts };
+  }
+  const args = {
+    model: engine.chatModel(options.model),
+    system: prepared.system,
+    messages,
+    maxRetries: 0,
+    maxOutputTokens: outputTokens[feature],
+    abortSignal: ctx.signal,
+    providerOptions: {
+      openrouter: {
+        provider: privacyRouting(options.privacy),
+        reasoning: {
+          effort:
+            feature === "ask-ai"
+              ? "low"
+              : feature === "insights"
+                ? "medium"
+                : "minimal",
+          ...(feature === "insights" ? { exclude: true } : {}),
+        },
+        ...(["moderation", "title", "insights", "check"].includes(feature)
+          ? { response_format: { type: "json_object" } }
+          : {}),
+        ...(feature === "ask-ai"
+          ? { feedbackland_cache: prepared.cacheCorpus ? "corpus" : "system" }
+          : {}),
+      },
+    },
+  };
+  if (feature === "ask-ai") {
+    const timer = new AbortController();
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    const reset = (ms = options.timeoutMs) => {
+      clearTimeout(idle);
+      idle = setTimeout(
+        () => timer.abort(new DOMException("Timeout", "TimeoutError")),
+        ms,
+      );
+    };
+    ctx.signal = AbortSignal.any([ctx.signal, timer.signal]);
+    const firstTokenMs =
+      ctx.end - ASK_AI_STREAM_MS + options.timeoutMs - performance.now();
+    if (firstTokenMs <= 0) throw new AiError("timeout");
+    reset(firstTokenMs);
+    try {
+      const result = streamText({
+        ...args,
+        abortSignal: ctx.signal,
+        includeRawChunks: true,
+        onError: () => {},
+      });
+      let text = "";
+      let finish: "stop" | "length" | undefined;
+      for await (const part of result.fullStream) {
+        if (part.type === "raw") observeStreamFrame(ctx, part.rawValue);
+        if (part.type === "error")
+          throw ctx.error ?? safeError(part.error, ctx.signal);
+        if (part.type === "abort") throw safeError(null, ctx.signal);
+        if (part.type === "text-delta" && part.text) {
+          reset();
+          text += part.text;
+          controls.onText?.(part.text, prepared.included);
+        }
+        if (part.type === "reasoning-delta" && part.text) reset();
+        if (part.type === "finish-step") {
+          setUsage(ctx, part.usage);
+          if (ctx.error) throw ctx.error;
+          checkFinish(part.rawFinishReason, part.finishReason);
+          if (part.finishReason !== "stop" && part.finishReason !== "length")
+            throw new AiError("invalid-response");
+          finish = part.finishReason;
+        }
+      }
+      if (ctx.signal.aborted) throw safeError(null, ctx.signal);
+      if (!finish || !text.trim())
+        throw ctx.error ?? new AiError("invalid-response");
+      return {
+        text,
+        omitted: prepared.omitted,
+        truncated: finish === "length",
+      };
+    } finally {
+      clearTimeout(idle);
+    }
+  }
+  const result = await generateText(args);
+  setUsage(ctx, result.steps[0].usage);
+  checkFinish(result.rawFinishReason, result.finishReason);
+  if (
+    (feature === "title" || feature === "rewrite" || feature === "insights") &&
+    result.finishReason !== "stop"
+  )
+    throw new AiError("invalid-response");
+  if (feature === "moderation") {
+    const moderation = parseModeration(result.text, result.finishReason);
+    return { text: result.text, omitted: prepared.omitted, moderation };
+  }
+  return {
+    text: result.text,
+    omitted: prepared.omitted,
+    value: controls.validateText?.(result.text),
+  };
+}
+type ChatControls<T> = ChatCallbacks<T> & { images?: readonly VisionAsset[] };
+
+function prepareChatCall(
   feature: ChatFeature,
   input: ChatInput,
-  controls: Controls & {
-    images?: readonly VisionAsset[];
-    validateText?: (text: string) => T;
-    onText?: (delta: string) => void;
-  } = {},
+  controls: ChatControls<unknown>,
 ) {
   const prepared = prepareChat(feature, input);
   const vision = planVision(controls.images ?? []);
@@ -323,123 +464,26 @@ export async function callChat<T = never>(
     (controls.onText && feature !== "ask-ai")
   )
     throw new AiError("invalid-input");
-  return execute(feature, "chat", !!vision.length, controls, async (ctx) => {
-    const messages: ModelMessage[] = [...prepared.messages];
-    if (vision.length) {
-      const parts: Array<
-        | { type: "text"; text: string }
-        | { type: "image"; image: Uint8Array; mediaType: string }
-      > = [{ type: "text", text: prepared.messages.at(-1)!.content }];
-      for (const asset of vision) {
-        ctx.signal.throwIfAborted();
-        const bytes = await asset.load(ctx.signal);
-        ctx.signal.throwIfAborted();
-        if (bytes.byteLength !== asset.byteSize)
-          throw new AiError("invalid-input");
-        parts.push({
-          type: "image",
-          image: bytes,
-          mediaType: asset.contentType,
-        });
-      }
-      messages[messages.length - 1] = { role: "user", content: parts };
-    }
-    const args = {
-      model: provider.chatModel(ctx.config.options.model),
-      system: prepared.system,
-      messages,
-      maxRetries: 0,
-      maxOutputTokens: outputTokens[feature],
-      abortSignal: ctx.signal,
-      providerOptions: {
-        openrouter: {
-          provider: privacyRouting(ctx.config.options.privacy),
-          reasoning: {
-            effort:
-              feature === "ask-ai"
-                ? "low"
-                : feature === "insights"
-                  ? "medium"
-                  : "minimal",
-            ...(feature === "insights" ? { exclude: true } : {}),
-          },
-          ...(["moderation", "title", "insights", "check"].includes(feature)
-            ? { response_format: { type: "json_object" } }
-            : {}),
-          ...(feature === "ask-ai"
-            ? { feedbackland_cache: prepared.cacheCorpus ? "corpus" : "system" }
-            : {}),
-        },
-      },
-    };
-    if (feature === "ask-ai") {
-      const timer = new AbortController();
-      let idle: ReturnType<typeof setTimeout> | undefined;
-      const reset = (ms = ctx.config.options.timeoutMs) => {
-        clearTimeout(idle);
-        idle = setTimeout(
-          () => timer.abort(new DOMException("Timeout", "TimeoutError")),
-          ms,
-        );
-      };
-      ctx.signal = AbortSignal.any([ctx.signal, timer.signal]);
-      const firstTokenMs =
-        ctx.end - 180000 + ctx.config.options.timeoutMs - performance.now();
-      if (firstTokenMs <= 0) throw new AiError("timeout");
-      reset(firstTokenMs);
-      try {
-        const result = streamText({
-          ...args,
-          abortSignal: ctx.signal,
-          includeRawChunks: true,
-          onError: () => {},
-        });
-        let text = "",
-          finished = false;
-        for await (const part of result.fullStream) {
-          if (part.type === "raw") observeStreamFrame(ctx, part.rawValue);
-          if (part.type === "error")
-            throw ctx.error ?? safeError(part.error, ctx.signal);
-          if (part.type === "abort") throw safeError(null, ctx.signal);
-          if (part.type === "text-delta" && part.text) {
-            reset();
-            text += part.text;
-            controls.onText?.(part.text);
-          }
-          if (part.type === "reasoning-delta" && part.text) reset();
-          if (part.type === "finish-step") {
-            setUsage(ctx, part.usage);
-            if (ctx.error) throw ctx.error;
-            checkFinish(part.rawFinishReason, part.finishReason);
-            finished = true;
-          }
-        }
-        if (!finished) throw ctx.error ?? safeError(null, ctx.signal);
-        return { text, omitted: prepared.omitted };
-      } finally {
-        clearTimeout(idle);
-      }
-    }
-    const result = await generateText(args);
-    setUsage(ctx, result.steps[0].usage);
-    checkFinish(result.rawFinishReason, result.finishReason);
-    if (
-      (feature === "title" ||
-        feature === "rewrite" ||
-        feature === "insights") &&
-      result.finishReason !== "stop"
-    )
-      throw new AiError("invalid-response");
-    if (feature === "moderation") {
-      const moderation = parseModeration(result.text, result.finishReason);
-      return { text: result.text, omitted: prepared.omitted, moderation };
-    }
-    return {
-      text: result.text,
-      omitted: prepared.omitted,
-      value: controls.validateText?.(result.text),
-    };
-  });
+  return { prepared, vision };
+}
+
+export async function callChat<T = never>(
+  feature: ChatFeature,
+  input: ChatInput,
+  controls: Controls & ChatControls<T> = {},
+) {
+  const { prepared, vision } = prepareChatCall(feature, input, controls);
+  return execute(feature, "chat", !!vision.length, controls, (ctx) =>
+    runChat(
+      provider,
+      feature,
+      prepared,
+      vision,
+      ctx.config.options,
+      ctx,
+      controls,
+    ),
+  );
 }
 const verdict = z.object({
   isInappropriate: z.boolean(),
@@ -464,6 +508,112 @@ function checkFinish(raw: string | undefined, reason: string) {
   if (raw === "error" || reason === "error")
     throw new AiError("provider-error");
 }
+async function runEmbedding(
+  engine: ReturnType<typeof compatible>,
+  embeddingModel: string,
+  dimensions: number,
+  values: string[],
+  signal: AbortSignal,
+) {
+  const args = {
+    model: engine.textEmbeddingModel(embeddingModel),
+    maxRetries: 0,
+    abortSignal: signal,
+    providerOptions: { openrouter: { dimensions } },
+  };
+  if (values.length === 1)
+    return [(await embed({ ...args, value: values[0] })).embedding];
+  return (await embedMany({ ...args, values, maxParallelCalls: 1 })).embeddings;
+}
+
+// The opt-in release measurement uses the same adapter, wire checks and
+// validators as the application. Its dedicated provider key governs admission.
+export function calibrationClient(key: string, transport: typeof fetch) {
+  async function run<T>(
+    feature: Feature,
+    capability: Capability,
+    options: Options,
+    dimensions: number,
+    work: (
+      engine: ReturnType<typeof compatible>,
+      ctx: Deadline & ModelWireState,
+    ) => Promise<T>,
+  ) {
+    const ctx: Deadline & ModelWireState = {
+      ...deadline(duration(feature, options.timeoutMs)),
+      capability,
+      usage: {},
+    };
+    const engine = compatible(async (input, init) => {
+      try {
+        return await sendModel(
+          modelRequest(input, init, capability, options.privacy),
+          key,
+          dimensions,
+          ctx,
+          transport,
+        );
+      } catch (error) {
+        throw (ctx.error = safeError(error, ctx.signal));
+      }
+    });
+    let value: T | undefined;
+    let failure: AiError | undefined;
+    try {
+      value = await work(engine, ctx);
+    } catch (error) {
+      failure = ctx.error ?? safeError(error, ctx.signal);
+    }
+    return { value, failure, usage: ctx.usage, receipt: ctx.receipt };
+  }
+
+  return {
+    chat<T>(
+      feature: ChatFeature,
+      input: ChatInput,
+      options: Options,
+      controls: ChatControls<T> = {},
+    ) {
+      return run(feature, "chat", options, 0, (engine, ctx) => {
+        const { prepared, vision } = prepareChatCall(feature, input, controls);
+        return runChat(
+          engine,
+          feature,
+          prepared,
+          vision,
+          options,
+          ctx,
+          controls,
+        );
+      });
+    },
+    embedding(
+      feature: "embed-query" | "embed-write" | "check",
+      text: string,
+      options: Options,
+      width: number,
+    ) {
+      return run(feature, "embeddings", options, width, async (engine, ctx) => {
+        const inputs = embeddingBatch(
+          options.embeddingModel,
+          [text],
+          feature === "embed-query",
+        );
+        if (inputs.length !== 1) throw new AiError("invalid-input");
+        return (
+          await runEmbedding(
+            engine,
+            options.embeddingModel,
+            width,
+            [inputs[0].text],
+            ctx.signal,
+          )
+        )[0];
+      });
+    },
+  };
+}
+
 export async function callEmbeddings(
   feature: "embed-write" | "embed-query" | "backfill" | "probe" | "check",
   items: readonly string[],
@@ -500,21 +650,13 @@ export async function callEmbeddings(
       false,
       controls,
       async (ctx) => {
-        const args = {
-          model: provider.textEmbeddingModel(ctx.config.options.embeddingModel),
-          maxRetries: 0,
-          abortSignal: ctx.signal,
-          providerOptions: { openrouter: { dimensions } },
-        };
-        if (batch.length === 1)
-          return [(await embed({ ...args, value: batch[0].text })).embedding];
-        return (
-          await embedMany({
-            ...args,
-            values: batch.map((item) => item.text),
-            maxParallelCalls: 1,
-          })
-        ).embeddings;
+        return runEmbedding(
+          provider,
+          ctx.config.options.embeddingModel,
+          dimensions,
+          batch.map((item) => item.text),
+          ctx.signal,
+        );
       },
       snapshot,
     );

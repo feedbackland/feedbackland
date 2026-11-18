@@ -12,7 +12,10 @@ import { coldSearchRecovery } from "./search-browser-regressions";
 import { contentBrowser } from "./content-ai-browser";
 import { askAiHttp } from "./ask-ai-http";
 import { primaryJourney } from "./v2-primary";
-import { publicationErrors } from "./v12-publication-errors";
+import {
+  publicationErrors,
+  publicationFixture,
+} from "./v12-publication-errors";
 
 const pgImage =
   "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11";
@@ -588,6 +591,7 @@ export async function aiFoundations(
     const logs = (await docker("logs", web)) + (await docker("logs", peer));
     assert(
       !logs.includes("P07_PRIVATE_") &&
+        (!phaseSix || !logs.includes(publicationFixture)) &&
         !logs.includes(password) &&
         !logs.includes(setup),
       "Private marker in production logs",
@@ -600,8 +604,11 @@ export async function aiFoundations(
           select to_jsonb(m)::text from moderation_event m union all
           select to_jsonb(u)::text from llm_usage u union all
           select to_jsonb(r)::text from insight_reports r union all
+          select title from feedback union all
           select description from feedback union all
-          select content from comment
+          select "plainText" from feedback union all
+          select content from comment union all
+          select "plainText" from comment
         ) sinks where strpos(contents,'P07_PRIVATE_')>0
       )`);
       assert.equal(hidden, "t", "Private marker in phase-6 application state");

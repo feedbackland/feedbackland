@@ -29,7 +29,6 @@ export function getFeedbackCorpusQuery(
           .as("commentCount"),
     ])
     .orderBy("feedback.createdAt", "desc")
-    .orderBy("feedback.id", "desc")
-    .limit(limit)
-    .execute();
+    .orderBy("feedback.id", "asc")
+    .limit(limit);
 }

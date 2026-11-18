@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { once } from "node:events";
-import type { Page } from "playwright";
+import type { Page, Response } from "playwright";
 import { samples } from "./image-fixtures";
 import { eventually } from "./run";
-import { openWidget } from "./v3-auth";
+import { openWidget, signIn } from "./v3-auth";
 import { createAuthWidgetHost } from "./widget-host";
 
-type Cursor = { capability: string; offset: number };
+type Cursor = { capability: string; nextOrdinal: number };
 type Row = {
   id: string;
   revision: string;
@@ -21,10 +21,30 @@ const header = (origin: string) => ({
 });
 
 export async function primaryJourney(
+  previous: Page,
+  base: string,
+  mode: "exact" | "semantic",
+  sql: (statement: string) => Promise<string>,
+  lan = false,
+) {
+  const context = await previous.context().browser()!.newContext();
+  try {
+    const page = await context.newPage();
+    await page.goto(base);
+    await signIn(page, "admin@fixture.invalid");
+    assert.equal(await page.evaluate(() => window.isSecureContext), !lan);
+    return await signedInJourney(page, base, mode, sql, lan);
+  } finally {
+    await context.close();
+  }
+}
+
+async function signedInJourney(
   page: Page,
   base: string,
   mode: "exact" | "semantic",
   sql: (statement: string) => Promise<string>,
+  lan: boolean,
 ) {
   async function rpc<T>(name: string, json?: unknown) {
     const response = await page.request.post(base + "/api/trpc/" + name, {
@@ -35,54 +55,100 @@ export async function primaryJourney(
     return (await response.json()).result.data.json as T;
   }
   const token = "reviewjourney" + randomBytes(6).toString("hex");
-  const form = new FormData();
-  form.append(
-    "file",
-    new Blob([new Uint8Array(samples.png)], { type: "image/png" }),
-    "sample.png",
+  const draft = page.getByRole("textbox", { name: "Your feedback" });
+  await draft.fill(token + " attachment");
+  if (mode === "exact")
+    assert.equal(
+      await page.getByRole("button", { name: "Improve my draft" }).count(),
+      0,
+    );
+  await page.locator("form input[type=file]").setInputFiles({
+    name: "fixture.png",
+    mimeType: "image/png",
+    buffer: samples.png,
+  });
+  const attachment = draft.locator('img[src^="/api/images/"]');
+  await attachment.waitFor();
+  const url = await attachment.getAttribute("src");
+  assert(url);
+  await page
+    .getByRole("button", { name: "Submit feedback", exact: true })
+    .click();
+  const postId = await eventually(
+    () =>
+      sql(
+        'select id from feedback where "plainText" = \'' +
+          token +
+          " attachment'",
+      ),
+    (id) => /^[0-9a-f-]{36}$/.test(id),
   );
-  const image = await fetch(base + "/api/images", {
-    method: "POST",
-    body: form,
-  });
-  assert.equal(image.status, 201);
-  const { url } = await image.json();
-  const post = await rpc<Row>("createFeedbackPost", {
-    description: token + ' attached <img src="' + url + '">',
-  });
-  assert.match(post.id, /^[0-9a-f-]{36}$/);
   assert.equal(
-    post.moderationState,
+    await sql(
+      'select "moderationState" from feedback where id=\'' + postId + "'",
+    ),
     mode === "exact" ? "disabled" : "screened",
   );
-  const comment = await rpc<Row>("createComment", {
-    postId: post.id,
-    parentCommentId: null,
-    content: token + " reply before edit",
+  await page.goto(base + "/" + postId);
+  const comment = page.locator('[contenteditable="true"]').last();
+  await comment.fill(token + " first comment");
+  await page
+    .getByRole("button", { name: "Submit comment", exact: true })
+    .click();
+  await page.getByText(token + " first comment", { exact: true }).waitFor();
+  const vote = page.getByRole("button", {
+    name: "Upvote feedback",
+    exact: true,
   });
-  const revised = await rpc<Row>("updateFeedbackPost", {
-    postId: post.id,
-    expectedRevision: post.revision,
-    title: token + " revised post",
-    description: token + ' updated <img src="' + url + '">',
+  await vote.click();
+  const voted = page
+    .getByRole("button", { name: /Upvote feedback|Remove upvote/ })
+    .first();
+  await eventually(
+    () => voted.innerText({ timeout: 1500 }),
+    (value) => value.trim() === "1",
+  );
+
+  const menus = page.getByRole("button", {
+    name: "Open options menu",
+    exact: true,
   });
-  const reply = await rpc<Row>("updateComment", {
-    commentId: comment.id,
-    expectedRevision: comment.revision,
-    content: token + " revised reply",
-  });
-  assert.notEqual(revised.revision, post.revision);
-  assert.notEqual(reply.revision, comment.revision);
-  await rpc("upvoteFeedbackPost", { postId: post.id });
-  await page.goto(base + "/" + post.id);
-  await page.getByRole("heading", { name: token + " revised post" }).waitFor();
+  await menus.nth(1).click();
+  await page
+    .getByRole("menuitem", { name: "Edit comment", exact: true })
+    .click();
+  await page
+    .locator('[contenteditable="true"]')
+    .last()
+    .fill(token + " revised reply");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await page.getByText(token + " revised reply", { exact: true }).waitFor();
-  const votes = page.getByRole("button", {
-    name: /Upvote feedback|Remove upvote/,
-  });
-  assert.match((await votes.first().textContent())?.trim() ?? "", /^1$/);
+  await menus.first().click();
+  await page.getByRole("menuitem", { name: "Edit post", exact: true }).click();
+  const title = page.getByPlaceholder("Title", { exact: true });
+  await title.fill(token + " revised post");
+  const edition = page
+    .locator("form")
+    .filter({ has: title })
+    .locator('[contenteditable="true"]');
+  await edition.press("Home");
+  await page.keyboard.insertText("Updated ");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page
+    .getByRole("heading", { name: token + " revised post", exact: true })
+    .waitFor();
   assert.equal(await page.locator(".tiptap-output img").count(), 1);
   assert.equal((await page.request.get(base + url)).status(), 200);
+  assert.equal(
+    await sql("select revision::text from feedback where id='" + postId + "'"),
+    "2",
+  );
+  assert.equal(
+    await sql(
+      'select revision::text from comment where "postId"=\'' + postId + "'",
+    ),
+    "2",
+  );
   if (mode === "exact") {
     await sql(`insert into feedback(title,description,"plainText","moderationState")
       select '${token} result '||i,'${token} search','${token} search','disabled'
@@ -132,7 +198,7 @@ export async function primaryJourney(
       assert.equal(ids.length, 45);
       assert.equal(new Set(ids).size, 45);
     }
-    assert(ids.includes(post.id));
+    assert(ids.includes(postId));
   }
 
   if (mode === "exact") {
@@ -141,7 +207,121 @@ export async function primaryJourney(
       searchValue: "image",
       capability: await ticket(),
     });
-    assert(!images.feedbackPosts.some(({ id }) => id === post.id));
+    assert(!images.feedbackPosts.some(({ id }) => id === postId));
+  }
+
+  for (const surface of ["board", "activity"]) {
+    await page.goto(surface === "board" ? base : base + "/admin/activity");
+    const field =
+      surface === "board"
+        ? page.getByPlaceholder("Search...").first()
+        : page.getByRole("textbox", { name: "Search activity feed" });
+    const responses: Promise<unknown>[] = [];
+    const track = (response: Response) => {
+      if (
+        !response
+          .url()
+          .includes(
+            surface === "board" ? "getFeedbackPosts" : "getActivityFeed",
+          )
+      )
+        return;
+      responses.push(
+        response
+          .json()
+          .then((value) => {
+            const entries = Array.isArray(value) ? value : [value];
+            return entries.map((entry) => {
+              const result = entry.result?.data?.json;
+              return {
+                code: response.status(),
+                items: (result?.feedbackPosts ?? result?.items)?.length,
+                mode: result?.search?.mode,
+                next: result?.nextCursor?.nextOrdinal,
+                error: entry.error?.json?.data?.code,
+              };
+            });
+          })
+          .catch(() => ({ code: response.status() })),
+      );
+    };
+    page.on("response", track);
+    await field.fill(token);
+    if (mode === "exact") {
+      const results =
+        surface === "board"
+          ? page.locator("[data-post-id]").filter({ hasText: token })
+          : page.getByRole("heading", {
+              name: new RegExp("^" + token + " (revised post|result )"),
+            });
+      await results.first().waitFor();
+      // The first two pages may fill the viewport before the next-page
+      // sentinel is visible. Bring the sentinel itself into view.
+      const sentinel = page.locator("div.h-1.w-full").last();
+      let count = 0;
+      await eventually(
+        async () => {
+          count = await results.count();
+          if (count < 45)
+            await sentinel.evaluateAll((elements) =>
+              elements.at(-1)?.scrollIntoView({ block: "end" }),
+            );
+          return count;
+        },
+        (next) => next === 45,
+        15_000,
+      ).catch(async (cause) => {
+        throw new Error(
+          surface +
+            " exact search stopped at " +
+            count +
+            " results " +
+            JSON.stringify(await Promise.all(responses)),
+          { cause },
+        );
+      });
+      const rendered = await results.evaluateAll((elements) =>
+        elements.map(
+          (element) =>
+            element.getAttribute("data-post-id") ?? element.textContent,
+        ),
+      );
+      assert.equal(new Set(rendered).size, 45, surface);
+    }
+    await page
+      .getByRole("heading", { name: token + " revised post", exact: true })
+      .first()
+      .waitFor();
+    page.off("response", track);
+  }
+  if (lan) {
+    await page.goto(base + "/admin/widget");
+    // The syntax-highlighted snippet is produced after the widget hydrates.
+    await page.locator("pre.shiki").last().waitFor();
+    await page.evaluate(() => {
+      document.execCommand = (command) => {
+        document.documentElement.dataset.legacyClipboard = command;
+        return false;
+      };
+    });
+    await page
+      .getByRole("button", { name: "Copy", exact: true })
+      .last()
+      .click();
+    const clipboard = page.getByRole("dialog", { name: "Copy text manually" });
+    await clipboard.waitFor();
+    assert.equal(
+      await page.locator("html").getAttribute("data-legacy-clipboard"),
+      "copy",
+    );
+    assert(
+      (
+        await clipboard
+          .getByRole("textbox", { name: "Text to copy" })
+          .inputValue()
+      ).includes(base),
+    );
+    await clipboard.getByRole("button", { name: "Close", exact: true }).click();
   }
   const host = await createAuthWidgetHost(undefined, base);
   try {
@@ -196,6 +376,8 @@ export async function primaryJourney(
   }
   return {
     mode,
+    renderedSignIn: true,
+    lanClipboard: lan,
     image: true,
     vote: true,
     bothEdits: true,

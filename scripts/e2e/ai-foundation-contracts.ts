@@ -41,6 +41,7 @@ import {
   json,
   mockOpenRouter,
   privateMarker,
+  reflectedProviderError,
   firstKey,
   secondKey,
 } from "../mock-llm";
@@ -51,6 +52,7 @@ import { accountingRegressions } from "./ai-accounting-regressions";
 import { transportRegressions } from "./ai-transport-regressions";
 import { configurationRegressions } from "./ai-configuration-regressions";
 import type { Actor } from "../../lib/auth/authorization";
+import { getFeedbackCorpusQuery } from "../../queries/get-feedback-corpus";
 
 type Mock = Awaited<ReturnType<typeof mockOpenRouter>>;
 const passed = { key: "valid", chat: "passed", search: "passed" } as const;
@@ -748,6 +750,30 @@ async function concurrencyChecks(mock: Mock) {
     response.write(": keepalive\n\n");
   };
   await denied(callChat("ask-ai", prompt, { onText: () => {} }), "timeout");
+  const visible: string[] = [];
+  mock.handler = ({ response }) => {
+    response.writeHead(200, { "content-type": "text/event-stream" });
+    response.write(
+      "data: " +
+        JSON.stringify({
+          choices: [{ delta: { content: "First visible token" } }],
+        }) +
+        "\n\n",
+    );
+  };
+  await denied(
+    callChat("ask-ai", prompt, {
+      onText: (delta) => {
+        visible.push(delta);
+      },
+    }),
+    "timeout",
+  );
+  assert.deepEqual(visible, ["First visible token"]);
+  await eventually(
+    async () => mock.active,
+    (count) => count === 0,
+  );
   mock.reset();
   await callChat("moderation", moderationPrompt, {
     images: [
@@ -911,6 +937,154 @@ async function budgetChecks(mock: Mock) {
   assert.equal(row.reservationCount, 2);
   assert.equal(row.error, null);
 }
+async function p12CorpusPlan() {
+  await db.transaction().execute(async (trx) => {
+    await sql
+      .raw(
+        "create temp table feedback (like public.feedback including all) on commit drop",
+      )
+      .execute(trx);
+    await sql
+      .raw(
+        "create temp table comment (like public.comment including all) on commit drop",
+      )
+      .execute(trx);
+    await sql
+      .raw(
+        "insert into feedback(title,description,\"plainText\",\"moderationState\") select 'Tied date '||n,'Fixture','Fixture','disabled' from generate_series(1,10000)n",
+      )
+      .execute(trx);
+    await sql.raw("analyze feedback").execute(trx);
+    await sql.raw("analyze comment").execute(trx);
+    const query = getFeedbackCorpusQuery({ limit: 300 }, trx);
+    type Node = {
+      "Node Type": string;
+      "Relation Name"?: string;
+      "Actual Rows": number;
+      Plans?: Node[];
+    };
+    const [row] = await query.explain<{ "QUERY PLAN": { Plan: Node }[] }>(
+      "json",
+      sql.raw("analyze, buffers, timing off"),
+    );
+    const scan = row["QUERY PLAN"][0].Plan;
+    const nodes = (node: Node): Node[] => [
+      node,
+      ...(node.Plans ?? []).flatMap(nodes),
+    ];
+    const walked = nodes(scan);
+    const outer = walked.find((node) => node["Relation Name"] === "feedback");
+    assert.equal(
+      outer?.["Node Type"],
+      "Index Scan",
+      "Corpus must use the creation order index",
+    );
+    assert.equal(outer["Actual Rows"], 300);
+    assert(
+      !walked.some((node) => node["Node Type"].includes("Sort")),
+      "Corpus must not sort an entire tied group",
+    );
+    const rows = await query.execute();
+    assert.equal(rows.length, 300);
+    assert.deepEqual(
+      rows.map(({ id }) => id),
+      rows.map(({ id }) => id).sort(),
+    );
+  });
+}
+
+async function p12DispatchAndSinks(mock: Mock) {
+  await resetCounters();
+  const actorToCheck = await actor("p12-actor", "p12-session");
+  const admitted = mock.requests;
+  const day = await consumeAiBudget(100);
+  assert(day);
+  const rateKey = "ai:instance:day:" + day;
+  const pending: Promise<unknown>[] = [];
+  try {
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .selectFrom("rate_limit")
+        .select("key")
+        .where("key", "=", rateKey)
+        .forUpdate()
+        .executeTakeFirstOrThrow();
+      pending.push(
+        denied(
+          callChat("ask-ai", prompt, { actor: actorToCheck }),
+          "forbidden",
+        ),
+      );
+      await eventually(
+        async () =>
+          (
+            await sql<{ blocked: boolean }>`select exists (
+        select from pg_stat_activity where pid <> pg_backend_pid()
+          and datname=current_database() and wait_event_type='Lock'
+          and position('insert into rate_limit' in query)>0
+      ) as blocked`.execute(db)
+          ).rows[0].blocked,
+        Boolean,
+        3000,
+      );
+      await db
+        .updateTable("user")
+        .where("id", "=", actorToCheck.userId)
+        .set({ role: "user" })
+        .execute();
+    });
+  } finally {
+    await Promise.all(pending);
+  }
+  assert.equal(mock.requests, admitted);
+  assert.equal(
+    (
+      await db
+        .selectFrom("rate_limit")
+        .where("key", "=", rateKey)
+        .select("count")
+        .executeTakeFirstOrThrow()
+    ).count,
+    1,
+  );
+  await db.deleteFrom("user").where("id", "=", actorToCheck.userId).execute();
+  mock.handler = ({ response }) => json(response, reflectedProviderError, 503);
+  try {
+    for (const feature of [
+      "title",
+      "moderation",
+      "rewrite",
+      "ask-ai",
+      "check",
+    ] as const)
+      await denied(callChat(feature, prompt), "provider-error");
+    for (const feature of [
+      "embed-query",
+      "embed-write",
+      "probe",
+      "backfill",
+      "check",
+    ] as const)
+      await denied(
+        callEmbeddings(feature, ["P12 synthetic vector text"]),
+        "provider-error",
+      );
+    for (const scope of ["key", "chatModels", "embeddingModels"] as const)
+      await denied(readProviderMetadata(scope, account), "provider-error");
+    assert.equal(mock.requests - admitted, 13);
+    const rows = await db.selectFrom("ai_health").selectAll().execute();
+    assert(rows.some(({ lastReason }) => lastReason === "provider-error"));
+    assert(!JSON.stringify(rows).includes("P07_PRIVATE_"));
+    const usage = await db.selectFrom("llm_usage").selectAll().execute();
+    assert(!JSON.stringify(usage).includes("P07_PRIVATE_"));
+  } finally {
+    mock.reset();
+    // Later ordered health and settlement tests start from a clean fixture.
+    await db.deleteFrom("ai_health").execute();
+    await resetCounters();
+  }
+}
+
 async function main() {
   const seed = await migrateAndSeed();
   runtimeState().authSecret = seed.authSecret;
@@ -929,12 +1103,20 @@ async function main() {
     await accountingRegressions(mock, account);
     console.log("P08_CONTENT_CONTRACTS");
     const content = await contentContracts(mock, account);
+    await p12CorpusPlan();
+    await p12DispatchAndSinks(mock);
     const search = await durableSearchContracts(mock, account);
     const sinks = [
       await db.selectFrom("moderation_event").selectAll().execute(),
       await db.selectFrom("ai_settings").select("lastCheck").execute(),
       await db.selectFrom("ai_health").selectAll().execute(),
-      await db.selectFrom("insight_reports").select("error").execute(),
+      await db.selectFrom("insight_reports").selectAll().execute(),
+      await db
+        .selectFrom("feedback")
+        .select(["title", "description", "plainText"])
+        .execute(),
+      await db.selectFrom("comment").select(["content", "plainText"]).execute(),
+      await db.selectFrom("llm_usage").selectAll().execute(),
     ];
     assert(!JSON.stringify(sinks).includes("P07_PRIVATE_"));
     const unified = existsSync("/sys/fs/cgroup/cgroup.controllers");
@@ -969,6 +1151,9 @@ async function main() {
           transportRegressions: "passed",
           accountingRegressions: "passed",
           privateMarkers: "absent",
+          p12CorpusIndex: true,
+          p12RevokedDispatch: true,
+          p12ReflectedPaths: 13,
           modelSlots: 8,
           visionSlots: 1,
           metadataSlots: 2,

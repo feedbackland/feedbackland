@@ -23,7 +23,12 @@ import {
   saveCheck,
   saveConfiguration,
 } from "../../lib/llm/settings-store";
-import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
+import {
+  chat,
+  json,
+  mockOpenRouter,
+  reflectedProviderError,
+} from "../mock-llm";
 import {
   answerInsight,
   insightAnswer,
@@ -314,8 +319,7 @@ async function rejectionCases(mock: Mock) {
     const baseline = await calls();
     let n = 0;
     mock.handler = async (request) => {
-      if (++n === stage)
-        json(request.response, { error: { message: privateMarker } }, 503);
+      if (++n === stage) json(request.response, reflectedProviderError, 503);
       else await insightAnswer(request);
     };
     const run = await startInsightsRun(admin);

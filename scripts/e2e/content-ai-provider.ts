@@ -1,8 +1,16 @@
+import { readFileSync } from "node:fs";
 import { connectionChat } from "../../lib/ai-request-limits";
 import { insightAnswer } from "./insights-fixture";
 import { answerAskAi } from "./ask-ai-provider";
 import { publicationFixture } from "./v12-publication-errors";
-import { chat, json, mockOpenRouter, privateMarker } from "../mock-llm";
+import {
+  chat,
+  json,
+  mockOpenRouter,
+  privateMarker,
+  reflectionMarkers,
+  reflectedProviderError,
+} from "../mock-llm";
 
 async function main() {
   if (process.env.P09_COLD_OUTAGE === "1") {
@@ -30,14 +38,38 @@ async function main() {
   let insightWaiting = false;
   let visionCalls = 0;
   let embeddingsOffline = false;
+  let fixtureWidth = Number(process.env.P12_FIXTURE_WIDTH ?? 0);
+  const calibrationVectors: { text: string; query: number[] }[] =
+    process.env.P12_CALIBRATION_FIXTURE === "1"
+      ? JSON.parse(readFileSync("/p12-calibration.json", "utf8"))
+      : [];
+  process.on("SIGUSR1", () => {
+    fixtureWidth = 0;
+    console.log("Fixture width released");
+  });
   process.on("SIGHUP", () => {
     embeddingsOffline = !embeddingsOffline;
     console.log("Embedding fixture offline " + embeddingsOffline);
   });
   fixture.handler = async (request) => {
     if (request.url === "/api/v1/embeddings") {
+      if (fixtureWidth || calibrationVectors.length) {
+        const input = request.body.input as string[];
+        const width = fixtureWidth || Number(request.body.dimensions);
+        return json(request.response, {
+          model: request.body.model,
+          data: input.map((text, index) => ({
+            index,
+            embedding:
+              calibrationVectors.find((pair) => pair.text === text)?.query ??
+              Array(width).fill(1),
+          })),
+          usage: { prompt_tokens: 17, total_tokens: 17, cost: 0.0000021 },
+        });
+      }
       console.log("Embedding fixture width " + Number(request.body.dimensions));
-      if (embeddingsOffline) return json(request.response, { error: {} }, 503);
+      if (embeddingsOffline)
+        return json(request.response, reflectedProviderError, 503);
     }
     if (request.url !== "/api/v1/chat/completions") return defaults(request);
     if (request.body.stream === true) return answerAskAi(request);
@@ -56,11 +88,7 @@ async function main() {
       prompt.startsWith("Find summaries")
     ) {
       if (input.includes("P10 failed analysis fixture"))
-        return json(
-          request.response,
-          { error: { message: privateMarker } },
-          503,
-        );
+        return json(request.response, reflectedProviderError, 503);
       if (input.includes("P10 held analysis fixture")) {
         insightWaiting = true;
         console.log("Insight fixture holding the first chunk");
@@ -87,7 +115,7 @@ async function main() {
           request.response.writeHead(200, {
             "content-type": "application/json",
           });
-          request.response.end("{" + privateMarker);
+          request.response.end("{" + reflectedProviderError.error.message);
           return;
         }
         if (scenario === "filtered")
@@ -96,9 +124,9 @@ async function main() {
           request.response,
           {
             error: {
-              message: privateMarker,
+              message: reflectedProviderError.error.message,
               metadata: {
-                arbitrary: privateMarker,
+                arbitrary: reflectionMarkers,
                 ...(scenario === "402" && {
                   limit_source: "openrouter_credits",
                 }),
@@ -150,7 +178,7 @@ async function main() {
       prompt.startsWith("Improve") &&
       input.includes("Fixture rewrite unavailable")
     )
-      return json(request.response, { error: {} }, 503);
+      return json(request.response, reflectedProviderError, 503);
     if (
       !prompt.startsWith("Improve") ||
       input.includes("/api/images/") ||

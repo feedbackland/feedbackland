@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
@@ -8,17 +8,50 @@ import { command, eventually, toolEnvironment } from "./run";
 import { submitSetup } from "./setup-browser";
 import { keylessAiEndpoints, primaryJourney } from "./v2-primary";
 
+export async function cleanupNetworkFixture(
+  actions: (readonly [string, () => Promise<unknown>])[][],
+) {
+  const failures: string[] = [];
+  for (const stage of actions) {
+    await Promise.all(
+      stage.map(async ([name, remove]) => {
+        try {
+          await remove();
+        } catch (error) {
+          if (!(
+            error instanceof Error &&
+            /no such (container|network|volume)|(?:network|volume) [^\r\n]+ not found/i.test(
+              error.message,
+            )
+          ))
+            failures.push(name);
+        }
+      }),
+    );
+  }
+  if (failures.length)
+    throw new Error(
+      "Could not remove network fixture resources: " +
+        failures.sort().join(", "),
+    );
+}
+
 const postgres =
   "pgvector/pgvector@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11";
 const caddy =
   "caddy@sha256:e70b164da81ef698b3ad19af799ea6086ce6d9e48ed4079eb9fe26f6fbf14ee5";
 
 type Endpoint = { call: string; host: string; port: number; count: number };
-type Observed = { undecoded: number; endpoints: Endpoint[] };
+type Observed = {
+  undecoded: number;
+  issues: Record<string, number>;
+  endpoints: Endpoint[];
+};
 
 async function removeFixtureDirectory(path: string) {
   assert.equal(dirname(resolve(path)), resolve(tmpdir()));
   await rm(path, { recursive: true, force: true });
+  await assert.rejects(stat(path), { code: "ENOENT" });
 }
 
 export async function keylessEgress(image: string) {
@@ -47,6 +80,7 @@ export async function keylessEgress(image: string) {
     "--mount",
     "type=bind,src=" + resolve(src) + ",dst=" + dst + ",readonly",
   ];
+  let failure: unknown;
   try {
     const tools = (
       await docker(
@@ -130,13 +164,20 @@ export async function keylessEgress(image: string) {
         "scripts/e2e/fixtures/network-attempts.mjs",
         "/network-attempts.mjs",
       ),
+      ...bind(
+        "scripts/e2e/fixtures/network-supervisor.mjs",
+        "/network-supervisor.mjs",
+      ),
       "-e",
       "LD_LIBRARY_PATH=/observer/lib",
       "--entrypoint",
-      "/observer/strace",
+      "node",
     ];
     const trace = [
+      "/network-supervisor.mjs",
+      "-qq",
       "-ff",
+      "-v",
       "-s",
       "0",
       "-e",
@@ -146,8 +187,21 @@ export async function keylessEgress(image: string) {
       "--",
       "node",
     ];
-    const read = async (container: string): Promise<Observed> =>
-      JSON.parse(
+    const read = async (container: string): Promise<Observed> => {
+      await docker("kill", "--signal=USR1", container);
+      await eventually(
+        () =>
+          docker(
+            "exec",
+            container,
+            "node",
+            "-e",
+            "console.log(require('node:fs').readFileSync('/trace/completed','utf8'))",
+          ),
+        (value) => value === "complete" || value === "failed",
+        10_000,
+      );
+      return JSON.parse(
         await docker(
           "exec",
           container,
@@ -156,8 +210,13 @@ export async function keylessEgress(image: string) {
           "/trace",
         ),
       );
-    const external = ({ undecoded, endpoints }: Observed) => {
-      assert.equal(undecoded, 0, "network observer could not decode a syscall");
+    };
+    const external = ({ undecoded, issues, endpoints }: Observed) => {
+      assert.equal(
+        undecoded,
+        0,
+        "network observer could not decode: " + JSON.stringify(issues),
+      );
       return endpoints.filter(
         ({ host, port }) =>
           !(
@@ -196,6 +255,15 @@ export async function keylessEgress(image: string) {
           call === "connect" && host === "192.0.2.87" && port === 443,
       ),
       "observer must see the failed literal-IP connection",
+    );
+    assert(
+      fromControl.some(
+        ({ call, host, port }) =>
+          ["sendto", "sendmsg", "sendmmsg"].includes(call) &&
+          host === "127.0.0.1" &&
+          port === 38991,
+      ),
+      "observer must see the independent datagram",
     );
     const dnsQueries = async () =>
       Array.from(
@@ -348,24 +416,79 @@ export async function keylessEgress(image: string) {
             host === dbAddress && port === 5432 && call === "connect",
         )
         .reduce((sum, { count }) => sum + count, 0),
-      positiveControls: ["reserved DNS name", "failed TEST-NET-1 connect"],
+      positiveControls: [
+        "reserved DNS name",
+        "failed TEST-NET-1 connect",
+        "loopback datagram",
+      ],
+      traceClosed: true,
     };
+  } catch (error) {
+    failure = error;
+    throw error;
   } finally {
-    await Promise.allSettled(
-      [proxy, app, control, resolver, database].map((name) =>
-        docker("rm", "-fv", name),
-      ),
-    );
-    await Promise.allSettled([
-      docker("volume", "rm", observer),
-      docker("network", "rm", network),
-      docker("network", "rm", ingress),
-      removeFixtureDirectory(directory),
-    ]);
+    try {
+      await cleanupNetworkFixture([
+        [proxy, app, control, resolver, database].map(
+          (name) => [name, () => docker("rm", "-fv", name)] as const,
+        ),
+        [
+          [observer, () => docker("volume", "rm", observer)],
+          [network, () => docker("network", "rm", network)],
+          [ingress, () => docker("network", "rm", ingress)],
+          [
+            "private fixture directory",
+            () => removeFixtureDirectory(directory),
+          ],
+        ],
+      ]);
+      const [containers, networks, volumes] = await Promise.all([
+        docker(
+          "container",
+          "ls",
+          "-a",
+          "--filter",
+          "name=" + run,
+          "--format",
+          "{{.Names}}",
+        ),
+        docker(
+          "network",
+          "ls",
+          "--filter",
+          "name=" + run,
+          "--format",
+          "{{.Name}}",
+        ),
+        docker(
+          "volume",
+          "ls",
+          "--filter",
+          "name=" + run,
+          "--format",
+          "{{.Name}}",
+        ),
+      ]);
+      assert.equal(
+        containers || networks || volumes,
+        "",
+        "Network fixture still exists after cleanup",
+      );
+    } catch (cleanup) {
+      if (failure)
+        throw new AggregateError(
+          [failure, cleanup],
+          "Egress verification and cleanup both failed",
+        );
+      throw cleanup;
+    }
   }
 }
 
-if (process.argv.includes("--standalone"))
+if (
+  process.argv[1]?.endsWith("v16-egress.ts") &&
+  process.argv.includes("--standalone")
+)
   void command("docker", [
     "image",
     "inspect",

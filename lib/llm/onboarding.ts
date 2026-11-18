@@ -1,6 +1,5 @@
 import "server-only";
 import { connectionText, connectionChat } from "../ai-request-limits";
-import { z } from "zod";
 import type { OwnedLease } from "../jobs/leases";
 import type { Actor } from "../auth/authorization";
 import { AiError, EmbeddingWidthError, safeError } from "./errors";
@@ -17,23 +16,12 @@ import {
   type Identity,
 } from "./settings-store";
 import { callChat, callEmbeddings, readProviderMetadata } from "./client";
+import { checkImage, validateConnectionReply } from "./connection-check";
 import { deadline } from "./deadline";
 import { indexSnapshot } from "./search-index";
 import { runtimeState } from "../runtime-state";
 import type { Options } from "./defaults";
 
-const png = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFElEQVR4nGNsaGhgwAaYsIoOWgkAMBcBkGHHl6YAAAAASUVORK5CYII=",
-  "base64",
-);
-const checkImage = {
-  id: "connection-check",
-  contentType: "image/png",
-  width: 8,
-  height: 8,
-  byteSize: png.length,
-  load: async () => png,
-};
 export function diagnosticIssue(
   error: unknown,
   signal?: AbortSignal,
@@ -168,16 +156,7 @@ export async function runConnectionCheck(
         lease: worker?.lease,
         signal,
         content: { config, wall: deadline(config.options.timeoutMs, signal) },
-        validateText: (text) => {
-          try {
-            if (
-              z.object({ ok: z.literal(true) }).safeParse(JSON.parse(text))
-                .success
-            )
-              return true;
-          } catch {}
-          throw new AiError("invalid-response");
-        },
+        validateText: validateConnectionReply,
         images: config.options.vision ? [checkImage] : [],
       });
       result.chat = "passed";

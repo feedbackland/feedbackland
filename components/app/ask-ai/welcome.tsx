@@ -9,8 +9,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ASK_AI_MAX_POSTS } from "@/lib/ask-ai";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Three questions, chosen for what they demonstrate rather than for coverage.
@@ -27,15 +27,6 @@ const QUESTIONS = [
   "Which requests are already planned or in progress?",
 ];
 
-/**
- * What will be read, in the admin's own units.
- *
- * The page next door earns trust by showing its arithmetic — this many posts in,
- * this many insights out. The same rule applies to an answer: knowing it was
- * drawn from all 128 posts, and not from some invisible subset, is the
- * difference between a number you can quote in a planning meeting and one you
- * cannot.
- */
 function Scope({ postCount }: { postCount: number | null | undefined }) {
   // Each branch owns its own element rather than filling a shared <p>: the
   // placeholder is a div, and a div inside a paragraph is invalid HTML that the
@@ -57,26 +48,8 @@ function Scope({ postCount }: { postCount: number | null | undefined }) {
 }
 
 function ScopeText({ postCount }: { postCount: number | null }) {
-  // The count could not be read. Still true, still worth saying — and better
-  // than a skeleton that pulses forever.
-  if (postCount === null) {
-    return <>Answers come from the feedback posts on your board.</>;
-  }
-
-  if (postCount > ASK_AI_MAX_POSTS) {
-    return (
-      <>
-        Reading the {ASK_AI_MAX_POSTS} most recent of{" "}
-        {postCount.toLocaleString()} posts on your board.
-      </>
-    );
-  }
-
-  if (postCount === 1) {
-    return <>Reading the one post on your board.</>;
-  }
-
-  return <>Reading all {postCount.toLocaleString()} posts on your board.</>;
+  const maximum = Math.min(postCount ?? ASK_AI_MAX_POSTS, ASK_AI_MAX_POSTS);
+  return <>Answers can use up to {maximum.toLocaleString()} recent posts.</>;
 }
 
 export function AskAiWelcome({

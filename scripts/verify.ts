@@ -7,7 +7,9 @@ import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
 import { phaseThree } from "./e2e/v3-auth";
 import { verifyOnboarding } from "./e2e/v18-onboarding";
+import { verifyPrimaryCompose } from "./e2e/v2-compose-primary";
 import { keylessEgress } from "./e2e/v16-egress";
+import { verifyP12ReviewContracts } from "./e2e/p12-review-contracts";
 import { verifyModelShapes } from "./e2e/v23-model-shapes";
 import { aiFoundations } from "./e2e/v6a-foundations";
 import { phaseFive } from "./e2e/v4-backup";
@@ -22,6 +24,7 @@ async function main() {
       phase: { type: "string" },
       image: { type: "string" },
       artifacts: { type: "string" },
+      "calibration-report": { type: "string" },
     },
     strict: true,
   });
@@ -119,6 +122,10 @@ async function main() {
       await check("V2/V11/V16 keyless primary flow and observed egress", () =>
         keylessEgress(image),
       );
+      await check("V2/V11/V13 Compose browser and index transitions", () =>
+        verifyPrimaryCompose(image, values["calibration-report"]),
+      );
+      await check("P12 review contracts", verifyP12ReviewContracts);
       await check(
         "V23 independent fixtures and maximum model request shapes",
         verifyModelShapes,

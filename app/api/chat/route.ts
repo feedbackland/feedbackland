@@ -1,3 +1,4 @@
+import { ASK_AI_SESSION_HEADER } from "@/lib/ask-ai";
 import { credentialHeaders } from "@/lib/auth/headers";
 import { mutationGuard } from "@/lib/http/mutation-guard";
 import {
@@ -38,6 +39,11 @@ export async function POST(request: Request) {
         headers: credentialHeaders(request.headers),
       }),
     );
+    // A mounted tab can briefly hold an old chat after a session changes.
+    // Never accept that chat's history under the new administrator's cookie.
+    const expectedSession = request.headers.get(ASK_AI_SESSION_HEADER);
+    if (expectedSession !== null && expectedSession !== session.id)
+      throw new DomainError("FORBIDDEN", "Chat session changed");
     const body = await boundedRequest(request, limit);
     let input: ReturnType<typeof askAiInput>;
     try {
@@ -56,11 +62,20 @@ export async function POST(request: Request) {
   } catch (error) {
     discardBody(request);
     if (error instanceof BodyError) return error.response(noStore);
-    if (error instanceof DomainError)
+    if (error instanceof DomainError) {
+      const headers = new Headers(noStore);
+      if (error.retryAfterSeconds !== undefined)
+        headers.set("Retry-After", String(error.retryAfterSeconds));
       return Response.json(
-        { error: error.code },
-        { status: error.status, headers: noStore },
+        {
+          error:
+            error.code === "SERVICE_UNAVAILABLE"
+              ? "AI_UNAVAILABLE"
+              : error.code,
+        },
+        { status: error.status, headers },
       );
+    }
     return askAiFailure(error, request.signal);
   }
 }
