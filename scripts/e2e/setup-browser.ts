@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { chromium, type Page } from "playwright";
-import { toolEnvironment } from "./run";
+import { eventually, toolEnvironment } from "./run";
 export const fixturePassword = "Fixture-password-42";
 export async function submitSetup(
   page: Page,
@@ -71,9 +71,17 @@ export async function submitSetup(
         })),
       ),
   );
-  assert(
-    !(await page.evaluate(() => document.cookie)).includes("session_token"),
+  const tokenVisibleToScript = await eventually(
+    () =>
+      page.evaluate(() =>
+        location.pathname === "/admin/activity"
+          ? document.cookie.includes("session_token")
+          : null,
+      ),
+    (value) => value !== null,
+    5_000,
   );
+  assert.equal(tokenVisibleToScript, false);
 }
 /** Used by cumulative fixtures: claim through the rendered form, never SQL. */
 export async function claimSetup(base: string, code: string) {
@@ -107,23 +115,29 @@ export async function claimSetup(base: string, code: string) {
       await submitSetup(page, base, code);
     } catch (error) {
       await Promise.allSettled(pending);
-      const current = await page.evaluate(async () => {
-        const r = await fetch("/api/auth/get-session", {
-          credentials: "include",
-        });
-        const text = await r.text();
-        const d = text ? JSON.parse(text) : null;
-        return {
-          status: r.status,
-          empty: !text,
-          now: Date.now(),
-          role: d?.user?.role,
-          scope: d?.session?.scope,
-          createdAt: d?.session?.createdAt,
-          expiresAt: d?.session?.expiresAt,
-          matching: d?.user?.id === d?.session?.userId,
-        };
-      });
+      // Read session diagnostics through the context's cookie jar. The page
+      // may still be navigating, and a diagnostic must preserve the failure.
+      const current = await page.request
+        .get(base + "/api/auth/get-session", { timeout: 5_000 })
+        .then(async (response) => {
+          const text = await response.text();
+          const d = text ? JSON.parse(text) : null;
+          return {
+            status: response.status(),
+            empty: !text,
+            now: Date.now(),
+            role: d?.user?.role,
+            scope: d?.session?.scope,
+            createdAt: d?.session?.createdAt,
+            expiresAt: d?.session?.expiresAt,
+            matching: d?.user?.id === d?.session?.userId,
+          };
+        })
+        .catch(() => null);
+      const body = await page
+        .locator("body")
+        .innerText({ timeout: 2_000 })
+        .catch(() => "Page unavailable");
       throw new Error(
         String(error) +
           "\n" +
@@ -131,8 +145,9 @@ export async function claimSetup(base: string, code: string) {
             url: page.url(),
             observations,
             current,
-            body: await page.locator("body").innerText(),
+            body,
           }),
+        { cause: error },
       );
     }
   } finally {
