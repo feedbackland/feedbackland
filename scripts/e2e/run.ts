@@ -5,7 +5,7 @@ export function toolEnvironment(
   extra: Record<string, string | undefined> = {},
 ): NodeJS.ProcessEnv {
   const allowed =
-    /^(PATH|PATHEXT|SYSTEMROOT|WINDIR|COMSPEC|TEMP|TMP|TMPDIR|HOME|USERPROFILE|APPDATA|LOCALAPPDATA|PROGRAMFILES|PROGRAMFILES\(X86\)|DOCKER_CONFIG|DOCKER_CONTEXT|DOCKER_HOST|DOCKER_TLS_VERIFY|DOCKER_CERT_PATH|CI|GITHUB_ACTIONS)$/i;
+    /^(PATH|PATHEXT|SYSTEMROOT|WINDIR|COMSPEC|TEMP|TMP|TMPDIR|HOME|USERPROFILE|APPDATA|LOCALAPPDATA|PROGRAMFILES|PROGRAMFILES\(X86\)|DOCKER_CONFIG|DOCKER_CONTEXT|DOCKER_HOST|DOCKER_TLS_VERIFY|DOCKER_CERT_PATH|PLAYWRIGHT_BROWSERS_PATH|CI|GITHUB_ACTIONS)$/i;
   return {
     ...Object.fromEntries(
       Object.entries(process.env).filter(([key]) => allowed.test(key)),
@@ -24,6 +24,7 @@ export async function command(
     env?: Record<string, string | undefined>;
     timeout?: number;
     maxOutputBytes?: number;
+    input?: string;
   } = {},
 ): Promise<string> {
   const timeout = options.timeout ?? 120_000;
@@ -42,8 +43,12 @@ export async function command(
       cwd: options.cwd,
       env: toolEnvironment(options.env),
       windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: [options.input === undefined ? "ignore" : "pipe", "pipe", "pipe"],
     });
+    if (child.stdin) {
+      child.stdin.on("error", () => {});
+      child.stdin.end(options.input);
+    }
     const chunks: Buffer[] = [];
     let size = 0;
     let termination: string | undefined;
@@ -66,8 +71,8 @@ export async function command(
       if (data.length > remaining)
         stop(`exceeded output limit of ${limit} bytes`);
     };
-    child.stdout.on("data", capture);
-    child.stderr.on("data", capture);
+    child.stdout!.on("data", capture);
+    child.stderr!.on("data", capture);
     const timer = setTimeout(() => {
       stop(`timed out after ${timeout}ms`);
     }, timeout);

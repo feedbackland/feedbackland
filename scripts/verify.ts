@@ -7,6 +7,10 @@ import { foundations } from "./e2e/v0-foundations";
 import { phaseOne } from "./e2e/v1-boot";
 import { phaseThree } from "./e2e/v3-auth";
 import { verifyOnboarding } from "./e2e/v18-onboarding";
+import { verifyPrimaryCompose } from "./e2e/v2-compose-primary";
+import { keylessEgress } from "./e2e/v16-egress";
+import { verifyP12ReviewContracts } from "./e2e/p12-review-contracts";
+import { verifyModelShapes } from "./e2e/v23-model-shapes";
 import { aiFoundations } from "./e2e/v6a-foundations";
 import { phaseFive } from "./e2e/v4-backup";
 import { phaseFour } from "./e2e/v4-social";
@@ -20,16 +24,19 @@ async function main() {
       phase: { type: "string" },
       image: { type: "string" },
       artifacts: { type: "string" },
+      "calibration-report": { type: "string" },
     },
     strict: true,
   });
   if (
-    !["0", "1", "2", "3", "4", "5", "6a", "6b"].includes(values.phase ?? "") ||
+    !["0", "1", "2", "3", "4", "5", "6a", "6b", "6"].includes(
+      values.phase ?? "",
+    ) ||
     !values.image ||
     !values.artifacts
   ) {
     throw new Error(
-      "Usage: npm run verify -- --phase 0|1|2|3|4|5|6a|6b --image feedbackland:ci --artifacts artifacts/self-hosting",
+      "Usage: npm run verify -- --phase 0|1|2|3|4|5|6a|6b|6 --image feedbackland:ci --artifacts artifacts/self-hosting",
     );
   }
   const phase = values.phase?.startsWith("6") ? 6 : Number(values.phase);
@@ -56,18 +63,27 @@ async function main() {
           image,
           status,
           checks: rows,
+          ...(values.phase === "6" && {
+            operatorEvidence: [
+              "P00 pre-flight and merge authority",
+              "V12/V23 authenticated OpenRouter measurements",
+              "V18 dated interactive Connect and paste",
+            ],
+          }),
           futurePhases:
-            values.phase === "6b"
-              ? "Independent release evidence and live provider measurements are scheduled for P12."
-              : phase >= 6
-                ? "AI onboarding and configuration controls are scheduled for P11."
-                : phase >= 5
-                  ? "AI and search are scheduled for later phases."
-                  : phase >= 4
-                    ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                    : phase >= 3
-                      ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
-                      : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
+            values.phase === "6"
+              ? "Phases 7–10 require separate release evidence."
+              : values.phase === "6b"
+                ? "Independent release evidence and live provider measurements are scheduled for P12."
+                : phase >= 6
+                  ? "AI onboarding and configuration controls are scheduled for P11."
+                  : phase >= 5
+                    ? "AI and search are scheduled for later phases."
+                    : phase >= 4
+                      ? "Uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                      : phase >= 3
+                        ? "Social sign-in/recovery, uploads, AI and exact/semantic search remain unavailable; no later gate is counted as passed."
+                        : "Authentication/setup, uploads, AI and exact/semantic search are not yet available; no later gate is counted as passed.",
         },
         null,
         2,
@@ -102,12 +118,25 @@ async function main() {
     if (phase >= 3) await phaseThree(image, runId, directory, check);
     if (phase >= 4) await phaseFour(image, runId, directory, check);
     if (phase >= 5) await phaseFive(image, runId, directory, check);
+    if (values.phase === "6") {
+      await check("V2/V11/V16 keyless primary flow and observed egress", () =>
+        keylessEgress(image),
+      );
+      await check("V2/V11/V13 Compose browser and index transitions", () =>
+        verifyPrimaryCompose(image, values["calibration-report"]),
+      );
+      await check("P12 review contracts", verifyP12ReviewContracts);
+      await check(
+        "V23 independent fixtures and maximum model request shapes",
+        verifyModelShapes,
+      );
+    }
     if (phase >= 6)
       await check(
         "V8/V11/V12/V13/V20/V21 OpenRouter, content, durable search and background insights",
-        () => aiFoundations(runId, image),
+        () => aiFoundations(runId, image, values.phase === "6"),
       );
-    if (values.phase === "6b")
+    if (values.phase === "6b" || values.phase === "6")
       await check(
         "V18/V21/V23 AI onboarding, concurrent configuration and mounted status",
         () => verifyOnboarding(image),

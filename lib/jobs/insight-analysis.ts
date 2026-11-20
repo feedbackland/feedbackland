@@ -133,14 +133,26 @@ function mergeGroups(text: string, count: number) {
   return { groups, used };
 }
 
-function mergeSummaries(candidates: Cluster[]) {
+export function insightChunkRequest(posts: InsightPost[]) {
+  return {
+    input: {
+      system: clusterPrompt,
+      text: "[" + posts.map(payload).join(",") + "]",
+    },
+    validateText: (text: string) => readClusters(text, posts),
+  };
+}
+
+export function insightMergeRequest(
+  candidates: readonly Pick<Cluster, "title" | "description">[],
+) {
   // Reserve an equal share of serialized bytes for every selected candidate, including JSON escapes.
   const share =
     Math.floor(
       (inputBytes.insights - Buffer.byteLength(mergePrompt) - 2) /
         Math.max(1, candidates.length),
     ) - 1;
-  return candidates.map((c, index) => {
+  const summaries = candidates.map((c, index) => {
     let title = utf8Prefix(c.title, 160),
       description = utf8Prefix(c.description, 125);
     for (;;) {
@@ -154,6 +166,10 @@ function mergeSummaries(candidates: Cluster[]) {
       else title = utf8Prefix(title, Math.floor(Buffer.byteLength(title) / 2));
     }
   });
+  return {
+    input: { system: mergePrompt, text: "[" + summaries.join(",") + "]" },
+    validateText: (text: string) => mergeGroups(text, candidates.length),
+  };
 }
 
 export async function analyseInsights(
@@ -165,11 +181,12 @@ export async function analyseInsights(
 ) {
   const byTitle = new Map<string, Cluster[]>();
   for (const posts of chunks) {
+    const request = insightChunkRequest(posts);
     const result = await slot.chat(
-      { system: clusterPrompt, text: "[" + posts.map(payload).join(",") + "]" },
+      request.input,
       reservation,
       signal,
-      (text) => readClusters(text, posts),
+      request.validateText,
     );
     for (const cluster of result.value!) {
       const key = cluster.title
@@ -194,14 +211,12 @@ export async function analyseInsights(
         a.title.localeCompare(b.title),
     )
     .slice(0, 200);
+  const request = insightMergeRequest(candidates);
   const result = await slot.chat(
-    {
-      system: mergePrompt,
-      text: "[" + mergeSummaries(candidates).join(",") + "]",
-    },
+    request.input,
     reservation,
     signal,
-    (text) => mergeGroups(text, candidates.length),
+    request.validateText,
   );
   const { groups, used } = result.value!;
   return score(snapshot, [

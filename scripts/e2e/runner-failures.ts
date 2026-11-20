@@ -37,15 +37,16 @@ async function main() {
     /exceeded output limit of 4096 bytes/,
   );
   process.env.DATABASE_URL = "fixture-must-not-be-forwarded";
+  process.env.PLAYWRIGHT_BROWSERS_PATH = "/fixture-browsers";
   assert.equal(
     await command(process.execPath, [
       "-e",
-      "console.log(Object.hasOwn(process.env,'DATABASE_URL'))",
+      "console.log(JSON.stringify([Object.hasOwn(process.env,'DATABASE_URL'),process.env.PLAYWRIGHT_BROWSERS_PATH]))",
     ]),
-    "false",
+    '[false,"/fixture-browsers"]',
   );
   console.log(
-    "runner failures: passed (nonzero exit, deadline, output cap, credential isolation)",
+    "runner failures: passed (nonzero exit, deadline, output cap, browser path, credential isolation)",
   );
 }
 main().catch((error: unknown) => {

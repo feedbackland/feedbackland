@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createSurfaceAuthClient, setEmbeddedToken } from "@/lib/auth/client";
+import { clearStoredThread } from "@/components/app/ask-ai/storage";
 import { canAdministerSession } from "@/lib/auth/session-policy";
 import type { ResolvedSurface } from "@/lib/embed-surface";
 import {
@@ -78,12 +79,13 @@ export function AuthProvider({
     const previous = previousSessionId.current;
     previousSessionId.current = sessionId;
     if (previous !== undefined && previous !== sessionId) {
+      if (surface === "first-party" && previous) clearStoredThread(previous);
       void cache.cancelQueries().then(async () => {
         cache.removeQueries({ type: "inactive" });
         await cache.resetQueries({ type: "active" });
       });
     }
-  }, [cache, sessionId, query.isPending]);
+  }, [cache, sessionId, query.isPending, surface]);
   const afterSignIn = async () => {
     const result = await client.getSession();
     if (result.error || !result.data)
@@ -141,6 +143,7 @@ export function AuthProvider({
       if (result.error)
         throw new Error(result.error.message ?? "Sign-out failed");
       if (surface === "drawer") setEmbeddedToken(null);
+      else if (sessionId) clearStoredThread(sessionId);
       setRevokedSessionId(session?.session.id ?? null);
       await resetIdentityQueries();
       return null;

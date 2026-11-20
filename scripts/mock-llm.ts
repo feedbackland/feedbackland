@@ -5,6 +5,17 @@ import type { TLSSocket } from "node:tls";
 import { once } from "node:events";
 
 export const privateMarker = "P07_PRIVATE_REFLECTED_DATA";
+export const reflectionMarkers = [
+  "P07_PRIVATE_PROMPT_MARKER",
+  "P07_PRIVATE_EMAIL@fixture.invalid",
+  "P07_PRIVATE_KEY_MARKER",
+] as const;
+export const reflectedProviderError = {
+  error: {
+    message: [privateMarker, ...reflectionMarkers].join(" "),
+    metadata: { private: reflectionMarkers },
+  },
+};
 export const firstKey = "P07_PRIVATE_FIRST_KEY_1111";
 export const secondKey = "P07_PRIVATE_SECOND_KEY_1111";
 type Wire = {

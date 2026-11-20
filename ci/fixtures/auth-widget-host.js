@@ -7,6 +7,9 @@ createRoot(document.getElementById("root")).render(
     platformId: "",
     url: new URLSearchParams(location.search).get("board"),
     text: "Open feedback",
-    widget: "drawer",
+    widget:
+      new URLSearchParams(location.search).get("widget") === "popover"
+        ? "popover"
+        : "drawer",
   }),
 );

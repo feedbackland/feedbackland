@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { aiSettingsPath } from "@/lib/ai-onboarding-copy";
 import { copyText } from "@/lib/copy-text";
 
 import {
@@ -37,7 +39,13 @@ import {
   CitationsProvider,
 } from "@/components/app/ask-ai/citations";
 import { MarkdownText } from "@/components/app/ask-ai/markdown";
-import { extractCitedPostIds, rewriteCitationsForCopy } from "@/lib/ask-ai";
+import {
+  askAiErrorCopy,
+  askAiQuestionTooLong,
+  askAiScope,
+  extractCitedPostIds,
+  rewriteCitationsForCopy,
+} from "@/lib/ask-ai";
 import { cn } from "@/lib/utils";
 
 /**
@@ -53,6 +61,19 @@ export const ASK_AI_THREAD_HEIGHT = "h-[calc(100dvh-17rem)] min-h-[24rem]";
 
 const isEmptyThread = (state: AssistantState) =>
   state.thread.messages.length === 0;
+const overQuestionLimit = (state: AssistantState) =>
+  askAiQuestionTooLong(state.composer.text);
+const preventOversizedSubmit = (event: React.FormEvent, overLimit: boolean) => {
+  if (overLimit) event.preventDefault();
+};
+
+function QuestionLimit() {
+  return (
+    <p role="status" className="text-destructive px-4 pb-2 text-xs">
+      Shorten your question to 4,000 UTF-8 bytes or fewer.
+    </p>
+  );
+}
 
 export function AskAiThread({
   postCount,
@@ -149,30 +170,37 @@ const ScrollToBottom: FC = () => {
 
 const Composer: FC = () => {
   const isEmpty = useAuiState(isEmptyThread);
+  const overLimit = useAuiState(overQuestionLimit);
 
   return (
-    <ComposerPrimitive.Root className="aui-composer-root bg-background focus-within:ring-ring/30 border-border relative flex w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-1">
+    <ComposerPrimitive.Root
+      onSubmit={(event) => preventOversizedSubmit(event, overLimit)}
+      className="aui-composer-root bg-background focus-within:ring-ring/30 border-border relative flex w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-shadow focus-within:shadow-md focus-within:ring-1"
+    >
       <div className="flex items-end">
         <ComposerPrimitive.Input
           placeholder="Ask about your feedback…"
           className="aui-composer-input text-foreground placeholder:text-muted-foreground/60 max-h-40 min-h-12 flex-1 resize-none bg-transparent px-4 py-3.5 text-sm leading-relaxed outline-none"
           rows={1}
+          submitMode={overLimit ? "none" : "enter"}
+          aria-invalid={overLimit || undefined}
           // Only on a fresh thread. Focusing a restored one would scroll the
           // viewport away from where it was left.
           autoFocus={isEmpty}
           aria-label="Ask a question about your feedback"
         />
-        <ComposerAction />
+        <ComposerAction overLimit={overLimit} />
       </div>
+      {overLimit && <QuestionLimit />}
     </ComposerPrimitive.Root>
   );
 };
 
-const ComposerAction: FC = () => {
+function ComposerAction({ overLimit }: { overLimit: boolean }) {
   return (
     <div className="flex shrink-0 items-center py-2 pr-2">
       <AuiIf condition={(state) => !state.thread.isRunning}>
-        <ComposerPrimitive.Send asChild>
+        <ComposerPrimitive.Send asChild disabled={overLimit}>
           <Button
             type="submit"
             size="icon"
@@ -199,21 +227,29 @@ const ComposerAction: FC = () => {
       </AuiIf>
     </div>
   );
-};
-
-/**
- * Our sentence first, because "TypeError: fetch failed" tells an admin nothing
- * about what to do. The transport's own words follow in the small print, where
- * they are useful on the day it is a real bug rather than a hiccup.
- */
+}
 const MessageError: FC = () => {
+  const error = useAuiState((state) => {
+    const status = state.message.status;
+    if (status?.type !== "incomplete" || status.reason !== "error") return;
+    const value = status.error;
+    return typeof value === "object" && value && "message" in value
+      ? value.message
+      : value;
+  });
+  const copy = askAiErrorCopy(error);
   return (
     <MessagePrimitive.Error>
       <ErrorPrimitive.Root className="border-destructive/40 bg-destructive/5 mt-3 flex flex-col items-start gap-2 rounded-lg border p-3">
         <p className="text-destructive text-sm font-medium">
           That answer didn&apos;t come through.
         </p>
-        <ErrorPrimitive.Message className="text-muted-foreground line-clamp-3 text-xs" />
+        <p className="text-muted-foreground text-xs">{copy.text}</p>
+        {copy.settings && (
+          <Link className="text-sm underline" href={aiSettingsPath}>
+            {copy.settings}
+          </Link>
+        )}
         <ActionBarPrimitive.Reload asChild>
           <Button variant="outline" size="sm">
             <RefreshCwIcon className="size-3.5" />
@@ -259,7 +295,12 @@ const AssistantMessage: FC = () => {
     (state) => state.message.status?.type === "running",
   );
 
-  const citedPostIds = useMemo(() => extractCitedPostIds(text), [text]);
+  const metadata = useAuiState((state) => state.message.metadata.custom);
+  const scope = useMemo(() => askAiScope(metadata), [metadata]);
+  const citedPostIds = useMemo(
+    () => extractCitedPostIds(text, scope?.sourceIds ?? []),
+    [text, scope],
+  );
 
   return (
     <MessagePrimitive.Root
@@ -275,6 +316,15 @@ const AssistantMessage: FC = () => {
         </div>
 
         <MessageError />
+        {scope && (
+          <p className="text-muted-foreground mt-2 text-xs">
+            {scope.sourceIds.length.toLocaleString()}{" "}
+            {scope.sourceIds.length === 1 ? "post" : "posts"} supplied for this
+            answer.
+            {scope.more && " Some posts did not fit."}
+            {scope.truncated && " The answer reached the model's output limit."}
+          </p>
+        )}
 
         <CitationSources />
 
@@ -296,10 +346,17 @@ const AssistantMessage: FC = () => {
 const CopyAnswer: FC = () => {
   const text = useAuiState(messageText);
   const { appUrl } = useSettings();
+  const metadata = useAuiState((state) => state.message.metadata.custom);
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    copyText(rewriteCitationsForCopy(text, appUrl))
+    copyText(
+      rewriteCitationsForCopy(
+        text,
+        appUrl,
+        askAiScope(metadata)?.sourceIds ?? [],
+      ),
+    )
       .then((success) => {
         if (!success) return;
         setCopied(true);
@@ -389,13 +446,20 @@ const UserActionBar: FC = () => {
 };
 
 const EditComposer: FC = () => {
+  const overLimit = useAuiState(overQuestionLimit);
   return (
     <div className="flex w-full flex-col gap-4 py-4">
-      <ComposerPrimitive.Root className="bg-muted/70 ml-auto flex w-full max-w-[85%] flex-col rounded-2xl">
+      <ComposerPrimitive.Root
+        onSubmit={(event) => preventOversizedSubmit(event, overLimit)}
+        className="bg-muted/70 ml-auto flex w-full max-w-[85%] flex-col rounded-2xl"
+      >
         <ComposerPrimitive.Input
           className="text-foreground flex min-h-15 w-full resize-none bg-transparent p-4 text-sm outline-none"
           autoFocus
+          submitMode={overLimit ? "none" : "enter"}
+          aria-invalid={overLimit || undefined}
         />
+        {overLimit && <QuestionLimit />}
 
         <div className="mx-3 mb-3 flex items-center gap-2 self-end">
           <ComposerPrimitive.Cancel asChild>
@@ -403,7 +467,7 @@ const EditComposer: FC = () => {
               Cancel
             </Button>
           </ComposerPrimitive.Cancel>
-          <ComposerPrimitive.Send asChild>
+          <ComposerPrimitive.Send asChild disabled={overLimit}>
             <Button size="sm">Ask again</Button>
           </ComposerPrimitive.Send>
         </div>

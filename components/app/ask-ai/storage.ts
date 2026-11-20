@@ -1,80 +1,64 @@
 import type { UIMessage } from "ai";
 
-/**
- * The thread survives leaving the page.
- *
- * Which matters here specifically because the answers are full of links: the
- * whole point of a citation is that you go and read the post, and it would be
- * absurd if checking the evidence destroyed the answer that cited it. Restoring
- * on mount also covers hopping to another admin tab and back.
- *
- * Session, not local, storage. An ad-hoc question is not a document — nobody
- * wants last month's half-finished conversation waiting for them, and Insights
- * is where anything worth keeping already lives.
- */
+const legacyKey = "feedbackland-ask-ai:board";
+const key = "feedbackland-ask-ai:session";
+const maxStoredChars = 400_000;
+let activeSession: string | undefined;
 
-const PREFIX = "feedbackland-ask-ai:";
-
-/** Past this, the thread is not worth the shared 5MB budget. */
-const MAX_STORED_CHARS = 400_000;
-
-const storageKey = () =>
-  typeof window === "undefined" ? null : PREFIX + "board";
-
-/**
- * Enough of a shape check that a stale or hand-edited entry is dropped instead
- * of being handed to the runtime. Restoring rubbish would break the page on
- * every mount for as long as the tab lived, which is a far worse outcome than
- * losing a conversation.
- */
-const isMessage = (value: unknown): value is UIMessage => {
-  if (typeof value !== "object" || value === null) return false;
-  const message = value as Partial<UIMessage>;
-  return (
-    typeof message.id === "string" &&
-    typeof message.role === "string" &&
-    Array.isArray(message.parts)
+function storedThread(sessionId: string): UIMessage[] {
+  const raw = window.sessionStorage.getItem(key);
+  if (!raw) return [];
+  const record = JSON.parse(raw) as { sessionId?: unknown; messages?: unknown };
+  if (record?.sessionId !== sessionId || !Array.isArray(record.messages))
+    return [];
+  return record.messages.filter(
+    (item): item is UIMessage =>
+      typeof item?.id === "string" &&
+      (item.role === "assistant" || item.role === "user") &&
+      Array.isArray(item.parts),
   );
-};
+}
 
-export const readStoredThread = (): UIMessage[] => {
-  const key = storageKey();
-  if (!key) return [];
-
+export function activateStoredThread(sessionId: string) {
+  activeSession = sessionId;
   try {
-    const stored = window.sessionStorage.getItem(key);
-    if (!stored) return [];
-    const parsed: unknown = JSON.parse(stored);
-    if (!Array.isArray(parsed) || !parsed.every(isMessage)) return [];
-    return parsed;
+    window.sessionStorage.removeItem(legacyKey);
+    if (!storedThread(sessionId).length) window.sessionStorage.removeItem(key);
+  } catch {
+    clearStoredThread(sessionId);
+    activeSession = sessionId;
+  }
+}
+
+export function readStoredThread(sessionId: string) {
+  try {
+    return storedThread(sessionId);
   } catch {
     return [];
   }
-};
+}
 
-export const saveStoredThread = (messages: UIMessage[]) => {
-  const key = storageKey();
-  if (!key) return;
-
+export function saveStoredThread(sessionId: string, messages: UIMessage[]) {
+  if (activeSession !== sessionId) return;
   try {
-    const serialised = JSON.stringify(messages);
-    if (serialised.length > MAX_STORED_CHARS) {
+    const serialized = JSON.stringify({ sessionId, messages });
+    if (serialized.length > maxStoredChars)
       window.sessionStorage.removeItem(key);
-      return;
-    }
-    window.sessionStorage.setItem(key, serialised);
+    else window.sessionStorage.setItem(key, serialized);
   } catch {
-    // A full or unavailable store costs the admin nothing but continuity.
+    // Privacy settings and storage quotas can make persistence unavailable.
   }
-};
+}
 
-export const clearStoredThread = () => {
-  const key = storageKey();
-  if (!key) return;
-
+export function clearStoredThread(sessionId: string) {
+  const wasActive = activeSession === sessionId;
+  if (wasActive) activeSession = undefined;
   try {
-    window.sessionStorage.removeItem(key);
+    window.sessionStorage.removeItem(legacyKey);
+    const raw = window.sessionStorage.getItem(key);
+    if (wasActive || (raw && JSON.parse(raw)?.sessionId === sessionId))
+      window.sessionStorage.removeItem(key);
   } catch {
-    // Same.
+    // The live thread is cleared independently of browser storage.
   }
-};
+}

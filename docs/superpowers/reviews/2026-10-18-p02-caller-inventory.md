@@ -4,7 +4,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 
 | Module | Importers |
 |---|---|
-| `queries/check-rate-limit.ts` | `lib/auth/handoff-store.ts`, `lib/auth/server.ts`, `lib/llm/settings-store.ts`, `lib/llm/usage.ts`, `lib/rate-limit.ts`, `lib/recovery.ts`, `lib/setup.ts` |
+| `queries/check-rate-limit.ts` | `lib/auth/handoff-store.ts`, `lib/auth/server.ts`, `lib/llm/ask-ai.ts`, `lib/llm/settings-store.ts`, `lib/llm/usage.ts`, `lib/rate-limit.ts`, `lib/recovery.ts`, `lib/setup.ts` |
 | `queries/content-write.ts` | `queries/create-comment.ts`, `queries/create-feedback-post.ts`, `queries/update-comment.ts`, `queries/update-feedback-post.ts` |
 | `queries/create-admin-invite.ts` | `trpc/create-admin-invite.ts` |
 | `queries/create-comment.ts` | `trpc/create-comment.ts` |
@@ -21,7 +21,7 @@ Generated from TypeScript import and re-export declarations using tsconfig modul
 | `queries/get-admins.ts` | `trpc/get-admins.ts` |
 | `queries/get-comment.ts` | `trpc/get-comment.ts` |
 | `queries/get-comments.ts` | `trpc/get-comments.ts` |
-| `queries/get-feedback-corpus.ts` | No active importer; retained typed/internal interface for a later milestone |
+| `queries/get-feedback-corpus.ts` | `lib/llm/ask-ai.ts` |
 | `queries/get-feedback-post-count.ts` | `trpc/get-feedback-post-count.ts` |
 | `queries/get-feedback-post.ts` | `trpc/get-feedback-post.ts` |
 | `queries/get-feedback-posts-by-ids.ts` | `trpc/get-feedback-posts-by-ids.ts` |

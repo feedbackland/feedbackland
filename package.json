@@ -18,6 +18,7 @@
     "pretypecheck": "npm run identity",
     "predev": "npm run identity",
     "verify": "tsx --conditions=react-server scripts/verify.ts",
+    "measure:ai": "tsx --conditions=react-server scripts/measure-ai.ts",
     "db:auth-ddl": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/print-auth-ddl.ts",
     "db:codegen": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/codegen.ts"
   },

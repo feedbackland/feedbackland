@@ -5,7 +5,13 @@ import {
   AssistantChatTransport,
   useChatRuntime,
 } from "@assistant-ui/react-ai-sdk";
-import { useCallback, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { cn } from "@/lib/utils";
 import { useFeedbackPostCount } from "@/hooks/use-feedback-post-count";
 import { AskAiHeader } from "@/components/app/ask-ai/header";
@@ -14,6 +20,7 @@ import {
   AskAiThread,
 } from "@/components/app/ask-ai/thread";
 import {
+  activateStoredThread,
   clearStoredThread,
   readStoredThread,
   saveStoredThread,
@@ -21,7 +28,7 @@ import {
 
 import { useAiAdmin, AiNextAction } from "@/components/app/ai-settings/status";
 import { issueText } from "@/lib/ai-onboarding-copy";
-const authHeaders = async () => ({});
+import { ASK_AI_SESSION_HEADER, askAiTextTurns } from "@/lib/ask-ai";
 
 /**
  * The admin's own time zone, so "what came in today" means their day and not
@@ -31,7 +38,7 @@ const requestBody = () => ({
   timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 });
 
-export default function AskAi() {
+export default function AskAi({ sessionId }: { sessionId: string }) {
   // Bumped to start over. Remounting the session is what guarantees the thread,
   // the composer draft and the restored history all go at once — a reset that
   // leaves one of the three behind is worse than none.
@@ -46,9 +53,9 @@ export default function AskAi() {
   const postCount = isError ? null : data;
 
   const startNewChat = useCallback(() => {
-    clearStoredThread();
+    clearStoredThread(sessionId);
     setSession((current) => current + 1);
-  }, []);
+  }, [sessionId]);
 
   const available = !!status?.chatAvailable && !unavailable;
   return (
@@ -76,6 +83,7 @@ export default function AskAi() {
       <div hidden={!available} inert={!available}>
         <AskAiSession
           key={session}
+          sessionId={sessionId}
           postCount={postCount}
           onNewChat={startNewChat}
         />
@@ -85,27 +93,43 @@ export default function AskAi() {
 }
 
 function AskAiSession({
+  sessionId,
   postCount,
   onNewChat,
 }: {
+  sessionId: string;
   postCount: number | null | undefined;
   onNewChat: () => void;
 }) {
-  const [restoredMessages] = useState(readStoredThread);
+  const [restoredMessages] = useState(() => readStoredThread(sessionId));
+  const active = useRef(false);
 
   const [transport] = useState(
     () =>
       new AssistantChatTransport({
-        headers: authHeaders,
         body: requestBody,
+        headers: { [ASK_AI_SESSION_HEADER]: sessionId },
+        prepareSendMessagesRequest: ({ body, messages }) => ({
+          body: { ...body, messages: askAiTextTurns(messages) },
+        }),
       }),
   );
 
   const runtime = useChatRuntime({
     transport,
     messages: restoredMessages,
-    onFinish: ({ messages }) => saveStoredThread(messages),
+    onFinish: ({ messages }) => {
+      if (active.current) saveStoredThread(sessionId, messages);
+    },
   });
+  useEffect(() => {
+    active.current = true;
+    activateStoredThread(sessionId);
+    return () => {
+      active.current = false;
+      if (runtime.thread.getState().isRunning) runtime.thread.cancelRun();
+    };
+  }, [runtime, sessionId]);
 
   // The restored thread comes out of sessionStorage, which the server cannot
   // read — so rendering it on the first pass would make the server's HTML and

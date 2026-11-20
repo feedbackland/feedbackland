@@ -7,7 +7,7 @@ import { DomainError } from "../domain-error";
 import { isDeepStrictEqual } from "node:util";
 import { deadline, withinTransaction, type Deadline } from "./deadline";
 import { log } from "../log";
-import type { Actor } from "../auth/authorization";
+import { requireAdmin, type Actor } from "../auth/authorization";
 import {
   attemptAiBudget,
   consumeRateLimitWindow,
@@ -238,6 +238,7 @@ export async function beginAttempt(
   reservation?: Reservation,
   wall: Deadline = deadline(config.options.timeoutMs),
   lease?: Lease,
+  actor?: Actor,
 ): Promise<Admission> {
   try {
     return await withinTransaction(
@@ -294,6 +295,9 @@ export async function beginAttempt(
           )
           .execute();
         await requireDispatch(trx, config, purpose, check);
+        // Evaluate session age and role at admission after the allowance and
+        // dispatch locks have been acquired.
+        if (actor) await requireAdmin(trx, actor, true);
         const leaseEnd = reservation
           ? await requireInsightLease(trx, reservation, day)
           : lease

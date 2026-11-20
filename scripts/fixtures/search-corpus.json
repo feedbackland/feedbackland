@@ -1,0 +1,122 @@
+[
+  {
+    "id": "pair-01",
+    "expected": "related",
+    "query": "Would like a dark theme for late-night use.",
+    "post": "A night mode with light text on a dark background would help."
+  },
+  {
+    "id": "pair-02",
+    "expected": "related",
+    "query": "Restore the list after closing a ticket.",
+    "post": "Going back from a request should keep my previous list and filters."
+  },
+  {
+    "id": "pair-03",
+    "expected": "related",
+    "query": "Allow a data export in spreadsheet format.",
+    "post": "I need to download a CSV with the submitted suggestions."
+  },
+  {
+    "id": "pair-04",
+    "expected": "related",
+    "query": "The email digest arrives several times each Monday.",
+    "post": "I am receiving duplicate copies of the weekly summary."
+  },
+  {
+    "id": "pair-05",
+    "expected": "related",
+    "query": "La navegación tarda en cargar en mi móvil.",
+    "post": "The navigation menu loads very slowly on a phone."
+  },
+  {
+    "id": "pair-06",
+    "expected": "related",
+    "query": "Die Schrift im Formular ist zu klein zum Lesen.",
+    "post": "The form needs larger text so I can read it."
+  },
+  {
+    "id": "pair-07",
+    "expected": "related",
+    "query": "Les notifications audio devraient être désactivables.",
+    "post": "Please add a setting to mute notification sounds."
+  },
+  {
+    "id": "pair-08",
+    "expected": "related",
+    "query": "アップロードした画像が横向きになります。",
+    "post": "Uploaded photographs rotate sideways unexpectedly."
+  },
+  {
+    "id": "pair-09",
+    "expected": "related",
+    "query": "Separate draft and published articles in the list.",
+    "post": "Let me filter the results to hide drafts."
+  },
+  {
+    "id": "pair-10",
+    "expected": "related",
+    "query": "Please show the file size before it is downloaded.",
+    "post": "Include the attachment's size on the download button."
+  },
+  {
+    "id": "pair-11",
+    "expected": "unrelated",
+    "query": "The history button no longer opens.",
+    "post": "Supply an alternate color palette for charts."
+  },
+  {
+    "id": "pair-12",
+    "expected": "unrelated",
+    "query": "The new dashboard needs compact rows.",
+    "post": "A recipe card should display time in the oven."
+  },
+  {
+    "id": "pair-13",
+    "expected": "unrelated",
+    "query": "Sort payments by the nearest due date.",
+    "post": "Print a map of bicycle paths around the park."
+  },
+  {
+    "id": "pair-14",
+    "expected": "unrelated",
+    "query": "The keyboard focus is hard to see on the sidebar.",
+    "post": "I am requesting a translation of the release notes into Italian."
+  },
+  {
+    "id": "pair-15",
+    "expected": "unrelated",
+    "query": "La tabla de pagos corta los nombres largos.",
+    "post": "Ich möchte die Anzahl der Retweets für jedes Bild sehen."
+  },
+  {
+    "id": "pair-16",
+    "expected": "unrelated",
+    "query": "A tarefa precisa de uma data de entrega.",
+    "post": "Colorie en bleu les panneaux qui indiquent la station de métro."
+  },
+  {
+    "id": "pair-17",
+    "expected": "unrelated",
+    "query": "Please preserve my selected chart color after signing in.",
+    "post": "The receipt doesn't list the combined shipping charge."
+  },
+  {
+    "id": "pair-18",
+    "expected": "unrelated",
+    "query": "Add an option to collapse comment threads.",
+    "post": "Allow receipts to be printed on A5 paper."
+  },
+  {
+    "id": "pair-19",
+    "expected": "unrelated",
+    "query": "Show which users are signed in to the meeting.",
+    "post": "The unit conversion for tablespoons is incorrect."
+  },
+  {
+    "id": "pair-20",
+    "expected": "unrelated",
+    "query": "Le titre des pages se coupe en mode portrait.",
+    "post": "天気予報には風速の単位を表示してください。"
+  }
+]

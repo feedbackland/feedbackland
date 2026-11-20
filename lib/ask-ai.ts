@@ -1,21 +1,134 @@
-/**
- * Shared between the chat route and the Ask AI page, so the number the welcome
- * screen promises is the number the model is actually given.
- */
-
-/**
- * How many posts go into a single answer, newest first.
- *
- * The board is read whole below this; above it the oldest posts are left out and
- * both the prompt and the welcome screen say so. 300 posts of plain text is
- * roughly 45k tokens — well inside the model's window, and cheap enough to
- * re-send on every turn, which is what keeps the corpus one fixed set the page
- * can describe instead of whatever a search happened to return.
- */
+export const ASK_AI_SESSION_HEADER = "x-feedbackland-chat-session";
 export const ASK_AI_MAX_POSTS = 300;
-
-/** Long descriptions are cut here; the model is told they may be. */
 export const ASK_AI_MAX_DESCRIPTION_CHARS = 400;
+export const ASK_AI_QUESTION_BYTES = 4000;
+export const ASK_AI_HISTORY_BYTES = 16000;
+export const ASK_AI_HISTORY_TURNS = 8;
+export const ASK_AI_STREAM_MS = 180_000;
+
+const encoder = new TextEncoder();
+export const askAiBytes = (text: string) => encoder.encode(text).length;
+export const askAiQuestionTooLong = (text: string) =>
+  askAiBytes(text.trim()) > ASK_AI_QUESTION_BYTES;
+
+type ChatTurn = {
+  role: "user" | "assistant";
+  parts: { type: "text"; text: string }[];
+};
+
+export function askAiTextTurns(
+  messages: readonly {
+    role: string;
+    parts: readonly { type: string; text?: string }[];
+  }[],
+) {
+  const turns: ChatTurn[] = [];
+  const newest = messages.at(-1);
+  if (newest?.role !== "user") return turns;
+  const textOf = (message: (typeof messages)[number]) =>
+    message.parts
+      .flatMap((part) =>
+        part.type === "text" && typeof part.text === "string"
+          ? [part.text]
+          : [],
+      )
+      .join("")
+      .toWellFormed();
+  let room = ASK_AI_HISTORY_BYTES;
+  for (const turn of messages
+    .slice(-(ASK_AI_HISTORY_TURNS + 1), -1)
+    .reverse()) {
+    if (turn.role !== "user" && turn.role !== "assistant") continue;
+    let bytes = 0;
+    let end = 0;
+    const content = textOf(turn);
+    for (const point of content) {
+      const size = askAiBytes(point);
+      if (bytes + size > Math.min(ASK_AI_QUESTION_BYTES, room)) break;
+      bytes += size;
+      end += point.length;
+    }
+    const text = content.slice(0, end);
+    if (text.trim()) {
+      turns.unshift({ role: turn.role, parts: [{ type: "text", text }] });
+      room -= bytes;
+    }
+    if (!room) break;
+  }
+  const question = textOf(newest).trim();
+  if (askAiQuestionTooLong(question)) throw new Error("INVALID_CHAT_INPUT");
+  turns.push({ role: "user", parts: [{ type: "text", text: question }] });
+  return turns;
+}
+
+export type AskAiScope = {
+  sourceIds: string[];
+  more: boolean;
+  truncated?: boolean;
+};
+
+export function askAiScope(metadata: unknown): AskAiScope | undefined {
+  if (!metadata || typeof metadata !== "object" || !("scope" in metadata))
+    return;
+  const scope = metadata.scope;
+  if (!scope || typeof scope !== "object") return;
+  const value = scope as Partial<AskAiScope>;
+  if (
+    typeof value.more !== "boolean" ||
+    !Array.isArray(value.sourceIds) ||
+    value.sourceIds.length > ASK_AI_MAX_POSTS ||
+    value.sourceIds.some((id) => typeof id !== "string" || !UUID_EXACT.test(id))
+  )
+    return;
+  return value as AskAiScope;
+}
+
+export function askAiErrorCopy(error: unknown, locale?: string) {
+  let code: unknown = typeof error === "string" ? error : undefined;
+  let resumes: string | undefined;
+  if (typeof code === "string" && code.startsWith("{")) {
+    try {
+      const body = JSON.parse(code) as { error?: unknown; resetsAt?: unknown };
+      code = body.error;
+      if (typeof body.resetsAt === "string" && body.resetsAt.length <= 30) {
+        const date = new Date(body.resetsAt);
+        if (Number.isFinite(date.getTime()))
+          resumes = date.toLocaleTimeString(locale);
+      }
+    } catch {
+      code = undefined;
+    }
+  }
+  switch (code) {
+    case "AI_PAUSED":
+      return {
+        text: resumes
+          ? "Paused until " + resumes + "."
+          : "The board has reached its daily AI allowance.",
+        settings: "Raise the daily limit",
+      };
+    case "AI_NOT_CONFIGURED":
+      return {
+        text: "Ask AI is off for this board.",
+        settings: "Open AI settings",
+      };
+    case "AI_BUSY":
+      return { text: "Ask AI is busy. Try again shortly." };
+    case "UNAUTHORIZED":
+    case "FORBIDDEN":
+      return { text: "Sign in again as a board administrator." };
+    case "INVALID_CHAT_INPUT":
+    case "BODY_TOO_LARGE":
+      return { text: "Shorten your question and try again." };
+    case "REQUEST_CANCELLED":
+      return { text: "The answer was stopped." };
+    default:
+      return {
+        text: "The model could not complete the answer.",
+        settings: "Open AI settings",
+      };
+  }
+}
 
 /**
  * Citations are markdown links with our own scheme, so they survive streaming,
@@ -94,12 +207,16 @@ export const getCitedPostId = (href: string): string | null => {
  * inline numbers and the list below the answer are always derived from the same
  * thing and cannot disagree.
  */
-export const extractCitedPostIds = (text: string): string[] => {
+export const extractCitedPostIds = (
+  text: string,
+  sourceIds: readonly string[],
+): string[] => {
+  const allowed = new Set(sourceIds);
   const seen = new Set<string>();
 
   for (const match of text.matchAll(CITATION_FORMS)) {
     const id = citedId(match.slice(1, 5));
-    if (id) seen.add(id);
+    if (id && allowed.has(id)) seen.add(id);
   }
 
   return [...seen];
@@ -114,11 +231,15 @@ export const extractCitedPostIds = (text: string): string[] => {
 export const rewriteCitationsForCopy = (
   text: string,
   appUrl: string | null,
+  sourceIds: readonly string[],
 ): string => {
-  if (!appUrl) return text;
-
+  const allowed = new Set(sourceIds);
   return normaliseCitations(text).replace(
-    new RegExp(`\\]\\(${CITATION_SCHEME}(${UUID_PATTERN})\\)`, "gi"),
-    (_match, postId: string) => `](${appUrl}/${postId})`,
+    new RegExp(
+      "\\[1\\]\\(" + CITATION_SCHEME + "(" + UUID_PATTERN + ")\\)",
+      "gi",
+    ),
+    (_match, postId: string) =>
+      allowed.has(postId) && appUrl ? "[1](" + appUrl + "/" + postId + ")" : "",
   );
 };

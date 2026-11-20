@@ -1,4 +1,10 @@
 import "server-only";
+import {
+  ASK_AI_HISTORY_BYTES,
+  ASK_AI_HISTORY_TURNS,
+  ASK_AI_MAX_POSTS,
+  ASK_AI_QUESTION_BYTES,
+} from "../ask-ai";
 import { maxVisionImages } from "../ai-request-limits";
 import { inputBytes, type ChatFeature } from "./defaults";
 import { AiError } from "./errors";
@@ -29,7 +35,7 @@ export function prepareChat(feature: ChatFeature, input: ChatInput) {
     !system.isWellFormed() ||
     !text.isWellFormed() ||
     Buffer.byteLength(system) > 8192 ||
-    history.length > 8 ||
+    history.length > ASK_AI_HISTORY_TURNS ||
     (history.length && feature !== "ask-ai") ||
     (items.length && !["ask-ai", "insights"].includes(feature))
   )
@@ -40,7 +46,7 @@ export function prepareChat(feature: ChatFeature, input: ChatInput) {
       !["user", "assistant"].includes(message.role) ||
       typeof message.content !== "string" ||
       !message.content.isWellFormed() ||
-      Buffer.byteLength(message.content) > 4000
+      Buffer.byteLength(message.content) > ASK_AI_QUESTION_BYTES
     )
       throw new AiError("invalid-input");
     historyBytes += Buffer.byteLength(message.content);
@@ -50,18 +56,26 @@ export function prepareChat(feature: ChatFeature, input: ChatInput) {
     Buffer.byteLength(system) -
     Buffer.byteLength(text) -
     historyBytes;
-  if (historyBytes > 16000 || remaining < 0) throw new AiError("invalid-input");
+  if (historyBytes > ASK_AI_HISTORY_BYTES || remaining < 0)
+    throw new AiError("invalid-input");
+  // Keep the cached prefix stable as the question and history grow.
+  if (feature === "ask-ai" && items.length)
+    remaining = Math.min(
+      remaining,
+      inputBytes[feature] -
+        Buffer.byteLength(system) -
+        ASK_AI_HISTORY_BYTES -
+        ASK_AI_QUESTION_BYTES,
+    );
   const selected: string[] = [];
-  const maxItems = feature === "insights" ? 200 : 300;
+  const maxItems = feature === "insights" ? 200 : ASK_AI_MAX_POSTS;
   for (const item of items.slice(0, maxItems)) {
     if (selected.length === maxItems || remaining <= 1) break;
     if (!item.trim()) continue;
-    const entry = utf8Prefix(
-      item,
-      remaining - 1,
-      feature === "insights" ? 700 : 400,
-    );
+    const entry =
+      feature === "ask-ai" ? item : utf8Prefix(item, remaining - 1, 700);
     const size = Buffer.byteLength(entry) + 1;
+    if (size > remaining) break;
     if (!entry) continue;
     selected.push(entry);
     remaining -= size;
@@ -78,6 +92,7 @@ export function prepareChat(feature: ChatFeature, input: ChatInput) {
       ...history,
       { role: "user" as const, content },
     ],
+    included: selected.length,
     omitted: items.length - selected.length,
   };
 }
