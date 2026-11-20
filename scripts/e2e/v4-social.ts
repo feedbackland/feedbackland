@@ -935,18 +935,25 @@ export async function phaseFour(
       };
     });
     await check("social/discovery-cancellation-and-retention", async () => {
-      const initial = mock.controls.discoveries;
+      const replicas = ["A", "B"] as const;
+      const readyCount = async (replica: (typeof replicas)[number]) =>
+        (await docker("logs", project + "-" + replica.toLowerCase())).split(
+          '"event":"auth.discovery-ready"',
+        ).length - 1;
+      const readyBefore = await Promise.all(replicas.map(readyCount));
+      assert(readyBefore.every((count) => count > 0));
+      const aborted = mock.controls.abortedDiscoveries;
       mock.controls.stall = true;
       await pool!.query(
         'update auth_runtime set "discoveryEpoch"="discoveryEpoch"+1 where id=1',
       );
+      // Count open response bodies instead of requests for any discovery epoch.
       await eventually(
-        async () => mock.controls.discoveries,
-        (count) => count >= initial + 2,
+        async () => mock.controls.stalledDiscoveries,
+        (count) => count === 2,
         10_000,
       );
       // Each request must finish while both discovery responses are held open.
-      const aborted = mock.controls.abortedDiscoveries;
       for (const [replica, provider, host] of [
         ["A", "google", "accounts.google.com"],
         ["B", "microsoft", "login.microsoftonline.com"],
@@ -985,6 +992,11 @@ export async function phaseFour(
         assert.equal(new URL((await signIn.json()).url).hostname, host);
       }
       assert.equal(
+        mock.controls.stalledDiscoveries,
+        2,
+        "Both discovery responses must still be open",
+      );
+      assert.equal(
         mock.controls.abortedDiscoveries,
         aborted,
         "Discovery ended before unrelated requests completed",
@@ -994,12 +1006,24 @@ export async function phaseFour(
       await pool!.query(
         'update auth_runtime set "discoveryEpoch"="discoveryEpoch"+1 where id=1',
       );
-      await eventually(
-        async () => mock.controls.abortedDiscoveries,
+      const closed = await eventually(
+        async () => mock.controls.abortedDiscoveries - aborted,
         (count) => count >= 2,
         10_000,
       );
-      for (const replica of ["A", "B"]) {
+      assert.equal(closed, 2);
+      assert.equal(mock.controls.stalledDiscoveries, 0);
+      // The retained providers alone cannot prove that this epoch finished.
+      await Promise.all(
+        replicas.map((replica, index) =>
+          eventually(
+            () => readyCount(replica),
+            (count) => count > readyBefore[index],
+            15_000,
+          ),
+        ),
+      );
+      for (const replica of replicas) {
         await eventually(
           async () => {
             const response = await adminContext.request.get(
@@ -1069,7 +1093,7 @@ export async function phaseFour(
         assert.equal(provider.reason, null);
       }
       return {
-        abortedObsoleteRequests: mock.controls.abortedDiscoveries,
+        abortedObsoleteRequests: closed,
         elapsedMs,
         lastWorkingProviderRetained: true,
         passwordSignInDuringDiscoveryFailure: true,

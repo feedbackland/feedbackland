@@ -43,6 +43,7 @@ export async function createOidcMock(tls?: ServerOptions) {
     badUserInfoSubject: false,
     picture: "https://avatar.invalid/fixture.png",
     discoveries: 0,
+    stalledDiscoveries: 0,
     abortedDiscoveries: 0,
     tokenExchanges: 0,
     tokenAuthMethod: "client_secret_basic" as
@@ -63,7 +64,14 @@ export async function createOidcMock(tls?: ServerOptions) {
         if (url.pathname === "/.well-known/openid-configuration") {
           controls.discoveries++;
           if (controls.stall) {
-            response.on("close", () => controls.abortedDiscoveries++);
+            controls.stalledDiscoveries++;
+            response.once("close", () => {
+              controls.stalledDiscoveries--;
+              controls.abortedDiscoveries++;
+            });
+            response
+              .writeHead(200, { "content-type": "application/json" })
+              .flushHeaders();
             return;
           }
           if (!controls.ready) return void response.writeHead(503).end();
