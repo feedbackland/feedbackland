@@ -657,6 +657,10 @@ export async function onboardingBrowser(f: Fixture) {
       .waitFor({ timeout: 10000 });
     await spendContext.close();
     step = "foreground timing across two replicas";
+    // Earlier manual checks can fill the administrator's fixed window on fast
+    // runners. Start this separate scenario after that window has expired.
+    await f.sql(`update rate_limit set "windowStart"=now()-interval '61 seconds'
+      where key='ai-check:user:' || (select id from "user" where email='admin@fixture.invalid')`);
     const isPoll = (req: {
       url: () => string;
       postData: () => string | null;
